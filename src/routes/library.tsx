@@ -18,6 +18,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
+import { getRandomOgImage } from "@/lib/og-image";
 import type { LibraryPrompt } from "@/types/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_GRADIENTS } from "@/data/examples";
@@ -47,34 +48,34 @@ export const Route = createFileRoute("/library")({
   gcTime: 30 * 60 * 1000,
   head: () => ({
     meta: [
-      { title: "Prompt Library — Browse 400+ Curated AI Image Prompts | Depikt" },
+      { title: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt" },
       {
         name: "description",
         content:
-          "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 400+ curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.",
+          "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.",
       },
       {
         property: "og:title",
-        content: "Prompt Library — Browse 400+ Curated AI Image Prompts | Depikt",
+        content: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt",
       },
       {
         property: "og:description",
         content:
-          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 400+ ready-to-use prompts across 10 categories.",
+          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: absoluteUrl("/og-default.png") },
+      { property: "og:image", content: getRandomOgImage() },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Prompt Library — Browse 400+ Curated AI Image Prompts | Depikt",
+        content: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt",
       },
       {
         name: "twitter:description",
         content:
-          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 400+ ready-to-use prompts across 10 categories.",
+          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
       },
-      { name: "twitter:image", content: absoluteUrl("/og-default.png") },
+      { name: "twitter:image", content: getRandomOgImage() },
     ],
     links: [{ rel: "canonical", href: absoluteUrl("/library") }],
   }),
@@ -192,7 +193,7 @@ function HomePage() {
             Curated prompt library for GPT Image 2.
           </h1>
           <p className="mt-2 hidden max-w-3xl text-body-lg text-[color:var(--text-secondary)] md:mt-3 md:block">
-            400+ sample prompts collected from across the web. Pick one that fits your
+            500 sample prompts collected from across the web. Pick one that fits your
             vision, or use the Generator to craft your own from a rough idea.
           </p>
 

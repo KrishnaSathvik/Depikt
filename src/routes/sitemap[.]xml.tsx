@@ -13,6 +13,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             .sort()
             .at(-1) ?? today;
         const urls: { loc: string; lastmod: string; priority: string; changefreq?: string }[] = [
+          { loc: absoluteUrl("/"), lastmod: today, priority: "1.0", changefreq: "weekly" },
           { loc: absoluteUrl("/library"), lastmod: today, priority: "1.0", changefreq: "daily" },
           { loc: absoluteUrl("/generate"), lastmod: today, priority: "0.9", changefreq: "weekly" },
           { loc: absoluteUrl("/gallery"), lastmod: today, priority: "0.8", changefreq: "weekly" },

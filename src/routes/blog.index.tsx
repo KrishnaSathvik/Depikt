@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
+import { getRandomOgImage } from "@/lib/og-image";
 
 const PAGE_TITLE = "AI Image Prompt Engineering — Depikt Blog";
 const PAGE_DESCRIPTION =
@@ -35,9 +36,11 @@ export const Route = createFileRoute("/blog/")({
         { property: "og:description", content: PAGE_DESCRIPTION },
         { property: "og:type", content: "website" },
         { property: "og:url", content: PAGE_URL },
+        { property: "og:image", content: getRandomOgImage() },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: PAGE_TITLE },
         { name: "twitter:description", content: PAGE_DESCRIPTION },
+        { name: "twitter:image", content: getRandomOgImage() },
       ],
       links: [{ rel: "canonical", href: PAGE_URL }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(blogJsonLd) }],

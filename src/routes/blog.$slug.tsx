@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getPostBySlug, getRelatedPosts } from "@/data/posts";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
+import { getRandomOgImage } from "@/lib/og-image";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -39,9 +40,11 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "article:published_time", content: post.published },
         { property: "article:author", content: post.author },
         { property: "article:section", content: post.category },
+        { property: "og:image", content: getRandomOgImage() },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: post.seo_title },
         { name: "twitter:description", content: post.seo_description },
+        { name: "twitter:image", content: getRandomOgImage() },
       ],
       links: [{ rel: "canonical", href: url }],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(articleJsonLd) }],

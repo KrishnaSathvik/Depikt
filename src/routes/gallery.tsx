@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
+import { getRandomOgImage } from "@/lib/og-image";
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -26,7 +27,7 @@ export const Route = createFileRoute("/gallery")({
           "Browse reference images and use them to inspire AI-generated prompts.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: absoluteUrl("/og-default.png") },
+      { property: "og:image", content: getRandomOgImage() },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Reference Gallery — Depikt" },
       {
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/gallery")({
         content:
           "Browse reference images and use them to inspire AI-generated prompts.",
       },
-      { name: "twitter:image", content: absoluteUrl("/og-default.png") },
+      { name: "twitter:image", content: getRandomOgImage() },
     ],
     links: [{ rel: "canonical", href: absoluteUrl("/gallery") }],
   }),

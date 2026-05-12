@@ -3,13 +3,13 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
+import { getRandomOgImage } from "@/lib/og-image";
 
 import appCss from "../styles.css?url";
 
 const DEFAULT_TITLE = "Image prompt generator — turn rough ideas into production-grade AI prompts";
 const DEFAULT_DESCRIPTION =
-  "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 400+ curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.";
-const DEFAULT_OG_IMAGE = absoluteUrl("/og-default.png");
+  "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.";
 
 function NotFoundComponent() {
   return (
@@ -84,11 +84,11 @@ export const Route = createRootRoute({
       { property: "og:title", content: DEFAULT_TITLE },
       { property: "og:description", content: DEFAULT_DESCRIPTION },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: DEFAULT_OG_IMAGE },
+      { property: "og:image", content: getRandomOgImage() },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: DEFAULT_OG_IMAGE },
+      { name: "twitter:image", content: getRandomOgImage() },
       { name: "twitter:title", content: DEFAULT_TITLE },
       { name: "twitter:description", content: DEFAULT_DESCRIPTION },
     ],

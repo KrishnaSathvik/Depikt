@@ -256,6 +256,114 @@ const PLACEHOLDER_FILLS = {
     "[doing action]": "reading a book at a café",
     "[facial expression]": "calm and content",
   },
+  // ─── Batch 7 placeholder fills ──────────────────────────────────────────────
+  "curated-wooden-automaton-portrait": {
+    "[subject]": "a Victorian clockmaker",
+    "[cherry]": "cherry",
+    "[walnut]": "walnut",
+    "[pine]": "pine",
+    "[warm amber]": "warm amber",
+  },
+  "curated-person-legacy-infographic": {
+    "[Person's Name]": "Leonardo da Vinci",
+  },
+  "curated-paper-cut-layered-art": {
+    "[subject]": "a Japanese pagoda garden",
+    "[color1]": "coral red",
+    "[color2]": "sage green",
+  },
+  "curated-social-media-blueprint-poster": {
+    "[APP/PLATFORM NAME]": "Instagram",
+    "[BACKGROUND STYLE]": "dark matte black",
+    "[COLOR PALETTE]": "gradient pink-to-purple",
+    "[METRIC TYPE]": "engagement",
+  },
+  "curated-dark-mode-sports-brand-board": {},
+  "curated-luxury-fashion-brand-board": {},
+  "curated-character-double-exposure-poster": {
+    "[XXX]": "a powerful samurai warrior",
+  },
+  "curated-anime-streetwear-character-poster": {
+    "{character_name}": "Tanjiro Kamado",
+    "{franchise}": "Demon Slayer",
+  },
+  "curated-minimalist-city-line-art-poster": {
+    "[CITY NAME]": "Tokyo",
+  },
+  "curated-flat-vector-travel-poster": {
+    "[DESTINATION]": "Santorini",
+    "[COUNTRY]": "Greece",
+  },
+  "curated-mid-century-3-color-poster": {
+    "[CITY NAME]": "Kyoto",
+    "[LANDMARK]": "Kinkaku-ji Temple",
+    "[COLOR]": "vermillion red",
+  },
+  "curated-line-art-city-travel-poster": {
+    "[CITY NAME]": "Paris",
+  },
+  "curated-vehicle-engineering-infographic": {
+    "{VEHICLE_NAME}": "Boeing 747-400",
+  },
+  "curated-designer-grade-poster-layout": {},
+  "curated-luxury-magazine-cover-closeup": {},
+  "curated-anime-character-design-sheet-template": {
+    "Enter here": "Medieval fantasy kingdom with a magic-tech hybrid civilization",
+  },
+  "curated-minimalist-cartoon-character-sheet": {
+    "[accent color]": "electric blue",
+    "[character description]": "a cheerful robot companion with antenna ears",
+    "[clothing style]": "minimal futuristic jumpsuit",
+    "[pose 1]": "waving hello",
+    "[pose 2]": "running",
+    "[pose 3]": "thinking with hand on chin",
+    "[pose 4]": "surprised",
+    "[pose 5]": "laughing",
+    "[pose 6]": "sleeping",
+  },
+  "curated-luxury-watch-cinematic-product": {
+    "TYPE HERE THE WATCH NAME": "Richard Mille RM 56-02 Sapphire",
+    "TYPE HERE THE COLOR EDITION": "Transparent sapphire crystal edition with midnight blue accents.",
+  },
+  "curated-fantasy-couture-character-magazine": {
+    "{character_name}": "Sailor Moon",
+    "{franchise}": "Pretty Guardian Sailor Moon",
+  },
+  "curated-anime-character-worldview-archive": {
+    "【Character Name】": "Uzumaki Naruto",
+    "【Work Name】": "Naruto",
+    "【Protagonist / Antagonist / Mentor / Warrior / Mage / Ninja / Survey Corps Captain / Jujutsu Sorcerer / Elven Sorcerer, etc.】": "Ninja / Jinchūriki",
+    "【Must accurately display the character's full Chinese name, e.g., Uzumaki Naruto】": "漩涡鸣人",
+    "【Can include character title / short slogan / character role】": "The Seventh Hokage",
+    "【3:4 Portrait】": "3:4 Portrait",
+    "【Such as black-orange, black-blue, black-red, silver-blue, black-white-gray, etc.】": "black-orange",
+    "【Such as flame orange, electric blue, crimson, gold, cold white light, etc.】": "flame orange",
+    "【Such as Rasengan, Nine-Tails Power, Infinite Void, Omni-Directional Mobility Gear, Ancient Magic, etc.】": "Rasengan, Nine-Tails Chakra Mode",
+    "【Such as fox silhouette, flames, mechanical devices, starry magic circle, blue energy, ruined tower, etc.】": "fox silhouette, flames, ninja scrolls",
+    "【Character's Full Chinese Name】": "漩涡鸣人",
+  },
+  "curated-dark-tide-ensemble-cover": {
+    "[Theme: Character Names]": "Jujutsu Kaisen Sorcerers",
+    "[Theme, e.g., Jujutsu Battle / Dark Journey to the West / Cyber Hunter / Classic of Mountains and Seas Demon Hunters / Doomsday Survivors / Magic Academy Battle Squad]": "Jujutsu Battle",
+    "[Work Title]": "Jujutsu Kaisen",
+    "[Brand Name or Series Name]": "CURSED CHRONICLES",
+    "[Subtitle]": "The Shibuya Incident",
+    "[Style Direction, e.g., dark fantasy, retro comic cover, hand-drawn thick impasto, fantasy novel cover, game key visual]": "dark fantasy",
+    "[Main Color Scheme, e.g., ink green-black-gray / deep blue neon / dark brown-gold-red / sand yellow-rust / deep purple-gold]": "deep blue neon",
+    "[Accent Color, e.g., blood-red energy, cyan-green spell light, golden divine glow, blue lightning]": "blue lightning",
+    "[Aspect Ratio, e.g., 2:3 portrait / 3:4 portrait / 4:5 portrait / 9:16 portrait]": "3:4 portrait",
+  },
+  "curated-3d-historical-figure-biography-poster": {
+    "[Character Name]": "Zhuge Liang",
+    "[Emperor / Famous General / Famous Minister / Thinker / Literary Figure / Reformer / Military Strategist, etc.]": "Military Strategist / Prime Minister",
+    "[Dynasty / Historical Period]": "Three Kingdoms Period",
+    "[Unification / Reforms / Loyalty and Righteousness / Unity of Knowledge and Action / Northern Expedition / Institutions / School of Mind / Golden Age, etc.]": "Northern Expedition / Loyalty and Righteousness",
+    "[Mystical Black Gold Red / Azure Blue Gray Gold / Dark Red Ink Gold / Iron Armor Deep Blue, etc.]": "Azure Blue Gray Gold",
+  },
+  "curated-gojo-streetwear-anime-poster": {
+    "{character_name: Satoru Gojo}": "Satoru Gojo",
+    "{franchise: Jujutsu Kaisen}": "Jujutsu Kaisen",
+  },
 };
 
 // ─── Full prompt overrides (copyright-sensitive or brand-heavy prompts) ──────
@@ -304,6 +412,26 @@ const PROMPT_OVERRIDES = {
     "An elegant woman sitting on a velvet ottoman in front of an ornate gold-framed mirror, taking a refined mirror selfie. She wears a deep red high-slit evening gown with silky fabric pooling around her. Soft morning light filters through sheer curtains, casting a dreamy glow over the minimalist modern bedroom. A cup of coffee sits beside her on the wooden floor. Her hand elegantly holds her phone, dark eyes locked onto the reflection with quiet confidence. Cinematic portrait, editorial fashion photography, 8K, shallow depth of field.",
   "curated-luxury-bathroom-fashion":
     "A beautiful Indian woman with medium-tan skin, sharp attractive face, full lips with red lipstick, defined eyebrows, confident expression, dark brown hair with soft waves falling over her shoulders, standing in a luxurious modern bathroom. She wears a white satin slip dress with thin spaghetti straps and ruched detailing. One hand resting on her hip. Slightly angled body, looking at viewer with head tilted. Background: glass shower cabin with chrome fixtures, white marble walls with subtle gray veins, bright soft lighting with ceiling spotlights. Photorealistic, 8K, sharp focus, cinematic lighting, luxury fashion editorial.",
+  // ─── Batch 7 overrides (IP/brand-heavy prompts) ─────────────────────────────
+  "curated-naruto-will-of-fire-propaganda": "Ultra-premium propaganda-style anime poster, A4 vertical. Ninja hero with spiky blond hair, headband, battle-worn orange cloak flowing in wind. Low-angle cinematic perspective, one hand forming energy sphere (blue glow), other hand tightening headband. Expression: intense determination, glowing chakra eyes. Background: destroyed village battlefield, crumbling mountain monument, burning debris, torn banners, smoke-filled skyline, massive clouds opening. Behind character: gigantic faded nine-tailed fox spirit silhouette emerging from smoke. Typography: 'THE WILL OF FIRE' large distressed text, 'FROM OUTCAST TO LEGEND' secondary tagline. Style: Japanese propaganda poster × premium anime key art, deep crimson, burnt orange, parchment beige, chakra blue. Halftone textures, vintage paper grain, ink-brush strokes, manga impact lines. Museum-grade collector poster aesthetic, 8K.",
+  "curated-titan-female-warrior-poster": "Ultra-realistic cinematic anime movie poster, vertical composition. Female warrior with short black hair, red scarf flowing in wind, dual swords, ODM gear flying across ruined city. Colossal titan silhouette emerging through smoke in background. Elegant double exposure layout with large emotional side-profile portrait. Atmospheric destruction, ash particles, storm clouds, cinematic soft lighting, muted gray and sepia tones. Highly detailed skin and fabric textures, realistic leather combat uniform, dynamic action scene, photorealistic anime adaptation, dramatic depth, 8K.",
+  "curated-titan-warrior-dark-fantasy-poster": "Ultra-realistic dark fantasy anime poster, post-apocalyptic theme. Fierce young warrior with messy black hair, intense green eyes, dual blades and vertical maneuvering gear. Dynamic action pose lunging toward camera. Massive colossal giants emerging through storm clouds behind destroyed walls. Double exposure with giant side-profile face blended into battlefield. Cinematic lightning, smoke, ash, burning city ruins, dramatic volumetric fog. Gritty textures, rain-soaked skin, emotional rage expression, moody monochrome tones with orange embers, IMAX movie poster style, 8K.",
+  "curated-anime-crossover-warriors-battle": "Full-body high-impact anime illustration featuring three powerful warriors on a shattered rock platform, combining intense detailed shonen action style. Center: Super Saiyan Blue warrior with spiky blue hair, glowing red eyes, shredded blue gi, magical blue sigil and lightning. Left: explosive hero in orange-black-green suit, crouching with explosive orange effects. Right: ascended warrior with massive silver hair, purple gi, green alchemical circle aura. Cosmic energy, floating debris, dark power-charged sky.",
+  "curated-gojo-streetwear-anime-poster": "Stylized anime character poster, vertical 4:5 composition. Confident male figure with white spiky hair, blindfold/eye covering, slight smirk. Modern streetwear: oversized black tactical coat, layered hoodie, slim cargo pants, silver accessories, futuristic sneakers. Clean white background, electric blue energy accents, abstract geometric poster layout. Sharp directional lighting, crisp shadows, glowing blue energy around hands. Anime × streetwear × graphic poster hybrid, clean lineart, semi-flat shading, ultra-clean vector style, 4K.",
+  "curated-solo-leveling-shadow-monarch-poster": "Ultra cinematic anime promotional poster, vertical 4:5 format (1080x1350). Upper section: enormous shadow-covered warrior face emerging from darkness, glowing electric purple eyes, sharp anime features, shadow soldiers behind like supernatural army. Middle section: main character standing on ruined battlefield in long black trench coat with glowing blue runes, dual daggers emitting neon energy. Dynamic particles, floating debris, lightning streaks. Bottom: typography space with cinematic fog, cracked ground, glowing embers. Premium anime movie poster mixed with luxury gaming ad. Deep blacks, neon blue and purple highlights, 8K.",
+  "curated-anime-double-exposure-propaganda": "Propaganda poster themed around a powerful green-haired swordsman. Top half: large silhouette of character's head with bandana and earrings as iconic visual. Middle to bottom: full-body character holding three swords in stable pose. Double exposure and narrative collage with layered scenes, ink splatter, and white negative space. Supporting elements on left and right for narrative tension. Vertical flowing visual line connecting all elements. Large amounts of negative space, ink diffusion edges, Eastern aesthetic balance. Pop and striking green, black, and gold colors. A4 format, premium refined cinematic poster.",
+  "curated-demon-empress-watercolor-fantasy": "Epic dark-fantasy anime poster, ultra-detailed watercolor and ink-splatter style. Massive vertical composition: graceful side-profile of mesmerizing woman with porcelain skin, long moonlit lavender hair, glowing ruby eyes, subtle dangerous smile. Obsidian-and-crimson horns, gigantic shadowy bat wings. Within silhouette: layered double-exposure — amethyst crystal caves, enchanted forests, floating temples, celestial rivers, astral nebula. Lower center: full-body demon empress in black-and-ruby battle attire, enormous crimson wings expanded. Swirling pink, magenta, violet magical flames. Watercolor textures, ink wash, cosmic galaxy effects. Deep purples, crimson, magenta, rich black. Typography top-left: bold brush calligraphy title. 8K resolution.",
+  "curated-fmcg-billboard-ramen": "Hyper-realistic cinematic FMCG billboard poster, warmth and richness theme. Scene: slow-motion pour of noodles into deep bowl, broth splashing gently, vegetables and herbs visible. Product: noodle pack upright behind, open pack with noodles exposed. Environment: dark minimal kitchen with warm backlight, steam blending into atmosphere. Centered calm composition. Typography: center massive 'RICH IN EVERY BITE', background faint 'SLOW / WARM / DEEP / SATISFY', 'REAL FLAVOUR. REAL COMFORT.' Warm cinematic light, cream-brown-gold palette, steam and soft haze, comforting mood.",
+  "curated-fmcg-billboard-noodles-spicy": "Hyper-realistic cinematic FMCG billboard poster, street-style bold flavor theme. Scene: noodles tossed mid-air in wok flame, fire burst illuminating strands, aggressive motion. Dark street kitchen setting with fire glow and smoke. Diagonal explosive composition, strong contrast. Typography: center massive 'DESI CHINESE FIRE', background faint 'SPICE / HEAT / WOK / POWER', 'TURN UP THE FLAVOUR.' Strong orange fire light + deep shadows, red-orange-black palette, smoke and sparks, bold high-energy mood.",
+  "curated-fmcg-billboard-maggi": "Hyper-realistic cinematic FMCG billboard poster, craving and comfort theme. Scene: steaming bowl of freshly cooked noodles on wet roadside stall counter at sunrise, noodles lifted mid-air with fork, strands stretching, steam rising. Empty early morning street food setting, wet ground reflecting light. Low angle shot, strong diagonal movement. Typography: center massive '2 MINUTE MAGIC', background faint 'HOT / FAST / TASTY / AGAIN', 'NO WAIT. JUST CRAVE.' Warm sunrise backlight, golden glow through steam, yellow-golden-black palette, addictive energetic mood. 4:5 portrait.",
+  "curated-fmcg-billboard-yippee": "Hyper-realistic cinematic FMCG billboard poster, fun chaos theme. Scene: noodles exploding mid-air in twisting motion above bowl, strands flying with sauce droplets and masala particles frozen in motion. Dark playful background with yellow-red color streaks, wet reflective base. Dynamic center burst, radial energy. Typography: center massive 'FULL ON MASTI', background faint 'TWIST / SLURP / SPIN / REPEAT', 'NO BORING BITES.' High contrast warm lighting, yellow-red-black palette, spice particles and motion blur, playful energetic mood.",
+  "curated-miniature-world-jewelry-ad": "Hyper-detailed luxury advertising poster in cinematic miniature-world style. Gigantic royal diamond necklace with intricate gold filigree and massive ruby gemstones standing as architectural monument. Futuristic miniature city built around and inside the jewelry: skyscrapers, elevated highways, bridges, spiral staircases, tiny human figures, luxury billboards, drones, helicopters. Deep crimson red monochrome background with gold and ruby accents. Typography: 'EMBRACE THE EXTRAORDINARY'. Ultra realistic textures, tilt-shift miniature effect, 8K.",
+  "curated-miniature-world-burger-ad": "Cinematic fast-food advertising poster. Gigantic double cheeseburger transformed into futuristic urban landmark towering above miniature city. Spiral staircases, observation decks, walkways, tiny people, helicopters, drones, busy streets. Ultra realistic burger with juicy patties, melted cheese, lettuce, sesame buns. Bold vibrant red background with golden accents. Dramatic commercial lighting, tilt-shift miniature photography, typography: 'GIGANTIC FLAVOR. NOW WITHIN REACH.' Ultra realistic 3D render, 8K.",
+  "curated-miniature-world-chicken-ad": "Surreal advertising campaign poster. Enormous crispy fried chicken drumstick as monumental skyscraper in miniature futuristic city. Golden crunchy textures, spiral staircases, glass walkways, platforms, drones, helicopters, tiny crowds, delivery trucks. Vivid red monochromatic background, cinematic lighting. Typography: 'THE TASTE THAT RULED THE WORLD'. Tilt-shift depth of field, glossy textures, premium 3D rendering, 8K.",
+  "curated-miniature-world-iphone-ad": "Futuristic tech advertising poster. Gigantic orange smartphone standing vertically as iconic skyscraper in miniature smart city. Elevated bridges, spiral staircases, floating walkways, tiny human figures, drones, helicopters, modern buildings with glowing branding. Vibrant monochromatic orange background, premium minimalist aesthetics, cinematic studio lighting. Ultra-realistic metallic edges, glossy reflections, elegant industrial design.",
+  "curated-dunk-king-sneaker-campaign": "Hype sneaker advertisement poster. Young Black male basketball player frozen in powerful mid-air dunk pose beside gigantic orange-and-black basketball shoe nearly three times his height, 'DUNK KING' written across sole. Dramatic stadium court light beams, dark basketball arena, blurred cheering crowd. Massive bold orange typography 'DUNK KING' in background. Tagline: 'Rise above the rest.' Photorealistic, ultra-detailed, high-energy sports campaign aesthetic, cinematic lighting, 8K.",
+  "curated-pirate-empress-character-sheet": "Professional anime character design sheet of a regal dark-haired empress inspired by classic pirate fantasy aesthetics. Clean manga-style reference board. Multiple elegant full-body poses: front view, back view, confident standing, graceful walking, side profile, crossed-arm royal pose, dramatic cape-flowing pose. Long silky black hair, refined features, gold earrings, luxurious crimson slit dress with intricate embroidery, high heels, white royal cape. Detailed costume close-ups, fabric texture notes, color palette, height markings, Japanese annotation labels. High-detail anime rendering, polished linework, 4K.",
+  "curated-succubus-queen-character-sheet": "Professional anime-style character turnaround sheet. Dark fantasy succubus queen: long crimson hair, black horns, glowing red eyes, elegant gothic gown with gold embroidery. Poses: front standing, rear, seated, kneeling, dramatic low-angle. Close-up face study, wing detail section, jewelry accessories, color palette bar. White paper manga reference layout with Japanese annotations and measurement guides. Detailed shading, fantasy elegance, studio-quality character design sheet.",
 };
 
 // ─── Prompts to skip (need input image) ─────────────────────────────────────
@@ -362,6 +490,21 @@ const SKIP_IDS = new Set([
   "curated-doodle-overlay-cartoon",
   "curated-fantasy-popup-book",
   "curated-double-exposure-travel",
+  // ─── Batch 7 skips (image-edit or need input image) ───────────────────
+  "curated-wireframe-conversion",
+  "curated-folk-art-reimagine",
+  "curated-trending-anime-style-edit",
+  "curated-manga-page-from-photo",
+  "curated-colored-manga-page-female",
+  "curated-gta-vi-portrait-poster",
+  "curated-paper-craft-style-recreation",
+  "curated-urban-fashion-editorial-collage",
+  "curated-japanese-negative-film-portrait",
+  "curated-ming-dynasty-godslayer-fashion",
+  "curated-bedroom-selfie-smartphone-realism",
+  "curated-freeform-fashion-lookbook-collage",
+  "curated-y2k-cyberpunk-magazine-cover",
+  "curated-ink-wash-ronin-duel",
 ]);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

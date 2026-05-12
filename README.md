@@ -1,141 +1,66 @@
 # Depikt
 
-Depikt is a production-focused prompt tool for AI image generation. It turns rough creative ideas into structured, copy-ready prompts for GPT Image 2, fal.ai, and OpenAI image workflows.
+**Turn rough ideas into production-grade image prompts.**
 
-The app includes a curated prompt library, a live prompt generator, a prompt critique flow, local history, blog content, and SEO metadata for launch.
+Depikt is a free prompt tool for AI image generation. Type a rough idea — "poster for a coffee brand" — and get back a structured, copy-ready prompt optimized for GPT Image 2. No account required.
 
-## What It Does
+**Live at [depikt.app](https://depikt.app)**
 
-- Browse a curated library of production-grade image prompts.
-- Generate polished prompts from rough ideas.
-- Request extra variations after a generation.
-- Critique existing prompts with a score, weaknesses, and concrete improvements.
-- Save recent generations and critiques in localStorage history.
-- Open prompts directly in Imago with tracking parameters.
-- Publish SEO-friendly blog posts and sitemap/robots metadata.
+## What you can do
 
-## Main Routes
+### Generate prompts
+Paste a rough idea and Depikt builds a polished prompt with aspect ratio, lighting, composition, materials, and style direction — all the details that make AI image models produce better output. It auto-detects the category (poster, cinematic scene, product shot, infographic, storyboard, etc.) and applies the right structural template.
 
-- `/` — Redirects to `/library`.
-- `/library` — Library home page.
-- `/generate` — Prompt generator.
-- `/critique` — Prompt critique tool.
-- `/blog` — Blog index.
-- `/blog/$slug` — Blog post template.
-- `/api/public/generate-prompt` — Public SSE generation endpoint.
-- `/sitemap.xml` — Sitemap.
-- `/robots.txt` — Robots file.
+### Browse 500 curated prompts
+A library of production-grade prompts across 10 categories, each with an example thumbnail showing what it produces. Copy any prompt directly or remix it into something new.
 
-Deprecated routes such as `/app`, `/examples`, `/login`, and `/signup` redirect to `/library`.
+### Critique existing prompts
+Paste any prompt and get a 1–10 score, specific weaknesses, and a fully rewritten version with all improvements applied. Good for learning what makes a prompt work.
 
-## Tech Stack
+### Use reference images
+Upload or drag an image as a style reference. Depikt extracts the visual style (palette, lighting, composition, medium) and weaves it into your generated prompt.
 
-- React 19
-- TanStack Start / TanStack Router
-- Vite
-- Cloudflare Workers / Wrangler
-- Tailwind CSS v4
-- shadcn/Radix UI primitives
-- Supabase client plumbing for curated library data and future auth
-- Lovable AI Gateway for prompt generation
+### Save favorites and history
+Favorite any prompt from the library to save it locally. Every prompt you generate or critique is saved to your history — revisit and restore past results anytime. All stored in-browser via IndexedDB, no account needed.
 
-## Local Development
+### Open in Imago
+Every generated prompt includes a one-click button to open [Imago](https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago) (a GPT that generates images) with your prompt already copied.
 
-Install dependencies:
+## How it works
 
-```bash
-npm install --legacy-peer-deps
-```
+1. You type a rough idea
+2. Depikt classifies it into one of 10 categories (cinematic, poster, infographic, UI mockup, storyboard, etc.)
+3. It applies a category-specific structural template with 5–8 concrete constraints
+4. You get back a polished prompt ready to paste into ChatGPT, the OpenAI API, or fal.ai
 
-Start the dev server:
+The prompt engine replaces vague adjectives ("stunning," "beautiful") with observable physical detail — lens specs, lighting direction, material textures, cultural anchors. It also handles aspect ratio locking, text-in-image rendering, multi-page storyboards, and image edit instructions.
 
-```bash
-npm run dev
-```
+## Pages
 
-Build for production:
+| Page | What it does |
+|------|-------------|
+| [/library](https://depikt.app/library) | Browse and search 400+ curated prompts with thumbnails |
+| [/generate](https://depikt.app/generate) | Turn a rough idea into a polished prompt |
+| [/critique](https://depikt.app/critique) | Score and rewrite an existing prompt |
+| [/gallery](https://depikt.app/gallery) | Gallery of AI-generated images (use any as a style reference) |
+| [/blog](https://depikt.app/blog) | Articles on prompt engineering for image generation |
 
-```bash
-npm run build
-```
+## Prompt categories
 
-Preview the Cloudflare build:
+- Cinematic Scene
+- Poster / Cover
+- Infographic / Diagram
+- UI Mockup
+- Social Post / Ad
+- Storyboard / Multi-panel
+- Interior / Food / Fashion
+- Visual Summary
+- Image Edit
+- Open-Ended Creative
 
-```bash
-npm run preview
-```
+## Built with
 
-## Environment Variables
-
-The app expects these values in local development or deployment:
-
-```bash
-SUPABASE_URL=
-SUPABASE_PUBLISHABLE_KEY=
-VITE_SUPABASE_URL=
-VITE_SUPABASE_PUBLISHABLE_KEY=
-LOVABLE_API_KEY=
-SITE_URL=
-VITE_SITE_URL=
-```
-
-`SITE_URL` or `VITE_SITE_URL` controls canonical URLs, sitemap URLs, and absolute OG image URLs. If unset, the app falls back to the Lovable production URL configured in `src/lib/site.ts`.
-
-## Generator Flow
-
-The generator and critique pages both call `/api/public/generate-prompt` with server-sent events.
-
-The endpoint:
-
-- validates category and mode against shared definitions from `src/lib/depikt.ts`
-- applies a lightweight per-IP rate limit
-- sends streaming `delta` events for generator output
-- sends a final `done` event with the parsed result
-- stamps responses with `PROMPT_VERSION`
-- sanitizes Midjourney-style CLI flags from final prompts
-
-Client-side SSE parsing lives in `src/lib/sse.ts` and is shared by Generate and Critique.
-
-## Depikt prompt engine
-
-The main prompt-engineering logic lives in `src/lib/depikt.ts`.
-
-It defines:
-
-- supported categories
-- supported modes
-- `PROMPT_VERSION`
-- the system prompt used by the generation endpoint
-
-When changing prompt behavior, bump `PROMPT_VERSION` so generated outputs and local history can be traced back to the Depikt revision that produced them.
-
-## History
-
-History is intentionally local-only for now.
-
-Recent generations and critiques are saved to `localStorage` through `src/lib/history.ts`, capped at 20 entries. No generator results are written to the database without auth.
-
-## SEO
-
-The app includes:
-
-- route-level titles and descriptions
-- canonical links for `/`, `/app`, `/critique`, `/blog`, and blog posts
-- local OG image asset at `public/og-default.png`
-- sitemap and robots routes
-- JSON-LD for blog pages
-
-## Production Notes
-
-The current API route has an in-memory IP rate limiter. It is useful as a best-effort guard, but real production abuse resistance should use Cloudflare WAF/Rate Limiting, Turnstile, or a Durable Object/KV-backed limiter so request counts survive cold starts and multiple regions.
-
-The build uses manual chunk splitting in `vite.config.ts` to keep the main client chunk under Vite's warning threshold and make heavy vendor libraries cacheable.
-
-## Known Maintenance Notes
-
-- Full `npm run lint` may surface pre-existing Prettier issues in untouched files.
-- Focused lint should be run on files changed in a PR until the repository-wide formatting debt is cleaned up.
-- `package-lock.json` was generated with `npm install --legacy-peer-deps` because the current dependency set includes a Zod adapter peer range mismatch with `zod@4`.
+React 19, TanStack Start, Vite, Tailwind CSS 4, Radix UI, Supabase, OpenAI, deployed on Cloudflare Workers.
 
 ## License
 
