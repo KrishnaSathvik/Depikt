@@ -6,7 +6,6 @@ import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const BLOG_INDEX_OG_IMAGE = getOgImageForPath("/blog");
 
 const PAGE_TITLE = "AI Image Prompt Engineering — Depikt Blog";
 const PAGE_DESCRIPTION =
@@ -15,6 +14,7 @@ const PAGE_URL = absoluteUrl("/blog");
 
 export const Route = createFileRoute("/blog/")({
   head: () => {
+    const BLOG_INDEX_OG_IMAGE = getOgImageForPath();
     const blogJsonLd = {
       "@context": "https://schema.org",
       "@type": "Blog",

@@ -25,7 +25,6 @@ import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const GENERATE_OG_IMAGE = getOgImageForPath("/generate");
 const GENERATE_URL = absoluteUrl("/generate");
 const GENERATE_JSONLD = {
   "@context": "https://schema.org",
@@ -63,7 +62,7 @@ export const Route = createFileRoute("/generate")({
       ref: typeof ref === "string" && ref.startsWith("/gallery/") ? ref : undefined,
     };
   },
-  head: () => ({
+  head: () => { const GENERATE_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
       { title: "AI Prompt Generator — Turn Ideas into Production-Grade Prompts | Depikt" },
       {
@@ -88,7 +87,7 @@ export const Route = createFileRoute("/generate")({
     ],
     links: [{ rel: "canonical", href: GENERATE_URL }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(GENERATE_JSONLD) }],
-  }),
+  }); },
   component: AppPage,
 });
 

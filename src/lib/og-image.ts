@@ -2,21 +2,20 @@ import { OG_THUMBNAIL_URLS } from "@/data/og-thumbnails";
 import { absoluteUrl } from "@/lib/site";
 
 /**
- * Deterministic OG image picker. Same input string (route path or slug)
- * always returns the same image URL, so og:image and twitter:image on the
- * same page point to the same asset.
+ * Picks a random OG thumbnail on each call. Called inside route head() so
+ * each SSR request emits a different og:image (and matching twitter:image,
+ * since we call it once per head() and reuse the result).
+ *
+ * Cached aggressively by some platforms (Twitter, Facebook) and re-fetched
+ * by others (Discord, iMessage, Slack) — so in practice you get rotation
+ * on the platforms that don't lock to first-fetch.
  */
-export function getOgImageForPath(key: string): string {
+export function getOgImageForPath(_key?: string): string {
   if (OG_THUMBNAIL_URLS.length === 0) return absoluteUrl("/og-default.png");
-  let hash = 0;
-  for (let i = 0; i < key.length; i++) {
-    hash = (hash * 31 + key.charCodeAt(i)) | 0;
-  }
-  const index = Math.abs(hash) % OG_THUMBNAIL_URLS.length;
-  return OG_THUMBNAIL_URLS[index];
+  return OG_THUMBNAIL_URLS[Math.floor(Math.random() * OG_THUMBNAIL_URLS.length)];
 }
 
-/** @deprecated Use getOgImageForPath(routePath) — randomized images cause OG/Twitter mismatches. */
+/** @deprecated Use getOgImageForPath() — now randomized. */
 export function getRandomOgImage(): string {
-  return absoluteUrl("/og-default.png");
+  return getOgImageForPath();
 }
