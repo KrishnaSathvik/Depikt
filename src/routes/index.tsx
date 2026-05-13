@@ -7,17 +7,23 @@ import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
-import { getOgImageForPath } from "@/lib/og-image";
+import { OG_THUMBNAIL_URLS } from "@/data/og-thumbnails";
+
+function pickRandomOgImage(): string {
+  if (OG_THUMBNAIL_URLS.length === 0) return absoluteUrl("/og-default.png");
+  return OG_THUMBNAIL_URLS[Math.floor(Math.random() * OG_THUMBNAIL_URLS.length)];
+}
 
 const HOME_URL = absoluteUrl("/");
-const HOME_OG_IMAGE = getOgImageForPath("/");
 
 const TITLE = "Depikt — AI image prompt generator for GPT Image 2";
 const DESCRIPTION =
   "Turn rough ideas into production-grade AI image prompts in seconds. Built for OpenAI's GPT Image 2. Browse 500 curated prompts across 10 categories. Free, no login.";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
+  head: () => {
+    const ogImage = pickRandomOgImage();
+    return {
     meta: [
       { title: TITLE },
       { name: "description", content: DESCRIPTION },
@@ -25,11 +31,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: DESCRIPTION },
       { property: "og:type", content: "website" },
       { property: "og:url", content: HOME_URL },
-      { property: "og:image", content: HOME_OG_IMAGE },
+      { property: "og:image", content: ogImage },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: TITLE },
       { name: "twitter:description", content: DESCRIPTION },
-      { name: "twitter:image", content: HOME_OG_IMAGE },
+      { name: "twitter:image", content: ogImage },
     ],
     links: [{ rel: "canonical", href: HOME_URL }],
     scripts: [
@@ -47,7 +53,8 @@ export const Route = createFileRoute("/")({
         }),
       },
     ],
-  }),
+    };
+  },
   component: LandingPage,
 });
 
