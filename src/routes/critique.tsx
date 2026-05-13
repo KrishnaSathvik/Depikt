@@ -18,7 +18,21 @@ import { Header } from "@/components/Header";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
+
+const CRITIQUE_OG_IMAGE = getOgImageForPath("/critique");
+const CRITIQUE_URL = absoluteUrl("/critique");
+const CRITIQUE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Depikt Prompt Critique",
+  url: CRITIQUE_URL,
+  applicationCategory: "DesignApplication",
+  operatingSystem: "Any",
+  description:
+    "Paste an AI image prompt and get a score, weaknesses, concrete improvements, and a rewritten prompt.",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
 import { readSSEStream } from "@/lib/sse";
 
 interface CritiqueSearch {
@@ -45,7 +59,8 @@ export const Route = createFileRoute("/critique")({
           "Paste a prompt. Get a score, weaknesses, concrete improvements, and a rewritten prompt.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: getRandomOgImage() },
+      { property: "og:url", content: CRITIQUE_URL },
+      { property: "og:image", content: CRITIQUE_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Critique a Prompt — Depikt" },
       {
@@ -53,9 +68,10 @@ export const Route = createFileRoute("/critique")({
         content:
           "Paste a prompt. Get a score, weaknesses, concrete improvements, and a rewritten prompt.",
       },
-      { name: "twitter:image", content: getRandomOgImage() },
+      { name: "twitter:image", content: CRITIQUE_OG_IMAGE },
     ],
-    links: [{ rel: "canonical", href: absoluteUrl("/critique") }],
+    links: [{ rel: "canonical", href: CRITIQUE_URL }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(CRITIQUE_JSONLD) }],
   }),
   component: CritiquePage,
 });

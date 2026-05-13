@@ -23,7 +23,21 @@ import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
+
+const GENERATE_OG_IMAGE = getOgImageForPath("/generate");
+const GENERATE_URL = absoluteUrl("/generate");
+const GENERATE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Depikt Prompt Generator",
+  url: GENERATE_URL,
+  applicationCategory: "DesignApplication",
+  operatingSystem: "Any",
+  description:
+    "AI image prompt generator that turns rough ideas into production-grade prompts for GPT Image 2, Midjourney, Nano Banana, and other models.",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
 import { readSSEStream } from "@/lib/sse";
 import { resizeImageToBase64, urlToBase64 } from "@/lib/image-utils";
 
