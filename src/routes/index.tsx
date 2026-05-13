@@ -347,22 +347,3 @@ function FinalCTA() {
 }
 
 /* ============================================================ */
-
-function Footer() {
-  return (
-    <footer className="bg-[color:var(--bg)]">
-      <div className="mx-auto max-w-[1400px] px-6 lg:px-12 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p className="text-body-sm text-[color:var(--text-tertiary)]">
-          © {new Date().getFullYear()} Depikt. Built for GPT Image 2.
-        </p>
-        <nav className="flex items-center gap-5 text-body-sm">
-          <Link to="/library" className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors">Library</Link>
-          <Link to="/generate" className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors">Generate</Link>
-          <Link to="/gallery" className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors">Gallery</Link>
-          <Link to="/blog" className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors">Blog</Link>
-          <a href="/api/blog/rss.xml" className="text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors">RSS</a>
-        </nav>
-      </div>
-    </footer>
-  );
-}
