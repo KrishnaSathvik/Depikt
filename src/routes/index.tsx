@@ -98,7 +98,6 @@ function LandingPage() {
         <BlogTeaser />
         <FinalCTA />
       </main>
-      <Footer />
     </div>
   );
 }
