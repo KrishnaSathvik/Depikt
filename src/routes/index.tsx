@@ -7,12 +7,7 @@ import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
-import { OG_THUMBNAIL_URLS } from "@/data/og-thumbnails";
-
-function pickRandomOgImage(): string {
-  if (OG_THUMBNAIL_URLS.length === 0) return absoluteUrl("/og-default.png");
-  return OG_THUMBNAIL_URLS[Math.floor(Math.random() * OG_THUMBNAIL_URLS.length)];
-}
+import { getOgImageForPath } from "@/lib/og-image";
 
 const HOME_URL = absoluteUrl("/");
 
