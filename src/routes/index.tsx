@@ -102,6 +102,21 @@ function LandingPage() {
   );
 }
 
+function BrandHeader() {
+  return (
+    <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center px-6 lg:px-12">
+        <Link to="/" className="flex items-center gap-2.5">
+          <img src={logo} alt="Depikt" width={28} height={28} className="h-7 w-7 dark:invert" />
+          <span className="text-[15px] font-semibold tracking-tight text-[color:var(--text-primary)]">
+            Depikt
+          </span>
+        </Link>
+      </div>
+    </header>
+  );
+}
+
 function Footer() {
   return (
     <footer className="bg-[color:var(--bg)]">
