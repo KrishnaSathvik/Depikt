@@ -18,7 +18,10 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
+
+const LIBRARY_OG_IMAGE = getOgImageForPath("/library");
+const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CATEGORY_GRADIENTS } from "@/data/examples";
@@ -64,7 +67,8 @@ export const Route = createFileRoute("/library")({
           "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: getRandomOgImage() },
+      { property: "og:url", content: LIBRARY_URL },
+      { property: "og:image", content: LIBRARY_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
@@ -75,9 +79,9 @@ export const Route = createFileRoute("/library")({
         content:
           "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
       },
-      { name: "twitter:image", content: getRandomOgImage() },
+      { name: "twitter:image", content: LIBRARY_OG_IMAGE },
     ],
-    links: [{ rel: "canonical", href: absoluteUrl("/library") }],
+    links: [{ rel: "canonical", href: LIBRARY_URL }],
   }),
   component: HomePage,
 });
