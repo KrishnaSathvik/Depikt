@@ -1,3 +1,8 @@
+export interface PostFaqItem {
+  question: string;
+  answer: string;
+}
+
 export interface Post {
   slug: string;
   title: string;
@@ -9,6 +14,10 @@ export interface Post {
   excerpt: string;
   seo_title: string;
   seo_description: string;
+  /** Optional cover image URL (relative or absolute). Used for og:image and twitter:image. */
+  cover_image?: string;
+  /** Optional FAQ section emitted as FAQPage JSON-LD. */
+  faq?: PostFaqItem[];
   content: string;
 }
 
