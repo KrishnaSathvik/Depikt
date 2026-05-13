@@ -10,7 +10,6 @@ import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
 const HOME_URL = absoluteUrl("/");
-const HOME_OG_IMAGE = getOgImageForPath("/");
 
 const TITLE = "Depikt — AI image prompt generator for GPT Image 2";
 const DESCRIPTION =
