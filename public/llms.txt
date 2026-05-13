@@ -1,6 +1,6 @@
 # Depikt
 
-> Depikt turns rough ideas into production-grade AI image prompts. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or use a reference image. Built for GPT Image 2, Midjourney, and Nano Banana Pro.
+> Depikt turns rough ideas into production-grade AI image prompts. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or use a reference image. Built for OpenAI's GPT Image 2.
 
 ## Core tools
 

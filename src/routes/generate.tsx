@@ -35,7 +35,7 @@ const GENERATE_JSONLD = {
   applicationCategory: "DesignApplication",
   operatingSystem: "Any",
   description:
-    "AI image prompt generator that turns rough ideas into production-grade prompts for GPT Image 2, Midjourney, Nano Banana, and other models.",
+    "AI image prompt generator that turns rough ideas into production-grade prompts for OpenAI's GPT Image 2.",
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 import { readSSEStream } from "@/lib/sse";
