@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
+
+const GALLERY_OG_IMAGE = getOgImageForPath("/gallery");
+const GALLERY_URL = absoluteUrl("/gallery");
 
 export const Route = createFileRoute("/gallery")({
   head: () => ({
@@ -27,7 +30,8 @@ export const Route = createFileRoute("/gallery")({
           "Browse reference images and use them to inspire AI-generated prompts.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: getRandomOgImage() },
+      { property: "og:url", content: GALLERY_URL },
+      { property: "og:image", content: GALLERY_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Reference Gallery — Depikt" },
       {
@@ -35,9 +39,9 @@ export const Route = createFileRoute("/gallery")({
         content:
           "Browse reference images and use them to inspire AI-generated prompts.",
       },
-      { name: "twitter:image", content: getRandomOgImage() },
+      { name: "twitter:image", content: GALLERY_OG_IMAGE },
     ],
-    links: [{ rel: "canonical", href: absoluteUrl("/gallery") }],
+    links: [{ rel: "canonical", href: GALLERY_URL }],
   }),
   component: GalleryPage,
 });

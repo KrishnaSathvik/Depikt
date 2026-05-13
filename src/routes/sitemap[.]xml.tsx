@@ -2,22 +2,27 @@ import { createFileRoute } from "@tanstack/react-router";
 import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
 
+// Static "site shell last meaningfully changed" date — bump when you ship a
+// real content/structure change to a static route. Avoids advertising a fresh
+// lastmod every request.
+const STATIC_LASTMOD = "2026-05-13";
+
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const today = new Date().toISOString().split("T")[0];
         const latestPostDate =
           posts
             .map((p) => p.published)
             .sort()
-            .at(-1) ?? today;
+            .at(-1) ?? STATIC_LASTMOD;
+        // `/` is a redirect to /library, so it's intentionally omitted to keep
+        // /library as the canonical landing page in search.
         const urls: { loc: string; lastmod: string; priority: string; changefreq?: string }[] = [
-          { loc: absoluteUrl("/"), lastmod: today, priority: "1.0", changefreq: "weekly" },
-          { loc: absoluteUrl("/library"), lastmod: today, priority: "1.0", changefreq: "daily" },
-          { loc: absoluteUrl("/generate"), lastmod: today, priority: "0.9", changefreq: "weekly" },
-          { loc: absoluteUrl("/gallery"), lastmod: today, priority: "0.8", changefreq: "weekly" },
-          { loc: absoluteUrl("/critique"), lastmod: today, priority: "0.8", changefreq: "weekly" },
+          { loc: absoluteUrl("/library"), lastmod: STATIC_LASTMOD, priority: "1.0", changefreq: "daily" },
+          { loc: absoluteUrl("/generate"), lastmod: STATIC_LASTMOD, priority: "0.9", changefreq: "weekly" },
+          { loc: absoluteUrl("/gallery"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
+          { loc: absoluteUrl("/critique"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
           { loc: absoluteUrl("/blog"), lastmod: latestPostDate, priority: "0.9", changefreq: "weekly" },
           ...posts.map((p) => ({
             loc: absoluteUrl(`/blog/${p.slug}`),

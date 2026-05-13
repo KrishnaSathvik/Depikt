@@ -23,7 +23,21 @@ import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
+
+const GENERATE_OG_IMAGE = getOgImageForPath("/generate");
+const GENERATE_URL = absoluteUrl("/generate");
+const GENERATE_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "Depikt Prompt Generator",
+  url: GENERATE_URL,
+  applicationCategory: "DesignApplication",
+  operatingSystem: "Any",
+  description:
+    "AI image prompt generator that turns rough ideas into production-grade prompts for GPT Image 2, Midjourney, Nano Banana, and other models.",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
 import { readSSEStream } from "@/lib/sse";
 import { resizeImageToBase64, urlToBase64 } from "@/lib/image-utils";
 
@@ -62,16 +76,18 @@ export const Route = createFileRoute("/generate")({
         content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: getRandomOgImage() },
+      { property: "og:url", content: GENERATE_URL },
+      { property: "og:image", content: GENERATE_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "AI Prompt Generator — Turn Ideas into Production-Grade Prompts | Depikt" },
       {
         name: "twitter:description",
         content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
       },
-      { name: "twitter:image", content: getRandomOgImage() },
+      { name: "twitter:image", content: GENERATE_OG_IMAGE },
     ],
-    links: [{ rel: "canonical", href: absoluteUrl("/generate") }],
+    links: [{ rel: "canonical", href: GENERATE_URL }],
+    scripts: [{ type: "application/ld+json", children: JSON.stringify(GENERATE_JSONLD) }],
   }),
   component: AppPage,
 });

@@ -1,0 +1,20 @@
+# Depikt
+
+> Depikt turns rough ideas into production-grade AI image prompts. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or use a reference image. Built for GPT Image 2, Midjourney, and Nano Banana Pro.
+
+## Core tools
+
+- [Prompt Library](https://depikt.app/library): Browse 500 curated, ready-to-ship AI image prompts across 10 categories (posters, infographics, UI mockups, social posts, cinematic, product, illustrations, image edits, multi-panel, and more).
+- [Prompt Generator](https://depikt.app/generate): Paste a rough idea, get back a structured production-grade prompt with category, settings, and a "why it works" explanation.
+- [Prompt Critique](https://depikt.app/critique): Paste any prompt, get a score, list of weaknesses, concrete improvements, and a rewritten version.
+- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked reference images. Click any image to start a prompt from it.
+
+## Writing
+
+- [Blog](https://depikt.app/blog): Field-tested techniques for getting better AI images. Frameworks, examples, model comparisons.
+
+## About
+
+- Built for designers, marketers, indie founders, and creative engineers who want sharp prompts without spending an hour iterating.
+- Free to use. No login required.
+- Contact: hi@depikt.app

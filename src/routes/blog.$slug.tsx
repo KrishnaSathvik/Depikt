@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getPostBySlug, getRelatedPosts } from "@/data/posts";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
-import { getRandomOgImage } from "@/lib/og-image";
+import { getOgImageForPath } from "@/lib/og-image";
 
 export const Route = createFileRoute("/blog/$slug")({
   loader: ({ params }) => {
@@ -18,17 +18,51 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!loaderData?.post) return { meta: [{ title: "Post not found" }] };
     const { post } = loaderData;
     const url = absoluteUrl(`/blog/${post.slug}`);
+    const ogImage = post.cover_image
+      ? (post.cover_image.startsWith("http") ? post.cover_image : absoluteUrl(post.cover_image))
+      : getOgImageForPath(`/blog/${post.slug}`);
+
     const articleJsonLd = {
       "@context": "https://schema.org",
       "@type": "Article",
       headline: post.title,
       description: post.excerpt,
+      image: ogImage,
       datePublished: post.published,
       dateModified: post.published,
       author: { "@type": "Organization", name: post.author },
       publisher: { "@type": "Organization", name: "Depikt" },
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
     };
+
+    const breadcrumbJsonLd = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: absoluteUrl("/") },
+        { "@type": "ListItem", position: 2, name: "Blog", item: absoluteUrl("/blog") },
+        { "@type": "ListItem", position: 3, name: post.title, item: url },
+      ],
+    };
+
+    const scripts: { type: string; children: string }[] = [
+      { type: "application/ld+json", children: JSON.stringify(articleJsonLd) },
+      { type: "application/ld+json", children: JSON.stringify(breadcrumbJsonLd) },
+    ];
+
+    if (post.faq && post.faq.length > 0) {
+      const faqJsonLd = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: post.faq.map((f) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      };
+      scripts.push({ type: "application/ld+json", children: JSON.stringify(faqJsonLd) });
+    }
+
     return {
       meta: [
         { title: post.seo_title },
@@ -40,14 +74,14 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "article:published_time", content: post.published },
         { property: "article:author", content: post.author },
         { property: "article:section", content: post.category },
-        { property: "og:image", content: getRandomOgImage() },
+        { property: "og:image", content: ogImage },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: post.seo_title },
         { name: "twitter:description", content: post.seo_description },
-        { name: "twitter:image", content: getRandomOgImage() },
+        { name: "twitter:image", content: ogImage },
       ],
       links: [{ rel: "canonical", href: url }],
-      scripts: [{ type: "application/ld+json", children: JSON.stringify(articleJsonLd) }],
+      scripts,
     };
   },
   notFoundComponent: PostNotFound,

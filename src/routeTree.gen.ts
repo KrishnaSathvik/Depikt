@@ -23,6 +23,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ExamplesChar123IdChar125RouteImport } from './routes/examples.{-$id}'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
+import { Route as ApiBlogRssXmlRouteImport } from './routes/api/blog.rss.xml'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -95,6 +96,11 @@ const ApiPublicGeneratePromptRoute = ApiPublicGeneratePromptRouteImport.update({
   path: '/api/public/generate-prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlogRssXmlRoute = ApiBlogRssXmlRouteImport.update({
+  id: '/api/blog/rss/xml',
+  path: '/api/blog/rss/xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/blog/': typeof BlogIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/blog': typeof BlogIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/blog/': typeof BlogIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/examples/{-$id}'
     | '/blog/'
     | '/api/public/generate-prompt'
+    | '/api/blog/rss/xml'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/examples/{-$id}'
     | '/blog'
     | '/api/public/generate-prompt'
+    | '/api/blog/rss/xml'
   id:
     | '__root__'
     | '/'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/examples/{-$id}'
     | '/blog/'
     | '/api/public/generate-prompt'
+    | '/api/blog/rss/xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -211,6 +223,7 @@ export interface RootRouteChildren {
   ExamplesChar123IdChar125Route: typeof ExamplesChar123IdChar125Route
   BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
+  ApiBlogRssXmlRoute: typeof ApiBlogRssXmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -313,6 +326,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGeneratePromptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blog/rss/xml': {
+      id: '/api/blog/rss/xml'
+      path: '/api/blog/rss/xml'
+      fullPath: '/api/blog/rss/xml'
+      preLoaderRoute: typeof ApiBlogRssXmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -331,16 +351,8 @@ const rootRouteChildren: RootRouteChildren = {
   ExamplesChar123IdChar125Route: ExamplesChar123IdChar125Route,
   BlogIndexRoute: BlogIndexRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,
+  ApiBlogRssXmlRoute: ApiBlogRssXmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
