@@ -74,7 +74,7 @@ const FEATURES = [
     to: "/critique" as const,
     icon: MessageSquare,
     title: "Critique",
-    body: "Paste a finished image. Get an honest design critique covering composition, type, color, and what to fix on the next iteration.",
+    body: "Paste any AI image prompt. Get a score, specific weaknesses, concrete improvements, and a rewritten version ready to ship.",
     cta: "Try critique",
   },
 ];
