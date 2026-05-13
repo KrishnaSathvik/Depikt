@@ -44,7 +44,15 @@ export const Route = createFileRoute("/blog/")({
         { name: "twitter:description", content: PAGE_DESCRIPTION },
         { name: "twitter:image", content: BLOG_INDEX_OG_IMAGE },
       ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
+      links: [
+        { rel: "canonical", href: PAGE_URL },
+        {
+          rel: "alternate",
+          type: "application/rss+xml",
+          title: "Depikt Blog RSS",
+          href: absoluteUrl("/api/blog/rss.xml"),
+        },
+      ],
       scripts: [{ type: "application/ld+json", children: JSON.stringify(blogJsonLd) }],
     };
   },
