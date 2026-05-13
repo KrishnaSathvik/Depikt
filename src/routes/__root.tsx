@@ -112,7 +112,7 @@ export const Route = createRootRoute({
       type: "application/ld+json",
       children: JSON.stringify(d),
     })),
-  }),
+  }); },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
