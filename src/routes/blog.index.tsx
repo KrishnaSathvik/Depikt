@@ -14,6 +14,7 @@ const PAGE_URL = absoluteUrl("/blog");
 
 export const Route = createFileRoute("/blog/")({
   head: () => {
+    const BLOG_INDEX_OG_IMAGE = getOgImageForPath();
     const blogJsonLd = {
       "@context": "https://schema.org",
       "@type": "Blog",
