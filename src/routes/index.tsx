@@ -98,7 +98,20 @@ function LandingPage() {
         <BlogTeaser />
         <FinalCTA />
       </main>
+      <Footer />
     </div>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-[color:var(--bg)]">
+      <div className="mx-auto max-w-[1400px] px-6 lg:px-12 py-10 text-center">
+        <p className="text-body-sm text-[color:var(--text-tertiary)]">
+          © {new Date().getFullYear()} Depikt. Built for GPT Image 2.
+        </p>
+      </div>
+    </footer>
   );
 }
 
