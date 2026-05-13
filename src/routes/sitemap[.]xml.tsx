@@ -16,10 +16,9 @@ export const Route = createFileRoute("/sitemap.xml")({
             .map((p) => p.published)
             .sort()
             .at(-1) ?? STATIC_LASTMOD;
-        // `/` is a redirect to /library, so it's intentionally omitted to keep
-        // /library as the canonical landing page in search.
         const urls: { loc: string; lastmod: string; priority: string; changefreq?: string }[] = [
-          { loc: absoluteUrl("/library"), lastmod: STATIC_LASTMOD, priority: "1.0", changefreq: "daily" },
+          { loc: absoluteUrl("/"), lastmod: STATIC_LASTMOD, priority: "1.0", changefreq: "weekly" },
+          { loc: absoluteUrl("/library"), lastmod: STATIC_LASTMOD, priority: "0.9", changefreq: "daily" },
           { loc: absoluteUrl("/generate"), lastmod: STATIC_LASTMOD, priority: "0.9", changefreq: "weekly" },
           { loc: absoluteUrl("/gallery"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
           { loc: absoluteUrl("/critique"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
