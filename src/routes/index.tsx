@@ -3,7 +3,7 @@ import { ArrowRight, Wand2, LayoutGrid, MessageSquare, Sparkles, Copy } from "lu
 import { useState } from "react";
 import { toast } from "sonner";
 
-import { Header } from "@/components/Header";
+import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
