@@ -17,7 +17,7 @@ const DESCRIPTION =
 
 export const Route = createFileRoute("/")({
   head: () => {
-    const ogImage = pickRandomOgImage();
+    const ogImage = getOgImageForPath();
     return {
     meta: [
       { title: TITLE },
