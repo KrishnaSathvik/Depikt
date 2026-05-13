@@ -20,7 +20,6 @@ import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const LIBRARY_OG_IMAGE = getOgImageForPath("/library");
 const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -49,7 +48,7 @@ export const Route = createFileRoute("/library")({
   loader: async (): Promise<LibraryPrompt[]> => fetchLibrary(),
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
-  head: () => ({
+  head: () => { const LIBRARY_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
       { title: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt" },
       {
@@ -82,7 +81,7 @@ export const Route = createFileRoute("/library")({
       { name: "twitter:image", content: LIBRARY_OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: LIBRARY_URL }],
-  }),
+  }); },
   component: HomePage,
 });
 

@@ -20,7 +20,6 @@ import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const CRITIQUE_OG_IMAGE = getOgImageForPath("/critique");
 const CRITIQUE_URL = absoluteUrl("/critique");
 const CRITIQUE_JSONLD = {
   "@context": "https://schema.org",
@@ -44,7 +43,7 @@ export const Route = createFileRoute("/critique")({
     const restore = search.restore;
     return { restore: typeof restore === "string" && restore.length > 0 ? restore : undefined };
   },
-  head: () => ({
+  head: () => { const CRITIQUE_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
       { title: "Critique a Prompt — Depikt" },
       {
@@ -72,7 +71,7 @@ export const Route = createFileRoute("/critique")({
     ],
     links: [{ rel: "canonical", href: CRITIQUE_URL }],
     scripts: [{ type: "application/ld+json", children: JSON.stringify(CRITIQUE_JSONLD) }],
-  }),
+  }); },
   component: CritiquePage,
 });
 

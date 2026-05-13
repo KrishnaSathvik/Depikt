@@ -6,7 +6,6 @@ import { posts } from "@/data/posts";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const BLOG_INDEX_OG_IMAGE = getOgImageForPath("/blog");
 
 const PAGE_TITLE = "AI Image Prompt Engineering — Depikt Blog";
 const PAGE_DESCRIPTION =

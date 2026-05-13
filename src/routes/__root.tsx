@@ -5,7 +5,6 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const ROOT_OG_IMAGE = getOgImageForPath("/");
 
 import appCss from "../styles.css?url";
 
@@ -66,7 +65,7 @@ const STRUCTURED_DATA = [
 ];
 
 export const Route = createRootRoute({
-  head: () => ({
+  head: () => { const ROOT_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
       { charSet: "utf-8" },
       {
