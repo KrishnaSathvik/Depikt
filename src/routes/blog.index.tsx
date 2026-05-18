@@ -93,13 +93,13 @@ function PostCard({
         </span>
       </div>
 
-      <h3
+      <h2
         className={`mt-5 text-[color:var(--text-primary)] group-hover:underline underline-offset-4 decoration-[color:var(--border-default)] ${
           featured ? "text-display-md" : "text-heading-md"
         }`}
       >
         {post.title}
-      </h3>
+      </h2>
       <p
         className={`mt-4 text-[color:var(--text-secondary)] ${featured ? "text-body-lg" : "text-body-md"}`}
       >
