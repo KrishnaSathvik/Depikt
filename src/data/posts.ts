@@ -23,6 +23,135 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "how-to-prompt-ai-image-generators",
+    title: "How to Prompt AI Image Generators: A Practical Guide",
+    subtitle: "The structural pattern that works across GPT Image 2, Midjourney, and Nano Banana — without keyword stacking.",
+    category: "Guides",
+    author: "Depikt Team",
+    read_time: "10 min",
+    published: "2026-05-18",
+    excerpt:
+      "Most guides teach keyword stacking — \"8K, ultra-detailed, masterpiece.\" That advice is outdated. Here's the structural pattern that actually works with modern reasoning-based image models, with copy-paste examples.",
+    seo_title: "How to Prompt AI Image Generators (2026 Practical Guide)",
+    seo_description:
+      "Learn how to prompt AI image generators like GPT Image 2 with a structural pattern that beats keyword stacking. Copy-paste examples, common mistakes, and a checklist.",
+    faq: [
+      {
+        question: "How do I write a prompt for an AI image generator?",
+        answer:
+          "Use a six-part structural pattern: Subject + specifics, action, environment and cultural anchor, composition, lighting, and style or medium. Then layer text rendering, aspect ratio, and palette only when they matter. This works far better than stacking adjectives like '8K, ultra-detailed, masterpiece' — modern reasoning-based models like GPT Image 2 actually penalize keyword soup.",
+      },
+      {
+        question: "What is a good prompt for an AI image generator?",
+        answer:
+          "A good prompt is specific, structured, and unambiguous. It names the subject concretely (not 'a person' but 'a Japanese woman in her 30s, short black bob'), describes the lighting with photographic language (golden hour from camera-right, soft fill), specifies the camera or medium (35mm film, Hasselblad portrait lens at f/2.8, risograph print), and only includes adjectives that change what gets rendered.",
+      },
+      {
+        question: "How do I get AI image generators to render text correctly?",
+        answer:
+          "Wrap the text in quotation marks, specify the font style (condensed grotesk, geometric sans, slab serif), specify weight and color, and pin its placement on the canvas. Example: Headline reads \"THE CLOCK IS TICKING\" in condensed grotesk, near-black, top-aligned. GPT Image 2 renders text accurately above 95% on first attempt when prompts follow this structure.",
+      },
+      {
+        question: "What are negative prompts and do I need them?",
+        answer:
+          "Negative prompts tell the model what to exclude (no text, no watermark, no extra fingers). They were essential for Stable Diffusion and earlier DALL-E versions. With reasoning-based models like GPT Image 2, they're rarely needed — instead, describe what you want positively. If you find yourself listing what to avoid, your positive prompt isn't specific enough yet.",
+      },
+    ],
+    content: `
+## Why most prompting advice is outdated
+
+Search "how to prompt image generators" and you'll find dozens of guides recommending the same thing: stack adjectives. "8K, ultra-detailed, masterpiece, hyper-realistic, award-winning photography, trending on ArtStation."
+
+That advice was written for Stable Diffusion in 2022. It is no longer ideal — and with reasoning-based models like OpenAI's GPT Image 2 (launched April 2026), it actively hurts your output. Here's why, and what to do instead.
+
+## What changed: reasoning-based models
+
+The current generation of image models — GPT Image 2, Google's Nano Banana, and Midjourney v7 — reason about your prompt before generating. They plan composition, analyze constraints, and attend to the structural information in your prompt.
+
+When you front-load adjective keywords, those words compete with the structural information you actually want the model to render. The model spends its reasoning budget weighing "masterpiece" instead of figuring out where your headline goes.
+
+The fix is structural prompting.
+
+## The six-part structural pattern
+
+Every production-quality prompt follows the same skeleton:
+
+\`[Subject + specifics] + [Action] + [Environment + cultural anchor] + [Composition] + [Lighting] + [Style/medium]\`
+
+Then you layer in three optional modifiers when they matter:
+
+- **Text rendering** — wrap copy in quotes, specify font + weight + color + placement
+- **Aspect ratio** — 1:1, 3:2, 16:9, 2:3 portrait
+- **Palette** — restrained color list, not vague mood words
+
+### Worked example
+
+**Rough idea:** "a poster about climate change"
+
+**Structured prompt:**
+
+> Editorial print poster, 2:3 portrait. Bold sans-serif headline "THE CLOCK IS TICKING" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "ARCTIC SEA ICE — SEPT 2025" with a thin 6-tick data sparkline trending down. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality.
+
+Every clause does work. There are no decorative adjectives ("amazing", "stunning"). Every word changes what gets rendered.
+
+## The five techniques that matter most
+
+### 1. Anchor the subject
+
+"A person" generates a generic person. "A Japanese woman in her 30s, short black bob, wire-frame glasses, oversized linen shirt" generates a specific person. The model can't render specificity you didn't write.
+
+### 2. Use photographic language for lighting
+
+Stop writing "good lighting." Start writing "golden hour from camera-right, soft fill bounce, long shadows pooling left." Photography vocabulary is the most efficient way to control mood — every term carries dense, unambiguous information.
+
+### 3. Name the medium explicitly
+
+"35mm film, Kodak Portra 400, slight grain" produces a different image than "shot on Hasselblad medium format, f/2.8, shallow depth of field" — and both produce different images than "risograph print, two-color, registration offset 0.5mm."
+
+Naming the medium pins the rendering style harder than any style adjective.
+
+### 4. Quote your text and pin its placement
+
+Models render text far more reliably when you treat it as a typographic instruction, not a description:
+
+- **Weak:** "with a headline about climate change"
+- **Strong:** Headline reads \`"THE CLOCK IS TICKING"\` in condensed grotesk, weight 800, near-black, top-aligned, baseline 80px from top edge.
+
+### 5. Restrain the palette
+
+"Colorful" produces muddy output. "Restrained palette: ivory, deep teal, near-black, one orange accent" produces a coherent image. Four colors max is a good upper bound for most editorial work.
+
+## Common mistakes
+
+**Adjective stacking.** "Beautiful, stunning, gorgeous, masterpiece, award-winning" — none of these words tell the model what to render. Cut them.
+
+**Vague style references.** "In the style of a famous painter" loses information. "Oil on canvas, visible brushwork, palette knife texture, warm earth tones" gives the model something to actually execute.
+
+**Conflicting instructions.** "Minimalist but maximalist." "Soft but harsh lighting." The model resolves contradictions by averaging, which produces nothing memorable. Pick one.
+
+**Negative prompts as a crutch.** Listing "no text, no watermark, no extra fingers" usually means your positive prompt was underspecified. Strengthen the positive description first.
+
+## A reusable prompt checklist
+
+Before you hit generate, your prompt should answer:
+
+1. **Subject** — specific person, object, or scene?
+2. **Composition** — aspect ratio, framing, what fills the frame?
+3. **Lighting** — direction, quality, time of day in photographic terms?
+4. **Medium** — film stock, paint, print process, render engine?
+5. **Text** — if any, quoted with font/weight/color/placement?
+6. **Palette** — 2–5 specific colors named?
+
+If any answer is "the model will figure it out" — it won't. Pin it down.
+
+## Skip the structure work entirely
+
+Writing structured prompts gets faster with practice, but the structure itself is mechanical. [Depikt](/generate) turns any rough idea into a production-grade structured prompt in seconds — built specifically around the patterns above for GPT Image 2.
+
+Or [browse the library](/library) of 500 ready-to-paste prompts across posters, infographics, UI mockups, cinematic scenes, storyboards, and more.
+`,
+  },
+  {
     slug: "gpt-image-2-prompt-examples",
     title: "GPT Image 2 Prompt Examples: 12 Templates That Actually Work",
     subtitle: "Real prompts across our 10 categories — copy, paste, ship.",
