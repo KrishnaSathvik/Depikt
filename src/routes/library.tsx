@@ -50,20 +50,20 @@ export const Route = createFileRoute("/library")({
   gcTime: 30 * 60 * 1000,
   head: () => { const LIBRARY_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
-      { title: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt" },
+      { title: "Prompt Library — 500 Curated AI Image Prompts | Depikt" },
       {
         name: "description",
         content:
-          "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.",
+          "Browse 500 curated AI image prompts for posters, infographics, UI mockups, cinematic scenes, and more. Copy and paste straight into GPT Image 2.",
       },
       {
         property: "og:title",
-        content: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt",
+        content: "Prompt Library — 500 Curated AI Image Prompts | Depikt",
       },
       {
         property: "og:description",
         content:
-          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
+          "500 ready-to-use AI image prompts across 10 categories. Copy and paste straight into GPT Image 2.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: LIBRARY_URL },
@@ -71,16 +71,29 @@ export const Route = createFileRoute("/library")({
       { name: "twitter:card", content: "summary_large_image" },
       {
         name: "twitter:title",
-        content: "Prompt Library — Browse 500 Curated AI Image Prompts | Depikt",
+        content: "Prompt Library — 500 Curated AI Image Prompts | Depikt",
       },
       {
         name: "twitter:description",
         content:
-          "Turn any rough idea into a polished AI image prompt in seconds. Or browse 500 ready-to-use prompts across 10 categories.",
+          "500 ready-to-use AI image prompts across 10 categories. Copy and paste straight into GPT Image 2.",
       },
       { name: "twitter:image", content: LIBRARY_OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: LIBRARY_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Depikt Prompt Library",
+          url: LIBRARY_URL,
+          description:
+            "A curated collection of 500 production-grade AI image prompts across 10 categories, built for OpenAI's GPT Image 2.",
+        }),
+      },
+    ],
   }); },
   component: HomePage,
 });

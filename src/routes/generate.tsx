@@ -64,12 +64,12 @@ export const Route = createFileRoute("/generate")({
   },
   head: () => { const GENERATE_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
-      { title: "AI Prompt Generator — Turn Ideas into Production-Grade Prompts | Depikt" },
+      { title: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
       {
         name: "description",
         content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
       },
-      { property: "og:title", content: "AI Prompt Generator — Turn Ideas into Production-Grade Prompts | Depikt" },
+      { property: "og:title", content: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
       {
         property: "og:description",
         content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
@@ -78,7 +78,7 @@ export const Route = createFileRoute("/generate")({
       { property: "og:url", content: GENERATE_URL },
       { property: "og:image", content: GENERATE_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AI Prompt Generator — Turn Ideas into Production-Grade Prompts | Depikt" },
+      { name: "twitter:title", content: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
       {
         name: "twitter:description",
         content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
