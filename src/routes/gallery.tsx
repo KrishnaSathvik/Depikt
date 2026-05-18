@@ -41,6 +41,19 @@ export const Route = createFileRoute("/gallery")({
       { name: "twitter:image", content: GALLERY_OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: GALLERY_URL }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Depikt Reference Gallery",
+          url: GALLERY_URL,
+          description:
+            "A gallery of reference images you can use as visual inspiration for AI-generated image prompts.",
+        }),
+      },
+    ],
   }); },
   component: GalleryPage,
 });
