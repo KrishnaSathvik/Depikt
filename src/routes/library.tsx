@@ -507,7 +507,7 @@ function PromptCard({
       )}
 
       <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
-        <h3 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">{prompt.title}</h3>
+        <h2 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">{prompt.title}</h2>
         <p className="line-clamp-2 text-body-sm text-[color:var(--text-secondary)]">
           {prompt.prompt}
         </p>
