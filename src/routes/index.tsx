@@ -13,7 +13,7 @@ const HOME_URL = absoluteUrl("/");
 
 const TITLE = "Depikt — AI image prompt generator for GPT Image 2";
 const DESCRIPTION =
-  "Turn rough ideas into production-grade AI image prompts in seconds. Built for OpenAI's GPT Image 2. Browse 500 curated prompts across 10 categories. Free, no login.";
+  "Turn rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. 500 curated prompts across 10 categories. Free, no login.";
 
 export const Route = createFileRoute("/")({
   head: () => {
