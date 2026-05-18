@@ -172,7 +172,7 @@ export function renderMarkdown(md: string): RenderedContent {
       continue;
     }
 
-    if (line.startsWith("|") && i + 1 < lines.length && /^\|[\s:-|]+\|$/.test(lines[i + 1])) {
+    if (line.startsWith("|") && i + 1 < lines.length && /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())) {
       const headerCells = line
         .slice(1, -1)
         .split("|")
