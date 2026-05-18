@@ -8,9 +8,9 @@ import { getOgImageForPath } from "@/lib/og-image";
 
 import appCss from "../styles.css?url";
 
-const DEFAULT_TITLE = "Image prompt generator — turn rough ideas into production-grade AI prompts";
+const DEFAULT_TITLE = "Depikt — AI image prompt generator for GPT Image 2";
 const DEFAULT_DESCRIPTION =
-  "Turn any rough idea into a production-grade AI image prompt in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, cinematic scenes, and more.";
+  "Turn rough ideas into production-grade AI image prompts in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, and more.";
 
 function NotFoundComponent() {
   return (
