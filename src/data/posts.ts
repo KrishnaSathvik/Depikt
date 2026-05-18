@@ -23,6 +23,143 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "ai-image-prompt-vocabulary-cheat-sheet",
+    title: "AI Image Prompt Vocabulary: A Cheat Sheet for Camera, Lighting, and Composition",
+    subtitle: "The exact words that actually change what the model renders — bookmark and reuse.",
+    category: "Reference",
+    author: "Depikt Team",
+    read_time: "7 min",
+    published: "2026-05-17",
+    excerpt:
+      "Vague words like \"good lighting\" or \"nice composition\" do almost nothing. Specific photographic and design vocabulary changes the output dramatically. Here's the working cheat sheet — camera, lighting, composition, color, and medium terms that GPT Image 2 actually responds to.",
+    seo_title: "AI Image Prompt Vocabulary Cheat Sheet (2026 Reference)",
+    seo_description:
+      "A practical cheat sheet of camera, lighting, composition, color, and medium vocabulary for AI image prompts. Copy-paste terms that GPT Image 2 actually responds to.",
+    content: `
+## Why vocabulary is the highest-leverage thing to learn
+
+You can't prompt what you can't name. "Nice lighting" is invisible to the model — it has no concept of "nice." But "golden hour from camera-right, soft fill bounce, rim light catching the hair" gives it three unambiguous instructions it can execute.
+
+This is a working cheat sheet of the vocabulary that actually moves the output. Keep it open while you prompt.
+
+## Camera and lens
+
+| Term | What it does |
+|---|---|
+| **35mm film** / **Kodak Portra 400** | Warm color cast, fine grain, photographic feel |
+| **Medium format** / **Hasselblad** | High detail, shallow depth, editorial polish |
+| **f/1.4** / **f/2.8** | Shallow depth of field — subject sharp, background soft |
+| **f/8** / **f/11** | Deep focus — everything sharp, documentary feel |
+| **85mm portrait lens** | Flattering compression, blurred background |
+| **24mm wide angle** | Expansive scene, slight edge distortion |
+| **Macro lens** | Extreme close-up, fine surface detail |
+| **Tilt-shift** | Selective focus band, miniature effect |
+
+## Lighting
+
+| Term | What it does |
+|---|---|
+| **Golden hour** | Warm, low-angle sunlight, long shadows |
+| **Blue hour** | Cool dusk, deep saturation |
+| **Overcast soft light** | Even diffuse light, no harsh shadows |
+| **Hard noon sun** | Sharp shadows, high contrast |
+| **Rembrandt lighting** | Triangle of light on cheek, dramatic portrait |
+| **Rim light** / **backlight** | Halo separating subject from background |
+| **Soft fill from camera-left** | Reduces shadow density on left side of subject |
+| **Practical lights only** | Lit by visible lamps, no studio rig — cinematic realism |
+| **Bounce flash** | Soft, directional, editorial portrait feel |
+
+## Composition
+
+| Term | What it does |
+|---|---|
+| **Rule of thirds** | Subject placed at intersection, breathing room |
+| **Centered symmetrical** | Bold, formal, Wes Anderson feel |
+| **Dutch angle** | Tilted frame, tension and unease |
+| **Low angle / worm's eye** | Subject feels imposing, heroic |
+| **High angle / bird's eye** | Subject feels small, vulnerable, or schematic |
+| **Negative space** | Large empty area, minimalist editorial |
+| **Full bleed** | Image fills frame to all edges, no margin |
+| **Leading lines** | Visible lines pulling eye toward subject |
+| **Foreground / midground / background layers** | Depth and scale |
+
+## Aspect ratio
+
+| Ratio | Use case |
+|---|---|
+| **1:1** | Instagram, album art, profile |
+| **3:2** | DSLR photography, prints |
+| **16:9** | Cinematic, web hero, thumbnail |
+| **9:16** | Vertical mobile, Stories, Reels |
+| **2:3 portrait** | Book covers, magazine, editorial poster |
+| **4:5** | Instagram feed (max tall) |
+
+## Color and palette
+
+Replace "colorful" with specific palette callouts:
+
+- **Restrained palette: ivory, deep teal, near-black, one orange accent** — coherent editorial
+- **Monochromatic warm earth tones** — desaturated, premium
+- **High-key** — bright, low-contrast, airy
+- **Low-key** — dark, dramatic, moody
+- **Complementary blue and orange** — high contrast, cinematic
+- **Pastel washed-out** — gentle, lifestyle
+- **Risograph two-color (red + blue)** — print-shop feel, registration offset
+
+## Medium and finish
+
+Naming the medium pins the rendering style harder than any adjective:
+
+- **35mm film, slight grain, warm cast**
+- **Shot on Hasselblad, medium format detail, shallow depth**
+- **Risograph print, two-color, faint registration offset**
+- **Oil on canvas, visible brushwork, palette knife texture**
+- **Watercolor on cold-press paper, wet edges, paper bleed**
+- **3D render, Cinema 4D, Octane, soft global illumination**
+- **Pixel art, 32x32 grid, limited palette, dithering**
+- **Pen and ink, crosshatching, high contrast**
+- **Cyanotype print, deep blue, paper texture**
+- **Polaroid, faded edges, slight overexposure**
+
+## Type and text rendering
+
+When the image contains text, treat it as typographic instruction:
+
+- **Headline reads** \`"YOUR COPY"\` **in [font style], [weight], [color], [placement]**
+- **Font styles to name explicitly**: condensed grotesk, geometric sans, slab serif, brush script, monospace, transitional serif, display serif, neo-grotesque
+- **Weight**: light, regular, medium, bold, black, 100–900
+- **Placement**: top-aligned, baseline-centered, bottom-right corner, [N]px from top edge
+- **Treatment**: outlined, drop shadow, no shadow, raised letterpress, embossed, debossed
+
+## Style references that work
+
+Skip "in the style of [famous artist]." Use medium + technique combinations:
+
+- **Editorial magazine photography** — clean, restrained, premium
+- **Documentary photojournalism** — natural, unposed, on-location
+- **Brutalist graphic design** — flat color, heavy type, off-grid
+- **Swiss International Style** — grid-aligned, sans-serif, restrained
+- **Bauhaus poster** — primary colors, geometric, modernist
+- **Wabi-sabi** — imperfect, asymmetric, weathered, Japanese
+- **Memphis design** — bold geometric, primary colors, 1980s
+- **Y2K aesthetic** — chrome, gradients, glossy plastic, early-2000s tech
+
+## Putting it together
+
+Pick one term from camera, one from lighting, one from composition, one from palette, and one from medium. Five specific words usually beat fifty vague ones.
+
+**Weak:** *Beautiful portrait with nice lighting and good colors.*
+
+**Strong:** *85mm portrait lens at f/2.8, Rembrandt lighting from camera-right, rule of thirds, monochromatic warm earth tones, 35mm film with Kodak Portra 400 grain.*
+
+The second prompt is shorter and produces a far more consistent image — because every word does work.
+
+## Use it without the lookup
+
+[Depikt](/generate) bakes this vocabulary into every prompt it writes — type a rough idea and you get the structured output with camera, lighting, composition, and medium already specified. Or [browse the library](/library) for 500 prompts that demonstrate the patterns in context.
+`,
+  },
+  {
     slug: "how-to-prompt-ai-image-generators",
     title: "How to Prompt AI Image Generators: A Practical Guide",
     subtitle: "The structural pattern that works across GPT Image 2, Midjourney, and Nano Banana — without keyword stacking.",
