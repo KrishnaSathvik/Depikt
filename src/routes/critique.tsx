@@ -381,7 +381,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
 
             {result.weaknesses && result.weaknesses.length > 0 && (
               <div className="mb-6">
-                <h4 className="text-heading-sm mb-3">Weaknesses</h4>
+                <h2 className="text-heading-sm mb-3">Weaknesses</h2>
                 <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
                   {result.weaknesses.map((w, i) => (
                     <li key={i} className="flex gap-2">
@@ -395,7 +395,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
 
             {result.improvements && result.improvements.length > 0 && (
               <div>
-                <h4 className="text-heading-sm mb-3">Improvements</h4>
+                <h2 className="text-heading-sm mb-3">Improvements</h2>
                 <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
                   {result.improvements.map((w, i) => (
                     <li key={i} className="flex gap-2">
@@ -413,7 +413,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
       {result.rewritten_prompt && (
         <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-heading-sm">Rewritten prompt</h4>
+            <h2 className="text-heading-sm">Rewritten prompt</h2>
             <div className="flex items-center gap-2">
               <button
                 type="button"

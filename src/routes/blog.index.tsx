@@ -93,13 +93,13 @@ function PostCard({
         </span>
       </div>
 
-      <h3
+      <h2
         className={`mt-5 text-[color:var(--text-primary)] group-hover:underline underline-offset-4 decoration-[color:var(--border-default)] ${
           featured ? "text-display-md" : "text-heading-md"
         }`}
       >
         {post.title}
-      </h3>
+      </h2>
       <p
         className={`mt-4 text-[color:var(--text-secondary)] ${featured ? "text-body-lg" : "text-body-md"}`}
       >
@@ -159,9 +159,9 @@ function BlogIndex() {
           <aside className="lg:sticky lg:top-24 lg:self-start space-y-8">
             <div className="border-l-2 border-[color:var(--accent)] pl-5">
               <p className="eyebrow">Try Depikt</p>
-              <h3 className="mt-3 text-heading-sm">
+              <h2 className="mt-3 text-heading-sm">
                 Generate prompts that follow every rule we write about.
-              </h3>
+              </h2>
               <Link to="/generate" className="mt-5 inline-block">
                 <Button size="sm" className="gap-1.5">
                   Open generator

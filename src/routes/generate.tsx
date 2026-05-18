@@ -451,7 +451,7 @@ function AppPage() {
                   <div className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5">
                     <img
                       src={referenceImage}
-                      alt="Reference"
+                      alt="Reference image thumbnail"
                       className="h-8 w-8 rounded object-cover"
                     />
                     <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">Reference image</span>

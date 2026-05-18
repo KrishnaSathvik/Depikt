@@ -86,6 +86,7 @@ function GalleryPage() {
               key={filename}
               type="button"
               onClick={() => setSelected(filename)}
+              aria-label={`Preview gallery image ${filename}`}
               className="group relative aspect-square overflow-hidden rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] cursor-pointer"
             >
               <img
