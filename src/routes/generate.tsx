@@ -64,24 +64,24 @@ export const Route = createFileRoute("/generate")({
   },
   head: () => { const GENERATE_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
-      { title: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
+      { title: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
       {
         name: "description",
-        content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
+        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
       },
-      { property: "og:title", content: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
+      { property: "og:title", content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
       {
         property: "og:description",
-        content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
+        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: GENERATE_URL },
       { property: "og:image", content: GENERATE_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "AI Image Prompt Generator for GPT Image 2 | Depikt" },
+      { name: "twitter:title", content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
       {
         name: "twitter:description",
-        content: "Turn a rough idea into a production-grade GPT Image 2 prompt in seconds.",
+        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
       },
       { name: "twitter:image", content: GENERATE_OG_IMAGE },
     ],
