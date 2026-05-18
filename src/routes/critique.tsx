@@ -395,7 +395,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
 
             {result.improvements && result.improvements.length > 0 && (
               <div>
-                <h4 className="text-heading-sm mb-3">Improvements</h4>
+                <h2 className="text-heading-sm mb-3">Improvements</h2>
                 <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
                   {result.improvements.map((w, i) => (
                     <li key={i} className="flex gap-2">
