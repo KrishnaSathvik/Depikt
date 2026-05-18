@@ -381,7 +381,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
 
             {result.weaknesses && result.weaknesses.length > 0 && (
               <div className="mb-6">
-                <h4 className="text-heading-sm mb-3">Weaknesses</h4>
+                <h2 className="text-heading-sm mb-3">Weaknesses</h2>
                 <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
                   {result.weaknesses.map((w, i) => (
                     <li key={i} className="flex gap-2">
