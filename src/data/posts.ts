@@ -23,6 +23,449 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "how-to-prompt-gpt-image-2-for-infographics",
+    title: "How to prompt GPT Image 2 for infographics and diagrams",
+    subtitle: "The five-block structure that gets clean labels, real data marks, and a readable hierarchy.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-31",
+    excerpt:
+      "GPT Image 2 can render genuinely usable infographics — but only if you treat the prompt like a brief, not a vibe. Here's the five-block structure: format, hierarchy, data, type system, and finish.",
+    seo_title: "How to Prompt GPT Image 2 for Infographics (2026 Guide)",
+    seo_description:
+      "The exact five-block prompt structure for getting clean, readable infographics and diagrams out of GPT Image 2 — format, hierarchy, data, type, finish.",
+    faq: [
+      {
+        question: "Can GPT Image 2 render real charts and graphs?",
+        answer:
+          "Yes — bar charts, line charts, sparklines, simple flow diagrams, and step graphics all render legibly if you specify the chart type, axis labels in quotes, and an approximate data shape (e.g. \"5 bars trending up from 12 to 47\").",
+      },
+      {
+        question: "What aspect ratio works best for infographics?",
+        answer:
+          "9:16 portrait for vertical scroll feeds, 4:5 for Instagram, 16:9 for slides, 1:1 for square social. Always state it explicitly or the model defaults to 1:1.",
+      },
+      {
+        question: "Why are my infographic labels garbled?",
+        answer:
+          "Two main causes: too many labels at once (keep it under 8 text elements), or labels not in quotes. Quote every label string exactly, and keep each one short (1–4 words).",
+      },
+    ],
+    content: `
+## The structure
+
+Every infographic prompt that works for GPT Image 2 has five blocks:
+
+1. **Format** — aspect ratio, canvas type, intended use
+2. **Hierarchy** — title, subtitle, sections, in that order
+3. **Data** — what visualizations, what shape, what scale
+4. **Type system** — font style, weight, casing, alignment
+5. **Finish** — palette, grid, paper feel, brand strip
+
+## Working template
+
+> Editorial infographic, **4:5 vertical**, designed for social. Headline "[YOUR HEADLINE]" in bold condensed sans, top-aligned. Subhead "[SUBHEAD]" in light grey below. Three labeled sections stacked vertically:
+> 1. A 5-bar chart trending up, bars labeled "[A]", "[B]", "[C]", "[D]", "[E]"
+> 2. A small ring chart showing 64% / 36% split, label "[METRIC]"
+> 3. A 4-step horizontal flow with labels "[STEP 1] → [STEP 2] → [STEP 3] → [STEP 4]"
+> Type: humanist sans throughout. Palette: off-white background, deep navy ink, one coral accent for emphasis. Subtle dot grid behind. Small mono caption at bottom: "[SOURCE / DATE]". Editorial polish, magazine-quality layout.
+
+## Why each block matters
+
+### Format
+
+GPT Image 2 defaults to 1:1. **State the ratio explicitly.** "4:5 vertical," "9:16 story," "16:9 slide." Without it, your data gets squished into a square.
+
+### Hierarchy
+
+Treat the prompt like a wireframe. Top to bottom: title → subtitle → sections. Number the sections. The model uses ordering as layout intent.
+
+### Data
+
+Be specific about chart type AND shape:
+
+- ❌ "a chart showing growth"
+- ✅ "a 5-bar chart trending up from 12 to 47, x-axis labels Jan–May"
+
+Without a shape cue, the model invents a generic placeholder chart. With one, you get something close to what you actually want.
+
+### Type system
+
+Pick ONE font style and stick with it. "Humanist sans throughout." "Slab serif for headers, grotesk for body." Mixing more than two type families confuses the model.
+
+### Finish
+
+This is what separates "AI infographic" from "designed object":
+
+- Subtle dot grid or baseline grid behind
+- Small mono caption with source + date
+- Restricted palette: background + ink + one accent
+- "Magazine-quality layout"
+
+## Skip the rewrite
+
+[Depikt's generator](/generate) detects infographic intent and applies this five-block structure automatically. The [library](/library) has dozens of infographic prompts you can copy directly.
+`,
+  },
+  {
+    slug: "how-to-prompt-gpt-image-2-for-ui-mockups",
+    title: "How to prompt GPT Image 2 for UI mockups",
+    subtitle: "Get pixel-clean app screens, dashboards, and onboarding flows out of GPT Image 2 — without the AI mush.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-31",
+    excerpt:
+      "GPT Image 2 can render screens that look like real product design — clean grids, legible labels, real-feeling components. The trick is prompting it like a designer briefing a junior, not like an artist describing a feeling.",
+    seo_title: "How to Prompt GPT Image 2 for UI Mockups (2026 Guide)",
+    seo_description:
+      "The exact prompt structure for getting clean, design-quality UI mockups out of GPT Image 2 — device frame, layout grid, components, copy, and finish.",
+    faq: [
+      {
+        question: "Can GPT Image 2 render real-looking app screens?",
+        answer:
+          "Yes — dashboards, mobile screens, onboarding flows, and settings pages all render convincingly. The trick is naming the device frame, the layout system, and the exact text inside the UI.",
+      },
+      {
+        question: "Should I prompt for mobile or desktop UI?",
+        answer:
+          "Be explicit. \"iPhone 15 mockup, 9:19.5 portrait\" for mobile. \"Desktop dashboard, 16:10 landscape, MacBook frame\" for web. The wrong ratio is the most common reason a UI mockup looks wrong.",
+      },
+      {
+        question: "How do I get readable buttons and labels?",
+        answer:
+          "Quote every label and CTA exactly (\"Sign in\", \"Get started\"). Keep individual labels under 4 words. Specify font weight (\"medium\", \"semibold\") and size relationship (\"primary CTA, larger than the secondary text link below\").",
+      },
+    ],
+    content: `
+## The structure
+
+Every UI mockup prompt for GPT Image 2 has five parts:
+
+1. **Frame** — device, aspect ratio, surrounding context
+2. **Layout** — grid, regions, hierarchy
+3. **Components** — each block named with its type
+4. **Copy** — every label in quotes
+5. **Finish** — color system, type, polish
+
+## Working template
+
+> Clean **iPhone 15 mockup, 9:19.5 portrait**, photographed on a soft grey desk surface, subtle shadow.
+> On screen: a **mobile app onboarding flow**, 4-region vertical layout.
+> Top: small **status bar**, **back arrow** left, page indicator "2 / 4" right.
+> Middle: **large bold headline** "[HEADLINE, 6 WORDS MAX]" set in a humanist sans, near-black. Below in lighter grey: "[SUBHEAD, ONE SENTENCE]".
+> Below headline: **simple illustration** — flat 2-color line art of [SUBJECT], single accent color.
+> Bottom: **primary CTA button** labeled "[CTA TEXT]" — full-width, rounded 12px, deep indigo with white text. Below it a small **text link** "[SECONDARY LINK]".
+> System: 8pt grid, 24px page margins. Palette: off-white background, near-black ink, one deep indigo accent. Pixel-clean, design-quality.
+
+## Why each part matters
+
+### Frame
+
+Three options work reliably:
+
+- **"iPhone 15 mockup, 9:19.5 portrait"** — mobile app screens
+- **"Desktop dashboard, 16:10 landscape, MacBook frame"** — web apps
+- **"Flat screen-only mockup, 9:16 vertical, no device chrome"** — embedded in landing pages
+
+Always include the ratio. Without it you get a square that crops wrong on every preview.
+
+### Layout
+
+Name the grid. "8pt grid." "12-column layout." "4-region vertical stack." The model respects layout cues more than people expect — it just needs them named.
+
+### Components
+
+Use design vocabulary, not vibes:
+
+- ❌ "a nice button"
+- ✅ "primary CTA button, full-width, rounded 12px"
+
+Words like *navbar*, *sidebar*, *card*, *toggle*, *segmented control*, *toast*, *tab bar* all map cleanly.
+
+### Copy
+
+Quote everything. "Sign in", "Get started", "2 / 4". The model renders quoted text far more accurately than paraphrased intent. Keep individual labels under 4 words.
+
+### Finish
+
+What separates "AI screenshot" from "designed screen":
+
+- Named accent color, not "blue"
+- Named font style ("humanist sans," "geometric grotesk")
+- Pixel grid hint ("8pt grid")
+- Soft device shadow, neutral desk surface — sells it as a render
+
+## Skip the rewrite
+
+[Depikt](/generate) detects UI intent and applies this structure automatically. Browse [UI mockup prompts in the library](/library) for proven starting points.
+`,
+  },
+  {
+    slug: "how-to-prompt-gpt-image-2-for-storyboards",
+    title: "How to prompt GPT Image 2 for storyboards and multi-panel scenes",
+    subtitle: "The exact structure for 3-, 4-, and 6-panel storyboards with consistent character and lighting.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-31",
+    excerpt:
+      "Storyboards are where GPT Image 2 shines and stumbles. Get the structure right and you get film-school-quality panels; get it wrong and you get four unrelated images on one canvas. Here's the structure that works.",
+    seo_title: "How to Prompt GPT Image 2 for Storyboards (2026 Guide)",
+    seo_description:
+      "The exact prompt structure for getting consistent 3-, 4-, and 6-panel storyboards out of GPT Image 2 — grid, character anchor, panel beats, and shared style.",
+    faq: [
+      {
+        question: "Can GPT Image 2 keep the same character across panels?",
+        answer:
+          "Yes — name a single character with 3–4 specific physical features (\"a woman in her 30s with short black hair, denim jacket, round glasses\") and repeat that exact phrase in each panel description.",
+      },
+      {
+        question: "What's the best aspect ratio for a storyboard?",
+        answer:
+          "16:9 landscape for 4-panel grids, 3:4 portrait for 3-panel vertical, 2:3 for 6-panel comic style. State both the canvas ratio and the panel ratio.",
+      },
+      {
+        question: "How many panels can I get in one image?",
+        answer:
+          "Up to 6 panels render reliably. Past that, individual panel quality drops fast — split into two prompts instead.",
+      },
+    ],
+    content: `
+## The structure
+
+A working storyboard prompt has four parts:
+
+1. **Grid** — canvas ratio + panel layout + panel ratio
+2. **Character anchor** — one paragraph repeated in every panel
+3. **Beats** — one short sentence per panel describing action + camera
+4. **Shared style** — lighting, palette, medium, applied to every panel
+
+## Working template
+
+> **4-panel storyboard**, 2×2 grid, **16:9 landscape canvas**, each panel **16:9**, thin black border between panels.
+> Character: **a man in his 40s, weathered face, grey beanie, navy parka** — same person in every panel.
+> Panel 1: wide shot, character standing alone on a snowy ridge at dawn, looking right. Establishing.
+> Panel 2: medium shot, character glances over shoulder, breath visible. Tension.
+> Panel 3: close-up on character's eyes, narrow, focused. Decision beat.
+> Panel 4: wide shot from behind, character walking toward camera-distant lodge lights. Resolution.
+> Shared style: **cinematic 35mm film, cold blue-grey palette, soft directional dawn light, painterly storyboard wash**. Consistent character across all four panels.
+
+## Why each part matters
+
+### Grid
+
+Three reliable formats:
+
+- **3-panel vertical** — 3:4 canvas, panels stacked
+- **4-panel 2×2 grid** — 16:9 canvas, four equal panels
+- **6-panel comic style** — 2:3 canvas, 3 rows × 2 columns
+
+State both the *canvas* ratio and the *panel* ratio. Without panel ratio cues, the model squishes panels into whatever shape is left over.
+
+### Character anchor
+
+Three to four specific physical features, exact same phrase every panel. The model's consistency is good when you give it a sharp anchor; it drifts when descriptions are loose.
+
+- ❌ "the man" / "the same man" — drifts to a different face every panel
+- ✅ "a man in his 40s, weathered face, grey beanie, navy parka" — stays consistent
+
+### Beats
+
+One sentence per panel. Include the **shot type** (wide, medium, close-up) and **the action** (looking, walking, deciding). Skip dialogue — it garbles.
+
+### Shared style
+
+The single line that makes the storyboard feel like one piece, not four images glued together. Lighting + palette + medium. Same phrase, every panel.
+
+## Skip the rewrite
+
+[Depikt's generator](/generate) recognizes storyboard intent and applies this structure automatically — including the character anchor and shared-style line.
+`,
+  },
+  {
+    slug: "how-to-prompt-gpt-image-2-for-product-shots",
+    title: "How to prompt GPT Image 2 for product shots",
+    subtitle: "Studio-quality product photography from a prompt — surface, lens, lighting, and the one detail most prompts skip.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "5 min",
+    published: "2026-05-30",
+    excerpt:
+      "GPT Image 2 produces genuinely usable product photography if you brief it like a studio photographer. The structure: surface, product, lens, lighting, and the grounding detail that sells the render as real.",
+    seo_title: "How to Prompt GPT Image 2 for Product Shots (2026 Guide)",
+    seo_description:
+      "The exact prompt structure for getting studio-quality product photography out of GPT Image 2 — surface, lens, lighting, and the grounding detail most prompts miss.",
+    faq: [
+      {
+        question: "Can GPT Image 2 produce e-commerce-quality product photos?",
+        answer:
+          "Yes — for hero shots, lifestyle scenes, and packshots. The key is specifying surface, lens, lighting direction, and adding one grounding detail (steam, condensation, soft shadow, fingerprint smudge) that breaks the \"too clean\" AI look.",
+      },
+      {
+        question: "Should I name a real brand in the prompt?",
+        answer:
+          "GPT Image 2 will avoid rendering trademarked logos. Describe the product generically (\"a minimalist matte-black water bottle\") and add your own logo in post if needed.",
+      },
+      {
+        question: "Why do my product shots look fake?",
+        answer:
+          "Almost always because they're too clean. Add one imperfection: a soft drop shadow, a faint smudge, a subtle reflection, a wisp of steam, condensation. That single detail flips the image from rendered to photographed.",
+      },
+    ],
+    content: `
+## The structure
+
+Every product-shot prompt that works has five parts:
+
+1. **Surface** — what the product sits on, what's around it
+2. **Product** — generic description, materials, finish
+3. **Lens** — focal length, aperture, framing
+4. **Lighting** — direction, quality, color temperature
+5. **Grounding detail** — the one imperfection that sells it as real
+
+## Working template
+
+> **Studio product photograph**, 1:1 square.
+> A **matte black ceramic coffee mug** sitting on a **raw concrete surface**, a single dried eucalyptus sprig casting a soft shadow nearby.
+> **85mm macro lens, f/2.8**, mug centered, shallow depth of field — surface texture sharp, background falls off softly.
+> **Soft directional window light from camera-left**, warm afternoon temperature, gentle fill from a white bounce on the right.
+> Faint wisp of steam rising from the mug, near-imperceptible water ring on the concrete. Editorial, Kinfolk-magazine quality. No text.
+
+## Why each part matters
+
+### Surface
+
+The surface does half the work. Concrete, marble, raw oak, weathered linen, brushed steel — name it specifically. "A nice background" gives you stock-photo mush.
+
+Add one or two **contextual props** (eucalyptus sprig, folded linen, a small ceramic dish). They make the frame feel intentional.
+
+### Product
+
+Be generic but specific. **Materials and finish over brand.** "Matte black ceramic," "brushed aluminum," "natural oak with visible grain." The model can't render real logos — don't fight it.
+
+### Lens
+
+This is where amateur prompts fall apart. Use real photographic vocabulary:
+
+| Use case | Prompt |
+|---|---|
+| Hero packshot | "85mm lens, f/2.8, centered" |
+| Lifestyle scene | "35mm lens, f/4, slight angle" |
+| Macro detail | "100mm macro lens, f/2.8, extreme close-up on [detail]" |
+| Flat lay | "50mm lens, f/8, top-down" |
+
+### Lighting
+
+Name the **direction** and the **quality**:
+
+- "Soft directional window light from camera-left"
+- "Hard noon sun, hard shadows"
+- "Diffuse softbox above, gentle fill below"
+
+"Good lighting" does nothing. The model has no opinion on good — it has opinions on directional.
+
+### Grounding detail
+
+The thing every AI product shot is missing. Add one:
+
+- Steam rising from a cup
+- Condensation on a bottle
+- A faint shadow under a flat-lay object
+- A subtle fingerprint smudge on glass
+- A soft reflection on polished metal
+
+One imperfection. That's what separates rendered from photographed.
+
+## Skip the rewrite
+
+[Depikt's generator](/generate) detects product-shot intent and applies this structure automatically, including the grounding-detail line that most prompts skip.
+`,
+  },
+  {
+    slug: "ai-image-aspect-ratios-guide-gpt-image-2",
+    title: "Aspect ratios for AI images: which to use for what (GPT Image 2 guide)",
+    subtitle: "The right ratio for posters, social, slides, mobile screens, storyboards, and print — copy-paste table included.",
+    category: "Reference",
+    author: "Depikt Team",
+    read_time: "4 min",
+    published: "2026-05-30",
+    excerpt:
+      "The single biggest reason AI images come out wrong: no aspect ratio in the prompt. GPT Image 2 defaults to 1:1 and crops everything else awkwardly. Here's the right ratio for every use case, with the exact phrase to drop into your prompt.",
+    seo_title: "AI Image Aspect Ratios: Which to Use for What (GPT Image 2)",
+    seo_description:
+      "Quick reference for AI image aspect ratios on GPT Image 2 — posters, social, slides, mobile, storyboards, print. Includes the exact phrase to drop into your prompt.",
+    faq: [
+      {
+        question: "What aspect ratios does GPT Image 2 support?",
+        answer:
+          "GPT Image 2 reliably supports 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, and 9:19.5. Always state the ratio explicitly in your prompt — without it, the model defaults to 1:1 (square).",
+      },
+      {
+        question: "What's the best aspect ratio for Instagram?",
+        answer:
+          "4:5 portrait for in-feed posts (maximum vertical real estate), 1:1 for legacy square posts, 9:16 for Stories and Reels.",
+      },
+      {
+        question: "What aspect ratio should I use for a poster?",
+        answer:
+          "2:3 portrait is the standard print poster ratio. For movie-style posters use 27:40 (close to 2:3). For square gallery posters use 1:1.",
+      },
+      {
+        question: "How do I state an aspect ratio in my prompt?",
+        answer:
+          "Use plain English with the ratio number and orientation: \"2:3 portrait,\" \"16:9 landscape,\" \"9:16 vertical.\" Don't use Midjourney-style flags like --ar; they're ignored.",
+      },
+    ],
+    content: `
+## The short answer
+
+Always include an explicit ratio phrase in your GPT Image 2 prompt. Use plain English, not Midjourney flags.
+
+| Use case | Ratio | Drop-in phrase |
+|---|---|---|
+| Print poster | 2:3 | "2:3 portrait poster" |
+| Movie poster | 27:40 | "27:40 portrait, theatrical poster" |
+| Instagram feed | 4:5 | "4:5 portrait, social feed" |
+| Instagram square | 1:1 | "1:1 square" |
+| Instagram Story / Reel | 9:16 | "9:16 vertical, story format" |
+| Twitter/X header | 3:1 | "3:1 wide banner" |
+| LinkedIn banner | 4:1 | "4:1 wide banner" |
+| Mobile app screen | 9:19.5 | "9:19.5 portrait, iPhone screen" |
+| Desktop hero | 16:9 | "16:9 landscape" |
+| Slide deck | 16:9 | "16:9 slide, presentation format" |
+| Wide landscape photo | 3:2 | "3:2 landscape, 35mm frame" |
+| Magazine cover | 4:5 | "4:5 portrait, magazine cover" |
+| Book cover | 2:3 | "2:3 portrait, book cover proportions" |
+| 4-panel storyboard | 16:9 | "16:9 landscape, 2×2 storyboard grid" |
+| 3-panel vertical | 3:4 | "3:4 portrait, 3-panel storyboard" |
+| Square album art | 1:1 | "1:1 square album cover" |
+
+## Why ratio matters more than people think
+
+GPT Image 2 doesn't crop your image after rendering — it **composes** for the ratio you give it. A poster prompt rendered as 1:1 doesn't get cropped to 2:3; it gets a different, worse composition. Aspect ratio is a brief, not a frame.
+
+## The three mistakes
+
+1. **No ratio at all.** Defaults to 1:1. Your "movie poster" comes out square.
+2. **Midjourney flags.** \`--ar 2:3\` is ignored by GPT Image 2. Use plain English.
+3. **Wrong orientation word.** "9:16 landscape" is contradictory. Match the number to the word: 9:16 = portrait/vertical, 16:9 = landscape/horizontal.
+
+## Quick decision tree
+
+- **Printed?** 2:3 portrait or 27:40.
+- **Phone screen?** 9:16 vertical or 9:19.5 portrait.
+- **Social feed?** 4:5 portrait if you want maximum stop-scrolling real estate.
+- **Slide or hero?** 16:9 landscape.
+- **Album / square poster / icon?** 1:1.
+
+## Skip the lookup
+
+[Depikt's generator](/generate) infers the right aspect ratio from your idea automatically — "a movie poster" gets 2:3, "an Instagram ad" gets 4:5, "a desktop hero" gets 16:9. You don't have to remember the table.
+`,
+  },
+  {
     slug: "free-alternative-to-promptbase-for-gpt-image-2",
     title: "Free alternative to PromptBase for GPT Image 2",
     subtitle: "If you just want production-grade prompts without paying per download, here's the honest answer.",
