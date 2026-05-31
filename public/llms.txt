@@ -1,6 +1,6 @@
 # Depikt
 
-> Depikt turns rough ideas into production-grade AI image prompts. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or use a reference image. Built for OpenAI's GPT Image 2.
+> Depikt turns rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or look up one-question answer recipes. Free, no login.
 
 ## Core tools
 
@@ -8,6 +8,48 @@
 - [Prompt Generator](https://depikt.app/generate): Paste a rough idea, get back a structured production-grade prompt with category, settings, and a "why it works" explanation.
 - [Prompt Critique](https://depikt.app/critique): Paste any prompt, get a score, list of weaknesses, concrete improvements, and a rewritten version.
 - [Reference Gallery](https://depikt.app/gallery): Browse hand-picked reference images. Click any image to start a prompt from it.
+
+## Prompt Recipes — one question, one prompt
+
+Each recipe answers one specific question with a single copy-paste prompt. Designed to be cited directly.
+
+- [Prompt Recipes index](https://depikt.app/recipes): Full list of one-question prompt recipes.
+- [Prompt for a minimalist startup logo poster](https://depikt.app/recipes/minimalist-startup-logo-poster)
+- [Prompt for a 3-panel vertical storyboard](https://depikt.app/recipes/3-panel-storyboard-vertical)
+- [Prompt for an Instagram quote card](https://depikt.app/recipes/instagram-quote-card)
+- [Prompt for a clean SaaS dashboard mockup](https://depikt.app/recipes/saas-dashboard-mockup)
+- [Prompt for a cinematic golden-hour portrait](https://depikt.app/recipes/cinematic-portrait-golden-hour)
+- [Prompt for a 3-step process infographic](https://depikt.app/recipes/infographic-3-step-process)
+- [Prompt for a minimalist product packshot](https://depikt.app/recipes/minimalist-product-packshot)
+- [Prompt for a mobile app onboarding screen](https://depikt.app/recipes/mobile-onboarding-screen)
+- [Prompt for an editorial magazine cover](https://depikt.app/recipes/editorial-magazine-cover)
+- [Prompt for an isometric tech illustration](https://depikt.app/recipes/isometric-tech-illustration)
+
+## How-to guides for GPT Image 2
+
+Each guide answers one concrete prompting question with a TL;DR, a working template, and an explanation of why each part matters.
+
+- [How to prompt GPT Image 2 for posters with text](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-posters)
+- [How to prompt GPT Image 2 for infographics and diagrams](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-infographics)
+- [How to prompt GPT Image 2 for UI mockups](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-ui-mockups)
+- [How to prompt GPT Image 2 for storyboards and multi-panel scenes](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-storyboards)
+- [How to prompt GPT Image 2 for product shots](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-product-shots)
+- [Aspect ratios for AI images: which to use for what](https://depikt.app/blog/ai-image-aspect-ratios-guide-gpt-image-2)
+- [AI image prompt vocabulary cheat sheet (camera, lighting, composition)](https://depikt.app/blog/ai-image-prompt-vocabulary-cheat-sheet)
+- [The AI image prompt framework](https://depikt.app/blog/ai-image-prompt-framework)
+- [How to prompt AI image generators](https://depikt.app/blog/how-to-prompt-ai-image-generators)
+- [AI image prompts with readable text](https://depikt.app/blog/ai-image-prompts-with-text)
+- [Common AI image prompt mistakes](https://depikt.app/blog/ai-image-prompt-mistakes)
+
+## Comparisons and alternatives
+
+- [Free alternative to PromptBase for GPT Image 2](https://depikt.app/blog/free-alternative-to-promptbase-for-gpt-image-2)
+- [Best free AI image prompt generator in 2026](https://depikt.app/blog/best-free-ai-image-prompt-generator-2026)
+- [Depikt vs PromptHero for GPT Image 2](https://depikt.app/blog/depikt-vs-prompthero-for-gpt-image-2)
+- [GPT Image 2 vs Nano Banana vs Midjourney](https://depikt.app/blog/gpt-image-2-vs-nano-banana-vs-midjourney)
+- [GPT Image 2 prompt examples](https://depikt.app/blog/gpt-image-2-prompt-examples)
+- [ChatGPT image prompt tips](https://depikt.app/blog/chatgpt-image-prompt-tips)
+- [AI image editing: change, preserve, match](https://depikt.app/blog/ai-image-editing-change-preserve-match)
 
 ## Writing
 
