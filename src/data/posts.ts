@@ -109,12 +109,12 @@ This is the constraint block that kills the AI-mush look:
 
 **No background spec.** Model defaults to busy texture. Always specify "clean white background."
 
-**Asking for text without quoting it.** Always put the brand name in quotes: \`"[BRAND NAME]"\`. Otherwise the model renders a phonetic guess.
+**Asking for text without quoting it.** Always put the brand name in quotes. Otherwise the model renders a phonetic guess.
 
 ## Skip the rewrite
 
 [Depikt's generator](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt recipes index](/recipes).
-\`,
+`,
   },
   {
     slug: "how-to-prompt-gpt-image-2-for-infographics",
