@@ -23,6 +23,100 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "how-to-prompt-gpt-image-2-for-logos",
+    title: "How to prompt GPT Image 2 for logos and brand marks",
+    subtitle: "The four-block prompt structure that gets clean, scalable, on-brief logo concepts — not generic AI mush.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-31",
+    excerpt:
+      "GPT Image 2 can spit out genuinely usable logo directions if you brief it like a designer. Here's the four-block structure: concept, mark type, type system, finish — plus copy-paste templates.",
+    seo_title: "How to Prompt GPT Image 2 for Logos (2026 Guide)",
+    seo_description:
+      "The exact four-block prompt structure for generating clean, scalable logo concepts with GPT Image 2 — concept, mark type, typography, finish. Templates included.",
+    faq: [
+      {
+        question: "Can GPT Image 2 design a usable logo?",
+        answer:
+          "It produces strong concept directions — wordmarks, monograms, simple geometric marks, and emblem-style logos. Use the output as a starting point: redraw the final mark in vector (Figma, Illustrator) for scalability and edge cleanup.",
+      },
+      {
+        question: "What aspect ratio should I use for a logo prompt?",
+        answer:
+          "1:1 square for standalone marks. 16:9 or 4:5 if you want a horizontal lockup with wordmark next to symbol. Always state \"centered on a clean white background, generous padding\" so the model gives you a usable crop.",
+      },
+      {
+        question: "Why do my AI logos look generic?",
+        answer:
+          "Three reasons: no concept anchor (vague brief), too many stylistic adjectives (pick one direction), and no constraint on detail. Add \"flat, single-color, no gradients, no 3D, no drop shadows\" to force the model into real logo territory.",
+      },
+    ],
+    content: `
+## The four-block structure
+
+Every logo prompt that gets a usable result has four blocks:
+
+1. **Concept** — what the brand is, what it stands for, one metaphor
+2. **Mark type** — wordmark, monogram, symbol, emblem, lockup
+3. **Type system** — font character (geometric sans, humanist serif, etc.)
+4. **Finish** — flat vs dimensional, color count, background
+
+## Working template
+
+> Logo design for "[BRAND NAME]", a [one-line description of the company]. Style: **minimalist [mark type]**, inspired by [one reference: Swiss design / 70s record labels / modernist architecture]. Mark concept: [single metaphor — e.g. "an abstract mountain formed from two overlapping triangles"]. Typography: **geometric sans**, lowercase, tight letter-spacing. Flat, single-color (deep navy on off-white), no gradients, no 3D, no drop shadows. Centered on a clean white background, generous padding. Vector-style, scalable, professional brand identity.
+
+## Why each block matters
+
+### Concept
+
+The single biggest reason AI logos look generic: no anchor. "A logo for a coffee shop" gives you a generic cup-and-steam mark. "A logo for a coffee shop, mark concept: a single coffee bean formed from a crescent moon" gives you a real idea.
+
+One metaphor. One sentence. That's the concept block.
+
+### Mark type
+
+Pick one and name it:
+
+- **Wordmark** — the name styled as the logo (Google, eBay)
+- **Monogram** — initials as the mark (HBO, IBM)
+- **Symbol** — abstract or representational mark (Nike swoosh, Apple)
+- **Emblem** — text inside a contained shape (Starbucks, Harley)
+- **Lockup** — symbol + wordmark side by side
+
+Mixing types confuses the model. Pick one per generation.
+
+### Type system
+
+Don't say "modern font." Say:
+
+- "Geometric sans, lowercase, tight letter-spacing" (Futura territory)
+- "Humanist sans, sentence case, generous tracking" (Gill Sans territory)
+- "Slab serif, all caps, condensed" (newspaper / sports brand)
+- "Neo-grotesque, all caps, standard tracking" (Helvetica territory)
+
+### Finish
+
+This is the constraint block that kills the AI-mush look:
+
+- **Flat, single-color, no gradients, no 3D, no drop shadows** — forces real logo territory
+- **Centered on a clean white background, generous padding** — gives you a usable crop
+- **Vector-style, scalable** — pushes toward simple shapes, not photorealistic
+
+## Common failure modes
+
+**Too many adjectives.** "Modern minimalist playful elegant bold sophisticated logo" → muddy generic mark. Pick two adjectives max.
+
+**No background spec.** Model defaults to busy texture. Always specify "clean white background."
+
+**Asking for text without quoting it.** Always put the brand name in quotes: \`"[BRAND NAME]"\`. Otherwise the model renders a phonetic guess.
+
+## Skip the rewrite
+
+[Depikt's generator](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt recipes index](/recipes).
+\`,
+  },
+  {
     slug: "how-to-prompt-gpt-image-2-for-infographics",
     title: "How to prompt GPT Image 2 for infographics and diagrams",
     subtitle: "The five-block structure that gets clean labels, real data marks, and a readable hierarchy.",
