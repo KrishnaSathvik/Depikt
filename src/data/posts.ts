@@ -1529,9 +1529,9 @@ You can apply this manually on every prompt. Or you can paste your rough idea in
     published: "2026-04-23",
     excerpt:
       "Text rendering used to be the biggest weakness of AI image generation. GPT Image 2 mostly fixed it — independent reviews report 95%+ accuracy. But getting reliable output still requires a specific approach.",
-    seo_title: "How to Write AI Image Prompts with Readable Text",
+    seo_title: "How to Write AI Image Prompts with Perfect Text (GPT Image 2)",
     seo_description:
-      "The text-rendering protocol for AI image prompts: quotes, placement specifications, font weights, the verbatim trigger, and common mistakes.",
+      "The exact prompt structure that gets GPT Image 2 to render text correctly: quote marks, placement specs, font weights, the verbatim trigger, and 5 mistakes that break it.",
     content: `
 ## What actually changed with text rendering
 
