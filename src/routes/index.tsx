@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Wand2, LayoutGrid, MessageSquare, Sparkles, Copy } from "lucide-react";
+import { Header } from "@/components/Header";
 import { useState } from "react";
 import { toast } from "sonner";
 
