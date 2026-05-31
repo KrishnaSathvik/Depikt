@@ -113,7 +113,7 @@ This is the constraint block that kills the AI-mush look:
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt recipes index](/recipes).
+[Depikt's generator](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt templates index](/templates).
 `,
   },
   {

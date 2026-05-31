@@ -1,6 +1,6 @@
 # Depikt
 
-> Depikt turns rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or look up one-question answer recipes. Free, no login.
+> Depikt turns rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or look up one-question answer templates. Free, no login.
 
 ## Core tools
 
@@ -9,21 +9,21 @@
 - [Prompt Critique](https://depikt.app/critique): Paste any prompt, get a score, list of weaknesses, concrete improvements, and a rewritten version.
 - [Reference Gallery](https://depikt.app/gallery): Browse hand-picked reference images. Click any image to start a prompt from it.
 
-## Prompt Recipes — one question, one prompt
+## Prompt Templates — one question, one prompt
 
-Each recipe answers one specific question with a single copy-paste prompt. Designed to be cited directly.
+Each template answers one specific question with a single copy-paste prompt. Designed to be cited directly.
 
-- [Prompt Recipes index](https://depikt.app/recipes): Full list of one-question prompt recipes.
-- [Prompt for a minimalist startup logo poster](https://depikt.app/recipes/minimalist-startup-logo-poster)
-- [Prompt for a 3-panel vertical storyboard](https://depikt.app/recipes/3-panel-storyboard-vertical)
-- [Prompt for an Instagram quote card](https://depikt.app/recipes/instagram-quote-card)
-- [Prompt for a clean SaaS dashboard mockup](https://depikt.app/recipes/saas-dashboard-mockup)
-- [Prompt for a cinematic golden-hour portrait](https://depikt.app/recipes/cinematic-portrait-golden-hour)
-- [Prompt for a 3-step process infographic](https://depikt.app/recipes/infographic-3-step-process)
-- [Prompt for a minimalist product packshot](https://depikt.app/recipes/minimalist-product-packshot)
-- [Prompt for a mobile app onboarding screen](https://depikt.app/recipes/mobile-onboarding-screen)
-- [Prompt for an editorial magazine cover](https://depikt.app/recipes/editorial-magazine-cover)
-- [Prompt for an isometric tech illustration](https://depikt.app/recipes/isometric-tech-illustration)
+- [Prompt Templates index](https://depikt.app/templates): Full list of one-question prompt templates.
+- [Prompt for a minimalist startup logo poster](https://depikt.app/templates/minimalist-startup-logo-poster)
+- [Prompt for a 3-panel vertical storyboard](https://depikt.app/templates/3-panel-storyboard-vertical)
+- [Prompt for an Instagram quote card](https://depikt.app/templates/instagram-quote-card)
+- [Prompt for a clean SaaS dashboard mockup](https://depikt.app/templates/saas-dashboard-mockup)
+- [Prompt for a cinematic golden-hour portrait](https://depikt.app/templates/cinematic-portrait-golden-hour)
+- [Prompt for a 3-step process infographic](https://depikt.app/templates/infographic-3-step-process)
+- [Prompt for a minimalist product packshot](https://depikt.app/templates/minimalist-product-packshot)
+- [Prompt for a mobile app onboarding screen](https://depikt.app/templates/mobile-onboarding-screen)
+- [Prompt for an editorial magazine cover](https://depikt.app/templates/editorial-magazine-cover)
+- [Prompt for an isometric tech illustration](https://depikt.app/templates/isometric-tech-illustration)
 
 ## How-to guides for GPT Image 2
 

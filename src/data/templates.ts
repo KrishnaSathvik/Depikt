@@ -1,12 +1,12 @@
 /**
- * Prompt Recipes — answer-engine-optimized index.
- * Each recipe answers ONE specific question with a single citable prompt.
+ * Prompt Templates — answer-engine-optimized index.
+ * Each template answers ONE specific question with a single citable prompt.
  * Designed for LLM crawlers (ChatGPT, Perplexity, Claude) to lift verbatim.
  */
 
-export interface Recipe {
+export interface Template {
   slug: string;
-  /** The question the recipe answers — used as title and h1. */
+  /** The question the template answers — used as title and h1. */
   question: string;
   /** Short ~10-word answer for cards, meta description, and TL;DR. */
   short_answer: string;
@@ -18,7 +18,7 @@ export interface Recipe {
   why_it_works: string;
 }
 
-export const recipes: Recipe[] = [
+export const templates: Template[] = [
   {
     slug: "minimalist-startup-logo-poster",
     question: "What's a prompt for a minimalist startup logo poster?",
@@ -121,6 +121,6 @@ export const recipes: Recipe[] = [
   },
 ];
 
-export function getRecipeBySlug(slug: string): Recipe | undefined {
-  return recipes.find((r) => r.slug === slug);
+export function getTemplateBySlug(slug: string): Template | undefined {
+  return templates.find((r) => r.slug === slug);
 }

@@ -19,9 +19,9 @@ import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as CritiqueRouteImport } from './routes/critique'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RecipesIndexRouteImport } from './routes/recipes.index'
+import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as RecipesSlugRouteImport } from './routes/recipes.$slug'
+import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ExamplesChar123IdChar125RouteImport } from './routes/examples.{-$id}'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
@@ -77,9 +77,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecipesIndexRoute = RecipesIndexRouteImport.update({
-  id: '/recipes/',
-  path: '/recipes/',
+const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
+  id: '/templates/',
+  path: '/templates/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -87,9 +87,9 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RecipesSlugRoute = RecipesSlugRouteImport.update({
-  id: '/recipes/$slug',
-  path: '/recipes/$slug',
+const TemplatesSlugRoute = TemplatesSlugRouteImport.update({
+  id: '/templates/$slug',
+  path: '/templates/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ExamplesChar123IdChar125Route =
@@ -127,9 +127,9 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
-  '/recipes/$slug': typeof RecipesSlugRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
-  '/recipes/': typeof RecipesIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
@@ -146,9 +146,9 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
-  '/recipes/$slug': typeof RecipesSlugRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog': typeof BlogIndexRoute
-  '/recipes': typeof RecipesIndexRoute
+  '/templates': typeof TemplatesIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
@@ -166,9 +166,9 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
-  '/recipes/$slug': typeof RecipesSlugRoute
+  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
-  '/recipes/': typeof RecipesIndexRoute
+  '/templates/': typeof TemplatesIndexRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
@@ -187,9 +187,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/blog/$slug'
     | '/examples/{-$id}'
-    | '/recipes/$slug'
+    | '/templates/$slug'
     | '/blog/'
-    | '/recipes/'
+    | '/templates/'
     | '/api/public/generate-prompt'
     | '/api/blog/rss/xml'
   fileRoutesByTo: FileRoutesByTo
@@ -206,9 +206,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/blog/$slug'
     | '/examples/{-$id}'
-    | '/recipes/$slug'
+    | '/templates/$slug'
     | '/blog'
-    | '/recipes'
+    | '/templates'
     | '/api/public/generate-prompt'
     | '/api/blog/rss/xml'
   id:
@@ -225,9 +225,9 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/blog/$slug'
     | '/examples/{-$id}'
-    | '/recipes/$slug'
+    | '/templates/$slug'
     | '/blog/'
-    | '/recipes/'
+    | '/templates/'
     | '/api/public/generate-prompt'
     | '/api/blog/rss/xml'
   fileRoutesById: FileRoutesById
@@ -245,9 +245,9 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ExamplesChar123IdChar125Route: typeof ExamplesChar123IdChar125Route
-  RecipesSlugRoute: typeof RecipesSlugRoute
+  TemplatesSlugRoute: typeof TemplatesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
-  RecipesIndexRoute: typeof RecipesIndexRoute
+  TemplatesIndexRoute: typeof TemplatesIndexRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
   ApiBlogRssXmlRoute: typeof ApiBlogRssXmlRoute
 }
@@ -324,11 +324,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/recipes/': {
-      id: '/recipes/'
-      path: '/recipes'
-      fullPath: '/recipes/'
-      preLoaderRoute: typeof RecipesIndexRouteImport
+    '/templates/': {
+      id: '/templates/'
+      path: '/templates'
+      fullPath: '/templates/'
+      preLoaderRoute: typeof TemplatesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -338,11 +338,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/recipes/$slug': {
-      id: '/recipes/$slug'
-      path: '/recipes/$slug'
-      fullPath: '/recipes/$slug'
-      preLoaderRoute: typeof RecipesSlugRouteImport
+    '/templates/$slug': {
+      id: '/templates/$slug'
+      path: '/templates/$slug'
+      fullPath: '/templates/$slug'
+      preLoaderRoute: typeof TemplatesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/examples/{-$id}': {
@@ -389,12 +389,21 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   BlogSlugRoute: BlogSlugRoute,
   ExamplesChar123IdChar125Route: ExamplesChar123IdChar125Route,
-  RecipesSlugRoute: RecipesSlugRoute,
+  TemplatesSlugRoute: TemplatesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
-  RecipesIndexRoute: RecipesIndexRoute,
+  TemplatesIndexRoute: TemplatesIndexRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,
   ApiBlogRssXmlRoute: ApiBlogRssXmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
