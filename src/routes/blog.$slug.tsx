@@ -211,6 +211,21 @@ function PostPage() {
               </div>
             )}
 
+            {/* "What this page answers" — TL;DR block for LLM crawlers and skimmers */}
+            {post.faq && post.faq.length > 0 && (
+              <aside
+                aria-label="What this page answers"
+                className="mt-10 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6"
+              >
+                <p className="eyebrow">What this page answers</p>
+                <ul className="mt-4 space-y-2 text-body-md text-[color:var(--text-secondary)] list-disc pl-5 marker:text-[color:var(--text-quaternary)]">
+                  {post.faq.map((f) => (
+                    <li key={f.question}>{f.question}</li>
+                  ))}
+                </ul>
+              </aside>
+            )}
+
             {/* Article body */}
             <div className="mt-10 border-t border-[color:var(--border-subtle)] pt-10">
               <div className="prose-content">{nodes}</div>
