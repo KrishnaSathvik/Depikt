@@ -23,6 +23,305 @@ export interface Post {
 
 export const posts: Post[] = [
   {
+    slug: "free-alternative-to-promptbase-for-gpt-image-2",
+    title: "Free alternative to PromptBase for GPT Image 2",
+    subtitle: "If you just want production-grade prompts without paying per download, here's the honest answer.",
+    category: "Comparison",
+    author: "Depikt Team",
+    read_time: "5 min",
+    published: "2026-05-31",
+    excerpt:
+      "PromptBase sells prompts one at a time. Depikt gives you 500 curated, copy-ready prompts for GPT Image 2 for free, plus a generator that writes new ones from a single sentence. Here's the side-by-side, the trade-offs, and when each one actually makes sense.",
+    seo_title: "Free Alternative to PromptBase for GPT Image 2 (2026)",
+    seo_description:
+      "Depikt is a free alternative to PromptBase built for GPT Image 2 — 500 curated prompts, a generator, and a critique tool. No login, no per-prompt fees.",
+    faq: [
+      {
+        question: "Is Depikt really free?",
+        answer:
+          "Yes. All 500 curated prompts, the generator, and the critique tool are free with no login. There's no per-prompt fee and no credit system.",
+      },
+      {
+        question: "Why use Depikt instead of PromptBase?",
+        answer:
+          "PromptBase is a marketplace covering many models — you pay per prompt and quality varies. Depikt is purpose-built for GPT Image 2, every prompt is hand-curated, and the generator writes new prompts on demand instead of selling fixed ones.",
+      },
+      {
+        question: "Does Depikt work with Midjourney or Flux?",
+        answer:
+          "The prompts are tuned for GPT Image 2's strengths (text rendering, photorealism, layout control). Most translate well to Midjourney and Flux, but the structural cues are optimized for GPT Image 2 first.",
+      },
+      {
+        question: "Can I use the prompts commercially?",
+        answer:
+          "Yes. Depikt's curated prompts are free to copy, modify, and use commercially. The images you generate from them are governed by your image model's terms.",
+      },
+    ],
+    content: `
+## The short answer
+
+If you're looking for a free alternative to PromptBase that's actually focused on GPT Image 2, use **[Depikt](/)**. 500 curated prompts, a generator that turns one sentence into a structured prompt, and a critique tool that scores and rewrites prompts you already have. No login, no per-prompt fees, no credit system.
+
+## Side by side
+
+| | PromptBase | Depikt |
+|---|---|---|
+| **Price** | $1.99–$9.99 per prompt | Free |
+| **Login** | Required | Not required |
+| **Focus** | Marketplace across many models | Built for GPT Image 2 |
+| **Curation** | User-submitted, variable quality | Hand-curated, every prompt tested |
+| **Generator** | No — you buy fixed prompts | Yes — turn one sentence into a full prompt |
+| **Critique** | No | Yes — paste a prompt, get a score and rewrite |
+| **Categories** | Mixed | 10 focused categories |
+
+## When PromptBase still makes sense
+
+PromptBase has breadth — Midjourney, Stable Diffusion, DALL·E, Flux, Sora, all in one place. If you need a prompt for an obscure model and you're willing to pay, the marketplace is wide.
+
+## When Depikt is the better fit
+
+- You're targeting **GPT Image 2 specifically** (the model inside ChatGPT and the OpenAI API)
+- You want a **library you can browse for free** instead of paying per download
+- You want a **generator** that writes new prompts from your own idea
+- You want to **critique and improve** prompts before spending generations
+
+## Try it
+
+- Browse the [500-prompt library](/library)
+- Open the [generator](/generate) and turn one sentence into a structured prompt
+- Paste any prompt into [critique](/critique) for a score and a rewrite
+
+All free, no account required.
+`,
+  },
+  {
+    slug: "best-free-ai-image-prompt-generator-2026",
+    title: "Best free AI image prompt generator in 2026",
+    subtitle: "Tested against real GPT Image 2 outputs — which free tool actually produces ship-ready prompts.",
+    category: "Comparison",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-30",
+    excerpt:
+      "Most \"AI prompt generators\" just wrap a chat model and return vague text. We tested the free ones against real GPT Image 2 generations. Here's which tool produces prompts you can actually ship, and why structure matters more than cleverness.",
+    seo_title: "Best Free AI Image Prompt Generator in 2026 (Tested)",
+    seo_description:
+      "We tested the leading free AI image prompt generators against real GPT Image 2 outputs. Here's which one produces ship-ready prompts and why structure beats clever wording.",
+    faq: [
+      {
+        question: "What's the best free AI image prompt generator in 2026?",
+        answer:
+          "For GPT Image 2, Depikt is the strongest free option — it produces structured prompts with composition, lighting, type, and palette spelled out, instead of vague descriptive paragraphs. No login required.",
+      },
+      {
+        question: "Do I need a paid tool to get good AI images?",
+        answer:
+          "No. The bottleneck is prompt quality, not tool price. A well-structured free prompt outperforms a long unstructured paid one almost every time.",
+      },
+      {
+        question: "What makes one prompt generator better than another?",
+        answer:
+          "Three things: it produces structural cues the model actually responds to (lens, lighting direction, palette), it locks aspect ratio and text rendering correctly, and it avoids vague filler words like \"stunning\" or \"beautiful.\"",
+      },
+    ],
+    content: `
+## The short answer
+
+If you're prompting **GPT Image 2** — the image model inside ChatGPT and the OpenAI API — the best free generator in 2026 is **[Depikt](/generate)**. It turns one rough sentence into a structured prompt with composition, lighting, type, palette, and aspect ratio all spelled out. No login.
+
+## What "good" actually means
+
+Most free generators do one of two things wrong:
+
+1. **They pad with adjectives.** "A stunning, breathtaking, masterful image of a mountain." The model has no concept of "stunning." It needs *observable* cues — golden hour, 35mm, low angle.
+2. **They ignore structure.** A wall of descriptive text without aspect ratio, composition anchor, or type direction. The model fills the gaps randomly.
+
+## What to look for
+
+| Capability | Why it matters |
+|---|---|
+| **Locks aspect ratio** | GPT Image 2 needs explicit ratio cues or it defaults to square |
+| **Names a lens and lighting direction** | The single highest-leverage change to photographic output |
+| **Handles text in image** | If you ask for a poster, the generator should specify font weight, casing, placement |
+| **Picks a category template** | A poster prompt and a cinematic still need different structure |
+| **Free without login** | You shouldn't pay to find out if a tool works |
+
+## Why Depikt wins for GPT Image 2
+
+- **Built for one model.** Every template is tuned around how GPT Image 2 reads cues.
+- **Auto-categorizes.** Detects whether you want a poster, infographic, cinematic scene, UI mockup, storyboard, etc., then applies the right structural template.
+- **500-prompt library** for inspiration if you'd rather start from a proven base.
+- **Critique tool.** Paste any prompt and get a 1–10 score with a rewritten version.
+
+## Try it
+
+[Open the generator](/generate). Type one sentence. Compare what comes back to whatever your current tool produces. The structural difference is usually obvious within one image.
+`,
+  },
+  {
+    slug: "how-to-prompt-gpt-image-2-for-posters",
+    title: "How to prompt GPT Image 2 for posters with text",
+    subtitle: "The exact structure that gets clean type, locked layout, and print-ready output on the first try.",
+    category: "How-to",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-05-29",
+    excerpt:
+      "GPT Image 2 is the first widely available model that renders typography legibly — but only if you prompt it right. Here's the exact six-part structure for posters: ratio, headline spec, image, palette, finish, and grounding details.",
+    seo_title: "How to Prompt GPT Image 2 for Posters with Text (Guide)",
+    seo_description:
+      "The exact prompt structure for getting GPT Image 2 to render clean typography on posters: aspect ratio, headline spec, image, palette, finish, and grounding details.",
+    faq: [
+      {
+        question: "Can GPT Image 2 render readable text on posters?",
+        answer:
+          "Yes — it's the first widely available image model where typography is reliably legible. The trick is specifying font weight, casing, placement, and exact wording in quotes inside your prompt.",
+      },
+      {
+        question: "What's the best aspect ratio for a poster prompt?",
+        answer:
+          "2:3 portrait is the standard print poster ratio. Always state it explicitly or the model defaults to square.",
+      },
+      {
+        question: "Why does my poster text come out garbled?",
+        answer:
+          "Three common causes: the headline isn't in quotes, you didn't specify a font style (\"condensed grotesk,\" \"slab serif\"), or the headline is too long. Keep it under 8 words and quote it exactly.",
+      },
+      {
+        question: "Can I get a poster with my own brand colors?",
+        answer:
+          "Yes. Name 3–4 specific colors (\"ivory, deep teal, near-black, one orange accent\") rather than vague descriptors. Hex codes also work.",
+      },
+    ],
+    content: `
+## The structure
+
+Every poster prompt that works for GPT Image 2 has six parts, in this order:
+
+1. **Format** — "Editorial print poster, 2:3 portrait."
+2. **Headline** — exact words in quotes, font style, weight, placement.
+3. **Image** — what fills the frame, one clear subject.
+4. **Palette** — 3–4 named colors.
+5. **Finish** — paper feel, print style, grain, registration marks.
+6. **Grounding details** — small captions, data marks, brand strip.
+
+Skip any one and the model fills the gap with something generic.
+
+## A working template
+
+> Editorial print poster, **2:3 portrait**. Bold sans-serif headline **"YOUR HEADLINE HERE"** set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed image of [SUBJECT], [LIGHTING], [COMPOSITION]. Restrained palette: ivory, deep teal, near-black, one orange accent. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "[CAPTION]" with a thin data mark. Risograph print feel. High legibility, museum gift-shop quality.
+
+## Why each part matters
+
+### Format
+
+GPT Image 2 defaults to square. **State the ratio explicitly** ("2:3 portrait," "3:4 portrait," "1:1 square"). Without it, you'll get a square poster cropped wrong.
+
+### Headline
+
+Three rules:
+
+- **Quote the exact words.** \`"THE CLOCK IS TICKING"\` not \`the clock is ticking\`.
+- **Name the font style.** "Condensed grotesk," "thin geometric sans," "slab serif."
+- **Specify placement and weight.** "Top-aligned, bold," "bottom-third, light italic."
+
+Keep it under 8 words. Long headlines garble.
+
+### Image
+
+One subject. One frame. Be specific about lighting and composition. Compare:
+
+- "a beautiful nature scene" — fills with stock-photo mush
+- "a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale" — renders
+
+### Palette
+
+Name 3–4 specific colors. Hex codes work. Vague descriptors ("warm," "moody") don't.
+
+### Finish
+
+This is what makes a poster look *printed* rather than *rendered*: "subtle paper grain," "faint registration marks in corners," "risograph print feel," "museum gift-shop quality."
+
+### Grounding details
+
+Small captions, data marks, a thin brand strip — these take output from "AI art" to "designed object."
+
+## Skip the rewrite
+
+[Depikt's generator](/generate) applies this exact structure automatically. Type "a poster about climate change" and get back a six-part structured prompt ready to paste into ChatGPT. The [library](/library) has 50+ poster prompts you can copy directly.
+`,
+  },
+  {
+    slug: "depikt-vs-prompthero-for-gpt-image-2",
+    title: "Depikt vs PromptHero: which is better for GPT Image 2?",
+    subtitle: "Both are free. Both have big libraries. Here's the honest difference and when each one wins.",
+    category: "Comparison",
+    author: "Depikt Team",
+    read_time: "5 min",
+    published: "2026-05-28",
+    excerpt:
+      "PromptHero is one of the biggest free prompt libraries on the internet. Depikt is smaller, focused, and built for GPT Image 2. Here's the side-by-side and which tool actually produces better output for your use case.",
+    seo_title: "Depikt vs PromptHero for GPT Image 2 (2026 Comparison)",
+    seo_description:
+      "Honest comparison of Depikt and PromptHero for GPT Image 2 prompts. Library size, curation, generator, critique, and when each one is the better choice.",
+    faq: [
+      {
+        question: "Is Depikt or PromptHero better for GPT Image 2?",
+        answer:
+          "Depikt is purpose-built for GPT Image 2 with hand-curated prompts, a generator, and a critique tool. PromptHero has a much larger library across many models but quality is variable. For GPT Image 2 specifically, Depikt produces more reliably shippable output.",
+      },
+      {
+        question: "Is PromptHero free?",
+        answer:
+          "Yes, the library is free to browse. PromptHero also has paid features.",
+      },
+      {
+        question: "Does Depikt have a generator?",
+        answer:
+          "Yes. Depikt turns a single sentence into a structured prompt with composition, lighting, type, and palette spelled out. PromptHero is primarily a browsable library — you copy existing prompts rather than generate new ones from your own idea.",
+      },
+    ],
+    content: `
+## The short answer
+
+Both are free. Both are useful. The difference is **focus**:
+
+- **PromptHero** = huge multi-model library. Best for breadth across Midjourney, Stable Diffusion, Flux, DALL·E, and more.
+- **Depikt** = focused on GPT Image 2. Best when you want hand-curated prompts plus a generator and critique tool for one model done well.
+
+## Side by side
+
+| | PromptHero | Depikt |
+|---|---|---|
+| **Library size** | Very large | 500 hand-curated |
+| **Models covered** | Many | GPT Image 2 only |
+| **Curation** | Community submissions | Every prompt hand-tested |
+| **Generator** | No | Yes |
+| **Critique** | No | Yes |
+| **Login** | Optional | Not required |
+| **Best for** | Browsing widely | Shipping fast on GPT Image 2 |
+
+## When PromptHero wins
+
+- You're prompting **Midjourney, Stable Diffusion, or Flux** as your main model
+- You want to **browse many variations** of a single subject
+- You're researching **what's possible** across the whole image-model ecosystem
+
+## When Depikt wins
+
+- You're prompting **GPT Image 2** specifically (ChatGPT, OpenAI API, fal.ai)
+- You want every prompt to be **production-grade**, not "a few good ones in a noisy feed"
+- You want a **generator** that writes new prompts from your own idea
+- You want a **critique tool** that scores and rewrites prompts you have
+
+## The honest take
+
+If your job is exploring the wider AI image space, PromptHero is the bigger sandbox. If your job is shipping images with GPT Image 2 today, Depikt is the faster path — smaller library, but every prompt works, plus you can generate new ones in seconds.
+
+[Browse the Depikt library](/library) or [try the generator](/generate).
+`,
+  },
+  {
     slug: "ai-image-prompt-vocabulary-cheat-sheet",
     title: "AI Image Prompt Vocabulary: A Cheat Sheet for Camera, Lighting, and Composition",
     subtitle: "The exact words that actually change what the model renders — bookmark and reuse.",
