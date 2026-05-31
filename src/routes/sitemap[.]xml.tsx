@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { posts } from "@/data/posts";
+import { recipes } from "@/data/recipes";
 import { absoluteUrl } from "@/lib/site";
 
 // Static "site shell last meaningfully changed" date — bump when you ship a
@@ -23,10 +24,16 @@ export const Route = createFileRoute("/sitemap.xml")({
           { loc: absoluteUrl("/gallery"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
           { loc: absoluteUrl("/critique"), lastmod: STATIC_LASTMOD, priority: "0.8", changefreq: "weekly" },
           { loc: absoluteUrl("/blog"), lastmod: latestPostDate, priority: "0.9", changefreq: "weekly" },
+          { loc: absoluteUrl("/recipes"), lastmod: STATIC_LASTMOD, priority: "0.9", changefreq: "weekly" },
           ...posts.map((p) => ({
             loc: absoluteUrl(`/blog/${p.slug}`),
             lastmod: p.published,
             priority: "0.8",
+          })),
+          ...recipes.map((r) => ({
+            loc: absoluteUrl(`/recipes/${r.slug}`),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.7",
           })),
         ];
         const body = `<?xml version="1.0" encoding="UTF-8"?>
