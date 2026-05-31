@@ -219,7 +219,7 @@ function PostPage() {
               >
                 <p className="eyebrow">What this page answers</p>
                 <ul className="mt-4 space-y-2 text-body-md text-[color:var(--text-secondary)] list-disc pl-5 marker:text-[color:var(--text-quaternary)]">
-                  {post.faq.map((f: { question: string; answer: string }) => (
+                  {post.faq.map((f: PostFaqItem) => (
                     <li key={f.question}>{f.question}</li>
                   ))}
                 </ul>
