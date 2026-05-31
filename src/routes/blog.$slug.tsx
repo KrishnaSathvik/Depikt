@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { getPostBySlug, getRelatedPosts } from "@/data/posts";
+import { getPostBySlug, getRelatedPosts, type PostFaqItem } from "@/data/posts";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
