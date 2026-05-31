@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { posts } from "@/data/posts";
+import { recipes } from "@/data/recipes";
 import { absoluteUrl } from "@/lib/site";
 
 // Static "site shell last meaningfully changed" date — bump when you ship a
