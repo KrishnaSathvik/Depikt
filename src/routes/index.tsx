@@ -92,7 +92,7 @@ const STATS = [
 function LandingPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)]">
-      <BrandHeader />
+      <Header />
       <main>
         <Hero />
         <FeatureGrid />
