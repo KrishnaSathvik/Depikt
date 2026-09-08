@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SYSTEM_PROMPT, CATEGORIES, MODES, PROMPT_VERSION } from "@/lib/depikt";
-import { curatedPrompts, type CuratedPrompt } from "@/data/curated-prompts";
+import { buildPromptRequest, type PromptMode } from "@/lib/prompt-request";
+import { sanitizeResultFields } from "@/lib/sanitize";
+import { MODEL_ROLES } from "@/lib/openai/models";
+import { selectContract } from "@/lib/openai/schemas";
+import { streamStructuredResponse, type InputMessage } from "@/lib/openai/client";
+import { clientMessageFor } from "@/lib/openai/errors";
+import { encodeSseEvent } from "@/lib/openai/sse";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,7 +22,6 @@ const ALLOWED_MODES = new Set<string>(MODES.map((m) => m.value));
 // In-memory IP rate limiter (best-effort; per-instance). For production abuse
 // resistance, pair this with Cloudflare WAF/Rate Limiting, Turnstile, or a
 // Durable Object/KV-backed limiter so counts survive cold starts and regions.
-// Caps abuse from a single IP without requiring auth, which would break the public demo.
 // Limits: 10 requests / minute and 60 requests / hour per IP.
 const RATE_WINDOW_MIN_MS = 60_000;
 const RATE_WINDOW_HOUR_MS = 3_600_000;
@@ -55,79 +60,19 @@ function rateLimitExceeded(ip: string): boolean {
   return false;
 }
 
-// Category index for curated prompts — built once on cold start.
-const categoryIndex = new Map<string, CuratedPrompt[]>();
-curatedPrompts.forEach((p) => {
-  const list = categoryIndex.get(p.category) || [];
-  list.push(p);
-  categoryIndex.set(p.category, list);
-});
-
-// Map system-prompt category names to curated-library category names.
-const CATEGORY_TO_LIBRARY: Record<string, string> = {
-  "CINEMATIC SCENE": "Cinematic",
-  "POSTER/COVER": "Posters",
-  "INFOGRAPHIC/DIAGRAM": "Infographics",
-  "UI MOCKUP": "UI Mockups",
-  "SOCIAL POST": "Social Posts",
-  "STORYBOARD/MULTI-PANEL": "Storyboards",
-  "INTERIOR/ARCH/FOOD/FASHION": "Interior/Food/Fashion",
-  "VISUAL SUMMARY": "Visual Summaries",
-  "IMAGE EDIT": "Image Edits",
-  "OPEN-ENDED CREATIVE": "Open-Ended Creative",
-};
-
-// Pick up to `count` random examples from a library category.
-function pickExamples(libraryCategory: string, count: number): CuratedPrompt[] {
-  const pool = categoryIndex.get(libraryCategory);
-  if (!pool || pool.length === 0) return [];
-  // Fisher-Yates partial shuffle for unbiased selection.
-  const copy = pool.slice();
-  const n = Math.min(count, copy.length);
-  for (let i = 0; i < n; i++) {
-    const j = i + Math.floor(Math.random() * (copy.length - i));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy.slice(0, n);
-}
-
-// Select examples for a given effectiveCategory (system-prompt name).
-// When null (auto-detect), pick 1 example each from the 4 most common categories.
-function getExamplesForCategory(effectiveCategory: string | null, count: number): CuratedPrompt[] {
-  if (effectiveCategory) {
-    const libCat = CATEGORY_TO_LIBRARY[effectiveCategory];
-    if (libCat) return pickExamples(libCat, count);
-    return [];
-  }
-  // Auto-detect: grab 1 example from each of the 4 largest categories.
-  const sorted = [...categoryIndex.entries()].sort((a, b) => b[1].length - a[1].length);
-  const result: CuratedPrompt[] = [];
-  for (const [cat] of sorted.slice(0, 4)) {
-    result.push(...pickExamples(cat, 1));
-  }
-  return result;
-}
-
-// Format selected examples into a block for the user message.
-function formatExamplesBlock(examples: CuratedPrompt[]): string {
-  if (examples.length === 0) return "";
-  const lines = examples.map((ex, i) => {
-    const parts = [
-      `[${i + 1}] ${ex.title} (${ex.category})`,
-      `Prompt: ${ex.prompt}`,
-    ];
-    if (ex.why_it_works) parts.push(`Why it works: ${ex.why_it_works}`);
-    return parts.join("\n");
-  });
-  return `REFERENCE EXAMPLES (study structure and detail level, do not copy):\n\n${lines.join("\n\n")}`;
-}
-
 interface RequestBody {
   userInput: string;
   referenceImageUrl?: string;
   remixRef?: string;
   category?: string;
   mode?: string;
+}
+
+function jsonError(message: string, status: number): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json", ...corsHeaders },
+  });
 }
 
 export const Route = createFileRoute("/api/public/generate-prompt")({
@@ -139,34 +84,22 @@ export const Route = createFileRoute("/api/public/generate-prompt")({
           // Rate limit BEFORE doing any work
           const ip = getClientIp(request);
           if (rateLimitExceeded(ip)) {
-            return new Response(
-              JSON.stringify({ error: "Too many requests. Please wait a moment and try again." }),
-              { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } },
-            );
+            return jsonError("Too many requests. Please wait a moment and try again.", 429);
           }
 
           const body = (await request.json()) as RequestBody;
           const { userInput, referenceImageUrl, remixRef, category, mode = "default" } = body;
 
           if (!userInput || typeof userInput !== "string" || userInput.trim().length === 0) {
-            return new Response(JSON.stringify({ error: "userInput is required" }), {
-              status: 400,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
-            });
+            return jsonError("userInput is required", 400);
           }
           if (userInput.length > 4000) {
-            return new Response(JSON.stringify({ error: "Input too long (max 4000 chars)" }), {
-              status: 400,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
-            });
+            return jsonError("Input too long (max 4000 chars)", 400);
           }
 
           // Validate mode against allowlist (prevents prompt injection via mode field)
           if (typeof mode !== "string" || mode.length > 50 || !ALLOWED_MODES.has(mode)) {
-            return new Response(JSON.stringify({ error: "Invalid mode" }), {
-              status: 400,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
-            });
+            return jsonError("Invalid mode", 400);
           }
 
           // Validate reference image (optional base64 data URL, max 2MB)
@@ -176,180 +109,55 @@ export const Route = createFileRoute("/api/public/generate-prompt")({
               !referenceImageUrl.startsWith("data:image/") ||
               referenceImageUrl.length > 2 * 1024 * 1024
             ) {
-              return new Response(
-                JSON.stringify({ error: "Invalid reference image (must be a data:image/ URL under 2MB)" }),
-                { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } },
-              );
+              return jsonError("Invalid reference image (must be a data:image/ URL under 2MB)", 400);
             }
           }
 
           // Validate category against allowlist (prevents prompt injection via category field).
           // Unknown values are rejected; absence is fine (auto-detect).
           if (category !== undefined && category !== null) {
-            if (
-              typeof category !== "string" ||
-              category.length > 100 ||
-              !ALLOWED_CATEGORIES.has(category)
-            ) {
-              return new Response(JSON.stringify({ error: "Invalid category" }), {
-                status: 400,
-                headers: { "Content-Type": "application/json", ...corsHeaders },
-              });
+            if (typeof category !== "string" || category.length > 100 || !ALLOWED_CATEGORIES.has(category)) {
+              return jsonError("Invalid category", 400);
             }
           }
 
           const apiKey = process.env.OPENAI_API_KEY;
           if (!apiKey) {
-            return new Response(JSON.stringify({ error: "AI service not configured" }), {
-              status: 500,
-              headers: { "Content-Type": "application/json", ...corsHeaders },
-            });
+            return jsonError("AI service not configured", 500);
           }
 
-          // Deterministic CINEMATIC OVERRIDE: when the user explicitly types
-          // "cinematic shot/still/photo/...," "movie still," or "film still/scene/frame,"
-          // force the category to CINEMATIC SCENE in code so the model can't
-          // override it via subject-domain inference (e.g. "cinematic shot of
-          // a wedding" must NOT route to INTERIOR/FASHION).
-          const CINEMATIC_TRIGGERS = [
-            /\bcinematic\s+(shot|still|photo|image|portrait|frame|framing|lighting|composition)\b/i,
-            /\bmovie\s+(scene|still|frame)\b/i,
-            /\bfilm\s+(still|scene|frame)\b/i,
+          // Deterministic request construction (v2.9 semantics: cinematic lock,
+          // aspect lock, curated examples, remix block). See src/lib/prompt-request.ts.
+          const req = buildPromptRequest({
+            userInput,
+            referenceImageUrl,
+            remixRef,
+            category,
+            mode: mode as PromptMode,
+          });
+
+          // Pipeline selection: CRITIQUE → Critic contract + CRITIC role;
+          // everything else → Builder contract family + BUILDER_DEFAULT role.
+          const contract = selectContract(mode);
+          const roleConfig = contract.pipeline === "critic" ? MODEL_ROLES.CRITIC : MODEL_ROLES.BUILDER_DEFAULT;
+
+          // Multimodal input when an image is present, plain text otherwise.
+          const input: InputMessage[] = [
+            {
+              role: "user",
+              content: referenceImageUrl
+                ? [
+                    { type: "input_image", image_url: referenceImageUrl, detail: "low" },
+                    { type: "input_text", text: req.userMessage },
+                  ]
+                : req.userMessage,
+            },
           ];
-          const userIdea = userInput.trim();
-          const cinematicForced =
-            (!category || category === "auto") &&
-            CINEMATIC_TRIGGERS.some((re) => re.test(userIdea));
-          const effectiveCategory = cinematicForced
-            ? "CINEMATIC SCENE"
-            : category && category !== "auto"
-              ? category
-              : null;
-
-          // Deterministic ASPECT RATIO LOCK: when the user names a ratio
-          // (direct "16:9", word "square", or implied "thumbnail"/"story"),
-          // force the model to include that exact ratio in its output.
-          const ASPECT_KEYWORDS: Array<[RegExp, string]> = [
-            // Direct ratio mentions take priority — match first.
-            [/\b(\d{1,2}:\d{1,2}(?:\.\d+)?)\b/, "DIRECT"],
-            // Word-based mentions (longer phrases first to avoid partial overlap).
-            [/\binstagram\s+story\b/i, "9:16"],
-            [/\byoutube\s+thumbnail\b/i, "16:9"],
-            [/\bsquare\s+format\b/i, "1:1"],
-            [/\bsquare\b/i, "1:1"],
-            [/\bportrait\b/i, "4:5"],
-            [/\bvertical\b/i, "9:16"],
-            [/\bstory\b/i, "9:16"],
-            [/\breel\b/i, "9:16"],
-            [/\btiktok\b/i, "9:16"],
-            [/\blandscape\b/i, "16:9"],
-            [/\bhorizontal\b/i, "16:9"],
-            [/\bwidescreen\b/i, "16:9"],
-            [/\bthumbnail\b/i, "16:9"],
-            [/\bbanner\b/i, "16:9"],
-            [/\bcinematic\s+(?:shot|still|photo|image|portrait|frame|framing|aspect)\b/i, "2.39:1"],
-            [/\bpinterest\b/i, "2:3"],
-          ];
-          let lockedRatio: string | null = null;
-          for (const [re, ratio] of ASPECT_KEYWORDS) {
-            const m = userIdea.match(re);
-            if (m) {
-              lockedRatio = ratio === "DIRECT" ? m[1] : ratio;
-              break;
-            }
-          }
-
-          // Select category-matched reference examples from the curated library.
-          // Skip examples when remixing — the remix reference IS the template,
-          // and curated examples would pull the model toward the standard format.
-          const validRemixRef =
-            remixRef && typeof remixRef === "string" && remixRef.length <= 8000
-              ? remixRef
-              : null;
-          const examples = validRemixRef ? [] : getExamplesForCategory(effectiveCategory, 4);
-          const examplesBlock = formatExamplesBlock(examples);
-
-          const userMessage = [
-            referenceImageUrl
-              ? `REFERENCE IMAGE: A reference image is attached. Follow the REFERENCE IMAGE instructions in your system prompt.`
-              : null,
-            validRemixRef
-              ? `REMIX REFERENCE — The user is remixing an existing prompt from the library. Study the reference prompt below and use it as a STYLE GUIDE — match its tone, structure, and approach — but generate a NEW prompt for the user's idea.
-
-REFERENCE PROMPT:
-${validRemixRef}
-
-REMIX RULES:
-1. STYLE MATCH: Write in the same format as the reference — if conversational, stay conversational. If structured with constraints, use constraints. If it uses camera specs, use camera specs. If it doesn't, don't add them.
-2. FRESH CONTENT: Generate a complete, ready-to-use prompt for the user's idea. Never copy the reference verbatim. Never output placeholder brackets like [SUBJECT] or [COLOR] — fill everything in with concrete details.
-3. SAME DENSITY: Match the reference's approximate length and level of detail.
-4. OVERRIDE: When the reference's style conflicts with your default templates (Step 2) or self-check rules (Step 3), follow the reference's style. The reference IS the quality standard for this remix.`
-              : null,
-            examplesBlock || null,
-            effectiveCategory ? `Category hint: ${effectiveCategory}` : null,
-            cinematicForced
-              ? `LOCKED CATEGORY: The user explicitly requested cinematic framing. Use the CINEMATIC SCENE template. Do NOT route to INTERIOR/ARCH/FOOD/FASHION even if the subject is a wedding, kitchen, food, dress, or building.`
-              : null,
-            lockedRatio
-              ? `LOCKED ASPECT RATIO: ${lockedRatio} — The output prompt MUST include the exact phrase "${lockedRatio} aspect ratio" verbatim. Do not substitute a different ratio. Do not omit it.`
-              : null,
-            `Mode: ${mode}`,
-            `User idea: ${userIdea}`,
-          ]
-            .filter(Boolean)
-            .join("\n\n");
-
-          const getTools = (m: string) => {
-            const requiredByMode: Record<string, string[]> = {
-              default: ["prompt", "category", "why_it_works"],
-              BATCH: ["prompts", "category", "why_it_works"],
-              JSON: ["prompt", "category", "size", "quality", "aspect_ratio", "why_it_works"],
-              CRITIQUE: ["score", "weaknesses", "improvements", "rewritten_prompt", "category"],
-            };
-            return [
-              {
-                type: "function" as const,
-                function: {
-                  name: "deliver_prompt",
-                  description: "Deliver the polished prompt result.",
-                  parameters: {
-                    type: "object",
-                    properties: {
-                      prompt: {
-                        type: "string",
-                        description: "Single polished prompt (default/JSON modes)",
-                      },
-                      prompts: {
-                        type: "array",
-                        items: { type: "string" },
-                        description: "Three variants for BATCH mode: safe, stylized, experimental",
-                      },
-                      category: { type: "string" },
-                      why_it_works: { type: "string" },
-                      size: { type: "string", description: "JSON mode only" },
-                      quality: { type: "string", description: "JSON mode only" },
-                      aspect_ratio: { type: "string", description: "JSON mode only" },
-                      score: { type: "number", description: "CRITIQUE mode only, 1-10" },
-                      weaknesses: { type: "array", items: { type: "string" } },
-                      improvements: { type: "array", items: { type: "string" } },
-                      rewritten_prompt: {
-                        type: "string",
-                        description:
-                          "CRITIQUE mode only — full rewritten prompt with all improvements applied",
-                      },
-                    },
-                    required: requiredByMode[m] || requiredByMode.default,
-                  },
-                },
-              },
-            ];
-          };
-          const tools = getTools(mode);
 
           // Return SSE immediately, then start the AI request inside the stream.
           // This prevents the public route from timing out before the model sends headers.
           const encoder = new TextEncoder();
-          const decoder = new TextDecoder();
+          const abort = new AbortController();
 
           const stream = new ReadableStream({
             async start(controller) {
@@ -366,159 +174,52 @@ REMIX RULES:
               const send = (event: string, data: unknown) => {
                 if (closed) return;
                 try {
-                  controller.enqueue(
-                    encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
-                  );
+                  controller.enqueue(encoder.encode(encodeSseEvent(event, data)));
                 } catch {
                   // Client disconnected mid-stream — stop trying.
                   closed = true;
+                  abort.abort();
                 }
               };
 
               send("status", { message: "starting" });
-              // Build user message content: multimodal array when image present, plain string otherwise
-              const userContent = referenceImageUrl
-                ? [
-                    { type: "image_url" as const, image_url: { url: referenceImageUrl, detail: "low" as const } },
-                    { type: "text" as const, text: userMessage },
-                  ]
-                : userMessage;
-
-              const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                  Authorization: `Bearer ${apiKey}`,
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  model: "gpt-5.4-mini",
-                  messages: [
-                    { role: "system", content: SYSTEM_PROMPT },
-                    { role: "user", content: userContent },
-                  ],
-                  tools,
-                  tool_choice: { type: "function", function: { name: "deliver_prompt" } },
-                  temperature: 0.7,
-                  stream: true,
-                }),
-              });
-
-              if (!aiResponse.ok || !aiResponse.body) {
-                const errText = await aiResponse.text().catch(() => "");
-                console.error("AI gateway error:", aiResponse.status, errText);
-                const message =
-                  aiResponse.status === 429
-                    ? "Rate limit reached. Please wait a moment and try again."
-                    : aiResponse.status === 402
-                      ? "AI credits exhausted. Please add credits in workspace settings."
-                      : "AI service error";
-                send("error", { error: message });
-                safeClose();
-                return;
-              }
-
-              const reader = aiResponse.body.getReader();
-              let buffer = "";
-              let assembled = "";
 
               try {
-                while (!closed) {
-                  const { done, value } = await reader.read();
-                  if (done) break;
-                  buffer += decoder.decode(value, { stream: true });
-
-                  // Process complete SSE lines
-                  let nlIndex: number;
-                  while ((nlIndex = buffer.indexOf("\n")) !== -1) {
-                    const line = buffer.slice(0, nlIndex).trim();
-                    buffer = buffer.slice(nlIndex + 1);
-                    if (!line.startsWith("data:")) continue;
-                    const payload = line.slice(5).trim();
-                    if (payload === "[DONE]") continue;
-                    try {
-                      const json = JSON.parse(payload);
-                      const delta = json?.choices?.[0]?.delta;
-                      const argDelta = delta?.tool_calls?.[0]?.function?.arguments ?? "";
-                      if (argDelta) {
-                        assembled += argDelta;
-                        send("delta", { args: assembled });
-                      }
-                    } catch {
-                      // ignore non-JSON keepalives
-                    }
+                const events = streamStructuredResponse({
+                  apiKey,
+                  config: roleConfig,
+                  instructions: SYSTEM_PROMPT,
+                  input,
+                  contract,
+                  signal: abort.signal,
+                });
+                for await (const evt of events) {
+                  if (closed) break;
+                  if (evt.type === "delta") {
+                    // Same client contract as before: the accumulated JSON so far.
+                    send("delta", { args: evt.accumulated });
+                  } else if (evt.type === "done") {
+                    const final = sanitizeResultFields({ ...(evt.outcome.parsed as Record<string, unknown>) });
+                    final.prompt_version = PROMPT_VERSION;
+                    send("done", final);
+                    safeClose();
+                  } else {
+                    console.error("generate-prompt upstream error:", evt.kind, evt.message);
+                    send("error", { error: clientMessageFor(evt.kind) });
+                    safeClose();
                   }
                 }
-
-                if (closed) return;
-
-                // Final parse
-                let finalResult: unknown = null;
-                try {
-                  finalResult = JSON.parse(assembled);
-                } catch {
-                  console.error("Failed to parse final tool args:", assembled);
-                  send("error", { error: "Invalid AI response format" });
-                  safeClose();
-                  return;
-                }
-                // Strip Midjourney/SD CLI flags — Depikt targets GPT Image 2,
-                // which doesn't use --ar/--style/--v/etc. Belt-and-suspenders sanitize.
-                const stripCliFlags = (s: string): string =>
-                  s
-                    .replace(/\s*--ar\s+\S+/gi, "")
-                    .replace(/\s*--style\s+\S+/gi, "")
-                    .replace(/\s*--v\s+\d+(?:\.\d+)?/gi, "")
-                    .replace(/\s*--niji\s+\d+/gi, "")
-                    .replace(/\s*--stylize\s+\d+/gi, "")
-                    .replace(/\s*--s\s+\d+/gi, "")
-                    .replace(/\s*--quality\s+\S+/gi, "")
-                    .replace(/\s*--q\s+\S+/gi, "")
-                    .replace(/\s*--chaos\s+\d+/gi, "")
-                    .replace(/\s*--c\s+\d+/gi, "")
-                    .replace(/\s*--seed\s+\d+/gi, "")
-                    .replace(/\s*--weird\s+\d+/gi, "")
-                    .replace(/\s*--tile\b/gi, "")
-                    .replace(/\s*--no\s+\S+/gi, "")
-                    .trim();
-                // Lens unit guard: some models occasionally emit "40px lens"
-                // instead of "40mm lens" because px/mm tokens collide in training.
-                // Conservative regex: only fixes \d{2,3}px directly followed by
-                // lens vocabulary, leaving legitimate "px" usage untouched.
-                const fixLensUnits = (s: string): string =>
-                  s
-                    .replace(
-                      /\b(\d{2,3})px(\s+(?:lens|prime|macro|telephoto|wide|f\/|aperture))/gi,
-                      "$1mm$2",
-                    )
-                    .replace(/\b(\d{2,3})mm\s+pixel\b/gi, "$1mm");
-                const sanitize = (s: string) => fixLensUnits(stripCliFlags(s));
-                if (finalResult && typeof finalResult === "object") {
-                  const fr = finalResult as Record<string, unknown>;
-                  if (typeof fr.prompt === "string") fr.prompt = sanitize(fr.prompt);
-                  if (Array.isArray(fr.prompts)) {
-                    fr.prompts = fr.prompts.map((p) => (typeof p === "string" ? sanitize(p) : p));
-                  }
-                  if (typeof fr.rewritten_prompt === "string")
-                    fr.rewritten_prompt = sanitize(fr.rewritten_prompt);
-                  fr.prompt_version = PROMPT_VERSION;
-                }
-                send("done", finalResult);
                 safeClose();
               } catch (err) {
                 console.error("stream error:", err);
                 // Generic client message — full error is logged server-side only.
                 send("error", { error: "An internal error occurred. Please try again." });
                 safeClose();
-              } finally {
-                try {
-                  reader.releaseLock();
-                } catch {
-                  /* noop */
-                }
               }
             },
             cancel() {
-              // Client disconnected — nothing to do, the start() loop checks `closed`.
+              // Client disconnected — stop the upstream request.
+              abort.abort();
             },
           });
 
@@ -535,10 +236,7 @@ REMIX RULES:
         } catch (err) {
           console.error("generate-prompt error:", err);
           // Generic client message — full error is logged server-side only.
-          return new Response(
-            JSON.stringify({ error: "An internal error occurred. Please try again." }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } },
-          );
+          return jsonError("An internal error occurred. Please try again.", 500);
         }
       },
     },
