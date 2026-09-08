@@ -1,0 +1,37 @@
+[
+  { "id": "b01-generic-scene", "group": "basic", "tags": ["subset"], "input": "old fisherman mending nets at golden hour in a portuguese village", "expect": { "category": "CINEMATIC SCENE" } },
+  { "id": "b02-cinematic", "group": "basic", "tags": ["subset"], "input": "cinematic shot of empty Tokyo street at dawn, neon reflections in puddles", "expect": { "category": "CINEMATIC SCENE", "ratio": "2.39:1", "must_not_contain": ["--ar"] } },
+  { "id": "b03-poster", "group": "basic", "tags": ["subset"], "input": "minimalist event poster for a data engineering meetup in SF next month", "expect": { "category": "POSTER/COVER", "must_not_contain": ["--ar"], "must_not_match": ["\\b20(2[0-9])\\b"] } },
+  { "id": "b04-infographic", "group": "basic", "input": "infographic explaining how RAG works, 3 steps, mono palette", "expect": { "category": "INFOGRAPHIC/DIAGRAM", "must_match": ["(3|three)"] } },
+  { "id": "b05-ui", "group": "basic", "tags": ["subset"], "input": "iPhone home screen mockup for a meditation app, soft gradient background", "expect": { "category": "UI MOCKUP" } },
+  { "id": "b06-social", "group": "basic", "input": "instagram post announcing a bakery's new sourdough loaf", "expect": { "category": "SOCIAL POST" } },
+  { "id": "b07-fashion", "group": "basic", "input": "fashion editorial of a linen summer dress on a windy beach", "expect": { "category": "INTERIOR/ARCH/FOOD/FASHION" } },
+  { "id": "b08-abstract", "group": "basic", "tags": ["subset"], "input": "what burnout feels like", "expect": { "category": "OPEN-ENDED CREATIVE", "must_not_match": ["\\b\\d{2,3}mm\\b", "f/\\d"] } },
+
+  { "id": "r01-portrait-word", "group": "routing", "edge": true, "tags": ["subset"], "input": "portrait of a woman in a red coat, soft window light", "expect": { "category": "CINEMATIC SCENE", "must_not_contain": ["4:5"] } },
+  { "id": "r02-story-word", "group": "routing", "edge": true, "input": "a story about loneliness, told in one image", "expect": { "category": "OPEN-ENDED CREATIVE", "must_not_contain": ["9:16"] } },
+  { "id": "r03-times-square", "group": "routing", "edge": true, "input": "Times Square at night in the rain", "expect": { "category": "CINEMATIC SCENE", "must_not_contain": ["1:1"] } },
+  { "id": "r04-cinematic-lighting-product", "group": "routing", "edge": true, "input": "cinematic lighting on a perfume bottle product shot", "expect": { "category_any": ["INTERIOR/ARCH/FOOD/FASHION"], "must_not_contain": ["2.39:1"] } },
+  { "id": "r05-same-product-new-bg", "group": "routing", "edge": true, "tags": ["subset"], "input": "same product, new background: put my sneaker on a wet city street at night", "expect": { "category": "IMAGE EDIT", "must_contain": ["PRESERVE"] } },
+  { "id": "r06-slide-two", "group": "routing", "edge": true, "input": "make slide two in the same design as the first slide, topic: pricing tiers", "expect": { "category_any": ["INFOGRAPHIC/DIAGRAM", "VISUAL SUMMARY", "UI MOCKUP", "POSTER/COVER"], "must_match": ["(same|match|consistent).{0,40}(design|style|layout)"] } },
+
+  { "id": "a01-explicit-16-9", "group": "aspect", "input": "16:9 hero image of a mountain lake at sunrise", "expect": { "ratio": "16:9" } },
+  { "id": "a02-explicit-4-5", "group": "aspect", "input": "4:5 product shot of a soy candle on marble", "expect": { "ratio": "4:5" } },
+  { "id": "a03-square", "group": "aspect", "tags": ["subset"], "input": "square album cover, lo-fi hip hop, night rooftop", "expect": { "ratio": "1:1" } },
+  { "id": "a04-youtube-thumb", "group": "aspect", "input": "youtube thumbnail for a video about productivity", "expect": { "ratio": "16:9", "must_not_contain": ["--ar"] } },
+  { "id": "a05-ig-story", "group": "aspect", "input": "instagram story about my morning coffee routine", "expect": { "ratio": "9:16" } },
+  { "id": "a06-vertical-garden", "group": "aspect", "edge": true, "input": "vertical garden wall in a modern hotel lobby", "expect": { "must_not_contain": ["9:16"] } },
+
+  { "id": "e01-change-only-jacket", "group": "edit", "tags": ["subset"], "input": "change only the jacket in this photo to a dark green wool overcoat, keep everything else exactly the same", "expect": { "category": "IMAGE EDIT", "must_contain": ["CHANGE", "PRESERVE", "MATCH", "jacket"] } },
+  { "id": "e02-remove-object", "group": "edit", "input": "remove the trash can on the left side of my photo and preserve everything else", "expect": { "category": "IMAGE EDIT", "must_contain": ["PRESERVE"] } },
+  { "id": "e03-keep-identity", "group": "edit", "edge": true, "tags": ["subset"], "input": "keep this exact person's identity and put them in an astronaut suit on the moon", "expect": { "category_any": ["IMAGE EDIT", "CINEMATIC SCENE"], "must_match": ["(identity|same face|facial features|likeness|preserve)"] } },
+  { "id": "e04-style-only", "group": "edit", "input": "use the attached image only for its style; the subject is a lighthouse at dusk", "expect": { "must_contain": ["lighthouse"] } },
+  { "id": "e05-sketch-layout", "group": "edit", "edge": true, "input": "use this sketch as the layout for a landing page hero section for a fintech app", "expect": { "category": "UI MOCKUP", "must_contain": ["layout"] } },
+  { "id": "e06-transparent-sticker", "group": "edit", "tags": ["subset"], "input": "transparent sticker of a smiling avocado, die-cut style", "expect": { "must_contain": ["transparent"], "must_not_contain": ["checkerboard"] } },
+
+  { "id": "s01-poster-exact-text", "group": "structured", "tags": ["subset"], "input": "poster with the headline \"FUTURE STACK 2026\" and the subline \"March 14, Lisbon\"", "expect": { "category": "POSTER/COVER", "must_contain": ["FUTURE STACK 2026", "March 14, Lisbon", "Verbatim text"] } },
+  { "id": "s02-six-modules", "group": "structured", "input": "infographic with exactly six modules about the water cycle", "expect": { "category": "INFOGRAPHIC/DIAGRAM", "must_match": ["(exactly )?(6|six) (sections|modules|blocks|panels|steps|parts)"] } },
+  { "id": "s03-five-panels", "group": "structured", "tags": ["subset"], "input": "comic strip with exactly 5 panels: a cat discovers snow for the first time", "expect": { "category": "STORYBOARD/MULTI-PANEL", "panel_count": 5 } },
+  { "id": "s04-ten-pages", "group": "structured", "tags": ["subset"], "input": "10-page comic about a small robot learning to paint", "expect": { "category": "STORYBOARD/MULTI-PANEL", "page_count": 10 } },
+  { "id": "s05-multilingual", "group": "structured", "input": "bilingual spring festival poster: title in Japanese 「春が来た」 and subtitle in English \"Spring has come\"", "expect": { "category": "POSTER/COVER", "must_contain": ["春が来た", "Spring has come"] } }
+]

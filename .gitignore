@@ -31,3 +31,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Benchmark outputs (model responses, may include user-like content)
+benchmark-results/

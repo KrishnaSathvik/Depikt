@@ -1,0 +1,62 @@
+[
+  {
+    "id": "c01-excellent-short",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "Editorial product photo, 4:5 portrait. Matte black ceramic mug on a raw oak board, single window light from camera left, soft falling shadow, muted warm palette, shallow depth of field. No text.",
+    "expect": { "score_range": [6, 10] }
+  },
+  {
+    "id": "c02-overprompted",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "masterpiece, best quality, ultra-detailed, 8K, 16K, hyper-realistic, photorealistic, stunning, breathtaking, epic, dramatic, vibrant, trending on artstation, award-winning, cinematic, volumetric lighting, god rays, ray tracing, unreal engine 5, octane render, intricate details, sharp focus, hdr, bokeh, depth of field, golden hour, blue hour, neon, cyberpunk, steampunk, fantasy, sci-fi, portrait of a beautiful gorgeous woman warrior queen elf princess with glowing eyes and flowing hair and ornate armor and a sword and a dragon and a castle and mountains and a sunset and a moon and stars, highly detailed face, perfect anatomy, symmetrical, insanely detailed, 4K, 8K, ultra HD",
+    "expect": { "score_range": [1, 5], "feedback_match": ["(overprompt|too many|redundant|contradict|generic|adjective|conflict|clutter|vague)"] }
+  },
+  {
+    "id": "c03-contradictory",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "photorealistic 35mm film photograph, flat vector illustration, Pixar 3D render style, oil painting of a red fox in a snowy forest",
+    "expect": { "score_range": [1, 5], "feedback_match": ["(conflict|contradict|mixed|incompatible|competing|inconsistent)"] }
+  },
+  {
+    "id": "c04-praise-adjectives",
+    "group": "critic",
+    "input": "stunning breathtaking beautiful epic vibrant dramatic portrait of a warrior, ultra-detailed, masterpiece",
+    "expect": { "score_range": [1, 6], "feedback_match": ["(adjective|vague|generic|subjective|specific)"] }
+  },
+  {
+    "id": "c05-midjourney-flags",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "cyberpunk alley at night, neon rain, cinematic --ar 16:9 --v 6 --style raw --s 250",
+    "expect": { "score_range": [1, 6], "rewritten_must_not_contain": ["--ar", "--v", "--style", "--s"] }
+  },
+  {
+    "id": "c06-edit-missing-preserve",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "make the sky purple in my photo",
+    "expect": { "feedback_match": ["(preserv|keep|unchanged|rest of|everything else|lock)"], "rewritten_must_contain": ["PRESERVE"] }
+  },
+  {
+    "id": "c07-overly-camera-specific",
+    "group": "critic",
+    "input": "Portrait of a barista, ARRI Alexa 65, Zeiss Master Prime 50mm T1.3, ISO 800, 1/48 shutter, 3200K white balance, Rec709 LUT, 24fps, anamorphic 2x squeeze, ND 0.9, 4:3 open gate",
+    "expect": { "score_range": [2, 8], "feedback_match": ["(camera|brand|technical|spec|lighting|composition|subject|setting)"] }
+  },
+  {
+    "id": "c08-missing-factual-source",
+    "group": "critic",
+    "input": "infographic of the top 5 fastest growing economies in 2026 with their exact GDP growth percentages",
+    "expect": { "feedback_match": ["(data|source|fabricat|invent|placeholder|verified|accurate|numbers|figures|statistic)"] }
+  },
+  {
+    "id": "c09-simple-sufficient",
+    "group": "critic",
+    "tags": ["subset"],
+    "input": "Instagram quote card, 4:5. Cream background (#f5f0e8). Centered serif quote \"Less, but better.\" Small mono attribution \"— DIETER RAMS\" below, one thin burnt-orange underline. Generous margins. No other decoration. Verbatim text — no extra characters, no substitutions, no duplicate text, no text artifacts.",
+    "expect": { "score_range": [6, 10], "rewritten_must_contain": ["Less, but better."] }
+  }
+]

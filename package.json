@@ -10,7 +10,11 @@
     "build:dev": "vite build --mode development",
     "preview": "npm run build && wrangler dev --config dist/server/wrangler.json --ip 127.0.0.1 --inspector-ip 127.0.0.1 --inspector-port 0",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tests/tsconfig.json",
+    "test": "node --test 'tests/unit/**/*.test.ts'",
+    "bench": "node tests/bench/runner.ts",
+    "bench:compare": "node tests/bench/compare.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
