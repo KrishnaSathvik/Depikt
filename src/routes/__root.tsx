@@ -5,12 +5,11 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-
 import appCss from "../styles.css?url";
 
-const DEFAULT_TITLE = "Depikt — AI image prompt generator for GPT Image 2";
+const DEFAULT_TITLE = "Depikt — Prompt generator for ChatGPT Images 2.5";
 const DEFAULT_DESCRIPTION =
-  "Turn rough ideas into production-grade AI image prompts in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, and more.";
+  "Turn rough ideas into production-ready prompts tuned for ChatGPT Images 2.5 — including reference images, precise edits, complex layouts, transparent assets, posters, infographics, UI mockups, and more.";
 
 function NotFoundComponent() {
   return (
@@ -55,7 +54,7 @@ const STRUCTURED_DATA = [
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
     description:
-      "AI image prompt generator that turns rough ideas into production-grade prompts for OpenAI's GPT Image 2.",
+      "AI image prompt generator tuned for ChatGPT Images 2.5, including reference-led creation and precise image-edit prompts.",
     offers: {
       "@type": "Offer",
       price: "0",
@@ -65,54 +64,57 @@ const STRUCTURED_DATA = [
 ];
 
 export const Route = createRootRoute({
-  head: () => { const ROOT_OG_IMAGE = getOgImageForPath(); return ({
-    meta: [
-      { charSet: "utf-8" },
-      {
-        name: "viewport",
-        content:
-          "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover",
-      },
-      { name: "color-scheme", content: "light" },
-      { name: "theme-color", content: "#FAFAF7" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
-      { name: "apple-mobile-web-app-title", content: "Depikt" },
-      { name: "mobile-web-app-capable", content: "yes" },
-      { name: "application-name", content: "Depikt" },
-      { title: DEFAULT_TITLE },
-      { name: "description", content: DEFAULT_DESCRIPTION },
-      { property: "og:title", content: DEFAULT_TITLE },
-      { property: "og:description", content: DEFAULT_DESCRIPTION },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: ROOT_OG_IMAGE },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: ROOT_OG_IMAGE },
-      { name: "twitter:title", content: DEFAULT_TITLE },
-      { name: "twitter:description", content: DEFAULT_DESCRIPTION },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
-      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
-      { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
-      { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap",
-      },
-    ],
-    scripts: STRUCTURED_DATA.map((d) => ({
-      type: "application/ld+json",
-      children: JSON.stringify(d),
-    })),
-  }); },
+  head: () => {
+    const ROOT_OG_IMAGE = getOgImageForPath();
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        {
+          name: "viewport",
+          content:
+            "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover",
+        },
+        { name: "color-scheme", content: "light" },
+        { name: "theme-color", content: "#FAFAF7" },
+        { name: "apple-mobile-web-app-capable", content: "yes" },
+        { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+        { name: "apple-mobile-web-app-title", content: "Depikt" },
+        { name: "mobile-web-app-capable", content: "yes" },
+        { name: "application-name", content: "Depikt" },
+        { title: DEFAULT_TITLE },
+        { name: "description", content: DEFAULT_DESCRIPTION },
+        { property: "og:title", content: DEFAULT_TITLE },
+        { property: "og:description", content: DEFAULT_DESCRIPTION },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: ROOT_OG_IMAGE },
+        { property: "og:image:width", content: "1200" },
+        { property: "og:image:height", content: "630" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:image", content: ROOT_OG_IMAGE },
+        { name: "twitter:title", content: DEFAULT_TITLE },
+        { name: "twitter:description", content: DEFAULT_DESCRIPTION },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "manifest", href: "/manifest.webmanifest" },
+        { rel: "icon", href: "/favicon.ico", sizes: "48x48" },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
+        { rel: "icon", type: "image/png", sizes: "16x16", href: "/favicon-16x16.png" },
+        { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap",
+        },
+      ],
+      scripts: STRUCTURED_DATA.map((d) => ({
+        type: "application/ld+json",
+        children: JSON.stringify(d),
+      })),
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
