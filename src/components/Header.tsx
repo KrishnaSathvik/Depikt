@@ -18,6 +18,9 @@ export function Header() {
           <span className="text-[15px] font-semibold tracking-tight text-[color:var(--text-primary)]">
             Depikt
           </span>
+          <span className="hidden sm:inline-flex items-center rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-2 py-0.5 text-[10px] font-mono font-medium tracking-wide text-[color:var(--text-secondary)]">
+            Images 2.5
+          </span>
         </Link>
 
         {/* Desktop: centered nav */}
