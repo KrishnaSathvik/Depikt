@@ -58,7 +58,11 @@ export const CATEGORY_TO_LIBRARY: Record<string, string> = {
 };
 
 // Pick up to `count` random examples from a library category.
-function pickExamples(libraryCategory: string, count: number, random: () => number): CuratedPrompt[] {
+function pickExamples(
+  libraryCategory: string,
+  count: number,
+  random: () => number,
+): CuratedPrompt[] {
   const pool = categoryIndex.get(libraryCategory);
   if (!pool || pool.length === 0) return [];
   // Fisher-Yates partial shuffle for unbiased selection.
@@ -166,7 +170,9 @@ export function buildPromptRequest(input: PromptRequestInput): PromptRequest {
 
   // Skip examples when remixing — the remix reference IS the template.
   const validRemixRef =
-    input.remixRef && typeof input.remixRef === "string" && input.remixRef.length <= REMIX_REF_MAX_LENGTH
+    input.remixRef &&
+    typeof input.remixRef === "string" &&
+    input.remixRef.length <= REMIX_REF_MAX_LENGTH
       ? input.remixRef
       : null;
   const examples = validRemixRef ? [] : getExamplesForCategory(effectiveCategory, 4, random);

@@ -108,7 +108,10 @@ export interface ValidationFail {
 }
 
 /** Parse raw model text against a contract. Never throws. */
-export function parseResult<T>(contract: ResultContract<T>, rawText: string): ValidationOk<T> | ValidationFail {
+export function parseResult<T>(
+  contract: ResultContract<T>,
+  rawText: string,
+): ValidationOk<T> | ValidationFail {
   let json: unknown;
   try {
     json = JSON.parse(rawText);
@@ -117,7 +120,10 @@ export function parseResult<T>(contract: ResultContract<T>, rawText: string): Va
   }
   const res = contract.zod.safeParse(json);
   if (!res.success) {
-    return { ok: false, error: `schema mismatch (${contract.name}): ${res.error.issues.map((i) => i.path.join(".") + " " + i.message).join("; ")}` };
+    return {
+      ok: false,
+      error: `schema mismatch (${contract.name}): ${res.error.issues.map((i) => i.path.join(".") + " " + i.message).join("; ")}`,
+    };
   }
   return { ok: true, value: res.data };
 }

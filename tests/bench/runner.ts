@@ -61,7 +61,10 @@ function loadEnv(): Record<string, string> {
       if (!line || line.startsWith("#")) continue;
       const eq = line.indexOf("=");
       if (eq === -1) continue;
-      out[line.slice(0, eq).trim()] = line.slice(eq + 1).trim().replace(/^["']|["']$/g, "");
+      out[line.slice(0, eq).trim()] = line
+        .slice(eq + 1)
+        .trim()
+        .replace(/^["']|["']$/g, "");
     }
   } catch {
     /* no .env */
@@ -81,8 +84,12 @@ interface LoadedCase extends BenchCase {
   mode: PromptMode;
 }
 function loadCases(): LoadedCase[] {
-  const builder = JSON.parse(readFileSync(resolve(__dirname, "cases/builder.json"), "utf8")) as BenchCase[];
-  const critic = JSON.parse(readFileSync(resolve(__dirname, "cases/critic.json"), "utf8")) as BenchCase[];
+  const builder = JSON.parse(
+    readFileSync(resolve(__dirname, "cases/builder.json"), "utf8"),
+  ) as BenchCase[];
+  const critic = JSON.parse(
+    readFileSync(resolve(__dirname, "cases/critic.json"), "utf8"),
+  ) as BenchCase[];
   let all: LoadedCase[] = [
     ...builder.map((c) => ({ ...c, pipeline: "builder" as const, mode: "default" as const })),
     ...critic.map((c) => ({ ...c, pipeline: "critic" as const, mode: "CRITIQUE" as const })),
@@ -151,7 +158,20 @@ async function runOne(c: LoadedCase, run: number): Promise<CaseRun> {
     cinematicForced: req.cinematicForced,
   };
   if (dry) {
-    return { ...base, ok: true, schemaValid: true, latencyMs: 0, usage: zeroUsage(), costUsd: 0, attempts: 0, checks: [], passed: 0, total: 0, outputText: req.userMessage, result: null };
+    return {
+      ...base,
+      ok: true,
+      schemaValid: true,
+      latencyMs: 0,
+      usage: zeroUsage(),
+      costUsd: 0,
+      attempts: 0,
+      checks: [],
+      passed: 0,
+      total: 0,
+      outputText: req.userMessage,
+      result: null,
+    };
   }
   try {
     let rawText: string;
@@ -160,7 +180,13 @@ async function runOne(c: LoadedCase, run: number): Promise<CaseRun> {
     let latencyMs: number;
     let attempts = 1;
     if (cfg.api === "chat") {
-      const out = await legacyChatCompletion({ apiKey: apiKey!, config: cfg.model, systemPrompt: SYSTEM_PROMPT, userMessage: req.userMessage, mode: c.mode });
+      const out = await legacyChatCompletion({
+        apiKey: apiKey!,
+        config: cfg.model,
+        systemPrompt: SYSTEM_PROMPT,
+        userMessage: req.userMessage,
+        mode: c.mode,
+      });
       rawText = out.rawText;
       usage = out.usage;
       costUsd = out.estimatedCostUsd;
@@ -183,7 +209,9 @@ async function runOne(c: LoadedCase, run: number): Promise<CaseRun> {
     // Validate against the STRICT contract regardless of transport, so the
     // baseline's loose tool output is measured against the new bar too.
     const parsed = parseResult(contract, rawText);
-    const result = parsed.ok ? sanitizeResultFields({ ...(parsed.value as Record<string, unknown>) }) : null;
+    const result = parsed.ok
+      ? sanitizeResultFields({ ...(parsed.value as Record<string, unknown>) })
+      : null;
     const checks = scoreCase(c.pipeline, c, result as never);
     const passed = checks.filter((k) => k.pass).length;
     const r = result as { category?: string; score?: number } | null;
@@ -273,10 +301,14 @@ function summarize(runs: CaseRun[]) {
   const edgeChecks = edgeRuns.flatMap((r) => r.checks);
   const catChecks = checks.filter((k) => k.name === "category" || k.name === "category_any");
   const ratioChecks = checks.filter((k) => k.name === "ratio");
-  const textChecks = checks.filter((k) => k.name.startsWith("contains:") || k.name.startsWith("rewritten_contains:"));
+  const textChecks = checks.filter(
+    (k) => k.name.startsWith("contains:") || k.name.startsWith("rewritten_contains:"),
+  );
   const countChecks = checks.filter((k) => k.name === "page_count" || k.name === "panel_count");
   const scoreChecks = checks.filter((k) => k.name === "score_range");
-  const criticScores = runs.filter((r) => r.pipeline === "critic" && typeof r.score === "number").map((r) => r.score as number);
+  const criticScores = runs
+    .filter((r) => r.pipeline === "critic" && typeof r.score === "number")
+    .map((r) => r.score as number);
   const cost = runs.map((r) => r.costUsd);
   const usage = {
     input: mean(okRuns.map((r) => r.usage.inputTokens)),
@@ -285,7 +317,10 @@ function summarize(runs: CaseRun[]) {
     reasoning: mean(okRuns.map((r) => r.usage.reasoningTokens)),
   };
   const failureKinds: Record<string, number> = {};
-  for (const r of runs) if (!r.ok) failureKinds[r.failureKind ?? "unknown"] = (failureKinds[r.failureKind ?? "unknown"] ?? 0) + 1;
+  for (const r of runs)
+    if (!r.ok)
+      failureKinds[r.failureKind ?? "unknown"] =
+        (failureKinds[r.failureKind ?? "unknown"] ?? 0) + 1;
   return {
     runs: runs.length,
     validResults: okRuns.length,
@@ -307,7 +342,12 @@ function summarize(runs: CaseRun[]) {
     latencyMeanMs: Math.round(mean(lat)),
     latencyP50Ms: Math.round(quantile(lat, 0.5)),
     latencyP95Ms: Math.round(quantile(lat, 0.95)),
-    usageMean: { input: Math.round(usage.input), cached: Math.round(usage.cached), output: Math.round(usage.output), reasoning: Math.round(usage.reasoning) },
+    usageMean: {
+      input: Math.round(usage.input),
+      cached: Math.round(usage.cached),
+      output: Math.round(usage.output),
+      reasoning: Math.round(usage.reasoning),
+    },
     costMeanUsd: Number(mean(cost).toFixed(6)),
     costPer1kUsd: Number((mean(cost) * 1000).toFixed(3)),
     costTotalUsd: Number(cost.reduce((a, b) => a + b, 0).toFixed(4)),
@@ -325,7 +365,10 @@ async function main() {
     note: cfg.note ?? null,
     api: cfg.api,
     model: cfg.model.model,
-    requestParams: cfg.api === "chat" ? { temperature: cfg.model.temperature ?? null } : resolveRequestParams(cfg.model),
+    requestParams:
+      cfg.api === "chat"
+        ? { temperature: cfg.model.temperature ?? null }
+        : resolveRequestParams(cfg.model),
     promptVersion: PROMPT_VERSION,
     systemPromptSha256: systemPromptSha,
     systemPromptChars: SYSTEM_PROMPT.length,
@@ -337,7 +380,9 @@ async function main() {
     node: process.version,
   };
   console.log(`▶ ${cfg.label}`);
-  console.log(`  ${cases.length} cases × ${repeat} run(s), concurrency ${concurrency}${dry ? " (DRY RUN)" : ""}`);
+  console.log(
+    `  ${cases.length} cases × ${repeat} run(s), concurrency ${concurrency}${dry ? " (DRY RUN)" : ""}`,
+  );
 
   const t0 = Date.now();
   let doneCount = 0;
@@ -345,7 +390,9 @@ async function main() {
     const r = await runOne(c, run);
     doneCount++;
     const flag = r.ok ? (r.passed === r.total ? "✓" : "~") : "✗";
-    process.stdout.write(`  ${flag} ${String(doneCount).padStart(3)}/${jobs.length} ${c.id}${run > 1 ? `#${run}` : ""} ${r.ok ? `${r.passed}/${r.total} ${r.latencyMs}ms` : `FAIL ${r.failureKind}`}\n`);
+    process.stdout.write(
+      `  ${flag} ${String(doneCount).padStart(3)}/${jobs.length} ${c.id}${run > 1 ? `#${run}` : ""} ${r.ok ? `${r.passed}/${r.total} ${r.latencyMs}ms` : `FAIL ${r.failureKind}`}\n`,
+    );
     return r;
   });
   const wallMs = Date.now() - t0;
@@ -355,30 +402,51 @@ async function main() {
   const dir = resolve(outDir, cfg.label);
   mkdirSync(dir, { recursive: true });
   const jsonPath = resolve(dir, `${stamp}.json`);
-  writeFileSync(jsonPath, JSON.stringify({ meta: { ...meta, wallMs, finishedAt: new Date().toISOString() }, summary, runs }, null, 2));
+  writeFileSync(
+    jsonPath,
+    JSON.stringify(
+      { meta: { ...meta, wallMs, finishedAt: new Date().toISOString() }, summary, runs },
+      null,
+      2,
+    ),
+  );
 
   const md = renderMarkdown(meta, summary, runs, wallMs);
   const mdPath = resolve(dir, `${stamp}.md`);
   writeFileSync(mdPath, md);
-  writeFileSync(resolve(dir, "latest.json"), JSON.stringify({ meta: { ...meta, wallMs }, summary, runs }, null, 2));
+  writeFileSync(
+    resolve(dir, "latest.json"),
+    JSON.stringify({ meta: { ...meta, wallMs }, summary, runs }, null, 2),
+  );
 
   console.log("\n" + md);
   console.log(`\nwrote ${jsonPath}\n      ${mdPath}`);
 }
 
-function renderMarkdown(meta: Record<string, unknown>, s: ReturnType<typeof summarize>, runs: CaseRun[], wallMs: number): string {
+function renderMarkdown(
+  meta: Record<string, unknown>,
+  s: ReturnType<typeof summarize>,
+  runs: CaseRun[],
+  wallMs: number,
+): string {
   const lines: string[] = [];
   lines.push(`# ${meta.label}`);
   lines.push("");
-  lines.push(`- prompt: ${meta.promptVersion} (sha256 ${String(meta.systemPromptSha256).slice(0, 12)}…)`);
-  lines.push(`- api: ${meta.api}, model: ${meta.model}, params: ${JSON.stringify(meta.requestParams)}`);
+  lines.push(
+    `- prompt: ${meta.promptVersion} (sha256 ${String(meta.systemPromptSha256).slice(0, 12)}…)`,
+  );
+  lines.push(
+    `- api: ${meta.api}, model: ${meta.model}, params: ${JSON.stringify(meta.requestParams)}`,
+  );
   lines.push(`- cases: ${meta.cases} × ${meta.repeat}, wall ${(wallMs / 1000).toFixed(1)}s`);
   lines.push("");
   lines.push("| metric | value |");
   lines.push("|---|---|");
   lines.push(`| valid structured results | ${s.validResults}/${s.runs} (${s.validRate}) |`);
   lines.push(`| failure kinds | ${JSON.stringify(s.failureKinds)} |`);
-  lines.push(`| deterministic checks passed | ${s.checksPassed}/${s.checksTotal} (${s.checkPassRate}) |`);
+  lines.push(
+    `| deterministic checks passed | ${s.checksPassed}/${s.checksTotal} (${s.checkPassRate}) |`,
+  );
   lines.push(`| core (non-edge) check pass rate | ${s.coreCheckPassRate} |`);
   lines.push(`| edge (desired-behavior) check pass rate | ${s.edgeCheckPassRate} |`);
   lines.push(`| cases with all checks passed | ${s.casesAllPassed}/${s.runs} |`);
@@ -386,20 +454,33 @@ function renderMarkdown(meta: Record<string, unknown>, s: ReturnType<typeof summ
   lines.push(`| ratio compliance | ${s.ratioCompliance} |`);
   lines.push(`| exact-text checks | ${s.exactTextChecks} |`);
   lines.push(`| page/panel count checks | ${s.countChecks} |`);
-  lines.push(`| critic score-range checks | ${s.criticScoreRange} (mean score ${s.criticScoreMean ?? "n/a"}) |`);
-  lines.push(`| latency mean / p50 / p95 | ${s.latencyMeanMs} / ${s.latencyP50Ms} / ${s.latencyP95Ms} ms |`);
-  lines.push(`| tokens mean in / cached / out / reasoning | ${s.usageMean.input} / ${s.usageMean.cached} / ${s.usageMean.output} / ${s.usageMean.reasoning} |`);
+  lines.push(
+    `| critic score-range checks | ${s.criticScoreRange} (mean score ${s.criticScoreMean ?? "n/a"}) |`,
+  );
+  lines.push(
+    `| latency mean / p50 / p95 | ${s.latencyMeanMs} / ${s.latencyP50Ms} / ${s.latencyP95Ms} ms |`,
+  );
+  lines.push(
+    `| tokens mean in / cached / out / reasoning | ${s.usageMean.input} / ${s.usageMean.cached} / ${s.usageMean.output} / ${s.usageMean.reasoning} |`,
+  );
   lines.push(`| est. cost per request / per 1k | $${s.costMeanUsd} / $${s.costPer1kUsd} |`);
   lines.push(`| est. cost this run | $${s.costTotalUsd} |`);
   lines.push("");
   lines.push("| case | ok | checks | category | score | latency | failed checks |");
   lines.push("|---|---|---|---|---|---|---|");
   for (const r of runs) {
-    const failed = r.checks.filter((k) => !k.pass).map((k) => k.name + (k.detail ? ` (${k.detail})` : "")).join("; ");
-    lines.push(`| ${r.id}${r.edge ? " *" : ""}${r.run > 1 ? `#${r.run}` : ""} | ${r.ok ? "✓" : `✗ ${r.failureKind}`} | ${r.passed}/${r.total} | ${r.category ?? ""} | ${r.score ?? ""} | ${r.latencyMs}ms | ${failed || (r.error ? r.error.slice(0, 120) : "")} |`);
+    const failed = r.checks
+      .filter((k) => !k.pass)
+      .map((k) => k.name + (k.detail ? ` (${k.detail})` : ""))
+      .join("; ");
+    lines.push(
+      `| ${r.id}${r.edge ? " *" : ""}${r.run > 1 ? `#${r.run}` : ""} | ${r.ok ? "✓" : `✗ ${r.failureKind}`} | ${r.passed}/${r.total} | ${r.category ?? ""} | ${r.score ?? ""} | ${r.latencyMs}ms | ${failed || (r.error ? r.error.slice(0, 120) : "")} |`,
+    );
   }
   lines.push("");
-  lines.push("`*` = edge case encoding desired (post-migration) behavior; v2.9 is expected to fail some.");
+  lines.push(
+    "`*` = edge case encoding desired (post-migration) behavior; v2.9 is expected to fail some.",
+  );
   return lines.join("\n");
 }
 

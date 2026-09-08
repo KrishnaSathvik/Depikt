@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { CONTRACTS, parseResult, selectContract, textFormatFor } from "../../src/lib/openai/schemas.ts";
+import {
+  CONTRACTS,
+  parseResult,
+  selectContract,
+  textFormatFor,
+} from "../../src/lib/openai/schemas.ts";
 
 test("mode → contract selection", () => {
   assert.equal(selectContract("default"), CONTRACTS.builder_default);
@@ -14,7 +19,13 @@ test("mode → contract selection", () => {
 
 test("json schemas are strict: additionalProperties false and every property required", () => {
   for (const c of Object.values(CONTRACTS)) {
-    const s = c.jsonSchema as { type: string; additionalProperties?: boolean; properties: Record<string, unknown>; required: string[]; $schema?: string };
+    const s = c.jsonSchema as {
+      type: string;
+      additionalProperties?: boolean;
+      properties: Record<string, unknown>;
+      required: string[];
+      $schema?: string;
+    };
     assert.equal(s.type, "object");
     assert.equal(s.additionalProperties, false, c.name);
     assert.deepEqual([...s.required].sort(), Object.keys(s.properties).sort(), c.name);
@@ -27,7 +38,13 @@ test("json schemas are strict: additionalProperties false and every property req
 });
 
 const builderOk = { prompt: "p", category: "POSTER/COVER", why_it_works: "w" };
-const criticOk = { score: 7, weaknesses: ["a"], improvements: ["b"], category: "POSTER/COVER", rewritten_prompt: "r" };
+const criticOk = {
+  score: 7,
+  weaknesses: ["a"],
+  improvements: ["b"],
+  category: "POSTER/COVER",
+  rewritten_prompt: "r",
+};
 
 test("builder result validates; critic result cannot masquerade as builder", () => {
   assert.equal(parseResult(CONTRACTS.builder_default, JSON.stringify(builderOk)).ok, true);
@@ -51,10 +68,19 @@ test("extra fields are rejected, invalid JSON is reported", () => {
 });
 
 test("batch and json builder variants", () => {
-  assert.equal(parseResult(CONTRACTS.builder_batch, JSON.stringify({ prompts: ["a", "b", "c"], category: "c", why_it_works: "w" })).ok, true);
+  assert.equal(
+    parseResult(
+      CONTRACTS.builder_batch,
+      JSON.stringify({ prompts: ["a", "b", "c"], category: "c", why_it_works: "w" }),
+    ).ok,
+    true,
+  );
   assert.equal(parseResult(CONTRACTS.builder_batch, JSON.stringify(builderOk)).ok, false);
   assert.equal(
-    parseResult(CONTRACTS.builder_json, JSON.stringify({ ...builderOk, size: "1024x1536", quality: "high", aspect_ratio: "2:3" })).ok,
+    parseResult(
+      CONTRACTS.builder_json,
+      JSON.stringify({ ...builderOk, size: "1024x1536", quality: "high", aspect_ratio: "2:3" }),
+    ).ok,
     true,
   );
 });

@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createStructuredResponse, streamStructuredResponse, extractOutputText, type StructuredCall } from "../../src/lib/openai/client.ts";
+import {
+  createStructuredResponse,
+  streamStructuredResponse,
+  extractOutputText,
+  type StructuredCall,
+} from "../../src/lib/openai/client.ts";
 import { CONTRACTS } from "../../src/lib/openai/schemas.ts";
 import { OpenAIRequestError } from "../../src/lib/openai/errors.ts";
 
@@ -11,20 +16,34 @@ function fullResponse(text: string, extra: Record<string, unknown> = {}) {
     id: "resp_1",
     status: "completed",
     output: [{ type: "message", role: "assistant", content: [{ type: "output_text", text }] }],
-    usage: { input_tokens: 100, output_tokens: 20, input_tokens_details: { cached_tokens: 40 }, output_tokens_details: { reasoning_tokens: 5 } },
+    usage: {
+      input_tokens: 100,
+      output_tokens: 20,
+      input_tokens_details: { cached_tokens: 40 },
+      output_tokens_details: { reasoning_tokens: 5 },
+    },
     ...extra,
   };
 }
 
 function jsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json", "x-request-id": "req_test" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json", "x-request-id": "req_test" },
+  });
 }
 
 function sseResponse(frames: string[]) {
-  return new Response(frames.join(""), { status: 200, headers: { "content-type": "text/event-stream" } });
+  return new Response(frames.join(""), {
+    status: 200,
+    headers: { "content-type": "text/event-stream" },
+  });
 }
 
-function baseCall(fetchImpl: typeof fetch, overrides: Partial<StructuredCall<unknown>> = {}): StructuredCall<unknown> {
+function baseCall(
+  fetchImpl: typeof fetch,
+  overrides: Partial<StructuredCall<unknown>> = {},
+): StructuredCall<unknown> {
   return {
     apiKey: "sk-test",
     config: { model: "gpt-5.4-mini", temperature: 0.7, timeoutMs: 5000 },
@@ -59,7 +78,12 @@ test("non-stream: builds a Responses request with strict text.format and returns
   assert.equal(fmt.strict, true);
   assert.equal(fmt.name, "depikt_builder_default");
   assert.deepEqual(out.parsed, JSON.parse(good));
-  assert.deepEqual(out.usage, { inputTokens: 100, cachedInputTokens: 40, outputTokens: 20, reasoningTokens: 5 });
+  assert.deepEqual(out.usage, {
+    inputTokens: 100,
+    cachedInputTokens: 40,
+    outputTokens: 20,
+    reasoningTokens: 5,
+  });
   assert.equal(out.requestId, "req_test");
   assert.equal(out.attempts, 1);
   assert.ok(out.estimatedCostUsd > 0);
@@ -71,14 +95,21 @@ test("non-stream: temperature omitted for models that reject it; reasoning inclu
     body = JSON.parse(String(init?.body));
     return jsonResponse(fullResponse(good));
   };
-  await createStructuredResponse(baseCall(fetchImpl, { config: { model: "gpt-6-astra", temperature: 0.7, reasoningEffort: "high", timeoutMs: 5000 } }));
+  await createStructuredResponse(
+    baseCall(fetchImpl, {
+      config: { model: "gpt-6-astra", temperature: 0.7, reasoningEffort: "high", timeoutMs: 5000 },
+    }),
+  );
   assert.equal("temperature" in body, false);
   assert.deepEqual(body.reasoning, { effort: "high" });
 });
 
 test("non-stream: retries once on 500 then succeeds", async () => {
   let n = 0;
-  const fetchImpl: typeof fetch = async () => (++n === 1 ? jsonResponse({ error: { message: "boom" } }, 500) : jsonResponse(fullResponse(good)));
+  const fetchImpl: typeof fetch = async () =>
+    ++n === 1
+      ? jsonResponse({ error: { message: "boom" } }, 500)
+      : jsonResponse(fullResponse(good));
   const out = await createStructuredResponse(baseCall(fetchImpl));
   assert.equal(n, 2);
   assert.equal(out.attempts, 2);
@@ -119,25 +150,47 @@ test("non-stream: refusal is surfaced and not retried", async () => {
   let n = 0;
   const fetchImpl: typeof fetch = async () => {
     n++;
-    return jsonResponse({ status: "completed", output: [{ type: "message", content: [{ type: "refusal", refusal: "no" }] }], usage: {} });
+    return jsonResponse({
+      status: "completed",
+      output: [{ type: "message", content: [{ type: "refusal", refusal: "no" }] }],
+      usage: {},
+    });
   };
-  await assert.rejects(createStructuredResponse(baseCall(fetchImpl)), (e: unknown) => (e as OpenAIRequestError).kind === "refusal");
+  await assert.rejects(
+    createStructuredResponse(baseCall(fetchImpl)),
+    (e: unknown) => (e as OpenAIRequestError).kind === "refusal",
+  );
   assert.equal(n, 1);
 });
 
 test("non-stream: timeout aborts the attempt and is classified as timeout", async () => {
   const fetchImpl: typeof fetch = (_u, init) =>
     new Promise((_resolve, reject) => {
-      init?.signal?.addEventListener("abort", () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })));
+      init?.signal?.addEventListener("abort", () =>
+        reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+      );
     });
   await assert.rejects(
-    createStructuredResponse(baseCall(fetchImpl, { config: { model: "gpt-5.4-mini", timeoutMs: 20 }, maxAttempts: 1 })),
+    createStructuredResponse(
+      baseCall(fetchImpl, { config: { model: "gpt-5.4-mini", timeoutMs: 20 }, maxAttempts: 1 }),
+    ),
     (e: unknown) => (e as OpenAIRequestError).kind === "timeout",
   );
 });
 
 test("extractOutputText concatenates output_text parts and finds refusals", () => {
-  const r = extractOutputText({ output: [{ type: "reasoning" }, { type: "message", content: [{ type: "output_text", text: "a" }, { type: "output_text", text: "b" }] }] });
+  const r = extractOutputText({
+    output: [
+      { type: "reasoning" },
+      {
+        type: "message",
+        content: [
+          { type: "output_text", text: "a" },
+          { type: "output_text", text: "b" },
+        ],
+      },
+    ],
+  });
   assert.deepEqual(r, { text: "ab", refusal: null });
 });
 
@@ -149,8 +202,12 @@ test("stream: yields accumulated deltas then done with usage", async () => {
   const frames = [
     frame("response.created", { response: { id: "r" } }),
     frame("response.output_text.delta", { delta: '{"prompt": "p",' }),
-    frame("response.output_text.delta", { delta: ' "category": "POSTER/COVER", "why_it_works": "w"}' }),
-    frame("response.completed", { response: { status: "completed", usage: { input_tokens: 10, output_tokens: 5 } } }),
+    frame("response.output_text.delta", {
+      delta: ' "category": "POSTER/COVER", "why_it_works": "w"}',
+    }),
+    frame("response.completed", {
+      response: { status: "completed", usage: { input_tokens: 10, output_tokens: 5 } },
+    }),
   ];
   const fetchImpl: typeof fetch = async () => sseResponse(frames);
   const events = [];
@@ -159,7 +216,8 @@ test("stream: yields accumulated deltas then done with usage", async () => {
   assert.equal((events[0] as { accumulated: string }).accumulated, '{"prompt": "p",');
   const done = events.at(-1);
   assert.equal(done?.type, "done");
-  const outcome = (done as { outcome: { parsed: unknown; usage: { inputTokens: number } } }).outcome;
+  const outcome = (done as { outcome: { parsed: unknown; usage: { inputTokens: number } } })
+    .outcome;
   assert.deepEqual(outcome.parsed, { prompt: "p", category: "POSTER/COVER", why_it_works: "w" });
   assert.equal(outcome.usage.inputTokens, 10);
 });
@@ -170,7 +228,10 @@ test("stream: malformed final text falls back to one non-streaming attempt", asy
     calls++;
     const body = JSON.parse(String(init?.body));
     if (body.stream) {
-      return sseResponse([frame("response.output_text.delta", { delta: '{"prompt": "only"}' }), frame("response.completed", { response: { status: "completed" } })]);
+      return sseResponse([
+        frame("response.output_text.delta", { delta: '{"prompt": "only"}' }),
+        frame("response.completed", { response: { status: "completed" } }),
+      ]);
     }
     return jsonResponse(fullResponse(good));
   };
@@ -184,7 +245,13 @@ test("stream: malformed final text falls back to one non-streaming attempt", asy
 
 test("stream: http 500 before any delta retries once; 401 does not", async () => {
   let n = 0;
-  const fetchImpl: typeof fetch = async () => (++n === 1 ? jsonResponse({ error: { message: "x" } }, 500) : sseResponse([frame("response.output_text.delta", { delta: good }), frame("response.completed", { response: {} })]));
+  const fetchImpl: typeof fetch = async () =>
+    ++n === 1
+      ? jsonResponse({ error: { message: "x" } }, 500)
+      : sseResponse([
+          frame("response.output_text.delta", { delta: good }),
+          frame("response.completed", { response: {} }),
+        ]);
   const events = [];
   for await (const e of streamStructuredResponse(baseCall(fetchImpl))) events.push(e);
   assert.equal(n, 2);
@@ -198,14 +265,24 @@ test("stream: http 500 before any delta retries once; 401 does not", async () =>
   const ev2 = [];
   for await (const e of streamStructuredResponse(baseCall(fetch401))) ev2.push(e);
   assert.equal(m, 1);
-  assert.deepEqual(ev2.map((e) => e.type), ["error"]);
+  assert.deepEqual(
+    ev2.map((e) => e.type),
+    ["error"],
+  );
   assert.equal((ev2[0] as { kind: string }).kind, "auth");
 });
 
 test("stream: refusal deltas become a refusal error", async () => {
-  const fetchImpl: typeof fetch = async () => sseResponse([frame("response.refusal.delta", { delta: "no" }), frame("response.completed", { response: {} })]);
+  const fetchImpl: typeof fetch = async () =>
+    sseResponse([
+      frame("response.refusal.delta", { delta: "no" }),
+      frame("response.completed", { response: {} }),
+    ]);
   const events = [];
   for await (const e of streamStructuredResponse(baseCall(fetchImpl))) events.push(e);
-  assert.deepEqual(events.map((e) => e.type), ["error"]);
+  assert.deepEqual(
+    events.map((e) => e.type),
+    ["error"],
+  );
   assert.equal((events[0] as { kind: string }).kind, "refusal");
 });

@@ -1,6 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { OpenAIRequestError, classifyHttpStatus, classifyThrown, clientMessageFor, isRetryableKind } from "../../src/lib/openai/errors.ts";
+import {
+  OpenAIRequestError,
+  classifyHttpStatus,
+  classifyThrown,
+  clientMessageFor,
+  isRetryableKind,
+} from "../../src/lib/openai/errors.ts";
 import { SseParser, encodeSseEvent } from "../../src/lib/openai/sse.ts";
 
 test("http status classification", () => {
@@ -15,8 +21,10 @@ test("http status classification", () => {
 });
 
 test("retry classification: transport/server/malformed retry; auth/billing/bad_request/refusal do not", () => {
-  for (const k of ["timeout", "network", "rate_limited", "server", "malformed_output"] as const) assert.equal(isRetryableKind(k), true, k);
-  for (const k of ["auth", "billing", "bad_request", "refusal", "incomplete", "unknown"] as const) assert.equal(isRetryableKind(k), false, k);
+  for (const k of ["timeout", "network", "rate_limited", "server", "malformed_output"] as const)
+    assert.equal(isRetryableKind(k), true, k);
+  for (const k of ["auth", "billing", "bad_request", "refusal", "incomplete", "unknown"] as const)
+    assert.equal(isRetryableKind(k), false, k);
   assert.equal(new OpenAIRequestError("auth", "x").retryable, false);
   assert.equal(new OpenAIRequestError("server", "x", { status: 502 }).status, 502);
 });
@@ -29,14 +37,19 @@ test("timeout classification from thrown values", () => {
 });
 
 test("client messages never leak upstream detail", () => {
-  assert.equal(clientMessageFor("rate_limited"), "Rate limit reached. Please wait a moment and try again.");
+  assert.equal(
+    clientMessageFor("rate_limited"),
+    "Rate limit reached. Please wait a moment and try again.",
+  );
   assert.equal(clientMessageFor("malformed_output"), "Invalid AI response format");
   assert.equal(clientMessageFor("server"), "AI service error");
 });
 
 test("SseParser handles chunk boundaries, multi-line data, comments and CRLF", () => {
   const p = new SseParser();
-  let msgs = p.push("event: a\ndata: {\"x\":1}\n\n: keepalive\nevent: b\r\ndata: line1\r\ndata: line2\r\n\r\nevent: c\ndata: par");
+  let msgs = p.push(
+    'event: a\ndata: {"x":1}\n\n: keepalive\nevent: b\r\ndata: line1\r\ndata: line2\r\n\r\nevent: c\ndata: par',
+  );
   assert.deepEqual(msgs, [
     { event: "a", data: '{"x":1}' },
     { event: "b", data: "line1\nline2" },

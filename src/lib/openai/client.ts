@@ -10,7 +10,12 @@
 //
 // Verified against the Responses API reference on 2026-09-08.
 
-import { estimateCostUsd, resolveRequestParams, type ModelConfig, type TokenUsage } from "./models.ts";
+import {
+  estimateCostUsd,
+  resolveRequestParams,
+  type ModelConfig,
+  type TokenUsage,
+} from "./models.ts";
 import { parseResult, textFormatFor, type ResultContract } from "./schemas.ts";
 import {
   OpenAIRequestError,
@@ -75,7 +80,12 @@ export type StreamEvent<T> =
   | { type: "done"; outcome: StructuredOutcome<T> }
   | { type: "error"; kind: FailureKind; message: string };
 
-const EMPTY_USAGE: TokenUsage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0, reasoningTokens: 0 };
+const EMPTY_USAGE: TokenUsage = {
+  inputTokens: 0,
+  cachedInputTokens: 0,
+  outputTokens: 0,
+  reasoningTokens: 0,
+};
 
 function buildBody<T>(call: StructuredCall<T>, stream: boolean): Record<string, unknown> {
   const params = resolveRequestParams(call.config);
@@ -108,7 +118,12 @@ function mapUsage(u: unknown): TokenUsage {
 
 /** Extract output text / refusal from a full Response object. */
 export function extractOutputText(response: unknown): { text: string; refusal: string | null } {
-  const r = response as { output?: Array<{ type?: string; content?: Array<{ type?: string; text?: string; refusal?: string }> }> };
+  const r = response as {
+    output?: Array<{
+      type?: string;
+      content?: Array<{ type?: string; text?: string; refusal?: string }>;
+    }>;
+  };
   let text = "";
   let refusal: string | null = null;
   for (const item of r.output ?? []) {
@@ -122,7 +137,10 @@ export function extractOutputText(response: unknown): { text: string; refusal: s
 }
 
 /** Combine the per-attempt timeout with an optional external signal. */
-function attemptSignal(timeoutMs: number, external?: AbortSignal): { signal: AbortSignal; clear: () => void; timedOut: () => boolean } {
+function attemptSignal(
+  timeoutMs: number,
+  external?: AbortSignal,
+): { signal: AbortSignal; clear: () => void; timedOut: () => boolean } {
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -149,7 +167,8 @@ async function readErrorDetail(res: Response): Promise<string> {
     const txt = await res.text();
     try {
       const j = JSON.parse(txt) as { error?: { message?: string; code?: string; type?: string } };
-      if (j?.error?.message) return `${j.error.code ?? j.error.type ?? "error"}: ${j.error.message}`;
+      if (j?.error?.message)
+        return `${j.error.code ?? j.error.type ?? "error"}: ${j.error.message}`;
     } catch {
       /* not json */
     }
@@ -171,7 +190,9 @@ function backoffMs(kind: FailureKind, attempt: number): number {
  * Retries once on timeout/network/429/5xx/malformed output. Never retries
  * auth, billing, bad_request, refusal, or incomplete.
  */
-export async function createStructuredResponse<T>(call: StructuredCall<T>): Promise<StructuredOutcome<T>> {
+export async function createStructuredResponse<T>(
+  call: StructuredCall<T>,
+): Promise<StructuredOutcome<T>> {
   const maxAttempts = call.maxAttempts ?? 2;
   const sleep = call.sleep ?? defaultSleep;
   const fetchImpl = call.fetchImpl ?? fetch;
@@ -193,7 +214,9 @@ export async function createStructuredResponse<T>(call: StructuredCall<T>): Prom
     } catch (e) {
       clear();
       const kind = classifyThrown(e, timedOut());
-      lastErr = new OpenAIRequestError(kind, `openai ${kind}`, { detail: String((e as Error)?.message ?? e) });
+      lastErr = new OpenAIRequestError(kind, `openai ${kind}`, {
+        detail: String((e as Error)?.message ?? e),
+      });
       if (call.signal?.aborted && !timedOut()) throw lastErr;
       if (attempt < maxAttempts) await sleep(backoffMs(kind, attempt));
       continue;
@@ -204,7 +227,11 @@ export async function createStructuredResponse<T>(call: StructuredCall<T>): Prom
       clear();
       const kind = classifyHttpStatus(res.status);
       const detail = await readErrorDetail(res);
-      lastErr = new OpenAIRequestError(kind, `openai http ${res.status}`, { status: res.status, requestId, detail });
+      lastErr = new OpenAIRequestError(kind, `openai http ${res.status}`, {
+        status: res.status,
+        requestId,
+        detail,
+      });
       if (!lastErr.retryable || attempt >= maxAttempts) throw lastErr;
       await sleep(backoffMs(kind, attempt));
       continue;
@@ -215,13 +242,21 @@ export async function createStructuredResponse<T>(call: StructuredCall<T>): Prom
       json = await res.json();
     } catch (e) {
       clear();
-      lastErr = new OpenAIRequestError("malformed_output", "openai body was not JSON", { requestId, detail: String(e) });
+      lastErr = new OpenAIRequestError("malformed_output", "openai body was not JSON", {
+        requestId,
+        detail: String(e),
+      });
       if (attempt < maxAttempts) continue;
       throw lastErr;
     }
     clear();
     const latencyMs = Date.now() - started;
-    const response = json as { status?: string; usage?: unknown; incomplete_details?: { reason?: string }; error?: { message?: string } };
+    const response = json as {
+      status?: string;
+      usage?: unknown;
+      incomplete_details?: { reason?: string };
+      error?: { message?: string };
+    };
     const { text, refusal } = extractOutputText(json);
     const usage = mapUsage(response.usage);
 
@@ -229,17 +264,27 @@ export async function createStructuredResponse<T>(call: StructuredCall<T>): Prom
       throw new OpenAIRequestError("refusal", "model refused", { requestId, detail: refusal });
     }
     if (response.status === "failed") {
-      lastErr = new OpenAIRequestError("server", "openai response failed", { requestId, detail: response.error?.message });
+      lastErr = new OpenAIRequestError("server", "openai response failed", {
+        requestId,
+        detail: response.error?.message,
+      });
       if (attempt < maxAttempts) continue;
       throw lastErr;
     }
     const parsed = parseResult(call.contract, text);
     if (!parsed.ok) {
-      const kind: FailureKind = response.status === "incomplete" ? "incomplete" : "malformed_output";
-      lastErr = new OpenAIRequestError(kind, kind === "incomplete" ? `openai response incomplete (${response.incomplete_details?.reason ?? "unknown"})` : "structured output did not validate", {
-        requestId,
-        detail: parsed.error,
-      });
+      const kind: FailureKind =
+        response.status === "incomplete" ? "incomplete" : "malformed_output";
+      lastErr = new OpenAIRequestError(
+        kind,
+        kind === "incomplete"
+          ? `openai response incomplete (${response.incomplete_details?.reason ?? "unknown"})`
+          : "structured output did not validate",
+        {
+          requestId,
+          detail: parsed.error,
+        },
+      );
       if (lastErr.retryable && attempt < maxAttempts) continue;
       throw lastErr;
     }
@@ -268,7 +313,9 @@ export async function createStructuredResponse<T>(call: StructuredCall<T>): Prom
  * user still gets a result. Failures after deltas were emitted are surfaced
  * as `error` (the UI already showed partial text).
  */
-export async function* streamStructuredResponse<T>(call: StructuredCall<T>): AsyncGenerator<StreamEvent<T>> {
+export async function* streamStructuredResponse<T>(
+  call: StructuredCall<T>,
+): AsyncGenerator<StreamEvent<T>> {
   const fetchImpl = call.fetchImpl ?? fetch;
   const sleep = call.sleep ?? defaultSleep;
   const maxAttempts = call.maxAttempts ?? 2;
@@ -344,7 +391,10 @@ export async function* streamStructuredResponse<T>(call: StructuredCall<T>): Asy
             const r = data.response as { error?: { message?: string } } | undefined;
             failure = { kind: "server", message: r?.error?.message ?? "response failed" };
           } else if (evt === "error") {
-            failure = { kind: "server", message: String((data as { message?: string }).message ?? "stream error") };
+            failure = {
+              kind: "server",
+              message: String((data as { message?: string }).message ?? "stream error"),
+            };
           }
         }
         if (done) break;
@@ -405,7 +455,11 @@ export async function* streamStructuredResponse<T>(call: StructuredCall<T>): Asy
       yield { type: "done", outcome: { ...outcome, attempts: attempt + 1 } };
     } catch (e) {
       const err = e as OpenAIRequestError;
-      yield { type: "error", kind: err.kind ?? "malformed_output", message: err.detail ?? err.message };
+      yield {
+        type: "error",
+        kind: err.kind ?? "malformed_output",
+        message: err.detail ?? err.message,
+      };
     }
     return;
   }

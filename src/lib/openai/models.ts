@@ -84,7 +84,11 @@ export interface ModelConfig {
  * before. The other roles exist so later phases can route without editing
  * the route file; the benchmark decides their final values.
  */
-export type ModelRole = "BUILDER_DEFAULT" | "BUILDER_REFERENCE_HEAVY" | "CRITIC" | "BENCHMARK_JUDGE";
+export type ModelRole =
+  | "BUILDER_DEFAULT"
+  | "BUILDER_REFERENCE_HEAVY"
+  | "CRITIC"
+  | "BENCHMARK_JUDGE";
 
 export const MODEL_ROLES: Record<ModelRole, ModelConfig> = {
   // Unchanged production behavior for Phase 1.
@@ -111,7 +115,9 @@ export function estimateCostUsd(modelId: string, usage: TokenUsage): number {
   const cachedRate = pricing.cachedInput ?? pricing.input;
   const uncached = Math.max(0, usage.inputTokens - usage.cachedInputTokens);
   return (
-    (uncached * pricing.input + usage.cachedInputTokens * cachedRate + usage.outputTokens * pricing.output) /
+    (uncached * pricing.input +
+      usage.cachedInputTokens * cachedRate +
+      usage.outputTokens * pricing.output) /
     1_000_000
   );
 }
@@ -133,7 +139,9 @@ export function resolveRequestParams(config: ModelConfig): {
   }
   if (config.reasoningEffort !== undefined) {
     if (!spec.reasoningEfforts.includes(config.reasoningEffort)) {
-      throw new Error(`Model ${config.model} does not support reasoning.effort=${config.reasoningEffort}`);
+      throw new Error(
+        `Model ${config.model} does not support reasoning.effort=${config.reasoningEffort}`,
+      );
     }
     out.reasoning = { effort: config.reasoningEffort };
   }

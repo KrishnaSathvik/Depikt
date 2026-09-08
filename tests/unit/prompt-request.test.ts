@@ -46,7 +46,11 @@ test("examples: seeded rng gives deterministic selection, 4 in auto mode", () =>
 });
 
 test("buildPromptRequest: message layout and locks (no image, no remix)", () => {
-  const req = buildPromptRequest({ userInput: "  cinematic shot of a wedding  ", mode: "default", random: () => 0.1 });
+  const req = buildPromptRequest({
+    userInput: "  cinematic shot of a wedding  ",
+    mode: "default",
+    random: () => 0.1,
+  });
   assert.equal(req.cinematicForced, true);
   assert.equal(req.effectiveCategory, "CINEMATIC SCENE");
   assert.equal(req.lockedRatio, "2.39:1");
@@ -54,7 +58,11 @@ test("buildPromptRequest: message layout and locks (no image, no remix)", () => 
   assert.ok(req.userMessage.startsWith("REFERENCE EXAMPLES"));
   assert.ok(req.userMessage.includes("Category hint: CINEMATIC SCENE"));
   assert.ok(req.userMessage.includes("LOCKED CATEGORY:"));
-  assert.ok(req.userMessage.includes('LOCKED ASPECT RATIO: 2.39:1 — The output prompt MUST include the exact phrase "2.39:1 aspect ratio"'));
+  assert.ok(
+    req.userMessage.includes(
+      'LOCKED ASPECT RATIO: 2.39:1 — The output prompt MUST include the exact phrase "2.39:1 aspect ratio"',
+    ),
+  );
   assert.ok(req.userMessage.endsWith("Mode: default\n\nUser idea: cinematic shot of a wedding"));
 });
 
@@ -75,13 +83,23 @@ test("buildPromptRequest: remix suppresses examples; image adds the reference li
 });
 
 test("buildPromptRequest: over-long remixRef is ignored", () => {
-  const req = buildPromptRequest({ userInput: "x", mode: "default", remixRef: "a".repeat(8001), random: () => 0.1 });
+  const req = buildPromptRequest({
+    userInput: "x",
+    mode: "default",
+    remixRef: "a".repeat(8001),
+    random: () => 0.1,
+  });
   assert.equal(req.remixUsed, false);
   assert.equal(req.exampleIds.length, 4);
 });
 
 test("buildPromptRequest: explicit category hint bypasses cinematic lock", () => {
-  const req = buildPromptRequest({ userInput: "cinematic shot of x", mode: "CRITIQUE", category: "POSTER/COVER", random: () => 0.1 });
+  const req = buildPromptRequest({
+    userInput: "cinematic shot of x",
+    mode: "CRITIQUE",
+    category: "POSTER/COVER",
+    random: () => 0.1,
+  });
   assert.equal(req.cinematicForced, false);
   assert.equal(req.effectiveCategory, "POSTER/COVER");
   assert.ok(req.userMessage.includes("Mode: CRITIQUE"));

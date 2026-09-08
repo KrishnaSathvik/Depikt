@@ -71,7 +71,11 @@ export function countPanels(text: string): number {
   return nums.size;
 }
 
-export function scoreCase(pipeline: "builder" | "critic", c: BenchCase, result: ResultLike | null): CheckResult[] {
+export function scoreCase(
+  pipeline: "builder" | "critic",
+  c: BenchCase,
+  result: ResultLike | null,
+): CheckResult[] {
   const out: CheckResult[] = [];
   const e = c.expect;
   if (!result) {
@@ -81,14 +85,34 @@ export function scoreCase(pipeline: "builder" | "critic", c: BenchCase, result: 
   const text = primaryText(pipeline, result);
   const ntext = norm(text);
 
-  if (e.category) out.push({ name: "category", pass: result.category === e.category, detail: `got ${result.category}` });
-  if (e.category_any) out.push({ name: "category_any", pass: e.category_any.includes(result.category ?? ""), detail: `got ${result.category}` });
-  if (e.ratio) out.push({ name: "ratio", pass: text.includes(e.ratio), detail: `expect ${e.ratio}` });
-  for (const s of e.must_contain ?? []) out.push({ name: `contains:${s}`, pass: ntext.includes(norm(s)) });
-  if (e.must_contain_any) out.push({ name: "contains_any", pass: e.must_contain_any.some((s) => ntext.includes(norm(s))), detail: e.must_contain_any.join("|") });
-  for (const s of e.must_not_contain ?? []) out.push({ name: `not_contains:${s}`, pass: !ntext.includes(norm(s)) });
-  for (const re of e.must_match ?? []) out.push({ name: `match:${re}`, pass: new RegExp(re, "i").test(text) });
-  for (const re of e.must_not_match ?? []) out.push({ name: `not_match:${re}`, pass: !new RegExp(re, "i").test(text) });
+  if (e.category)
+    out.push({
+      name: "category",
+      pass: result.category === e.category,
+      detail: `got ${result.category}`,
+    });
+  if (e.category_any)
+    out.push({
+      name: "category_any",
+      pass: e.category_any.includes(result.category ?? ""),
+      detail: `got ${result.category}`,
+    });
+  if (e.ratio)
+    out.push({ name: "ratio", pass: text.includes(e.ratio), detail: `expect ${e.ratio}` });
+  for (const s of e.must_contain ?? [])
+    out.push({ name: `contains:${s}`, pass: ntext.includes(norm(s)) });
+  if (e.must_contain_any)
+    out.push({
+      name: "contains_any",
+      pass: e.must_contain_any.some((s) => ntext.includes(norm(s))),
+      detail: e.must_contain_any.join("|"),
+    });
+  for (const s of e.must_not_contain ?? [])
+    out.push({ name: `not_contains:${s}`, pass: !ntext.includes(norm(s)) });
+  for (const re of e.must_match ?? [])
+    out.push({ name: `match:${re}`, pass: new RegExp(re, "i").test(text) });
+  for (const re of e.must_not_match ?? [])
+    out.push({ name: `not_match:${re}`, pass: !new RegExp(re, "i").test(text) });
   if (e.page_count !== undefined) {
     const n = countPages(text);
     out.push({ name: "page_count", pass: n === e.page_count, detail: `got ${n}` });
@@ -99,14 +123,21 @@ export function scoreCase(pipeline: "builder" | "critic", c: BenchCase, result: 
   }
   if (e.score_range) {
     const s = typeof result.score === "number" ? result.score : NaN;
-    out.push({ name: "score_range", pass: s >= e.score_range[0] && s <= e.score_range[1], detail: `got ${s}` });
+    out.push({
+      name: "score_range",
+      pass: s >= e.score_range[0] && s <= e.score_range[1],
+      detail: `got ${s}`,
+    });
   }
   if (e.feedback_match) {
     const fb = [...(result.weaknesses ?? []), ...(result.improvements ?? [])].join("\n");
-    for (const re of e.feedback_match) out.push({ name: `feedback:${re.slice(0, 30)}`, pass: new RegExp(re, "i").test(fb) });
+    for (const re of e.feedback_match)
+      out.push({ name: `feedback:${re.slice(0, 30)}`, pass: new RegExp(re, "i").test(fb) });
   }
   const rw = norm(result.rewritten_prompt ?? "");
-  for (const s of e.rewritten_must_contain ?? []) out.push({ name: `rewritten_contains:${s}`, pass: rw.includes(norm(s)) });
-  for (const s of e.rewritten_must_not_contain ?? []) out.push({ name: `rewritten_not_contains:${s}`, pass: !rw.includes(norm(s)) });
+  for (const s of e.rewritten_must_contain ?? [])
+    out.push({ name: `rewritten_contains:${s}`, pass: rw.includes(norm(s)) });
+  for (const s of e.rewritten_must_not_contain ?? [])
+    out.push({ name: `rewritten_not_contains:${s}`, pass: !rw.includes(norm(s)) });
   return out;
 }

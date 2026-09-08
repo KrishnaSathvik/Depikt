@@ -50,6 +50,7 @@ export function sanitizeResultFields<T extends Record<string, unknown>>(result: 
   if (Array.isArray(r.prompts)) {
     r.prompts = r.prompts.map((p) => (typeof p === "string" ? sanitizePrompt(p) : p));
   }
-  if (typeof r.rewritten_prompt === "string") r.rewritten_prompt = sanitizePrompt(r.rewritten_prompt);
+  if (typeof r.rewritten_prompt === "string")
+    r.rewritten_prompt = sanitizePrompt(r.rewritten_prompt);
   return result;
 }

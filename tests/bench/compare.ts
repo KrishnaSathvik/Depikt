@@ -15,9 +15,32 @@ const arg = (n: string, d?: string) => {
 const outDir = resolve(ROOT, arg("out", "benchmark-results")!);
 
 interface Run {
-  meta: { label: string; model: string; api: string; requestParams: unknown; cases: number; repeat: number; promptVersion: string };
-  summary: Record<string, unknown> & { latencyMeanMs: number; latencyP50Ms: number; latencyP95Ms: number; costMeanUsd: number; costPer1kUsd: number; usageMean: { input: number; cached: number; output: number; reasoning: number }; failureKinds: Record<string, number> };
-  runs: Array<{ id: string; ok: boolean; passed: number; total: number; checks: Array<{ name: string; pass: boolean; detail?: string }>; edge: boolean }>;
+  meta: {
+    label: string;
+    model: string;
+    api: string;
+    requestParams: unknown;
+    cases: number;
+    repeat: number;
+    promptVersion: string;
+  };
+  summary: Record<string, unknown> & {
+    latencyMeanMs: number;
+    latencyP50Ms: number;
+    latencyP95Ms: number;
+    costMeanUsd: number;
+    costPer1kUsd: number;
+    usageMean: { input: number; cached: number; output: number; reasoning: number };
+    failureKinds: Record<string, number>;
+  };
+  runs: Array<{
+    id: string;
+    ok: boolean;
+    passed: number;
+    total: number;
+    checks: Array<{ name: string; pass: boolean; detail?: string }>;
+    edge: boolean;
+  }>;
 }
 
 const rows: Run[] = [];
@@ -40,9 +63,19 @@ const cols = [
   ["ratio", (r: Run) => `${r.summary.ratioCompliance}`],
   ["exact text", (r: Run) => `${r.summary.exactTextChecks}`],
   ["counts", (r: Run) => `${r.summary.countChecks}`],
-  ["critic range", (r: Run) => `${r.summary.criticScoreRange} (μ ${r.summary.criticScoreMean ?? "n/a"})`],
-  ["latency mean/p50/p95", (r: Run) => `${r.summary.latencyMeanMs}/${r.summary.latencyP50Ms}/${r.summary.latencyP95Ms} ms`],
-  ["tokens in/cached/out/reason", (r: Run) => `${r.summary.usageMean.input}/${r.summary.usageMean.cached}/${r.summary.usageMean.output}/${r.summary.usageMean.reasoning}`],
+  [
+    "critic range",
+    (r: Run) => `${r.summary.criticScoreRange} (μ ${r.summary.criticScoreMean ?? "n/a"})`,
+  ],
+  [
+    "latency mean/p50/p95",
+    (r: Run) => `${r.summary.latencyMeanMs}/${r.summary.latencyP50Ms}/${r.summary.latencyP95Ms} ms`,
+  ],
+  [
+    "tokens in/cached/out/reason",
+    (r: Run) =>
+      `${r.summary.usageMean.input}/${r.summary.usageMean.cached}/${r.summary.usageMean.output}/${r.summary.usageMean.reasoning}`,
+  ],
   ["$/request", (r: Run) => `$${r.summary.costMeanUsd}`],
   ["$/1k", (r: Run) => `$${r.summary.costPer1kUsd}`],
   ["failures", (r: Run) => JSON.stringify(r.summary.failureKinds)],
@@ -58,14 +91,25 @@ lines.push("");
 lines.push("## Failed checks per case");
 lines.push("");
 const ids = [...new Set(rows.flatMap((r) => r.runs.map((x) => x.id)))].sort();
-lines.push(`| case | ${rows.map((r) => r.meta.label.replace("v2.9__", "").replace("__responses", "")).join(" | ")} |`);
+lines.push(
+  `| case | ${rows.map((r) => r.meta.label.replace("v2.9__", "").replace("__responses", "")).join(" | ")} |`,
+);
 lines.push(`| --- | ${rows.map(() => "---").join(" | ")} |`);
 for (const id of ids) {
   const cells = rows.map((r) => {
     const runs = r.runs.filter((x) => x.id === id);
     if (runs.length === 0) return "";
     return runs
-      .map((x) => (!x.ok ? "✗" : x.passed === x.total ? "✓" : x.checks.filter((k) => !k.pass).map((k) => k.name.split(":")[0]).join(",")))
+      .map((x) =>
+        !x.ok
+          ? "✗"
+          : x.passed === x.total
+            ? "✓"
+            : x.checks
+                .filter((k) => !k.pass)
+                .map((k) => k.name.split(":")[0])
+                .join(","),
+      )
       .join(" / ");
   });
   const edge = rows.some((r) => r.runs.find((x) => x.id === id)?.edge);

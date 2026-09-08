@@ -109,14 +109,21 @@ export const Route = createFileRoute("/api/public/generate-prompt")({
               !referenceImageUrl.startsWith("data:image/") ||
               referenceImageUrl.length > 2 * 1024 * 1024
             ) {
-              return jsonError("Invalid reference image (must be a data:image/ URL under 2MB)", 400);
+              return jsonError(
+                "Invalid reference image (must be a data:image/ URL under 2MB)",
+                400,
+              );
             }
           }
 
           // Validate category against allowlist (prevents prompt injection via category field).
           // Unknown values are rejected; absence is fine (auto-detect).
           if (category !== undefined && category !== null) {
-            if (typeof category !== "string" || category.length > 100 || !ALLOWED_CATEGORIES.has(category)) {
+            if (
+              typeof category !== "string" ||
+              category.length > 100 ||
+              !ALLOWED_CATEGORIES.has(category)
+            ) {
               return jsonError("Invalid category", 400);
             }
           }
@@ -139,7 +146,8 @@ export const Route = createFileRoute("/api/public/generate-prompt")({
           // Pipeline selection: CRITIQUE → Critic contract + CRITIC role;
           // everything else → Builder contract family + BUILDER_DEFAULT role.
           const contract = selectContract(mode);
-          const roleConfig = contract.pipeline === "critic" ? MODEL_ROLES.CRITIC : MODEL_ROLES.BUILDER_DEFAULT;
+          const roleConfig =
+            contract.pipeline === "critic" ? MODEL_ROLES.CRITIC : MODEL_ROLES.BUILDER_DEFAULT;
 
           // Multimodal input when an image is present, plain text otherwise.
           const input: InputMessage[] = [
@@ -199,7 +207,9 @@ export const Route = createFileRoute("/api/public/generate-prompt")({
                     // Same client contract as before: the accumulated JSON so far.
                     send("delta", { args: evt.accumulated });
                   } else if (evt.type === "done") {
-                    const final = sanitizeResultFields({ ...(evt.outcome.parsed as Record<string, unknown>) });
+                    const final = sanitizeResultFields({
+                      ...(evt.outcome.parsed as Record<string, unknown>),
+                    });
                     final.prompt_version = PROMPT_VERSION;
                     send("done", final);
                     safeClose();

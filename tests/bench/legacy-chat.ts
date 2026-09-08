@@ -23,7 +23,11 @@ export function legacyTools(mode: string) {
           type: "object",
           properties: {
             prompt: { type: "string", description: "Single polished prompt (default/JSON modes)" },
-            prompts: { type: "array", items: { type: "string" }, description: "Three variants for BATCH mode: safe, stylized, experimental" },
+            prompts: {
+              type: "array",
+              items: { type: "string" },
+              description: "Three variants for BATCH mode: safe, stylized, experimental",
+            },
             category: { type: "string" },
             why_it_works: { type: "string" },
             size: { type: "string", description: "JSON mode only" },
@@ -32,7 +36,11 @@ export function legacyTools(mode: string) {
             score: { type: "number", description: "CRITIQUE mode only, 1-10" },
             weaknesses: { type: "array", items: { type: "string" } },
             improvements: { type: "array", items: { type: "string" } },
-            rewritten_prompt: { type: "string", description: "CRITIQUE mode only — full rewritten prompt with all improvements applied" },
+            rewritten_prompt: {
+              type: "string",
+              description:
+                "CRITIQUE mode only — full rewritten prompt with all improvements applied",
+            },
           },
           required: requiredByMode[mode] || requiredByMode.default,
         },
@@ -80,7 +88,12 @@ export async function legacyChatCompletion(opts: {
     if (!res.ok) throw new Error(`chat http ${res.status}: ${(await res.text()).slice(0, 300)}`);
     const json = (await res.json()) as {
       choices?: Array<{ message?: { tool_calls?: Array<{ function?: { arguments?: string } }> } }>;
-      usage?: { prompt_tokens?: number; completion_tokens?: number; prompt_tokens_details?: { cached_tokens?: number }; completion_tokens_details?: { reasoning_tokens?: number } };
+      usage?: {
+        prompt_tokens?: number;
+        completion_tokens?: number;
+        prompt_tokens_details?: { cached_tokens?: number };
+        completion_tokens_details?: { reasoning_tokens?: number };
+      };
     };
     const rawText = json.choices?.[0]?.message?.tool_calls?.[0]?.function?.arguments ?? "";
     const usage: TokenUsage = {
@@ -89,7 +102,13 @@ export async function legacyChatCompletion(opts: {
       outputTokens: json.usage?.completion_tokens ?? 0,
       reasoningTokens: json.usage?.completion_tokens_details?.reasoning_tokens ?? 0,
     };
-    return { rawText, usage, estimatedCostUsd: estimateCostUsd(opts.config.model, usage), latencyMs: Date.now() - started, requestId };
+    return {
+      rawText,
+      usage,
+      estimatedCostUsd: estimateCostUsd(opts.config.model, usage),
+      latencyMs: Date.now() - started,
+      requestId,
+    };
   } finally {
     clearTimeout(timer);
   }

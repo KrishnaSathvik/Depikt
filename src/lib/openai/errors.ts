@@ -20,7 +20,11 @@ export class OpenAIRequestError extends Error {
   requestId?: string;
   detail?: string;
 
-  constructor(kind: FailureKind, message: string, opts: { status?: number; requestId?: string; detail?: string } = {}) {
+  constructor(
+    kind: FailureKind,
+    message: string,
+    opts: { status?: number; requestId?: string; detail?: string } = {},
+  ) {
     super(message);
     this.name = "OpenAIRequestError";
     this.kind = kind;
@@ -56,7 +60,8 @@ export function classifyHttpStatus(status: number): FailureKind {
 /** Classify a thrown value from fetch()/reader.read(). */
 export function classifyThrown(err: unknown, timedOut: boolean): FailureKind {
   if (timedOut) return "timeout";
-  if (err && typeof err === "object" && (err as { name?: string }).name === "AbortError") return "timeout";
+  if (err && typeof err === "object" && (err as { name?: string }).name === "AbortError")
+    return "timeout";
   return "network";
 }
 

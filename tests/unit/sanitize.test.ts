@@ -1,14 +1,20 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { stripCliFlags, fixLensUnits, sanitizePrompt, sanitizeResultFields } from "../../src/lib/sanitize.ts";
+import {
+  stripCliFlags,
+  fixLensUnits,
+  sanitizePrompt,
+  sanitizeResultFields,
+} from "../../src/lib/sanitize.ts";
 
 test("stripCliFlags removes Midjourney/SD flags", () => {
-  const input = "cyberpunk alley at night --ar 16:9 --v 6 --style raw --s 250 --chaos 10 --seed 42 --no people --tile";
+  const input =
+    "cyberpunk alley at night --ar 16:9 --v 6 --style raw --s 250 --chaos 10 --seed 42 --no people --tile";
   assert.equal(stripCliFlags(input), "cyberpunk alley at night");
 });
 
 test("stripCliFlags leaves ordinary text alone", () => {
-  const input = "A poster titled \"NO WAY\" with a 16:9 ratio and a -- dash in the copy";
+  const input = 'A poster titled "NO WAY" with a 16:9 ratio and a -- dash in the copy';
   assert.equal(stripCliFlags(input), input);
 });
 
