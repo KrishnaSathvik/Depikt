@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { SampleImage } from "@/components/SampleImage";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -96,10 +97,11 @@ function GalleryPage() {
           <DialogTitle className="sr-only">Image preview</DialogTitle>
           {selected && (
             <div className="flex flex-col items-center gap-4">
-              <img
+              <SampleImage
                 src={`/gallery/${selected}`}
-                alt=""
-                className="max-h-[70vh] w-full rounded-md object-contain"
+                alt={`Gallery image ${selected}`}
+                maxHeightClass="max-h-[70vh]"
+                className="rounded-md"
               />
               <Button type="button" onClick={() => handleUseAsReference(selected)}>
                 <Wand2 className="h-4 w-4" />

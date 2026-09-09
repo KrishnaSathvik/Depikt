@@ -19,6 +19,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { PromptSurface } from "@/components/PromptSurface";
+import { SampleImage } from "@/components/SampleImage";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -62,6 +63,8 @@ const PAGE_SIZE = 12;
 const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
   view: fallback(z.enum(["browse", "favorites", "history"]), "browse").default("browse"),
+  // Collection filter lives in the URL so the homepage can deep-link to Images 2.5.
+  collection: fallback(z.enum(["all", "gpt-image-2", "gpt-image-2.5"]), "all").default("all"),
 });
 
 export const Route = createFileRoute("/library")({
@@ -127,14 +130,18 @@ type ViewTab = "browse" | "favorites" | "history";
 function HomePage() {
   // Loader-provided data — always populated, never blocks paint after first load.
   const prompts = Route.useLoaderData();
-  const { page, view } = Route.useSearch();
+  const { page, view, collection } = Route.useSearch();
   const navigate = useNavigate({ from: "/library" });
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
   // Collection (target model) filter. Rendered only once more than one
   // collection actually has prompts, so there is never an empty Images 2.5 tab.
-  const [activeCollection, setActiveCollection] = useState<TargetModel | "all">("all");
   const collections = useMemo(() => availableCollections(prompts), [prompts]);
   const showCollections = shouldShowCollectionFilter(prompts);
+  // A collection that has no rows falls back to "all" so the URL can never show an empty list.
+  const activeCollection: TargetModel | "all" =
+    showCollections && collections.some((c) => c.value === collection) ? collection : "all";
+  const setActiveCollection = (c: TargetModel | "all") =>
+    navigate({ search: { page: 1, view, collection: c } });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<LibraryPrompt | null>(null);
@@ -150,15 +157,15 @@ function HomePage() {
   // Reset to page 1 whenever the filter set changes.
   const setCategory = (c: CategoryFilter) => {
     setActiveCategory(c);
-    if (page !== 1) navigate({ search: { page: 1, view } });
+    if (page !== 1) navigate({ search: { page: 1, view, collection } });
   };
   const setSearchInput = (v: string) => {
     setSearch(v);
-    if (page !== 1) navigate({ search: { page: 1, view } });
+    if (page !== 1) navigate({ search: { page: 1, view, collection } });
   };
 
   const setView = (v: ViewTab) => {
-    navigate({ search: { page: 1, view: v } });
+    navigate({ search: { page: 1, view: v, collection } });
     setActiveCategory("All");
     setSearch("");
   };
@@ -212,7 +219,7 @@ function HomePage() {
 
   const goToPage = (p: number) => {
     const next = Math.max(1, Math.min(totalPages, p));
-    navigate({ search: { page: next, view } });
+    navigate({ search: { page: next, view, collection } });
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -233,12 +240,11 @@ function HomePage() {
           <h1 className="mt-4 max-w-[22ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
             {LIBRARY_COPY.headline}
           </h1>
-          <p className="mt-3 hidden max-w-[60ch] text-body-lg text-[color:var(--text-secondary)] md:block">
-            Sample prompts collected from across the web. Study what works, copy one that fits, or
-            remix it in the {TOOL.builder}.
+          <p className="mt-3 max-w-[60ch] text-body-lg text-[color:var(--text-secondary)]">
+            {LIBRARY_COPY.subline}
           </p>
-          <p className="mt-2 max-w-[70ch] text-[12.5px] leading-snug text-[color:var(--text-tertiary)] md:text-body-sm">
-            {LIBRARY_COPY.note}
+          <p className="mt-2 text-body-sm font-medium text-[color:var(--text-tertiary)]">
+            {LIBRARY_COPY.collections}
           </p>
 
           {/* View tabs */}
@@ -283,10 +289,7 @@ function HomePage() {
               {collections.map((c) => (
                 <button
                   key={c.value}
-                  onClick={() => {
-                    setActiveCollection(c.value);
-                    if (page !== 1) navigate({ search: { page: 1, view } });
-                  }}
+                  onClick={() => setActiveCollection(c.value)}
                   aria-pressed={activeCollection === c.value}
                   className={`pill shrink-0 ${
                     activeCollection === c.value
@@ -332,8 +335,8 @@ function HomePage() {
           {/* Grid header */}
           <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
             <p className="text-[13px] text-[color:var(--text-tertiary)]">
-              {filtered.length} prompts · thumbnails are sample {TARGET_MODEL_LABELS["gpt-image-2"]}{" "}
-              outputs
+              {filtered.length} prompts · thumbnails are sample outputs
+              {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
             </p>
             <Button asChild size="sm" className="shrink-0">
               <Link to="/generate">
@@ -683,81 +686,94 @@ function PromptDetailDialog({
 
   return (
     <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[color:var(--bg-elevated)] p-6 sm:p-8">
-        <DialogHeader className="pr-8">
-          <p className="eyebrow">
-            {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
-            collection
-            {normalizeStatus(prompt.status) !== "approved" &&
-              ` · ${STATUS_LABELS[normalizeStatus(prompt.status)]}`}
-          </p>
-          <DialogTitle className="text-heading-lg text-[color:var(--text-primary)]">
-            {prompt.title}
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent className="max-h-[92vh] w-[calc(100%-1rem)] max-w-4xl overflow-y-auto bg-[color:var(--bg-elevated)] p-0 sm:max-h-[90vh]">
+        {/* 1. The sample output is the proof of the prompt, so it comes first. */}
+        {prompt.thumbnail_url && (
+          <SampleImage
+            src={prompt.thumbnail_url}
+            alt={`Sample output for ${prompt.title}`}
+            maxHeightClass="max-h-[52vh] sm:max-h-[60vh]"
+            className="border-b border-[color:var(--border-subtle)]"
+          />
+        )}
+        <div className="p-6 sm:p-8">
+          <DialogHeader className="pr-8">
+            <p className="eyebrow">
+              {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
+              collection
+              {normalizeStatus(prompt.status) !== "approved" &&
+                ` · ${STATUS_LABELS[normalizeStatus(prompt.status)]}`}
+            </p>
+            <DialogTitle className="text-heading-lg text-[color:var(--text-primary)]">
+              {prompt.title}
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="mt-4">
-          <PromptSurface label="Prompt">{prompt.prompt}</PromptSurface>
-        </div>
-
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Button asChild size="sm">
-            <Link
-              to="/generate"
-              search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
-            >
-              <Wand2 className="h-3.5 w-3.5" />
-              {CTA.remix}
-            </Link>
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => openInImago(prompt.prompt)}>
-            Open in Imago
-            <ExternalLink className="h-3.5 w-3.5" />
-          </Button>
-          <Button size="sm" variant="outline" onClick={() => copyPrompt(prompt.prompt)}>
-            <Copy className="h-3.5 w-3.5" />
-            Copy
-          </Button>
-        </div>
-        <p className="mt-2 text-[13px] text-[color:var(--text-tertiary)]">
-          <span className="hidden sm:inline">
-            Opens Imago with your prompt copied. Paste with{" "}
-            <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
-              ⌘V
-            </kbd>
-          </span>
-          <span className="sm:hidden">
-            Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-          </span>
-        </p>
-
-        {prompt.why_it_works && (
-          <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
-            <p className="eyebrow mb-2">Why it works</p>
-            <p className="text-body-md text-[color:var(--text-secondary)]">{prompt.why_it_works}</p>
+          <div className="mt-4">
+            <PromptSurface label="Prompt">{prompt.prompt}</PromptSurface>
           </div>
-        )}
 
-        {/* Provenance line: only Images 2.5 rows carry a source type other than the default. */}
-        {normalizeTargetModel(prompt.target_model) === "gpt-image-2.5" && (
-          <p className="mt-4 text-[13px] text-[color:var(--text-tertiary)]">
-            {SOURCE_TYPE_LABELS[normalizeSourceType(prompt.source_type)]}
-            {prompt.source_creator ? ` · ${prompt.source_creator}` : ""}
-            {prompt.source_url ? (
-              <>
-                {" · "}
-                <a
-                  href={prompt.source_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline underline-offset-2"
-                >
-                  source
-                </a>
-              </>
-            ) : null}
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Button asChild size="sm">
+              <Link
+                to="/generate"
+                search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
+              >
+                <Wand2 className="h-3.5 w-3.5" />
+                {CTA.remix}
+              </Link>
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => openInImago(prompt.prompt)}>
+              Open in Imago
+              <ExternalLink className="h-3.5 w-3.5" />
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => copyPrompt(prompt.prompt)}>
+              <Copy className="h-3.5 w-3.5" />
+              Copy
+            </Button>
+          </div>
+          <p className="mt-2 text-[13px] text-[color:var(--text-tertiary)]">
+            <span className="hidden sm:inline">
+              Opens Imago with your prompt copied. Paste with{" "}
+              <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
+                ⌘V
+              </kbd>
+            </span>
+            <span className="sm:hidden">
+              Opens Imago with your prompt copied. Long-press the text field and tap Paste.
+            </span>
           </p>
-        )}
+
+          {prompt.why_it_works && (
+            <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
+              <p className="eyebrow mb-2">Why it works</p>
+              <p className="text-body-md text-[color:var(--text-secondary)]">
+                {prompt.why_it_works}
+              </p>
+            </div>
+          )}
+
+          {/* Provenance line: only Images 2.5 rows carry a source type other than the default. */}
+          {normalizeTargetModel(prompt.target_model) === "gpt-image-2.5" && (
+            <p className="mt-4 text-[13px] text-[color:var(--text-tertiary)]">
+              {SOURCE_TYPE_LABELS[normalizeSourceType(prompt.source_type)]}
+              {prompt.source_creator ? ` · ${prompt.source_creator}` : ""}
+              {prompt.source_url ? (
+                <>
+                  {" · "}
+                  <a
+                    href={prompt.source_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-2"
+                  >
+                    source
+                  </a>
+                </>
+              ) : null}
+            </p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

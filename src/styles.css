@@ -423,6 +423,19 @@
     transform: translateY(6px);
     animation: dp-reveal var(--duration-slow) var(--ease-out) forwards;
   }
+  /* Launch module: a slow 3px drift on the image strip. Disabled with the
+     global prefers-reduced-motion rule. */
+  .launch-drift {
+    animation: dp-launch-drift 9s ease-in-out infinite alternate;
+  }
+  @keyframes dp-launch-drift {
+    from {
+      transform: translateY(0);
+    }
+    to {
+      transform: translateY(-3px);
+    }
+  }
   @keyframes dp-reveal {
     to {
       opacity: 1;

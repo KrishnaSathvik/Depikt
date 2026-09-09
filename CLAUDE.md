@@ -118,7 +118,7 @@ When user sends new prompts, follow these steps in order:
 - `PromptSurface` (`src/components/PromptSurface.tsx`) is the one visual treatment for a prompt: light, bordered, mono body, small label + actions header. Used by the homepage example, Builder output, Critic rewrite, Library dialog, templates, and blog fenced blocks (the fence info string becomes the label: ```before / ```after).
 - Typography scale: `.text-display-*`, `.text-heading-*`, `.text-body-*`; `.eyebrow` is a 13px sans label, `.label-mono` is reserved for data. Display and heading weights are 500.
 - Copy rule: the announcement owns the launch moment, the blog owns Images 2.5 detail, the Library owns the GPT Image 2 collection label. Product chrome (header, hero, Builder, Critic, footer) does not repeat the model name or V1 scope disclaimers.
-- Shared chrome: `Header`, `Footer` (white, hairline, one line), `AnnouncementBar` (driven by `ANNOUNCEMENT` in `src/lib/product.ts`; flip `active` or set `until` to retire it, change `id` for a new announcement).
+- Shared chrome: `Header`, `Footer` (white, hairline, one line), `LaunchModule` (homepage launch block driven by `ANNOUNCEMENT` in `src/lib/product.ts`: eyebrow, headline, two CTAs and five real result images from `public/library/images-2-5/`; flip `active` or set `until` to retire it).
 - Blog: `getPostsByDate()` and `getLatestGuides()` in `src/data/posts.ts` drive ordering; the homepage never uses array order. Posts in the `Images 2.5` category are the current-model set. Historical GPT Image 2 posts keep their model claims (guarded by `tests/unit/product-phase3.test.ts`). The markdown renderer supports `![alt](src "caption")` figures.
 
 ## Code Style

@@ -9,6 +9,8 @@
 // Depikt V1 does not generate images: it is a reference library and prompt
 // workspace for ChatGPT Images. Never describe it as an image generator.
 
+import type { TargetModel } from "./target-model";
+
 import type { CategoryId } from "./prompt-engine/categories.ts";
 import type { ReferenceIntent } from "./prompt-engine/reference.ts";
 
@@ -71,29 +73,56 @@ export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6
 
 /**
  * One announcement at a time. Flip `active` to false (or let `until` pass)
- * to retire it; change `id` when a new announcement replaces it so a
- * viewer's earlier dismissal does not hide the new one.
+ * to retire it; change `id` when a new announcement replaces it.
  */
 export interface Announcement {
+  /** Change the id for a new announcement; dismissal state keyed on it historically. */
   id: string;
-  badge: string;
+  eyebrow: string;
   title: string;
   body: string;
-  /** Blog post slug the strip links to (rendered as /blog/$slug). */
-  slug: string;
-  cta: string;
+  /** Small metadata line under the body; the count lives here, not in the headline. */
+  meta?: string;
+  primary: { label: string; collection: TargetModel };
+  secondary: { label: string; slug: string };
+  /** Real result images from public/library/images-2-5/, curated, not the whole set. */
+  images: ReadonlyArray<{ slug: string; alt: string; span: "tall" | "wide" }>;
   active: boolean;
-  /** ISO date after which the strip stops rendering, even if `active`. */
+  /** ISO date (YYYY-MM-DD) after which the module retires itself. */
   until?: string;
 }
 
 export const ANNOUNCEMENT: Announcement = {
-  id: "images-2-5-launch",
-  badge: "New",
-  title: `${TARGET_MODEL_NAME} is here.`,
-  body: "Depikt has been updated for it.",
-  slug: "chatgpt-images-2-5-whats-new",
-  cta: "Read what's new",
+  id: "images-2-5-collection-live",
+  eyebrow: "New in Depikt",
+  title: `See what works with ${TARGET_MODEL_NAME}.`,
+  body: "Posters, edits, reference workflows, structured visuals, and more — generated, reviewed, and added to Depikt.",
+  meta: `${IMAGES_25_LIBRARY_COUNT} new tested recipes`,
+  primary: { label: "Explore Images 2.5", collection: "gpt-image-2.5" },
+  secondary: { label: "Read what's new", slug: "chatgpt-images-2-5-whats-new" },
+  images: [
+    {
+      slug: "showa-travel-poster-exact-title",
+      alt: "Kyoto railway poster with exact title text",
+      span: "tall",
+    },
+    { slug: "national-park-stamp-sheet", alt: "Sheet of eight national park stamps", span: "tall" },
+    {
+      slug: "80s-portrait-identity-lock",
+      alt: "1980s studio portrait with the same face",
+      span: "tall",
+    },
+    {
+      slug: "aurora-explainer-slide",
+      alt: "Explainer slide about the northern lights",
+      span: "wide",
+    },
+    {
+      slug: "ticket-localization-edit",
+      alt: "Travel ticket edited from Tokyo to Lisbon",
+      span: "wide",
+    },
+  ],
   active: true,
   until: "2026-10-31",
 };
@@ -170,8 +199,9 @@ export const JSONLD_DESCRIPTIONS = {
 // ---------- library collection copy ----------
 
 export const LIBRARY_COPY = {
-  headline: `${LIBRARY_PROMPT_COUNT} curated prompts — ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}`,
-  note: `The original ${LEGACY_LIBRARY_COUNT} were created for ${LEGACY_MODEL_NAME}. Depikt's Prompt Builder now targets ${TARGET_MODEL_NAME}, and every ${TARGET_MODEL_NAME} entry here was generated and reviewed on that model; remix any legacy prompt to get a rewritten version for the current model.`,
+  headline: `${LIBRARY_PROMPT_COUNT} prompts to learn from, remix, and use.`,
+  subline: "Posters, edits, references, infographics, UI concepts, and more.",
+  collections: `${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} · ${IMAGES_25_LIBRARY_COUNT} tested Images 2.5`,
   collectionBadge: `${LEGACY_MODEL_NAME} collection`,
 } as const;
 

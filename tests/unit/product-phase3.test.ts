@@ -42,7 +42,7 @@ import { curatedPrompts } from "../../src/data/curated-prompts.ts";
 import { prepareHistoryRecord } from "../../src/lib/history-db.ts";
 import { normalizeHistoryRecord } from "../../src/lib/db.ts";
 import { REFERENCE_INTENT_OPTIONS } from "../../src/lib/prompt-engine/reference.ts";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "../..");
@@ -285,9 +285,8 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
     assert.ok(p.prompt.length > 0);
     assert.equal("target_model" in p, false, "generated data file not re-synced in Phase 3");
   }
-  assert.equal(LIBRARY_COPY.headline, "523 curated prompts — GPT Image 2 and ChatGPT Images 2.5");
-  assert.match(LIBRARY_COPY.note, /created for GPT Image 2/);
-  assert.match(LIBRARY_COPY.note, /Prompt Builder now targets ChatGPT Images 2\.5/);
+  assert.equal(LIBRARY_COPY.headline, "523 prompts to learn from, remix, and use.");
+  assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 23 tested Images 2.5");
   assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);
   assert.match(read("src/routes/library.tsx"), /CTA\.remix/);
 });
@@ -364,19 +363,26 @@ test("historical GPT Image 2 blog posts and prompt text are untouched by the mig
 
 // ---------- Images 2.5 launch content ----------
 
-test("announcement strip is data-driven and points at the launch article", () => {
-  assert.equal(ANNOUNCEMENT.badge, "New");
-  assert.match(ANNOUNCEMENT.title, /ChatGPT Images 2\.5/);
-  assert.match(ANNOUNCEMENT.body, /updated for it/);
-  assert.equal(/Images 2\.5/.test(read("src/components/Header.tsx")), false, "header stays quiet");
-  assert.equal(/Images 2\.5/.test(read("src/components/Footer.tsx")), false, "footer stays quiet");
-  assert.ok(getPostBySlug(ANNOUNCEMENT.slug), "announcement slug resolves to a post");
+test("launch module is data-driven: real count, real images, deep link to the Images 2.5 collection", () => {
+  assert.equal(ANNOUNCEMENT.eyebrow, "New in Depikt");
+  assert.equal(ANNOUNCEMENT.title, "See what works with ChatGPT Images 2.5.");
+  assert.equal(ANNOUNCEMENT.meta, "23 new tested recipes");
+  assert.equal(ANNOUNCEMENT.primary.collection, "gpt-image-2.5");
+  assert.ok(getPostBySlug(ANNOUNCEMENT.secondary.slug), "secondary CTA slug resolves to a post");
+  assert.ok(ANNOUNCEMENT.images.length >= 3 && ANNOUNCEMENT.images.length <= 5);
+  for (const img of ANNOUNCEMENT.images) {
+    assert.ok(existsSync(resolve(ROOT, `public/library/images-2-5/${img.slug}.webp`)), img.slug);
+    assert.ok(img.alt.length > 10, img.slug);
+  }
   assert.equal(isAnnouncementLive({ ...ANNOUNCEMENT, active: false }), false);
   assert.equal(
     isAnnouncementLive({ ...ANNOUNCEMENT, until: "2026-01-01" }, new Date("2026-09-09")),
     false,
   );
   assert.equal(isAnnouncementLive(ANNOUNCEMENT, new Date("2026-09-09")), true);
+  const home = read("src/routes/index.tsx");
+  assert.match(home, /<LaunchModule \/>/);
+  assert.doesNotMatch(home, /AnnouncementBar/);
 });
 
 test("Images 2.5 guides exist, cite OpenAI, and lead the homepage Latest guides", () => {
@@ -391,7 +397,7 @@ test("Images 2.5 guides exist, cite OpenAI, and lead the homepage Latest guides"
   const latest = getLatestGuides(3);
   assert.equal(latest.length, 3);
   for (const p of latest) assert.equal(p.category, CURRENT_MODEL_CATEGORY, p.slug);
-  assert.equal(latest[0].slug, ANNOUNCEMENT.slug);
+  assert.equal(latest[0].slug, ANNOUNCEMENT.secondary.slug);
   // Date ordering, not array ordering, drives the homepage teaser.
   const byDate = getPostsByDate();
   for (let i = 1; i < byDate.length; i++) assert.ok(byDate[i - 1].published >= byDate[i].published);

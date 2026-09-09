@@ -13,7 +13,7 @@ import {
 } from "@/lib/product";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { LaunchModule } from "@/components/LaunchModule";
 import { PromptSurface } from "@/components/PromptSurface";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
@@ -153,7 +153,7 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)]">
       <Header />
-      <AnnouncementBar />
+      <LaunchModule />
       <main>
         <Hero />
         <FeatureGrid />
