@@ -23,6 +23,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
+import { Route as IntegrationsMcpRouteImport } from './routes/integrations.mcp'
 import { Route as ExamplesChar123IdChar125RouteImport } from './routes/examples.{-$id}'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -100,6 +101,11 @@ const TemplatesSlugRoute = TemplatesSlugRouteImport.update({
   path: '/templates/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegrationsMcpRoute = IntegrationsMcpRouteImport.update({
+  id: '/integrations/mcp',
+  path: '/integrations/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ExamplesChar123IdChar125Route =
   ExamplesChar123IdChar125RouteImport.update({
     id: '/examples/{-$id}',
@@ -148,6 +154,7 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
+  '/integrations/mcp': typeof IntegrationsMcpRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
+  '/integrations/mcp': typeof IntegrationsMcpRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
+  '/integrations/mcp': typeof IntegrationsMcpRoute
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
+    | '/integrations/mcp'
     | '/templates/$slug'
     | '/blog/'
     | '/templates/'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
+    | '/integrations/mcp'
     | '/templates/$slug'
     | '/blog'
     | '/templates'
@@ -261,6 +272,7 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
+    | '/integrations/mcp'
     | '/templates/$slug'
     | '/blog/'
     | '/templates/'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ExamplesChar123IdChar125Route: typeof ExamplesChar123IdChar125Route
+  IntegrationsMcpRoute: typeof IntegrationsMcpRoute
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
@@ -392,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integrations/mcp': {
+      id: '/integrations/mcp'
+      path: '/integrations/mcp'
+      fullPath: '/integrations/mcp'
+      preLoaderRoute: typeof IntegrationsMcpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/examples/{-$id}': {
       id: '/examples/{-$id}'
       path: '/examples/{-$id}'
@@ -453,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BlogSlugRoute: BlogSlugRoute,
   ExamplesChar123IdChar125Route: ExamplesChar123IdChar125Route,
+  IntegrationsMcpRoute: IntegrationsMcpRoute,
   TemplatesSlugRoute: TemplatesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,

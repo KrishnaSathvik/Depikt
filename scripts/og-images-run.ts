@@ -70,6 +70,7 @@ const SECTION_TITLES: Record<OgRouteKey, string> = {
   critic: "## 4. Prompt Critic",
   gallery: "## 5. Gallery",
   blog: "## 6. Blog",
+  mcp: "## 7. MCP",
 };
 
 function codeBlockAfter(md: string, heading: string): string {

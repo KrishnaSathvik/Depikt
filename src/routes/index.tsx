@@ -10,6 +10,7 @@ import {
   TARGET_MODEL_NAME,
   TOOL,
   LIBRARY_PROMPT_COUNT,
+  MCP,
 } from "@/lib/product";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -158,6 +159,7 @@ function LandingPage() {
         <Hero />
         <FeatureGrid />
         <Capabilities />
+        <Assistants />
         <BeforeAfter />
         <LatestGuides />
         <FinalCTA />
@@ -263,6 +265,64 @@ function Capabilities() {
                 <p className="mt-4 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
+
+/* ============================================================ */
+
+/** Small MCP section: the hero stays on the core product; this sits after the capabilities. */
+function Assistants() {
+  return (
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+          <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+            <div>
+              <p className="eyebrow">{MCP.eyebrow}</p>
+              <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
+                {MCP.headline}
+              </h2>
+              <p className="mt-6 max-w-[46ch] text-body-lg text-[color:var(--text-secondary)]">
+                {MCP.body}
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg">
+                  <Link to={MCP.pagePath}>
+                    {MCP.connect} <ArrowRight />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="outline">
+                  <Link to="/blog/$slug" params={{ slug: MCP.postSlug }}>
+                    {MCP.learn}
+                  </Link>
+                </Button>
+              </div>
+              <p className="mt-4 text-body-sm font-medium text-[color:var(--text-tertiary)]">
+                {MCP.meta}
+              </p>
+            </div>
+            <ul className="flex flex-col self-center">
+              {MCP.capabilities.map((c) => (
+                <li
+                  key={c.tool}
+                  className="flex items-baseline justify-between gap-6 border-t border-[color:var(--border-subtle)] py-5 last:border-b"
+                >
+                  <div>
+                    <p className="text-heading-sm text-[color:var(--text-primary)]">{c.title}</p>
+                    <p className="mt-1 max-w-[40ch] text-body-sm text-[color:var(--text-secondary)]">
+                      {c.body}
+                    </p>
+                  </div>
+                  <span className="label-mono shrink-0 text-[color:var(--text-quaternary)]">
+                    {c.tool}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </Reveal>

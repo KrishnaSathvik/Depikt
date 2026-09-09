@@ -28,6 +28,7 @@ import {
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
   LIBRARY_COPY,
+  MCP,
   SEO,
   TOOL,
   historyKindLabel,
@@ -245,6 +246,15 @@ function HomePage() {
           </p>
           <p className="mt-2 text-body-sm font-medium text-[color:var(--text-tertiary)]">
             {LIBRARY_COPY.collections}
+          </p>
+          <p className="mt-1 text-body-sm text-[color:var(--text-tertiary)]">
+            {MCP.libraryNote}{" "}
+            <Link
+              to={MCP.pagePath}
+              className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:underline"
+            >
+              {MCP.libraryLink} →
+            </Link>
           </p>
 
           {/* View tabs */}

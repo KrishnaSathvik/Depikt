@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { posts } from "@/data/posts";
 import { templates } from "@/data/templates";
 import { absoluteUrl } from "@/lib/site";
+import { MCP } from "@/lib/product";
 
 // Static "site shell last meaningfully changed" date — bump when you ship a
 // real content/structure change to a static route. Avoids advertising a fresh
@@ -48,6 +49,12 @@ export const Route = createFileRoute("/sitemap.xml")({
             lastmod: latestPostDate,
             priority: "0.9",
             changefreq: "weekly",
+          },
+          {
+            loc: absoluteUrl(MCP.pagePath),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.8",
+            changefreq: "monthly",
           },
           {
             loc: absoluteUrl("/templates"),

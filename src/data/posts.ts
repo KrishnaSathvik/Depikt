@@ -26,6 +26,117 @@ export interface Post {
 }
 
 export const posts: Post[] = [
+  // ---- Product updates ----
+  {
+    slug: "your-ai-assistant-can-now-use-depikt",
+    title: "Your AI Assistant Can Now Use Depikt",
+    subtitle:
+      "Depikt is available through MCP. ChatGPT, Claude, and other compatible assistants can search the prompt library, open full prompts, browse templates, and read our guides without leaving the conversation.",
+    category: "Product",
+    author: "Depikt Team",
+    read_time: "4 min",
+    published: "2026-09-09",
+    excerpt:
+      "Depikt is now available inside AI assistants. Connect it through MCP and let ChatGPT, Claude, and other compatible assistants search the prompt library, retrieve complete prompts, browse templates, and use Depikt’s guides while helping you create.",
+    seo_title: "Depikt MCP: Use the Prompt Library from ChatGPT and Claude",
+    seo_description:
+      "Depikt is now available through MCP, letting ChatGPT, Claude, and other compatible assistants search prompts, open full examples, browse templates, and read guides.",
+    cover_image: "/og/mcp.png",
+    cover_alt:
+      "Depikt works with AI assistants: a question hands off to a card of prompts, templates, and guides",
+    faq: [
+      {
+        question: "What is MCP?",
+        answer:
+          "MCP (Model Context Protocol) is an open standard that lets AI assistants connect to outside tools and knowledge sources. Depikt exposes a public MCP server so compatible assistants can read its prompt library, templates, and guides.",
+      },
+      {
+        question: "Which assistants work with Depikt?",
+        answer:
+          "Any client that supports remote MCP servers over HTTP, including Claude (Claude Desktop and Claude Code) and ChatGPT through custom connectors. Add https://depikt.app/mcp as a server and the four tools appear.",
+      },
+      {
+        question: "Does the integration expose private data?",
+        answer:
+          "No. It is public and read-only. It returns only approved Library prompts, public templates, and published guides that are already on depikt.app. There is no access to accounts, history, drafts, or unpublished content, and there are no write, edit, or delete actions.",
+      },
+    ],
+    content: `
+Up to now, Depikt was something you opened in a browser: search the [Library](/library), find a prompt, read a guide, copy what you need, and take it into your creative workflow.
+
+Now assistants can come to Depikt instead.
+
+Depikt is available through MCP, which means compatible assistants such as ChatGPT and Claude can directly search our public prompt library, open a prompt in full, browse templates, and read our guides while you are already having a conversation with them.
+
+The point is not to make you learn another technical workflow. It is the opposite. If you are already asking an assistant to help you create a poster, improve an image prompt, or find a reference style, it can now use Depikt as one of its sources instead of making you jump between tabs.
+
+## What an assistant can do
+
+Through the integration, an assistant can:
+
+- search published prompt-library entries
+- open an individual prompt in full
+- list available prompt templates
+- read Depikt guides
+
+That makes conversations like these possible:
+
+> "Find me three Depikt prompts for a vintage travel poster."
+
+> "Open the best product-photography prompt and adapt it for a skincare bottle."
+
+> "What does Depikt recommend for precise reference-image edits?"
+
+> "Show me the available prompt templates for infographics."
+
+The assistant can look those things up directly instead of relying only on what it already knows.
+
+## Public and read-only
+
+The integration is deliberately simple.
+
+It exposes only information already publicly available on depikt.app: approved Library prompts, public [templates](/templates), and published guides.
+
+It does not expose private user data, accounts, history, drafts, or anything unpublished.
+
+And assistants cannot change anything through the integration. There are no write, delete, or edit actions.
+
+In other words, MCP gives assistants another way to read Depikt, not control it.
+
+## Why we built it
+
+A prompt library becomes more useful when it can meet you where you are already working.
+
+Sometimes browsing visually is the right experience, which is why the Depikt Library and [Gallery](/gallery) still matter. Other times, you are already inside ChatGPT or Claude and you simply want the assistant to find the right example or pull a guide into the conversation.
+
+MCP lets both workflows coexist.
+
+The website remains the place to explore. The integration makes that knowledge usable by assistants.
+
+## What is available today
+
+The first version supports four core actions:
+
+- searching the prompt Library
+- retrieving a complete prompt
+- listing templates
+- reading published guides
+
+We are intentionally starting with public, read-only access.
+
+That gives assistants useful context without introducing accounts, permissions, or write access that the feature does not need.
+
+## Try it
+
+Add Depikt as a remote MCP server in your assistant. The endpoint and step-by-step instructions for Claude and ChatGPT are on the [Depikt for AI assistants](/integrations/mcp) page.
+
+Then ask it something like:
+
+> "Search Depikt for a prompt that would work for an editorial poster with exact text."
+
+From there, the assistant can retrieve an actual prompt and help you adapt it to what you are making. If you want to refine it further, the [Prompt Builder](/generate) and [Prompt Critic](/critique) are still one click away.
+`,
+  },
   // ---- ChatGPT Images 2.5 guides (September 2026) ----
   {
     slug: "chatgpt-images-2-5-whats-new",
@@ -2794,6 +2905,7 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Comparison: "from-violet-500/30 to-purple-500/10",
   Guide: "from-cyan-500/30 to-blue-500/10",
   Mistakes: "from-red-500/30 to-orange-500/10",
+  Product: "from-neutral-500/30 to-neutral-500/10",
 };
 
 /** Posts sorted newest first (the array order is not guaranteed to be chronological). */

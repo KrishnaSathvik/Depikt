@@ -14,8 +14,8 @@ test("every ready OG card exists under public/ and is a 1200x630 PNG path", () =
   }
 });
 
-test("OG route map covers the six primary routes with distinct files", () => {
+test("OG route map covers the seven primary routes with distinct files", () => {
   const files = Object.values(OG_ROUTE_IMAGES);
-  assert.equal(files.length, 6);
-  assert.equal(new Set(files).size, 6);
+  assert.equal(files.length, 7);
+  assert.equal(new Set(files).size, 7);
 });

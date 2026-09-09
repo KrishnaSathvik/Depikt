@@ -173,3 +173,27 @@ TEXT — EXACT
 "Field Notes"
 "Prompt guides"
 ```
+
+## 7. MCP (`public/og/mcp.png`)
+
+```text
+LAYOUT
+Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
+"Works with
+AI assistants"
+Below it, smaller neutral-gray text: "Public · Read-only".
+
+Right 50%: a quiet editorial diagram of a hand-off. On the left of the right half, a small
+rounded speech-bubble outline in a thin near-black hairline containing three short abstract
+text bars, suggesting a question typed to an assistant. From it, one thin hairline arrow
+leads right to a light card with a hairline border that contains a neat grid of four small
+tiles: a tiny travel-poster fragment with abstract type shapes, a plain product photograph
+on a white sweep, a flat-vector infographic fragment, and a page of abstract text lines.
+A second thin arrow returns from the card to the bubble, closing the loop. No readable text
+in either element, no chat interface, no app window.
+
+TEXT — EXACT
+"Works with
+AI assistants"
+"Public · Read-only"
+```
