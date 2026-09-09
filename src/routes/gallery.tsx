@@ -10,34 +10,23 @@ import {
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
 
 const GALLERY_URL = absoluteUrl("/gallery");
 
 export const Route = createFileRoute("/gallery")({
   head: () => { const GALLERY_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
-      { title: "Reference Gallery — Depikt" },
-      {
-        name: "description",
-        content:
-          "Browse reference images and use them to inspire AI-generated prompts.",
-      },
-      { property: "og:title", content: "Reference Gallery — Depikt" },
-      {
-        property: "og:description",
-        content:
-          "Browse reference images and use them to inspire AI-generated prompts.",
-      },
+      { title: SEO.gallery.title },
+      { name: "description", content: SEO.gallery.description },
+      { property: "og:title", content: SEO.gallery.title },
+      { property: "og:description", content: SEO.gallery.description },
       { property: "og:type", content: "website" },
       { property: "og:url", content: GALLERY_URL },
       { property: "og:image", content: GALLERY_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Reference Gallery — Depikt" },
-      {
-        name: "twitter:description",
-        content:
-          "Browse reference images and use them to inspire AI-generated prompts.",
-      },
+      { name: "twitter:title", content: SEO.gallery.title },
+      { name: "twitter:description", content: SEO.gallery.description },
       { name: "twitter:image", content: GALLERY_OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: GALLERY_URL }],
@@ -47,10 +36,9 @@ export const Route = createFileRoute("/gallery")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          name: "Depikt Reference Gallery",
+          name: JSONLD_NAMES.gallery,
           url: GALLERY_URL,
-          description:
-            "A gallery of reference images you can use as visual inspiration for AI-generated image prompts.",
+          description: JSONLD_DESCRIPTIONS.gallery,
         }),
       },
     ],
@@ -77,7 +65,8 @@ function GalleryPage() {
           Reference Gallery
         </h1>
         <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-2xl">
-          Click any image to preview it, then use it as a style reference.
+          Click any image to preview it, then send it to the {TOOL.builder} as a reference. You
+          choose there how it is used: style, subject, composition, and so on.
         </p>
 
         <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -116,7 +105,7 @@ function GalleryPage() {
                 className="flex items-center gap-2 rounded-md bg-[color:var(--accent)] px-4 py-2.5 text-sm font-medium text-[color:var(--bg-elevated)] shadow-sm hover:opacity-90 transition-opacity"
               >
                 <Wand2 className="h-4 w-4" />
-                Use as reference
+                Use as reference in {TOOL.builder}
               </button>
             </div>
           )}

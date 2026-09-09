@@ -1,13 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import logo from "@/assets/logo.png";
+import { NAV_ITEMS } from "@/lib/product";
 
-const NAV_ITEMS = [
-  { to: "/library" as const, label: "Library", exact: true },
-  { to: "/generate" as const, label: "Generate" },
-  { to: "/critique" as const, label: "Critique" },
-  { to: "/gallery" as const, label: "Gallery" },
-  { to: "/blog" as const, label: "Blog" },
-];
+// Visible labels come from product.ts (Library · Prompt Builder · Prompt
+// Critic · Gallery · Blog); the route URLs (/generate, /critique) are unchanged.
 
 export function Header() {
   return (
@@ -21,7 +17,10 @@ export function Header() {
         </Link>
 
         {/* Desktop: centered nav */}
-        <nav className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1">
+        <nav
+          aria-label="Primary"
+          className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1 whitespace-nowrap"
+        >
           {NAV_ITEMS.map(({ to, label, exact }) => (
             <Link
               key={to}
@@ -37,7 +36,10 @@ export function Header() {
       </div>
 
       {/* Mobile: scrollable nav row */}
-      <nav className="flex md:hidden overflow-x-auto border-t border-[color:var(--border-subtle)] px-4 no-scrollbar">
+      <nav
+        aria-label="Primary"
+        className="flex md:hidden overflow-x-auto border-t border-[color:var(--border-subtle)] px-2 no-scrollbar"
+      >
         {NAV_ITEMS.map(({ to, label, exact }) => (
           <Link
             key={to}
@@ -59,6 +61,6 @@ const NAV_CLS =
 const NAV_CLS_ACTIVE = "px-3 py-2 text-sm font-medium text-[color:var(--text-primary)]";
 
 const MOBILE_NAV_CLS =
-  "shrink-0 px-3 py-2.5 text-sm font-medium text-[color:var(--text-secondary)] transition-colors";
+  "shrink-0 whitespace-nowrap px-3 py-2.5 text-sm font-medium text-[color:var(--text-secondary)] transition-colors";
 const MOBILE_NAV_CLS_ACTIVE =
-  "shrink-0 px-3 py-2.5 text-sm font-medium text-[color:var(--text-primary)] border-b-2 border-[color:var(--accent)]";
+  "shrink-0 whitespace-nowrap px-3 py-2.5 text-sm font-medium text-[color:var(--text-primary)] border-b-2 border-[color:var(--accent)]";

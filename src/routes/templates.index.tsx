@@ -92,11 +92,11 @@ function TemplatesIndex() {
           <Sparkles className="mx-auto h-5 w-5 text-white/80" />
           <h3 className="mt-3 text-heading-md text-white">Don't see your exact question?</h3>
           <p className="mt-2 text-body-sm text-white/70">
-            The generator writes a template-style prompt from any rough idea in seconds.
+            The Prompt Builder writes a template-style prompt from any rough idea in seconds.
           </p>
           <Link to="/generate" className="mt-5 inline-block">
             <button className="rounded-md bg-white px-5 py-2.5 text-body-sm font-medium text-[color:var(--accent)] hover:bg-[color:var(--bg-subtle)]">
-              Open the generator
+              Open Prompt Builder
             </button>
           </Link>
         </aside>

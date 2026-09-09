@@ -68,13 +68,13 @@ function LaunchChecklistPage() {
               Run the 10 stress tests
             </CardTitle>
             <CardDescription>
-              Open the generator and paste each input. Confirm routing + output match the expected shape.
+              Open the Prompt Builder and paste each input. Confirm routing + output match the expected shape.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
             <Link to="/generate">
               <Button size="sm" variant="default" className="mb-3">
-                Open generator <ExternalLink className="h-3.5 w-3.5" />
+                Open Prompt Builder <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </Link>
             <ul className="divide-y divide-[color:var(--border-subtle)]">

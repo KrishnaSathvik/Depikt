@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Wand2, LayoutGrid, MessageSquare, Sparkles, Copy } from "lucide-react";
+import {
+  CTA,
+  JSONLD_DESCRIPTIONS,
+  JSONLD_NAMES,
+  LEGACY_MODEL_NAME,
+  POSITIONING,
+  SEO,
+  TARGET_MODEL_NAME,
+  TOOL,
+} from "@/lib/product";
 import { Header } from "@/components/Header";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -11,9 +21,8 @@ import { getOgImageForPath } from "@/lib/og-image";
 
 const HOME_URL = absoluteUrl("/");
 
-const TITLE = "Depikt — AI image prompt generator for GPT Image 2";
-const DESCRIPTION =
-  "Turn rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. 500 curated prompts across 10 categories. Free, no login.";
+const TITLE = SEO.home.title;
+const DESCRIPTION = SEO.home.description;
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -39,11 +48,11 @@ export const Route = createFileRoute("/")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "SoftwareApplication",
-          name: "Depikt",
+          name: JSONLD_NAMES.site,
           url: HOME_URL,
           applicationCategory: "DesignApplication",
           operatingSystem: "Any",
-          description: DESCRIPTION,
+          description: JSONLD_DESCRIPTIONS.app,
           offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         }),
       },
@@ -57,34 +66,39 @@ const ROUGH_INPUT = "a poster about climate change";
 
 const POLISHED_PROMPT = `Editorial print poster, 2:3 portrait. Bold sans-serif headline "THE CLOCK IS TICKING" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "ARCTIC SEA ICE — SEPT 2025" with a thin 6-tick data sparkline trending down. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality.`;
 
+// Learn → Build → Improve. The step word is an eyebrow; the tool name stays
+// the visible title so the cards match the navigation.
 const FEATURES = [
   {
     to: "/library" as const,
     icon: LayoutGrid,
-    title: "Library",
-    body: "500 production-grade prompts across 10 categories. Posters, infographics, UI mockups, cinematic, and more. Copy and paste straight into ChatGPT.",
+    step: "Learn",
+    title: TOOL.library,
+    body: `Browse 500 proven ${LEGACY_MODEL_NAME} prompt examples across 10 categories and read why each one works. Study them, copy them, or use one as a remix starting point.`,
     cta: "Browse the library",
   },
   {
     to: "/generate" as const,
     icon: Wand2,
-    title: "Generate",
-    body: "Type one rough sentence. Get a structured prompt back — composition, lighting, type, palette, all spelled out. Tuned specifically for GPT Image 2.",
-    cta: "Open the generator",
+    step: "Build",
+    title: TOOL.builder,
+    body: `Turn a rough idea or a reference image into a ${TARGET_MODEL_NAME}-ready prompt, with the intent, aspect ratio, exact text, and reference handling spelled out.`,
+    cta: "Open the Prompt Builder",
   },
   {
     to: "/critique" as const,
     icon: MessageSquare,
-    title: "Critique",
-    body: "Paste any prompt. Get a score, its weaknesses, concrete improvements, and a rewritten version ready to ship.",
-    cta: "Try critique",
+    step: "Improve",
+    title: TOOL.critic,
+    body: "Paste an existing prompt and find the weak instructions, contradictions, missing edit protection, and unnecessary bloat. Get a score, a breakdown, and a rewritten prompt.",
+    cta: "Open the Prompt Critic",
   },
 ];
 
 const STATS = [
-  { value: "500", label: "Curated prompts" },
+  { value: "500", label: `${LEGACY_MODEL_NAME} prompts` },
   { value: "10", label: "Categories" },
-  { value: "GPT Image 2", label: "Built for" },
+  { value: TARGET_MODEL_NAME, label: "Builder & Critic target" },
   { value: "Free", label: "No login" },
 ];
 
@@ -110,7 +124,8 @@ function Footer() {
     <footer className="bg-[color:var(--bg)]">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12 py-10 text-center">
         <p className="text-body-sm text-[color:var(--text-tertiary)]">
-          © {new Date().getFullYear()} Depikt. Built for GPT Image 2.
+          © {new Date().getFullYear()} Depikt. {POSITIONING.concept} Depikt writes and
+          reviews prompts; the images are made in ChatGPT.
         </p>
       </div>
     </footer>
@@ -124,24 +139,28 @@ function Hero() {
     <section className="relative overflow-hidden border-b border-[color:var(--border-subtle)]">
       <div className="absolute inset-0 grid-bg pointer-events-none" aria-hidden />
       <div className="relative mx-auto max-w-[1400px] px-6 lg:px-12 py-20 md:py-32 text-center">
-        <p className="eyebrow">Built for OpenAI's GPT Image 2</p>
+        <p className="eyebrow">{POSITIONING.eyebrow}</p>
         <h1 className="mt-6 text-display-lg md:text-display-xl text-[color:var(--text-primary)] mx-auto max-w-[18ch]">
-          Stop fighting the prompt. Start shipping the image.
+          {POSITIONING.headline}
         </h1>
         <p className="mt-6 text-body-lg text-[color:var(--text-secondary)] mx-auto max-w-[60ch]">
-          Depikt turns one rough sentence into a production-grade AI image prompt — composition,
-          lighting, type, palette, all spelled out. Or browse 500 curated prompts ready to copy.
+          Describe what you want, or attach a reference image, and the Prompt Builder writes a
+          precise {TARGET_MODEL_NAME} prompt you paste into ChatGPT. Learn from 500 curated{" "}
+          {LEGACY_MODEL_NAME} examples along the way.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg">
             <Link to="/generate">
-              Try the generator <ArrowRight />
+              {CTA.buildHero} <ArrowRight />
             </Link>
           </Button>
           <Button asChild size="lg" variant="secondary">
-            <Link to="/library">Browse 500 prompts</Link>
+            <Link to="/library">{CTA.browse}</Link>
           </Button>
         </div>
+        <p className="mt-5 text-body-sm text-[color:var(--text-tertiary)]">
+          {POSITIONING.tagline} Depikt writes the prompt; ChatGPT makes the image.
+        </p>
       </div>
     </section>
   );
@@ -175,13 +194,14 @@ function FeatureGrid() {
     <section className="border-b border-[color:var(--border-subtle)]">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12 py-20 md:py-28">
         <div className="max-w-[60ch]">
-          <p className="eyebrow">What's inside</p>
+          <p className="eyebrow">Learn · Build · Improve</p>
           <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
             Three tools, one workflow.
           </h2>
           <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">
-            Browse what works, generate your own, then critique the result. Everything tuned for
-            GPT Image 2's strengths — type rendering, photorealism, layout control.
+            Learn from prompts that worked, build your own from an idea or a reference, then improve
+            it before you spend a generation. The Builder and Critic are tuned for{" "}
+            {TARGET_MODEL_NAME}: precise edits, reference fidelity, exact text, and clean layouts.
           </p>
         </div>
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -194,7 +214,10 @@ function FeatureGrid() {
               <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]">
                 <f.icon className="h-5 w-5" />
               </div>
-              <h3 className="mt-5 text-heading-sm text-[color:var(--text-primary)]">{f.title}</h3>
+              <p className="mt-5 font-mono text-[11px] tracking-[0.12em] uppercase text-[color:var(--text-tertiary)]">
+                {f.step}
+              </p>
+              <h3 className="mt-1.5 text-heading-sm text-[color:var(--text-primary)]">{f.title}</h3>
               <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">{f.body}</p>
               <span className="mt-6 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)]">
                 {f.cta}
@@ -227,13 +250,14 @@ function BeforeAfter() {
     <section className="border-b border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]">
       <div className="mx-auto max-w-[1400px] px-6 lg:px-12 py-20 md:py-28">
         <div className="max-w-[60ch]">
-          <p className="eyebrow">From rough idea to ship-ready</p>
+          <p className="eyebrow">From rough idea to image-ready prompt</p>
           <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
             One sentence in. A real prompt out.
           </h2>
           <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">
-            This is what Depikt actually does. No magic — just a system prompt tuned around how
-            GPT Image 2 reads composition, type, and lighting cues.
+            This is what Depikt actually does. The Prompt Builder first works out what you are
+            asking for (format, reference use, ratio, exact text), then writes the prompt. You take
+            it to ChatGPT to make the image.
           </p>
         </div>
 
@@ -248,7 +272,7 @@ function BeforeAfter() {
             </p>
             <div className="mt-auto pt-6 flex items-center gap-2 text-[color:var(--text-tertiary)]">
               <ArrowRight className="h-4 w-4" />
-              <span className="text-body-sm">Depikt rewrites it</span>
+              <span className="text-body-sm">The Prompt Builder rewrites it</span>
             </div>
           </div>
 
@@ -277,7 +301,7 @@ function BeforeAfter() {
         <div className="mt-8">
           <Button asChild variant="outline">
             <Link to="/generate">
-              Try it with your own idea <ArrowRight />
+              Build one from your own idea <ArrowRight />
             </Link>
           </Button>
         </div>
@@ -344,12 +368,12 @@ function FinalCTA() {
           Your next image is one good prompt away.
         </h2>
         <p className="mt-5 text-body-lg text-[color:var(--text-secondary)] mx-auto max-w-[55ch]">
-          No account. No credit card. Open the generator and ship something today.
+          No account. No credit card. Build a prompt, open it in ChatGPT, and make the image.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
           <Button asChild size="lg">
             <Link to="/generate">
-              Open the generator <ArrowRight />
+              {CTA.buildHero} <ArrowRight />
             </Link>
           </Button>
           <Button asChild size="lg" variant="secondary">

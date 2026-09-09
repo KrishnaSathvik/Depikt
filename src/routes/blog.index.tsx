@@ -9,7 +9,7 @@ import { getOgImageForPath } from "@/lib/og-image";
 
 const PAGE_TITLE = "AI Image Prompt Engineering — Depikt Blog";
 const PAGE_DESCRIPTION =
-  "Field-tested techniques for getting better AI images from GPT Image 2, Midjourney, Nano Banana Pro. Frameworks, examples, comparisons.";
+  "Field-tested techniques for getting better AI images from ChatGPT Images, GPT Image 2, Midjourney, and Nano Banana Pro. Frameworks, examples, comparisons.";
 const PAGE_URL = absoluteUrl("/blog");
 
 export const Route = createFileRoute("/blog/")({
@@ -160,11 +160,11 @@ function BlogIndex() {
             <div className="border-l-2 border-[color:var(--accent)] pl-5">
               <p className="eyebrow">Try Depikt</p>
               <h2 className="mt-3 text-heading-sm">
-                Generate prompts that follow every rule we write about.
+                Build prompts that follow every rule we write about.
               </h2>
               <Link to="/generate" className="mt-5 inline-block">
                 <Button size="sm" className="gap-1.5">
-                  Open generator
+                  Open Prompt Builder
                   <ArrowRight className="h-3.5 w-3.5" />
                 </Button>
               </Link>

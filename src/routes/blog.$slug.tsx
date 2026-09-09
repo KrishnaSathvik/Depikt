@@ -239,10 +239,10 @@ function PostPage() {
             {/* CTA */}
             <div className="mt-14 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-8 sm:px-10 sm:py-10 text-center">
               <p className="font-mono text-[11px] font-medium tracking-[0.1em] uppercase text-white/60">
-                Generate yours
+                Build yours
               </p>
               <h3 className="mt-2 text-heading-md text-white">
-                Generate polished prompts in seconds.
+                Build polished prompts in seconds.
               </h3>
               <p className="mt-2 text-body-sm text-white/70">
                 Paste a rough idea. Get back a structured prompt that ships.

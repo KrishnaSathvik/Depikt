@@ -28,21 +28,34 @@ import {
 } from "@/components/ReferenceImagePicker";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { readSSEStream } from "@/lib/sse";
+import { urlToProcessedImage } from "@/lib/image-utils";
+import {
+  CTA,
+  IMAGO_URL,
+  INTENT_STAGE_LABELS,
+  JSONLD_DESCRIPTIONS,
+  JSONLD_NAMES,
+  SEO,
+  TARGET_MODEL_NAME,
+  TOOL,
+  describeIntent,
+  needsReferenceReattach,
+} from "@/lib/product";
+import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 
+// Route URL stays /generate (compatibility + SEO); the visible tool is the Prompt Builder.
 const GENERATE_URL = absoluteUrl("/generate");
 const GENERATE_JSONLD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Depikt Prompt Generator",
+  name: JSONLD_NAMES.builder,
   url: GENERATE_URL,
   applicationCategory: "DesignApplication",
   operatingSystem: "Any",
-  description:
-    "AI image prompt generator that turns rough ideas into production-grade prompts for OpenAI's GPT Image 2.",
+  description: JSONLD_DESCRIPTIONS.builder,
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
-import { readSSEStream } from "@/lib/sse";
-import { urlToProcessedImage } from "@/lib/image-utils";
 
 interface AppSearch {
   seed?: string;
@@ -78,34 +91,16 @@ export const Route = createFileRoute("/generate")({
     const GENERATE_OG_IMAGE = getOgImageForPath();
     return {
       meta: [
-        { title: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
-        {
-          name: "description",
-          content:
-            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-        },
-        {
-          property: "og:title",
-          content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt",
-        },
-        {
-          property: "og:description",
-          content:
-            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-        },
+        { title: SEO.builder.title },
+        { name: "description", content: SEO.builder.description },
+        { property: "og:title", content: SEO.builder.title },
+        { property: "og:description", content: SEO.builder.description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: GENERATE_URL },
         { property: "og:image", content: GENERATE_OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        {
-          name: "twitter:title",
-          content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt",
-        },
-        {
-          name: "twitter:description",
-          content:
-            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-        },
+        { name: "twitter:title", content: SEO.builder.title },
+        { name: "twitter:description", content: SEO.builder.description },
         { name: "twitter:image", content: GENERATE_OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: GENERATE_URL }],
@@ -271,7 +266,7 @@ function AppPage() {
       });
 
       if (!res.ok || !res.body) {
-        let msg = "Failed to generate";
+        let msg = "Couldn't build the prompt";
         try {
           const data = await res.json();
           msg = data?.error || msg;
@@ -299,7 +294,7 @@ function AppPage() {
           result: finalResult as Record<string, unknown>,
         });
       } else {
-        toast.error("Generation ended before a final result arrived. Please try again.");
+        toast.error("The prompt ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
@@ -313,7 +308,7 @@ function AppPage() {
   const generate = async (overrideInput?: string) => {
     const userInput = (overrideInput ?? input).trim();
     if (!userInput) {
-      toast.error("Type a rough idea first");
+      toast.error("Describe what you want to make first");
       return;
     }
     setLoading(true);
@@ -338,7 +333,7 @@ function AppPage() {
       });
 
       if (!res.ok || !res.body) {
-        let msg = "Failed to generate";
+        let msg = "Couldn't build the prompt";
         try {
           const data = await res.json();
           msg = data?.error || msg;
@@ -371,7 +366,7 @@ function AppPage() {
           referenceIntent: reference?.intent ?? null,
         });
       } else {
-        toast.error("Generation ended before a final result arrived. Please try again.");
+        toast.error("The prompt ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
@@ -398,7 +393,7 @@ function AppPage() {
         }),
       });
       if (!res.ok || !res.body) {
-        toast.error("Couldn't generate variations");
+        toast.error("Couldn't build variations");
         return;
       }
       const finalResult = await streamPrompt(res);
@@ -462,13 +457,20 @@ function AppPage() {
           />
         ) : (
           <div>
-            <h1 className="text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
+            <p className="eyebrow">
+              {TOOL.builder} · for {TARGET_MODEL_NAME}
+            </p>
+            <h1 className="mt-4 text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
               What do you want to make?
             </h1>
+            <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-[60ch]">
+              Describe the image, or attach a reference and say how to use it. You get a precise{" "}
+              {TARGET_MODEL_NAME} prompt to paste into ChatGPT.
+            </p>
 
             <div className="mt-8">
               <label htmlFor="rough-idea" className="sr-only">
-                Rough idea
+                Describe what you want to make
               </label>
               <div
                 onDragOver={(e) => {
@@ -536,17 +538,17 @@ function AppPage() {
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Generating…
+                      {CTA.building}
                     </>
                   ) : streaming ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Streaming…
+                      Writing…
                     </>
                   ) : (
                     <>
                       <Wand2 className="h-4 w-4" />
-                      Generate prompt
+                      {CTA.build}
                     </>
                   )}
                 </Button>
@@ -571,6 +573,11 @@ function AppPage() {
                 streaming={streaming}
                 moreVariants={moreVariants}
                 moreLoading={moreLoading}
+                referenceThumb={
+                  needsReferenceReattach(result.intent?.reference_intent, !!reference?.dataUrl)
+                    ? reference!.dataUrl
+                    : null
+                }
                 onRegenerate={() => generate(savedRoughIdea)}
                 onMoreVariations={fetchMoreVariations}
                 onNewPrompt={handleNewPrompt}
@@ -621,7 +628,7 @@ async function streamPrompt(
       applyPartial(json.args);
     },
     onError: (json) => {
-      toast.error(typeof json.error === "string" ? json.error : "Generation failed");
+      toast.error(typeof json.error === "string" ? json.error : "Prompt build failed");
     },
   });
 }
@@ -646,19 +653,35 @@ function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void
   );
 }
 
+/**
+ * Two honest stages, no fake progress: "Understanding your request…" until
+ * the intent analyzer answers, then "Understood: Poster · Style reference · 4:5"
+ * with "Building your prompt…" until the first streamed token arrives.
+ */
 function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
-  const cat = intent && typeof intent.category === "string" ? intent.category : null;
-  const ref =
-    intent && typeof intent.reference_intent === "string" && intent.reference_intent !== "none"
-      ? intent.reference_intent
-      : null;
+  const facts = describeIntent(intent);
+  const understood = facts.length > 0;
   return (
-    <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6">
-      <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        {cat
-          ? `Understood: ${cat.replace("_", " ")}${ref ? ` · reference as ${ref.replace("_", " ")}` : ""}. Writing your prompt…`
-          : "Understanding your idea…"}
+    <div
+      role="status"
+      aria-live="polite"
+      className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6"
+    >
+      <div className="flex items-start gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
+        <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
+        {understood ? (
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+              <span className="text-[color:var(--text-tertiary)]">
+                {INTENT_STAGE_LABELS.understood}
+              </span>
+              <span className="text-[color:var(--text-primary)]">{facts.join(" · ")}</span>
+            </div>
+            <div>{INTENT_STAGE_LABELS.building}</div>
+          </div>
+        ) : (
+          <span>{INTENT_STAGE_LABELS.understanding}</span>
+        )}
       </div>
       <div className="mt-6 space-y-2">
         <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] animate-pulse" />
@@ -730,6 +753,8 @@ interface ResultViewProps {
   streaming?: boolean;
   moreVariants: string[] | null;
   moreLoading: boolean;
+  /** Data URL of the reference the prompt depends on (null when the prompt is text-only). */
+  referenceThumb?: string | null;
   onRegenerate: () => void;
   onMoreVariations: () => void;
   onNewPrompt: () => void;
@@ -740,6 +765,7 @@ function ResultView({
   streaming = false,
   moreVariants,
   moreLoading,
+  referenceThumb = null,
   onRegenerate,
   onMoreVariations,
   onNewPrompt,
@@ -767,7 +793,13 @@ function ResultView({
                     : undefined
                 }
               />
-              {!streaming && <ActionRow promptText={p} onRegenerate={onRegenerate} />}
+              {!streaming && (
+                <ActionRow
+                  promptText={p}
+                  onRegenerate={onRegenerate}
+                  referenceThumb={referenceThumb}
+                />
+              )}
             </div>
           );
         })}
@@ -816,7 +848,11 @@ function ResultView({
       )}
 
       {!streaming && result.prompt && (
-        <ActionRow promptText={result.prompt} onRegenerate={onRegenerate} />
+        <ActionRow
+          promptText={result.prompt}
+          onRegenerate={onRegenerate}
+          referenceThumb={referenceThumb}
+        />
       )}
 
       {/* Appended variations — labeled Stylized / Experimental */}
@@ -830,7 +866,12 @@ function ResultView({
                   {label}
                 </div>
                 <CodeBlock text={p} jsonView={{ variant: label, prompt: p }} />
-                <ActionRow promptText={p} onRegenerate={onRegenerate} compact />
+                <ActionRow
+                  promptText={p}
+                  onRegenerate={onRegenerate}
+                  referenceThumb={referenceThumb}
+                  compact
+                />
               </div>
             );
           })}
@@ -847,7 +888,7 @@ function ResultView({
           {moreLoading ? (
             <>
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              Generating variations…
+              Building variations…
             </>
           ) : (
             <>
@@ -909,10 +950,13 @@ function Tag({ label, value }: { label: string; value: string }) {
 function ActionRow({
   promptText,
   onRegenerate,
+  referenceThumb = null,
   compact = false,
 }: {
   promptText?: string;
   onRegenerate: () => void;
+  /** When set, the prompt depends on this reference image and Imago needs it re-attached. */
+  referenceThumb?: string | null;
   compact?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
@@ -923,11 +967,7 @@ function ActionRow({
     } catch {
       toast.error("Couldn't copy automatically — copy manually before pasting");
     }
-    window.open(
-      "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago",
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(IMAGO_URL, "_blank", "noopener,noreferrer");
   };
   const handleCopy = async () => {
     if (!promptText) return;
@@ -943,7 +983,7 @@ function ActionRow({
         {promptText && (
           <Button onClick={handleOpenInImago} size={compact ? "sm" : "default"} className="gap-2">
             <ExternalLink className="h-3.5 w-3.5" />
-            Open in Imago
+            {CTA.openImago}
           </Button>
         )}
         {promptText && (
@@ -964,6 +1004,7 @@ function ActionRow({
           </Button>
         )}
       </div>
+      {promptText && referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
       {promptText && (
         <p className="text-[11px] text-[color:var(--text-tertiary)]">
           <span className="hidden sm:inline">
@@ -986,7 +1027,7 @@ function NewPromptButton({ onClick }: { onClick: () => void }) {
     <div className="pt-6 border-t border-[color:var(--border-subtle)]">
       <Button onClick={onClick} variant="ghost" className="gap-2">
         <Plus className="h-4 w-4" />
-        New prompt
+        {CTA.newPrompt}
       </Button>
     </div>
   );

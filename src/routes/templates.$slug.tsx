@@ -27,7 +27,7 @@ export const Route = createFileRoute("/templates/$slug")({
       description: template.short_answer,
       step: [
         { "@type": "HowToStep", name: "Copy the prompt", text: template.prompt },
-        { "@type": "HowToStep", name: "Paste into GPT Image 2", text: "Paste this prompt into ChatGPT, the OpenAI API, or fal.ai to generate the image." },
+        { "@type": "HowToStep", name: "Paste into ChatGPT", text: "Paste this prompt into ChatGPT Images, the OpenAI API, or fal.ai to make the image." },
       ],
     };
 
@@ -163,7 +163,7 @@ function TemplatePage() {
         <div className="mt-12 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-8 text-center">
           <h3 className="text-heading-md text-white">Want one for your exact idea?</h3>
           <p className="mt-2 text-body-sm text-white/70">
-            Depikt's generator writes a template-style prompt from any rough sentence.
+            Depikt's Prompt Builder writes a template-style prompt from any rough sentence.
           </p>
           <Link to="/generate" className="mt-5 inline-block">
             <Button
@@ -171,7 +171,7 @@ function TemplatePage() {
               variant="secondary"
               className="bg-white text-[color:var(--accent)] hover:bg-[color:var(--bg-subtle)] border-transparent"
             >
-              Open the generator <ArrowRight className="ml-1.5 h-4 w-4" />
+              Open Prompt Builder <ArrowRight className="ml-1.5 h-4 w-4" />
             </Button>
           </Link>
         </div>

@@ -26,17 +26,27 @@ import {
   MAX_UPLOAD_BYTES,
   type ReferenceImageState,
 } from "@/components/ReferenceImagePicker";
+import {
+  CTA,
+  IMAGO_URL,
+  JSONLD_DESCRIPTIONS,
+  JSONLD_NAMES,
+  SEO,
+  TARGET_MODEL_NAME,
+  TOOL,
+} from "@/lib/product";
+import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 
+// Route URL stays /critique (compatibility + SEO); the visible tool is the Prompt Critic.
 const CRITIQUE_URL = absoluteUrl("/critique");
 const CRITIQUE_JSONLD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "Depikt Prompt Critique",
+  name: JSONLD_NAMES.critic,
   url: CRITIQUE_URL,
   applicationCategory: "DesignApplication",
   operatingSystem: "Any",
-  description:
-    "Paste an AI image prompt and get a score, weaknesses, concrete improvements, and a rewritten prompt.",
+  description: JSONLD_DESCRIPTIONS.critic,
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
@@ -53,28 +63,16 @@ export const Route = createFileRoute("/critique")({
     const CRITIQUE_OG_IMAGE = getOgImageForPath();
     return {
       meta: [
-        { title: "Critique a Prompt — Depikt" },
-        {
-          name: "description",
-          content:
-            "Paste a prompt. Get a score, weaknesses, concrete improvements, and a rewritten prompt.",
-        },
-        { property: "og:title", content: "Critique a Prompt — Depikt" },
-        {
-          property: "og:description",
-          content:
-            "Paste a prompt. Get a score, weaknesses, concrete improvements, and a rewritten prompt.",
-        },
+        { title: SEO.critic.title },
+        { name: "description", content: SEO.critic.description },
+        { property: "og:title", content: SEO.critic.title },
+        { property: "og:description", content: SEO.critic.description },
         { property: "og:type", content: "website" },
         { property: "og:url", content: CRITIQUE_URL },
         { property: "og:image", content: CRITIQUE_OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "Critique a Prompt — Depikt" },
-        {
-          name: "twitter:description",
-          content:
-            "Paste a prompt. Get a score, weaknesses, concrete improvements, and a rewritten prompt.",
-        },
+        { name: "twitter:title", content: SEO.critic.title },
+        { name: "twitter:description", content: SEO.critic.description },
         { name: "twitter:image", content: CRITIQUE_OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: CRITIQUE_URL }],
@@ -184,7 +182,7 @@ function CritiquePage() {
   const score = async () => {
     const text = input.trim();
     if (!text) {
-      toast.error("Paste a prompt to score");
+      toast.error("Paste a prompt to critique");
       return;
     }
     setLoading(true);
@@ -204,7 +202,7 @@ function CritiquePage() {
       });
 
       if (!res.ok || !res.body) {
-        let msg = "Failed to score";
+        let msg = "Couldn't critique the prompt";
         try {
           const data = await res.json();
           msg = data?.error || msg;
@@ -218,7 +216,7 @@ function CritiquePage() {
       // Wait for the final "done" event — we don't stream partial scores.
       const final = await readSSEStream<CritiqueResult>(res, {
         onError: (json) => {
-          toast.error(typeof json.error === "string" ? json.error : "Score failed");
+          toast.error(typeof json.error === "string" ? json.error : "Critique failed");
         },
       });
       if (final) {
@@ -232,7 +230,7 @@ function CritiquePage() {
           referenceIntent: reference?.intent ?? null,
         });
       } else {
-        toast.error("Scoring ended before a final result arrived. Please try again.");
+        toast.error("The critique ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
@@ -276,18 +274,23 @@ function CritiquePage() {
           />
         ) : (
           <div>
-            <h1 className="text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
-              Score an existing prompt
+            <p className="eyebrow">
+              {TOOL.critic} · for {TARGET_MODEL_NAME}
+            </p>
+            <h1 className="mt-4 text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
+              Find what is weakening your prompt.
             </h1>
-            <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">
-              Paste any image prompt. Get a score from 1–10, a breakdown by dimension, ranked
-              weaknesses, and concrete fixes. Attach the source or reference image if the prompt
-              edits or references one.
+            <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-[64ch]">
+              Paste any image prompt. The {TOOL.critic} evaluates it for {TARGET_MODEL_NAME}:
+              intent, clarity, reference and edit handling, text and layout where relevant, style
+              consistency, and unnecessary prompt bloat. You get a score, a breakdown, ranked
+              weaknesses, concrete fixes, and a rewritten prompt. Attach the source or reference
+              image if the prompt edits or references one.
             </p>
 
             <div className="mt-8">
               <label htmlFor="critique-input" className="sr-only">
-                Prompt to score
+                Prompt to critique
               </label>
               <div
                 onDragOver={(e) => {
@@ -314,7 +317,7 @@ function CritiquePage() {
                       handleImageFile(file);
                     }
                   }}
-                  placeholder="Paste a prompt to score it…"
+                  placeholder="Paste a prompt to critique…"
                   className="min-h-[240px] resize-y bg-[color:var(--bg-elevated)] border-[color:var(--border-default)] text-[15px] font-mono leading-[1.65] focus-visible:border-[color:var(--accent)] focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]/15 px-5 py-4"
                 />
               </div>
@@ -339,12 +342,12 @@ function CritiquePage() {
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Scoring…
+                      {CTA.critiquing}
                     </>
                   ) : (
                     <>
                       <ScanSearch className="h-4 w-4" />
-                      Score prompt
+                      {CTA.critique}
                     </>
                   )}
                 </Button>
@@ -362,14 +365,24 @@ function CritiquePage() {
         {(loading || result) && (
           <div className="mt-10 pt-10 border-t border-[color:var(--border-subtle)]">
             {loading && !result && (
-              <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6">
+              <div
+                role="status"
+                aria-live="polite"
+                className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6"
+              >
                 <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Scoring your prompt…
+                  Critiquing your prompt for {TARGET_MODEL_NAME}…
                 </div>
               </div>
             )}
-            {result && <CritiqueView result={result} onNew={handleNewCritique} />}
+            {result && (
+              <CritiqueView
+                result={result}
+                referenceThumb={reference?.dataUrl ?? null}
+                onNew={handleNewCritique}
+              />
+            )}
           </div>
         )}
       </div>
@@ -404,7 +417,16 @@ function scoreColor(score: number | null): string {
   return "var(--error)";
 }
 
-function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => void }) {
+function CritiqueView({
+  result,
+  referenceThumb,
+  onNew,
+}: {
+  result: CritiqueResult;
+  /** The attached source/reference image, when the critique used one. */
+  referenceThumb: string | null;
+  onNew: () => void;
+}) {
   const [view, setView] = useState<"text" | "json">("text");
   const [rewrittenCopied, setRewrittenCopied] = useState(false);
   const [dimsOpen, setDimsOpen] = useState(true);
@@ -433,11 +455,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
     } catch {
       toast.error("Couldn't copy automatically — copy manually before pasting");
     }
-    window.open(
-      "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago",
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(IMAGO_URL, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -485,7 +503,12 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <span className="eyebrow">Score</span>
+              <div>
+                <span className="eyebrow">Score</span>
+                <p className="mt-1 text-[11px] text-[color:var(--text-tertiary)]">
+                  Evaluated for {TARGET_MODEL_NAME}
+                </p>
+              </div>
               <span className="text-display-md tabular-nums" style={{ color: scoreColor(overall) }}>
                 {overall === null ? "—" : Number.isInteger(overall) ? overall : overall.toFixed(1)}
                 <span className="text-[color:var(--text-tertiary)]">/10</span>
@@ -493,10 +516,17 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
             </div>
 
             {result.score_cap && (
-              <p className="mb-3 text-[11px] font-mono text-[color:var(--text-tertiary)]">
-                Capped at {result.score_cap.cap}:{" "}
+              <p
+                className="mb-3 text-[11px] font-mono text-[color:var(--text-tertiary)]"
+                title={
+                  typeof result.weighted_mean === "number"
+                    ? `Weighted mean before the cap: ${result.weighted_mean}`
+                    : undefined
+                }
+              >
+                Capped at {result.score_cap.cap} because{" "}
                 {DIMENSION_LABELS[result.score_cap.dimension] ?? result.score_cap.dimension} scored{" "}
-                {result.score_cap.score}/10 (weighted mean {result.weighted_mean}).
+                {result.score_cap.score}/10.
               </p>
             )}
             {result.summary && (
@@ -604,12 +634,13 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
           <pre className="rounded-md bg-[color:var(--code-bg)] border border-[color:var(--code-border)] px-5 py-4 text-[13px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto text-[color:var(--code-text)]">
             {result.rewritten_prompt}
           </pre>
-          <div className="mt-4">
+          <div className="mt-4 space-y-2">
             <Button onClick={handleOpenInImago} size="sm" className="gap-2">
               <ExternalLink className="h-3.5 w-3.5" />
-              Open in Imago
+              {CTA.openImago}
             </Button>
-            <p className="mt-1.5 text-[11px] text-[color:var(--text-tertiary)]">
+            {referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
+            <p className="text-[11px] text-[color:var(--text-tertiary)]">
               Opens Imago with your prompt copied. Paste with{" "}
               <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
                 {navigator.platform?.toUpperCase().includes("MAC") ? "⌘V" : "Ctrl+V"}
@@ -622,7 +653,7 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
       <div className="pt-6 border-t border-[color:var(--border-subtle)]">
         <Button onClick={onNew} variant="ghost" className="gap-2">
           <Plus className="h-4 w-4" />
-          Score another prompt
+          {CTA.critiqueAnother}
         </Button>
       </div>
     </div>
