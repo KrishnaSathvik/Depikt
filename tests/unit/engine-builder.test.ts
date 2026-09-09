@@ -20,7 +20,7 @@ function intent(over: Partial<Intent> = {}): Intent {
     task: "create",
     category: "poster",
     reference_intent: "none",
-    aspect_ratio: { source: "explicit", value: "2:3" },
+    aspect_ratio: { source: "explicit", value: "2:3", evidence: null },
     exact_text: [{ role: "headline", text: "FUTURE STACK 2026" }],
     requested_changes: [],
     must_preserve: [],
@@ -102,6 +102,8 @@ test("writer request: reference guidance block and image detail follow reference
     hasImage: true,
   });
   assert.match(s.instructions, /REFERENCE IMAGE = STYLE ONLY/);
+  assert.match(s.instructions, /Use the attached reference image as the style reference only/);
+  assert.match(CORE_RULES, /attach the same reference image/);
   assert.equal(s.imageDetail, "low");
   const i = assembleWriterRequest({
     intent: intent({ reference_intent: "subject_identity" }),

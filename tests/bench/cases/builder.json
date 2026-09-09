@@ -275,7 +275,10 @@
     "expect": {
       "must_contain": ["lighthouse"],
       "must_not_contain": ["dots", "grain-like"],
-      "must_match": ["(orange|amber|peach|coral|warm).{0,80}(teal|navy|blue|dark)"],
+      "must_match": [
+        "(orange|amber|peach|coral|warm).{0,80}(teal|navy|blue|dark)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "intent": {
         "reference_intent": "style"
       }
@@ -292,7 +295,8 @@
       "must_match": [
         "(red|crimson).{0,30}(glasses|frames|spectacles)",
         "(green).{0,20}(beanie|hat|cap)",
-        "(freckle)"
+        "(freckle)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
       ],
       "intent": {
         "reference_intent": "subject_identity"
@@ -307,7 +311,11 @@
     "input": "same product, different environment: on a sunlit bathroom shelf with eucalyptus",
     "expect": {
       "must_contain": ["VERDE", "eucalyptus"],
-      "must_match": ["(green).{0,40}(bottle)", "(black|dark).{0,30}(cap|pump|lid)"],
+      "must_match": [
+        "(green).{0,40}(bottle)",
+        "(black|dark).{0,30}(cap|pump|lid)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "must_not_contain": ["checkerboard"],
       "intent": {
         "reference_intent": "product_object",
@@ -324,7 +332,10 @@
     "expect": {
       "category": "IMAGE EDIT",
       "must_contain": ["CHANGE ONLY", "PRESERVE", "MATCH", "red"],
-      "must_match": ["preserve[\\s\\S]{0,400}(glasses|frames)"],
+      "must_match": [
+        "preserve[\\s\\S]{0,400}(glasses|frames)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "intent": {
         "reference_intent": "edit_source",
         "task": "edit",
@@ -340,7 +351,10 @@
     "input": "use only the composition of the attached image for a photo of a lone red kayak on a glacier lake",
     "expect": {
       "must_contain": ["kayak"],
-      "must_match": ["(left|lower|upper|right).{0,60}(third|mass|block|area|corner|placed|sits)"],
+      "must_match": [
+        "(left|lower|upper|right).{0,60}(third|mass|block|area|corner|placed|sits)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "must_not_contain": ["beige", "taupe"],
       "intent": {
         "reference_intent": "composition"
@@ -356,7 +370,12 @@
     "expect": {
       "category": "UI MOCKUP",
       "must_contain": ["Ledgerly"],
-      "must_match": ["(three|3).{0,30}(feature|card)", "(nav|navigation|header)", "(CTA|button)"],
+      "must_match": [
+        "(three|3).{0,30}(feature|card)",
+        "(nav|navigation|header)",
+        "(CTA|button)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "must_not_match": ["hand-drawn (look|quality|style) (is|should be) (kept|preserved)"],
       "intent": {
         "reference_intent": "sketch_layout",
@@ -374,7 +393,10 @@
       "must_contain": ["coffee"],
       "intent": {
         "reference_intent": "style"
-      }
+      },
+      "must_match": [
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ]
     }
   },
   {
@@ -388,7 +410,10 @@
       "must_contain": ["coffee"],
       "intent": {
         "reference_intent": "composition"
-      }
+      },
+      "must_match": [
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ]
     }
   },
   {
@@ -401,7 +426,8 @@
       "category": "UI MOCKUP",
       "must_contain": ["Notifications", "Privacy", "Storage", "Language", "Log out"],
       "must_match": [
-        "(no new|not (add|invent)|without (adding|inventing)).{0,40}(feature|function)"
+        "(no new|not (add|invent)|without (adding|inventing)).{0,40}(feature|function)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
       ],
       "intent": {
         "category": "ui",
@@ -417,7 +443,11 @@
     "input": "same character, next panel: they open a letter and gasp",
     "expect": {
       "must_contain": ["letter"],
-      "must_match": ["(red|crimson).{0,30}(glasses|frames)", "(green).{0,20}(beanie|hat)"],
+      "must_match": [
+        "(red|crimson).{0,30}(glasses|frames)",
+        "(green).{0,20}(beanie|hat)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "intent": {
         "reference_intent": "subject_identity",
         "series_continuation": true
@@ -433,7 +463,11 @@
     "expect": {
       "category": "POSTER/COVER",
       "must_contain": ["Read Wider"],
-      "must_match": ["(cream|beige|off-white|ivory)", "(blue|bluebell|cornflower)"],
+      "must_match": [
+        "(cream|beige|off-white|ivory)",
+        "(blue|bluebell|cornflower)",
+        "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
+      ],
       "intent": {
         "reference_intent": "style",
         "exact_text_includes": ["Read Wider"]

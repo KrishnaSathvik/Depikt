@@ -5,6 +5,8 @@ import {
   IntentSchema,
   applyIntentOverrides,
   buildIntentUserMessage,
+  detectDeferredFacts,
+  hasFormatEvidence,
   type Intent,
 } from "../../src/lib/prompt-engine/intent.ts";
 import { parseExplicitRatio, normalizeRatio } from "../../src/lib/prompt-engine/ratio.ts";
@@ -24,7 +26,7 @@ function baseIntent(over: Partial<Intent> = {}): Intent {
     task: "create",
     category: "cinematic",
     reference_intent: "none",
-    aspect_ratio: { source: "none", value: null },
+    aspect_ratio: { source: "none", value: null, evidence: null },
     exact_text: [],
     requested_changes: [],
     must_preserve: [],
@@ -139,25 +141,29 @@ test("overrides: explicit UI reference intent beats analyzer; no image forces no
 
 test("overrides: literal ratio beats analyzer; analyzer ratio is normalized or dropped", () => {
   const a = applyIntentOverrides(
-    baseIntent({ aspect_ratio: { source: "inferred", value: "9:16" } }),
+    baseIntent({ aspect_ratio: { source: "inferred", value: "9:16", evidence: "wide shot" } }),
     {
       userInput: "16:9 hero image",
       hasImage: false,
     },
   );
-  assert.deepEqual(a.intent.aspect_ratio, { source: "explicit", value: "16:9" });
+  assert.deepEqual(a.intent.aspect_ratio, { source: "explicit", value: "16:9", evidence: null });
 
   const b = applyIntentOverrides(
-    baseIntent({ aspect_ratio: { source: "inferred", value: "16 x 9" } }),
+    baseIntent({ aspect_ratio: { source: "inferred", value: "16 x 9", evidence: "wide shot" } }),
     { userInput: "wide shot", hasImage: false },
   );
-  assert.deepEqual(b.intent.aspect_ratio, { source: "inferred", value: "16:9" });
+  assert.deepEqual(b.intent.aspect_ratio, {
+    source: "inferred",
+    value: "16:9",
+    evidence: "wide shot",
+  });
 
   const c = applyIntentOverrides(
-    baseIntent({ aspect_ratio: { source: "inferred", value: "tall" } }),
+    baseIntent({ aspect_ratio: { source: "inferred", value: "tall", evidence: "wide shot" } }),
     { userInput: "wallpaper", hasImage: false },
   );
-  assert.deepEqual(c.intent.aspect_ratio, { source: "none", value: null });
+  assert.deepEqual(c.intent.aspect_ratio, { source: "none", value: null, evidence: null });
 });
 
 test("overrides: explicit category hint wins; edit/series/remix task consistency", () => {
@@ -211,4 +217,75 @@ test("analyzer user message states explicit choices as authoritative", () => {
   assert.ok(m.endsWith("REQUEST:\nidea"));
   const n = buildIntentUserMessage({ userInput: "x", hasImage: false });
   assert.match(n, /No reference image is attached/);
+});
+
+test("inferred ratio needs format evidence that appears in the request (2.1)", () => {
+  assert.equal(
+    hasFormatEvidence("vertical garden wall in a hotel lobby", "vertical garden"),
+    false,
+  );
+  assert.equal(hasFormatEvidence("a tall glass of lemonade", "tall glass"), false);
+  assert.equal(hasFormatEvidence("make this a vertical poster", "vertical poster"), true);
+  assert.equal(hasFormatEvidence("phone wallpaper of a forest", "phone wallpaper"), true);
+  assert.equal(hasFormatEvidence("widescreen still of a desert", "widescreen still"), true);
+  assert.equal(
+    hasFormatEvidence("a poster", "vertical poster"),
+    false,
+    "evidence must occur in the request",
+  );
+  const dropped = applyIntentOverrides(
+    baseIntent({
+      aspect_ratio: { source: "inferred", value: "9:16", evidence: "vertical garden" },
+    }),
+    { userInput: "vertical garden wall in a modern hotel lobby", hasImage: false },
+  );
+  assert.deepEqual(dropped.intent.aspect_ratio, { source: "none", value: null, evidence: null });
+  const kept = applyIntentOverrides(
+    baseIntent({ aspect_ratio: { source: "inferred", value: "2:3", evidence: "vertical poster" } }),
+    { userInput: "make this a vertical poster", hasImage: false },
+  );
+  assert.equal(kept.intent.aspect_ratio.value, "2:3");
+});
+
+test("deferred facts force placeholders; edits become image_edit (2.1)", () => {
+  assert.deepEqual(detectDeferredFacts("concert poster, date to be announced"), ["date"]);
+  assert.deepEqual(detectDeferredFacts("promo code and end date to be filled in later"), [
+    "promo code",
+    "end date",
+  ]);
+  assert.deepEqual(detectDeferredFacts("flyer on June 21 at Elm Street Plaza"), []);
+  const a = applyIntentOverrides(baseIntent({ category: "poster" }), {
+    userInput: "concert poster for Midnight Brass, date to be announced",
+    hasImage: false,
+  });
+  assert.equal(a.intent.factual_requirements.placeholders_required, true);
+  assert.deepEqual(a.intent.factual_requirements.missing_facts, ["date"]);
+  const b = applyIntentOverrides(
+    baseIntent({
+      factual_requirements: {
+        user_supplied_facts: [],
+        missing_facts: ["values"],
+        placeholders_required: false,
+      },
+    }),
+    { userInput: "comparison grid", hasImage: false },
+  );
+  assert.equal(b.intent.factual_requirements.placeholders_required, true);
+  const c = applyIntentOverrides(baseIntent({ task: "edit", category: "poster" }), {
+    userInput: "change the background of this poster",
+    hasImage: false,
+  });
+  assert.equal(c.intent.category, "image_edit");
+  const d = applyIntentOverrides(baseIntent({ task: "edit", category: "poster" }), {
+    userInput: "x",
+    hasImage: false,
+    categoryOverride: "poster",
+  });
+  assert.equal(d.intent.category, "poster", "explicit category hint still wins");
+  const e = applyIntentOverrides(baseIntent({ task: "edit", category: "ui" }), {
+    userInput: "redesign this settings screen, keep every feature",
+    hasImage: true,
+    referenceIntentOverride: "auto",
+  });
+  assert.equal(e.intent.category, "ui", "UI redesigns keep the ui playbook");
 });

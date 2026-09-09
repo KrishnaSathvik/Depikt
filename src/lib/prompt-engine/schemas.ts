@@ -73,20 +73,24 @@ export function isWriterMode(m: string): m is WriterMode {
 
 // ---------- Critic output ----------
 
-export const CRITIC_DIMENSION_IDS = [
+export const CRITIC_CORE_IDS = [
   "intent_fidelity",
   "clarity",
   "contradictions",
+  "efficiency",
+] as const;
+export const CRITIC_CONDITIONAL_IDS = [
   "composition_control",
   "reference_handling",
   "edit_preservation",
   "text_layout",
   "style_coherence",
   "factual_integrity",
-  "efficiency",
 ] as const;
+export const CRITIC_DIMENSION_IDS = [...CRITIC_CORE_IDS, ...CRITIC_CONDITIONAL_IDS] as const;
 export type CriticDimensionId = (typeof CRITIC_DIMENSION_IDS)[number];
 
+/** Normalized per-dimension record used by the UI, history, and scoring. */
 export const CriticDimension = z.strictObject({
   id: z.enum(CRITIC_DIMENSION_IDS),
   applicable: z.boolean(),
@@ -95,10 +99,30 @@ export const CriticDimension = z.strictObject({
 });
 export type CriticDimension = z.infer<typeof CriticDimension>;
 
+const Scored = z.strictObject({ score: z.number(), reason: z.string() });
+
+/**
+ * What the model returns. Core dimensions are structurally required (the
+ * model cannot mark them non-applicable); conditional ones carry an
+ * applicability flag.
+ */
 export const CriticModelResult = z.strictObject({
   category: z.enum(CATEGORY_IDS),
   summary: z.string(),
-  dimensions: z.array(CriticDimension),
+  core: z.strictObject({
+    intent_fidelity: Scored,
+    clarity: Scored,
+    contradictions: Scored,
+    efficiency: Scored,
+  }),
+  conditional: z.array(
+    z.strictObject({
+      id: z.enum(CRITIC_CONDITIONAL_IDS),
+      applicable: z.boolean(),
+      score: z.union([z.number(), z.null()]),
+      reason: z.string(),
+    }),
+  ),
   weaknesses: z.array(z.string()),
   improvements: z.array(z.string()),
   rewritten_prompt: z.string(),
@@ -107,7 +131,7 @@ export type CriticModelResult = z.infer<typeof CriticModelResult>;
 
 export const CRITIC_CONTRACT: ResultContract<CriticModelResult> = {
   pipeline: "critic",
-  name: "depikt_critic_v3",
+  name: "depikt_critic_v3_1",
   zod: CriticModelResult as z.ZodType<CriticModelResult>,
   jsonSchema: toStrictJsonSchema(CriticModelResult),
 };

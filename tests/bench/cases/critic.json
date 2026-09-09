@@ -4,81 +4,164 @@
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "Editorial product photo, 4:5 portrait. Matte black ceramic mug on a raw oak board, single window light from camera left, soft falling shadow, muted warm palette, shallow depth of field. No text.",
-    "expect": { "score_range": [7, 10], "not_applicable": ["edit_preservation", "factual_integrity", "reference_handling"], "dimension_range": { "efficiency": [7, 10] } }
+    "expect": {
+      "score_range": [7, 10],
+      "not_applicable": ["edit_preservation", "factual_integrity", "reference_handling"],
+      "dimension_range": {
+        "efficiency": [7, 10]
+      }
+    }
   },
   {
     "id": "c02-overprompted",
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "masterpiece, best quality, ultra-detailed, 8K, 16K, hyper-realistic, photorealistic, stunning, breathtaking, epic, dramatic, vibrant, trending on artstation, award-winning, cinematic, volumetric lighting, god rays, ray tracing, unreal engine 5, octane render, intricate details, sharp focus, hdr, bokeh, depth of field, golden hour, blue hour, neon, cyberpunk, steampunk, fantasy, sci-fi, portrait of a beautiful gorgeous woman warrior queen elf princess with glowing eyes and flowing hair and ornate armor and a sword and a dragon and a castle and mountains and a sunset and a moon and stars, highly detailed face, perfect anatomy, symmetrical, insanely detailed, 4K, 8K, ultra HD",
-    "expect": { "score_range": [1, 5], "feedback_match": ["(overprompt|too many|redundant|contradict|generic|adjective|conflict|clutter|vague|padding|boilerplate)"], "rewritten_shorter": true, "rewritten_must_not_contain": ["8K", "masterpiece", "artstation"], "dimension_range": { "efficiency": [0, 4], "contradictions": [0, 5] } }
+    "expect": {
+      "score_range": [1, 5],
+      "feedback_match": [
+        "(overprompt|too many|redundant|contradict|generic|adjective|conflict|clutter|vague|padding|boilerplate)"
+      ],
+      "rewritten_shorter": true,
+      "rewritten_must_not_contain": ["8K", "masterpiece", "artstation"],
+      "dimension_range": {
+        "efficiency": [0, 4],
+        "contradictions": [0, 5]
+      }
+    }
   },
   {
     "id": "c03-contradictory",
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "photorealistic 35mm film photograph, flat vector illustration, Pixar 3D render style, oil painting of a red fox in a snowy forest",
-    "expect": { "score_range": [1, 5], "feedback_match": ["(conflict|contradict|mixed|incompatible|competing|inconsistent)"], "dimension_range": { "contradictions": [0, 4] } }
+    "expect": {
+      "score_range": [1, 5],
+      "feedback_match": ["(conflict|contradict|mixed|incompatible|competing|inconsistent)"],
+      "dimension_range": {
+        "contradictions": [0, 4]
+      }
+    }
   },
   {
     "id": "c04-praise-adjectives",
     "group": "critic",
     "input": "stunning breathtaking beautiful epic vibrant dramatic portrait of a warrior, ultra-detailed, masterpiece",
-    "expect": { "score_range": [1, 6], "feedback_match": ["(adjective|vague|generic|subjective|specific|padding)"], "rewritten_must_not_contain": ["masterpiece", "ultra-detailed"] }
+    "expect": {
+      "score_range": [1, 6],
+      "feedback_match": ["(adjective|vague|generic|subjective|specific|padding)"],
+      "rewritten_must_not_contain": ["masterpiece", "ultra-detailed"]
+    }
   },
   {
     "id": "c05-midjourney-flags",
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "cyberpunk alley at night, neon rain, cinematic --ar 16:9 --v 6 --style raw --s 250",
-    "expect": { "score_range": [1, 6], "rewritten_must_not_contain": ["--ar", "--v", "--style", "--s"], "feedback_match": ["(--ar|flag|midjourney|syntax|parameter)"] }
+    "expect": {
+      "score_range": [1, 6],
+      "rewritten_must_not_contain": ["--ar", "--v", "--style", "--s"],
+      "feedback_match": ["(--ar|flag|midjourney|syntax|parameter)"]
+    }
   },
   {
     "id": "c06-edit-missing-preserve",
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "make the sky purple in my photo",
-    "expect": { "feedback_match": ["(preserv|keep|unchanged|rest of|everything else|lock|protect)"], "rewritten_must_contain": ["PRESERVE"], "applicable": ["edit_preservation"], "dimension_range": { "edit_preservation": [0, 5] } }
+    "expect": {
+      "feedback_match": ["(preserv|keep|unchanged|rest of|everything else|lock|protect)"],
+      "rewritten_must_contain": ["PRESERVE"],
+      "applicable": ["edit_preservation"],
+      "dimension_range": {
+        "edit_preservation": [0, 5]
+      },
+      "score_range": [1, 6]
+    }
   },
   {
     "id": "c07-overly-camera-specific",
     "group": "critic",
     "tags": ["pair"],
     "input": "Portrait of a barista, ARRI Alexa 65, Zeiss Master Prime 50mm T1.3, ISO 800, 1/48 shutter, 3200K white balance, Rec709 LUT, 24fps, anamorphic 2x squeeze, ND 0.9, 4:3 open gate",
-    "expect": { "score_range": [2, 7], "feedback_match": ["(camera|brand|technical|spec|lighting|composition|subject|setting|decorative)"], "rewritten_shorter": true, "dimension_range": { "efficiency": [0, 5] } }
+    "expect": {
+      "score_range": [2, 7],
+      "feedback_match": [
+        "(camera|brand|technical|spec|lighting|composition|subject|setting|decorative)"
+      ],
+      "rewritten_shorter": true,
+      "dimension_range": {
+        "efficiency": [0, 5]
+      }
+    }
   },
   {
     "id": "c08-missing-factual-source",
     "group": "critic",
     "input": "infographic of the top 5 fastest growing economies in 2026 with their exact GDP growth percentages",
-    "expect": { "feedback_match": ["(data|source|fabricat|invent|placeholder|verified|accurate|numbers|figures|statistic|supply|provide)"], "applicable": ["factual_integrity"], "rewritten_must_not_contain": ["7.2%", "6.5%", "8.1%"] }
+    "expect": {
+      "feedback_match": [
+        "(data|source|fabricat|invent|placeholder|verified|accurate|numbers|figures|statistic|supply|provide)"
+      ],
+      "applicable": ["factual_integrity"],
+      "rewritten_must_not_contain": ["7.2%", "6.5%", "8.1%"]
+    }
   },
   {
     "id": "c09-simple-sufficient",
     "group": "critic",
     "tags": ["subset", "pair"],
     "input": "Instagram quote card, 4:5. Cream background (#f5f0e8). Centered serif quote \"Less, but better.\" Small mono attribution \"— DIETER RAMS\" below, one thin burnt-orange underline. Generous margins. No other decoration. Verbatim text — no extra characters, no substitutions, no duplicate text, no text artifacts.",
-    "expect": { "score_range": [7, 10], "rewritten_must_contain": ["Less, but better."], "applicable": ["text_layout"], "not_applicable": ["edit_preservation"] }
+    "expect": {
+      "score_range": [7, 10],
+      "rewritten_must_contain": ["Less, but better."],
+      "applicable": ["text_layout"],
+      "not_applicable": ["edit_preservation"]
+    }
   },
   {
     "id": "c10-photo-plus-illustration",
     "group": "critic",
     "tags": ["pair"],
     "input": "hyper realistic DSLR photograph of a cozy cabin, hand-drawn watercolor illustration, soft pencil sketch lines, 4K photo",
-    "expect": { "score_range": [1, 5], "dimension_range": { "contradictions": [0, 4] }, "feedback_match": ["(conflict|contradict|mixed|incompatible|choose|one medium)"] }
+    "expect": {
+      "score_range": [1, 5],
+      "dimension_range": {
+        "contradictions": [0, 4]
+      },
+      "feedback_match": ["(conflict|contradict|mixed|incompatible|choose|one medium)"]
+    }
   },
   {
     "id": "c11-duplicated-constraints",
     "group": "critic",
     "input": "A red bicycle leaning on a brick wall. The bicycle is red. The wall is made of brick. Red bicycle. Brick wall behind the red bicycle. Bicycle color: red. Wall: brick. Make sure the bicycle is red and the wall is brick.",
-    "expect": { "feedback_match": ["(repeat|redundant|duplicate|repetit)"], "rewritten_shorter": true, "dimension_range": { "efficiency": [0, 5] } }
+    "expect": {
+      "feedback_match": ["(repeat|redundant|duplicate|repetit)"],
+      "rewritten_shorter": true,
+      "dimension_range": {
+        "efficiency": [0, 5]
+      },
+      "applicable": ["efficiency"]
+    }
   },
   {
     "id": "c12-short-scene-no-text",
     "group": "critic",
     "tags": ["pair"],
     "input": "A quiet fishing village at dawn, mist over the water, one small boat leaving the harbor, soft pastel light, wide shot.",
-    "expect": { "score_range": [6, 10], "not_applicable": ["text_layout", "edit_preservation", "factual_integrity", "reference_handling"], "dimension_range": { "clarity": [6, 10] } }
+    "expect": {
+      "score_range": [6, 10],
+      "not_applicable": [
+        "text_layout",
+        "edit_preservation",
+        "factual_integrity",
+        "reference_handling"
+      ],
+      "dimension_range": {
+        "clarity": [6, 10]
+      }
+    }
   },
   {
     "id": "c13-edit-with-image",
@@ -87,7 +170,15 @@
     "image": "fixtures/character-portrait.png",
     "referenceIntent": "edit_source",
     "input": "make the beanie red",
-    "expect": { "applicable": ["edit_preservation", "reference_handling"], "dimension_range": { "edit_preservation": [0, 5] }, "rewritten_must_contain": ["PRESERVE"], "feedback_match": ["(glasses|freckle|preserv|everything else|unchanged)"] }
+    "expect": {
+      "applicable": ["edit_preservation", "reference_handling"],
+      "dimension_range": {
+        "edit_preservation": [0, 5]
+      },
+      "rewritten_must_contain": ["PRESERVE"],
+      "feedback_match": ["(glasses|freckle|preserv|everything else|unchanged)"],
+      "score_range": [1, 6]
+    }
   },
   {
     "id": "c14-style-reference-with-image",
@@ -96,19 +187,32 @@
     "image": "fixtures/style-duotone.png",
     "referenceIntent": "style",
     "input": "A mountain cabin at night in the style of the attached image, keep the same subject as the reference",
-    "expect": { "applicable": ["reference_handling"], "feedback_match": ["(subject|contradict|style|no subject|reference)"] }
+    "expect": {
+      "applicable": ["reference_handling"],
+      "feedback_match": ["(subject|contradict|style|no subject|reference)"]
+    }
   },
   {
     "id": "c15-good-edit-prompt",
     "group": "critic",
     "tags": ["pair"],
     "input": "CHANGE ONLY: the jacket worn by the person on the left, to a dark green wool overcoat. PRESERVE: both people's faces, hair, poses, hands, the background street, all signage text, framing and crop, lighting direction and color. MATCH: the original light direction, color temperature, grain, and depth of field so the new coat looks native to the photo.",
-    "expect": { "score_range": [7, 10], "applicable": ["edit_preservation"], "dimension_range": { "edit_preservation": [7, 10] } }
+    "expect": {
+      "score_range": [7, 10],
+      "applicable": ["edit_preservation"],
+      "dimension_range": {
+        "edit_preservation": [7, 10]
+      }
+    }
   },
   {
     "id": "c16-invented-facts-poster",
     "group": "critic",
     "input": "Poster for the Riverside Jazz Festival, headline \"RIVERSIDE JAZZ\", July 18-20, 2026, tickets $45, featuring 12 bands, main stage at 7pm",
-    "expect": { "applicable": ["text_layout"], "not_applicable": ["edit_preservation"], "rewritten_must_contain": ["RIVERSIDE JAZZ", "July 18-20, 2026", "$45"] }
+    "expect": {
+      "applicable": ["text_layout"],
+      "not_applicable": ["edit_preservation"],
+      "rewritten_must_contain": ["RIVERSIDE JAZZ", "July 18-20, 2026", "$45"]
+    }
   }
 ]

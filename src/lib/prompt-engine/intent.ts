@@ -21,6 +21,8 @@ export const IntentSchema = z.strictObject({
   aspect_ratio: z.strictObject({
     source: z.enum(["explicit", "platform", "inferred", "none"]),
     value: z.union([z.string(), z.null()]),
+    /** For "inferred": the user's words that justify a format. Validated in code. */
+    evidence: z.union([z.string(), z.null()]),
   }),
   exact_text: z.array(z.strictObject({ role: z.string(), text: z.string() })),
   requested_changes: z.array(z.string()),
@@ -62,7 +64,7 @@ const referenceLines = REFERENCE_INTENTS.map((id) => `- ${id}: ${REFERENCE_DEFIN
 
 export const INTENT_INSTRUCTIONS = `You analyze a user's request for an AI image and return a compact JSON intent object. You do not write the image prompt. Be literal about what the user asked for; do not embellish.
 
-task: "edit" when an existing/attached image must be modified; "series" when the user wants several coordinated outputs (panels, pages, slides, matching assets); "remix" when a REMIX REFERENCE prompt is supplied; otherwise "create".
+task: "edit" when an existing/attached image must be modified ("in this photo", "in my image", "this poster", "change/remove/replace/recolor the …", "keep everything else"); edits are category image_edit regardless of what the image depicts (a poster being edited is image_edit, not poster). "series" when the user wants several coordinated outputs (panels, pages, slides, matching assets); "remix" when a REMIX REFERENCE prompt is supplied; otherwise "create".
 
 category (choose the single best fit):
 ${categoryLines}
@@ -72,7 +74,7 @@ reference_intent (only when an image is attached; otherwise "none"):
 ${referenceLines}
 Infer from wording: "keep this exact person / same character" → subject_identity; "edit / change / remove / replace in this image" → edit_source; "same product, new background" → product_object; "use this layout / arrangement" → composition; a sketch, wireframe, or diagram used as a plan → sketch_layout; "in this style / like this look" → style. If an image is attached and the wording gives no clue, use "style".
 
-aspect_ratio: source "explicit" only when the user wrote a literal ratio; "platform" when a platform format implies one (YouTube thumbnail 16:9, Instagram Story/Reel 9:16, Pinterest pin 2:3); "inferred" only when the format is strongly implied by the deliverable (a phone wallpaper is tall; a cinema still is wide); otherwise "none" with value null. Never infer a ratio from words that merely appear in the subject: "portrait of a woman" is a genre, "a story about loneliness" is a narrative, "vertical garden" is a plant wall, "Times Square" is a place.
+aspect_ratio: source "explicit" only when the user wrote a literal ratio; "platform" when a platform format implies one (YouTube thumbnail 16:9, Instagram Story/Reel 9:16, Pinterest pin 2:3); "inferred" only when the user asked for a canvas orientation or a deliverable whose format is fixed ("make it a vertical poster", "phone wallpaper", "widescreen still"); otherwise "none" with value null. For "inferred", set evidence to the exact words from the request that describe the canvas or format (for example "vertical poster", "phone wallpaper"); for other sources evidence is null. Never infer a ratio from words that merely describe the subject: "portrait of a woman" is a genre, "a story about loneliness" is a narrative, "vertical garden" is a plant wall, "Times Square" is a place; in those cases use "none".
 
 exact_text: every string the user wants rendered verbatim (quoted headlines, sublines, labels, names). role describes its job (headline, subline, label, caption, button). Preserve spelling, casing, punctuation, and scripts exactly.
 
@@ -84,7 +86,7 @@ creative_freedom: low when the user specified most details or the output must ma
 
 series: enabled when multiple coordinated outputs are requested. count is the exact number requested or null. unit: panel (single image with panels), page (separate images), slide, or asset (matching posts/creatives). continuation is true when the user is extending an existing series ("slide two", "next panel", "same design as the first"). consistency_requirements lists what must stay identical across units.
 
-factual_requirements: user_supplied_facts are concrete facts the user gave (dates, prices, numbers, names). missing_facts are facts the deliverable needs but the user did not supply (a date for an event poster, statistics for a data infographic). placeholders_required is true when any missing fact must appear in the image.
+factual_requirements: user_supplied_facts are concrete facts the user gave (dates, prices, numbers, names). missing_facts are facts the deliverable needs but the user did not supply: an event date, time, venue, or price for a poster or flyer; the values, numbers, percentages, or rankings for any data-driven graphic (comparison, chart, statistics, "how much faster"); a promo code; anything the user marked "TBA", "TBD", "to be announced", or "to be filled in later". placeholders_required is true whenever missing_facts is non-empty and the deliverable would normally show those facts.
 
 ambiguity: blocking only when the request cannot be acted on at all. Reasonable defaults are not ambiguity.
 
@@ -162,18 +164,33 @@ export function applyIntentOverrides(
     out.reference_intent = "style";
   }
 
-  // 2. Literal ratio typed by the user always wins.
+  // 2. Literal ratio typed by the user always wins. Inferred ratios must cite
+  //    format/orientation evidence that actually appears in the request.
   const explicit = parseExplicitRatio(input.userInput);
   if (explicit) {
     if (out.aspect_ratio.value !== explicit.value || out.aspect_ratio.source !== explicit.source) {
       applied.push(`aspect_ratio → ${explicit.value} (${explicit.source}: "${explicit.matched}")`);
     }
-    out.aspect_ratio = { source: explicit.source, value: explicit.value };
+    out.aspect_ratio = { source: explicit.source, value: explicit.value, evidence: null };
   } else {
     const norm = normalizeRatio(out.aspect_ratio.value);
-    if (out.aspect_ratio.source === "none" || !norm)
-      out.aspect_ratio = { source: "none", value: null };
-    else out.aspect_ratio = { source: out.aspect_ratio.source, value: norm };
+    if (out.aspect_ratio.source === "none" || !norm) {
+      out.aspect_ratio = { source: "none", value: null, evidence: null };
+    } else if (
+      out.aspect_ratio.source === "inferred" &&
+      !hasFormatEvidence(input.userInput, out.aspect_ratio.evidence)
+    ) {
+      applied.push(
+        `aspect_ratio ${norm} (inferred) → none (no format evidence: ${JSON.stringify(out.aspect_ratio.evidence)})`,
+      );
+      out.aspect_ratio = { source: "none", value: null, evidence: null };
+    } else {
+      out.aspect_ratio = {
+        source: out.aspect_ratio.source,
+        value: norm,
+        evidence: out.aspect_ratio.evidence ?? null,
+      };
+    }
   }
 
   // 3. Explicit category hint.
@@ -197,6 +214,77 @@ export function applyIntentOverrides(
   }
   if (out.series.enabled && out.task === "create") out.task = "series";
   if (out.category === "image_edit" && out.task === "create") out.task = "edit";
+  // An edit of an existing image is the image_edit category (the edit
+  // playbook), whatever the image depicts. UI redesigns of a screenshot stay
+  // "ui": that playbook carries its own preserve-every-feature guidance.
+  if (
+    out.task === "edit" &&
+    out.category !== "image_edit" &&
+    out.category !== "ui" &&
+    !input.categoryOverride
+  ) {
+    applied.push(`category ${out.category} → image_edit (task is edit)`);
+    out.category = "image_edit";
+  }
+
+  // 5. Factual placeholders: deterministic signals the analyzer may miss.
+  for (const f of detectDeferredFacts(input.userInput)) {
+    if (!out.factual_requirements.missing_facts.some((m) => m.toLowerCase().includes(f))) {
+      out.factual_requirements.missing_facts.push(f);
+      applied.push(`missing_facts += ${f} (deferred in request)`);
+    }
+  }
+  if (
+    out.factual_requirements.missing_facts.length > 0 &&
+    !out.factual_requirements.placeholders_required
+  ) {
+    applied.push("placeholders_required false → true (missing facts listed)");
+    out.factual_requirements.placeholders_required = true;
+  }
 
   return { intent: out, notes: { applied } };
+}
+
+const ORIENTATION =
+  "(vertical|horizontal|portrait|landscape|tall|wide|widescreen|square|upright|panoramic)";
+const CANVAS =
+  "(poster|format|orientation|canvas|frame|crop|layout|composition|image|photo|picture|shot|still|banner|video|wallpaper|card|version|design|aspect|ratio|slide|thumbnail|cover|screen|story|reel|pin|flyer)";
+const FORMAT_PATTERNS: RegExp[] = [
+  new RegExp(`\\b${ORIENTATION}\\s+${CANVAS}\\b`),
+  new RegExp(
+    `\\b(make|keep|render|shoot|crop|frame|turn|do)\\s+(it|this|the\\s+\\w+)\\s+${ORIENTATION}\\b`,
+  ),
+  /\b(phone|mobile|desktop|iphone|android)\s+(wallpaper|screen|lock ?screen|home ?screen)\b/,
+  /\b(cinema|film|movie)\s+(still|frame)\b/,
+  /\b(widescreen|ultrawide|panorama|panoramic)\b/,
+];
+
+/**
+ * True when an inferred ratio is backed by words about the canvas, format,
+ * or orientation that actually occur in the request, not by a subject phrase.
+ * "make this a vertical poster" qualifies; "vertical garden" does not.
+ */
+export function hasFormatEvidence(userInput: string, evidence: string | null | undefined): boolean {
+  const ev = (evidence ?? "").toLowerCase().trim();
+  if (!ev || !userInput.toLowerCase().includes(ev)) return false;
+  return FORMAT_PATTERNS.some((re) => re.test(ev));
+}
+
+/** Facts the user explicitly deferred ("date TBA", "code to be filled in later"). */
+export function detectDeferredFacts(userInput: string): string[] {
+  const out: string[] = [];
+  const facts =
+    "(date|time|venue|location|price|promo code|discount code|code|end date|deadline|speaker|lineup|address)";
+  const deferred =
+    "(tba|tbd|to be announced|to be confirmed|to be decided|to be filled in|to be filled in later|pending)";
+  const re1 = new RegExp(`\\b${facts}s?\\b[^.;]{0,50}?\\b${deferred}\\b`, "gi");
+  for (const m of userInput.matchAll(re1)) {
+    // "promo code and end date to be filled in later" defers both facts.
+    const span = m[0].toLowerCase();
+    const factRe = new RegExp(`\\b${facts}s?\\b`, "gi");
+    for (const f of span.matchAll(factRe)) out.push(f[1].toLowerCase());
+  }
+  const re2 = new RegExp(`\\b${deferred}\\b[^.;]{0,40}?\\b${facts}s?\\b`, "gi");
+  for (const m of userInput.matchAll(re2)) out.push(m[2].toLowerCase());
+  return [...new Set(out)];
 }

@@ -5,13 +5,17 @@ import {
   CRITIC_INSTRUCTIONS,
   buildCriticUserMessage,
   computeOverallScore,
+  essentialCap,
   finalizeCriticResult,
+  flattenDimensions,
   normalizeDimensions,
 } from "../../src/lib/prompt-engine/critic.ts";
 import {
   CRITIC_CONTRACT,
+  CRITIC_CORE_IDS,
   CRITIC_DIMENSION_IDS,
   type CriticDimension,
+  type CriticModelResult,
 } from "../../src/lib/prompt-engine/schemas.ts";
 import { parseResult } from "../../src/lib/openai/schemas.ts";
 import { MODEL_ROLES } from "../../src/lib/openai/models.ts";
@@ -29,7 +33,7 @@ const dim = (
 
 test("critic and builder are separate: own contract, own model role, own instructions", () => {
   assert.equal(CRITIC_CONTRACT.pipeline, "critic");
-  assert.equal(CRITIC_CONTRACT.name, "depikt_critic_v3");
+  assert.equal(CRITIC_CONTRACT.name, "depikt_critic_v3_1");
   assert.equal(MODEL_ROLES.CRITIC.model, "gpt-5.6-terra");
   assert.equal(MODEL_ROLES.CRITIC.reasoningEffort, "medium");
   assert.equal(MODEL_ROLES.CRITIC.temperature, undefined);
@@ -41,29 +45,63 @@ test("critic and builder are separate: own contract, own model role, own instruc
   assert.match(CRITIC_INSTRUCTIONS, /Never lower a score for something the prompt does not need/);
 });
 
-test("critic strict schema: dimension ids are enumerated, nullable score, no extra fields", () => {
+const core = (n: number): CriticModelResult["core"] => ({
+  intent_fidelity: { score: n, reason: "r" },
+  clarity: { score: n, reason: "r" },
+  contradictions: { score: n, reason: "r" },
+  efficiency: { score: n, reason: "r" },
+});
+
+test("critic strict schema (2.1): core dimensions are structurally required; conditional carry applicability", () => {
   const ok = {
     category: "poster",
     summary: "s",
-    dimensions: [dim("intent_fidelity", 8), dim("text_layout", null)],
+    core: core(8),
+    conditional: [{ id: "text_layout", applicable: false, score: null, reason: "none" }],
     weaknesses: ["w"],
     improvements: ["i"],
     rewritten_prompt: "r",
   };
   assert.equal(parseResult(CRITIC_CONTRACT, JSON.stringify(ok)).ok, true);
-  assert.equal(parseResult(CRITIC_CONTRACT, JSON.stringify({ ...ok, score: 7 })).ok, false);
+  // core cannot be skipped or marked n/a
   assert.equal(
     parseResult(
       CRITIC_CONTRACT,
-      JSON.stringify({ ...ok, dimensions: [{ ...dim("intent_fidelity", 8), id: "vibes" }] }),
+      JSON.stringify({ ...ok, core: { ...core(8), efficiency: undefined } }),
     ).ok,
     false,
   );
-  // Builder-shaped payload cannot masquerade as a critic result.
+  assert.equal(
+    parseResult(
+      CRITIC_CONTRACT,
+      JSON.stringify({ ...ok, core: { ...core(8), efficiency: { score: null, reason: "x" } } }),
+    ).ok,
+    false,
+  );
+  // a core id is not allowed in conditional
+  assert.equal(
+    parseResult(
+      CRITIC_CONTRACT,
+      JSON.stringify({
+        ...ok,
+        conditional: [{ id: "efficiency", applicable: false, score: null, reason: "x" }],
+      }),
+    ).ok,
+    false,
+  );
+  assert.equal(parseResult(CRITIC_CONTRACT, JSON.stringify({ ...ok, score: 7 })).ok, false);
   assert.equal(
     parseResult(CRITIC_CONTRACT, JSON.stringify({ prompt: "p", why_it_works: "w" })).ok,
     false,
   );
+  const flat = flattenDimensions(ok as CriticModelResult);
+  assert.deepEqual(
+    flat
+      .filter((d) => (CRITIC_CORE_IDS as readonly string[]).includes(d.id))
+      .map((d) => d.applicable),
+    [true, true, true, true],
+  );
+  assert.equal(flat.find((d) => d.id === "text_layout")?.applicable, false);
 });
 
 test("overall score: weighted mean of applicable dimensions only; non-applicable never lower it", () => {
@@ -106,21 +144,81 @@ test("normalizeDimensions lists all ten, filling omitted ones as non-applicable"
   assert.equal(dims.find((d) => d.id === "edit_preservation")?.applicable, false);
 });
 
-test("finalizeCriticResult computes overall, keeps a rounded legacy score, maps category label, sanitizes rewrite", () => {
+test("essential-dimension cap (2.1): a failed job cannot be rescued by decorative strengths", () => {
+  assert.equal(essentialCap(2), 4);
+  assert.equal(essentialCap(4), 6);
+  assert.equal(essentialCap(6), 8);
+  assert.equal(essentialCap(7), null);
+  // "make the sky purple": clarity/contradictions/efficiency 9-10, edit_preservation 3
+  const r = computeOverallScore([
+    dim("intent_fidelity", 9),
+    dim("clarity", 10),
+    dim("contradictions", 10),
+    dim("efficiency", 10),
+    dim("edit_preservation", 3),
+  ]);
+  assert.ok(r.weightedMean! > 7.5, String(r.weightedMean));
+  assert.equal(r.overall, 6);
+  assert.deepEqual(r.cap, { dimension: "edit_preservation", score: 3, cap: 6 });
+  // non-essential low scores do not cap
+  const n = computeOverallScore([
+    dim("intent_fidelity", 9),
+    dim("clarity", 9),
+    dim("style_coherence", 1),
+  ]);
+  assert.equal(n.cap, null);
+  // non-applicable essential dimension does not cap
+  const na = computeOverallScore([dim("intent_fidelity", 9), dim("edit_preservation", null)]);
+  assert.equal(na.cap, null);
+  assert.equal(na.overall, 9);
+  // lowest cap wins
+  const two = computeOverallScore([
+    dim("intent_fidelity", 2),
+    dim("text_layout", 5),
+    dim("clarity", 10),
+  ]);
+  assert.equal(two.overall, 4);
+});
+
+test("finalizeCriticResult computes overall with cap, keeps a rounded legacy score, maps category, sanitizes rewrite", () => {
   const r = finalizeCriticResult({
     category: "image_edit",
     summary: "s",
-    dimensions: [dim("intent_fidelity", 8), dim("edit_preservation", 5), dim("clarity", 7)],
+    core: {
+      intent_fidelity: { score: 8, reason: "r" },
+      clarity: { score: 7, reason: "r" },
+      contradictions: { score: 10, reason: "r" },
+      efficiency: { score: 9, reason: "r" },
+    },
+    conditional: [{ id: "edit_preservation", applicable: true, score: 5, reason: "weak" }],
     weaknesses: [],
     improvements: [],
     rewritten_prompt: "CHANGE ONLY: sky --ar 16:9",
   });
-  assert.equal(r.overall_score, 6.6);
-  assert.equal(r.score, 7);
+  assert.equal(r.weighted_mean, 7.5);
+  assert.deepEqual(r.score_cap, { dimension: "edit_preservation", score: 5, cap: 8 });
+  assert.equal(r.overall_score, 7.5);
+  assert.equal(r.score, 8);
   assert.equal(r.category, "IMAGE EDIT");
   assert.equal(r.rewritten_prompt, "CHANGE ONLY: sky");
   assert.equal(r.dimensions.length, 10);
   assert.equal(r.prompt_version, "depikt-v3.0.0-images-2.5");
+  const withImage = finalizeCriticResult(
+    {
+      category: "poster",
+      summary: "s",
+      core: core(9),
+      conditional: [{ id: "reference_handling", applicable: false, score: null, reason: "n/a" }],
+      weaknesses: [],
+      improvements: [],
+      rewritten_prompt: "p",
+    },
+    { hasImage: true },
+  );
+  assert.match(
+    withImage.dimensions.find((d) => d.id === "reference_handling")!.reason,
+    /Not scored by the model although a reference image was attached/,
+  );
 });
 
 test("critic user message states the reference usage when an image is attached", () => {

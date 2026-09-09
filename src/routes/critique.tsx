@@ -94,6 +94,8 @@ interface CritiqueDimension {
 interface CritiqueResult {
   /** v3 */
   overall_score?: number | null;
+  weighted_mean?: number | null;
+  score_cap?: { dimension: string; score: number; cap: number } | null;
   summary?: string;
   dimensions?: CritiqueDimension[];
   /** v2.9 and v3 alias */
@@ -490,6 +492,13 @@ function CritiqueView({ result, onNew }: { result: CritiqueResult; onNew: () => 
               </span>
             </div>
 
+            {result.score_cap && (
+              <p className="mb-3 text-[11px] font-mono text-[color:var(--text-tertiary)]">
+                Capped at {result.score_cap.cap}:{" "}
+                {DIMENSION_LABELS[result.score_cap.dimension] ?? result.score_cap.dimension} scored{" "}
+                {result.score_cap.score}/10 (weighted mean {result.weighted_mean}).
+              </p>
+            )}
             {result.summary && (
               <p className="mb-6 text-body-md text-[color:var(--text-secondary)]">
                 {result.summary}
