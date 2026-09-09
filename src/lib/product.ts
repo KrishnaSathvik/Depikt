@@ -61,6 +61,43 @@ export const NAV_ITEMS: ReadonlyArray<{
 
 export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago";
 
+// ---------- announcement (site-wide strip above the hero) ----------
+
+/**
+ * One announcement at a time. Flip `active` to false (or let `until` pass)
+ * to retire it; change `id` when a new announcement replaces it so a
+ * viewer's earlier dismissal does not hide the new one.
+ */
+export interface Announcement {
+  id: string;
+  badge: string;
+  title: string;
+  body: string;
+  /** Blog post slug the strip links to (rendered as /blog/$slug). */
+  slug: string;
+  cta: string;
+  active: boolean;
+  /** ISO date after which the strip stops rendering, even if `active`. */
+  until?: string;
+}
+
+export const ANNOUNCEMENT: Announcement = {
+  id: "images-2-5-launch",
+  badge: "New",
+  title: `${TARGET_MODEL_NAME} is here.`,
+  body: `Depikt's ${TOOL.builder} and ${TOOL.critic} are tuned for it.`,
+  slug: "chatgpt-images-2-5-whats-new",
+  cta: "Read what's new",
+  active: true,
+  until: "2026-10-31",
+};
+
+export function isAnnouncementLive(a: Announcement, now: Date = new Date()): boolean {
+  if (!a.active) return false;
+  if (a.until && now.getTime() > new Date(`${a.until}T23:59:59Z`).getTime()) return false;
+  return true;
+}
+
 // ---------- positioning ----------
 
 export const POSITIONING = {

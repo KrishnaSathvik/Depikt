@@ -9,6 +9,16 @@
 - [Prompt Critic](https://depikt.app/critique): Paste any image prompt (optionally with its source or reference image). Depikt scores it for ChatGPT Images 2.5 across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, lists weaknesses and concrete improvements, and returns a rewritten prompt.
 - [Reference Gallery](https://depikt.app/gallery): Hand-picked reference images. Click any image to send it to the Prompt Builder as a reference.
 
+## ChatGPT Images 2.5 guides (September 2026)
+
+OpenAI released ChatGPT Images 2.5 on September 8, 2026. These guides separate official model changes from ChatGPT features, and explain how each one changes the prompt you write. Depikt's Prompt Builder and Prompt Critic are tuned for this model.
+
+- [ChatGPT Images 2.5: What's New and What It Means for Prompting](https://depikt.app/blog/chatgpt-images-2-5-whats-new): The launch, sorted into model changes, ChatGPT features (Sketch, Templates, comments, shared prompts), and API models (gpt-image-2.5-flare, gpt-image-2.5-sunburst), with what each means for prompting.
+- [How to Prompt ChatGPT Images 2.5](https://depikt.app/blog/how-to-prompt-chatgpt-images-2-5): The six-part prompt structure (intent, subject, composition and ratio, exact text, style, constraints) with five before-and-after rewrites.
+- [Precise Edits and Reference Images in ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-precise-edits-reference-images): The five reference intents, CHANGE / PRESERVE / MATCH edit prompts, Sketch as a layout reference, and a routine for multi-turn edits without drift.
+- [Posters, Infographics, and Slides with ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-posters-infographics-slides): Exact text, hierarchy, data captions with sources, transparent backgrounds, and presentation slides.
+- [ChatGPT Images 2.5 Prompt Examples: 12 Recipes](https://depikt.app/blog/chatgpt-images-2-5-prompt-examples): Twelve complete prompts across posters, product photos, infographics, UI mockups, storyboards, edits, and reference images.
+
 ## Prompt Templates — one question, one prompt (GPT Image 2 era)
 
 Each template answers one specific question with a single copy-paste prompt. Written for GPT Image 2; still useful as structure examples.

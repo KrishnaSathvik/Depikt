@@ -5,6 +5,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  ANNOUNCEMENT,
   CTA,
   INTENT_STAGE_LABELS,
   JSONLD_DESCRIPTIONS,
@@ -18,8 +19,16 @@ import {
   TOOL,
   describeIntent,
   historyKindLabel,
+  isAnnouncementLive,
   needsReferenceReattach,
 } from "../../src/lib/product.ts";
+import {
+  CURRENT_MODEL_CATEGORY,
+  getLatestGuides,
+  getPostBySlug,
+  getPostsByDate,
+  posts,
+} from "../../src/data/posts.ts";
 import {
   DEFAULT_TARGET_MODEL,
   TARGET_MODELS,
@@ -335,13 +344,56 @@ test("history: v2.9 and v3 records restore under the new labels without migratio
 // ---------- historical content preserved ----------
 
 test("historical GPT Image 2 blog posts and prompt text are untouched by the migration", () => {
-  const posts = read("src/data/posts.ts");
-  assert.match(posts, /how-to-prompt-gpt-image-2-for-posters/);
-  assert.match(posts, /How to prompt GPT Image 2 for/);
-  assert.equal(
-    /ChatGPT Images 2\.5/.test(posts),
-    false,
-    "no article was rewritten to claim Images 2.5",
-  );
+  const src = read("src/data/posts.ts");
+  assert.match(src, /how-to-prompt-gpt-image-2-for-posters/);
+  assert.match(src, /How to prompt GPT Image 2 for/);
+  // Posts published before the Images 2.5 launch keep their model claims:
+  // no historical article was rewritten to claim Images 2.5.
+  const historical = posts.filter((p) => p.published < "2026-09-01");
+  assert.ok(historical.length >= 19, "historical posts still present");
+  for (const p of historical) {
+    assert.equal(
+      /ChatGPT Images 2\.5/.test(p.title + p.subtitle + p.excerpt + p.content),
+      false,
+      `${p.slug} was rewritten to claim Images 2.5`,
+    );
+    assert.equal(/Depikt's generator/.test(p.content), false, `${p.slug} generic CTA`);
+  }
   assert.equal(/ChatGPT Images 2\.5/.test(read("src/data/curated-prompts.ts")), false);
+});
+
+// ---------- Images 2.5 launch content ----------
+
+test("announcement strip is data-driven and points at the launch article", () => {
+  assert.equal(ANNOUNCEMENT.badge, "New");
+  assert.match(ANNOUNCEMENT.title, /ChatGPT Images 2\.5/);
+  assert.match(ANNOUNCEMENT.body, /Prompt Builder/);
+  assert.match(ANNOUNCEMENT.body, /Prompt Critic/);
+  assert.ok(getPostBySlug(ANNOUNCEMENT.slug), "announcement slug resolves to a post");
+  assert.equal(isAnnouncementLive({ ...ANNOUNCEMENT, active: false }), false);
+  assert.equal(
+    isAnnouncementLive({ ...ANNOUNCEMENT, until: "2026-01-01" }, new Date("2026-09-09")),
+    false,
+  );
+  assert.equal(isAnnouncementLive(ANNOUNCEMENT, new Date("2026-09-09")), true);
+});
+
+test("Images 2.5 guides exist, cite OpenAI, and lead the homepage Latest guides", () => {
+  const current = posts.filter((p) => p.category === CURRENT_MODEL_CATEGORY);
+  assert.ok(current.length >= 3, "at least three Images 2.5 guides");
+  for (const p of current) {
+    assert.match(p.content, /openai\.com\/index\/introducing-chatgpt-images-2-5/, p.slug);
+    assert.match(p.content, /\]\(\/generate\)/, `${p.slug} links to the Prompt Builder`);
+    assert.equal(/generat(es|or) images/i.test(p.excerpt), false, p.slug);
+    assert.ok(p.faq && p.faq.length > 0, `${p.slug} has FAQ`);
+  }
+  const latest = getLatestGuides(3);
+  assert.equal(latest.length, 3);
+  for (const p of latest) assert.equal(p.category, CURRENT_MODEL_CATEGORY, p.slug);
+  assert.equal(latest[0].slug, ANNOUNCEMENT.slug);
+  // Date ordering, not array ordering, drives the homepage teaser.
+  const byDate = getPostsByDate();
+  for (let i = 1; i < byDate.length; i++) assert.ok(byDate[i - 1].published >= byDate[i].published);
+  assert.match(read("src/routes/index.tsx"), /getLatestGuides/);
+  assert.equal(/posts\.slice\(0, 3\)/.test(read("src/routes/index.tsx")), false);
 });

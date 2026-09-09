@@ -11,21 +11,777 @@ export interface Post {
   author: string;
   read_time: string;
   published: string;
+  /** Optional ISO date of the last substantive edit; drives dateModified. */
+  updated?: string;
   excerpt: string;
   seo_title: string;
   seo_description: string;
-  /** Optional cover image URL (relative or absolute). Used for og:image and twitter:image. */
+  /** Optional cover image URL (relative or absolute). Used for og:image, twitter:image, and the article hero. */
   cover_image?: string;
+  /** Alt text for the cover image (required when cover_image is set). */
+  cover_alt?: string;
   /** Optional FAQ section emitted as FAQPage JSON-LD. */
   faq?: PostFaqItem[];
   content: string;
 }
 
 export const posts: Post[] = [
+  // ---- ChatGPT Images 2.5 guides (September 2026) ----
+  {
+    slug: "chatgpt-images-2-5-whats-new",
+    title: "ChatGPT Images 2.5: What's New and What It Means for Prompting",
+    subtitle:
+      "OpenAI shipped Images 2.5 on September 8, 2026. Here is what actually changed, what is only a ChatGPT feature, and how it changes the way you should write a prompt.",
+    category: "Images 2.5",
+    author: "Depikt Team",
+    read_time: "7 min",
+    published: "2026-09-09",
+    excerpt:
+      "OpenAI released ChatGPT Images 2.5 on September 8, 2026: better reference fidelity, edits that leave the rest of the image alone, more consistent multi-turn editing, more accurate layouts, and up to 50% lower latency. Here is the launch, sorted by what it means for the prompt you write.",
+    seo_title: "ChatGPT Images 2.5: What's New and What It Means for Prompting (2026)",
+    seo_description:
+      "Everything OpenAI announced with ChatGPT Images 2.5 on September 8, 2026, separated into model changes, ChatGPT features, and API models, plus what each one means for how you write prompts.",
+    faq: [
+      {
+        question: "When was ChatGPT Images 2.5 released?",
+        answer:
+          "OpenAI announced ChatGPT Images 2.5 on September 8, 2026, rolling out to all ChatGPT, ChatGPT Work, and Codex users across tiers on desktop, mobile, and web. Two API models shipped the same day: gpt-image-2.5-flare and gpt-image-2.5-sunburst.",
+      },
+      {
+        question: "What is actually new in Images 2.5 compared with Images 2.0?",
+        answer:
+          "OpenAI lists five model-level changes: better preservation of subjects in reference photos, edits that change only what you asked for, more consistent results across multiple editing turns, more accurate real-world content and more complex layouts including transparent backgrounds, and up to 50% lower generation latency. Sketch, Templates, image comments, and shared prompts are ChatGPT features, not model capabilities.",
+      },
+      {
+        question: "Do I need to prompt Images 2.5 differently?",
+        answer:
+          "The structure of a good prompt has not changed, but the payoff for being explicit has. Because the model is better at keeping what you do not mention, the biggest gains now come from stating what to change, what to keep, where the text goes, and how a reference image should be used.",
+      },
+      {
+        question: "Does Depikt generate images with Images 2.5?",
+        answer:
+          "No. Depikt writes and reviews prompts. The Prompt Builder and Prompt Critic are tuned for ChatGPT Images 2.5; you paste the result into ChatGPT to make the image.",
+      },
+    ],
+    content: `
+## The short version
+
+On September 8, 2026, OpenAI announced ChatGPT Images 2.5 and described it as its new state-of-the-art image model, with "sharper details, faster generation, more precise editing, and better tools for creating and sharing." It rolled out to every ChatGPT, ChatGPT Work, and Codex tier the same day.
+
+If you only read one paragraph: the model got noticeably better at three things that used to eat generations, namely keeping the person in your reference photo recognizable, changing only the thing you asked it to change, and not degrading an image across a long editing conversation. Everything else in the launch is either a ChatGPT product feature or an API model name.
+
+This article sorts the announcement into those three buckets, then covers what each change means for the prompt you write. Depikt does not generate images; it writes and reviews prompts, so the second half is our interpretation, and it is labelled as such.
+
+## What changed in the model
+
+These are the claims OpenAI makes about the model itself, paraphrased from the announcement and the system card.
+
+### 1. Reference fidelity
+
+Images 2.5 is "better at preserving the subjects in your reference photos." OpenAI's examples are all reference-led: a printed baby portrait remixed into a tuxedo, a dog in costume, a photobooth strip turned into a headshot. The claim is that subjects look more recognizable, lighting and textures feel more natural, and distinctive features carry through when you move a subject into a new setting, style, or composition.
+
+### 2. Precision editing
+
+The model is "better at editing only what you've asked for, while keeping the rest of the details the same," including with complex subjects and busy backgrounds. OpenAI frames the API version of this as updating a single element such as a product, a background, or a piece of copy while the subject, composition, and brand treatment stay put.
+
+### 3. Multi-turn consistency
+
+In longer conversations, earlier edits are "more likely to stay consistent, and each new edit builds on the work you've already done without degrading image quality over time." This is the quiet one. Anyone who has watched a face slowly become someone else over six edits knows why it matters.
+
+### 4. Intelligence and layout
+
+Images 2.5 is described as better at understanding complex visual instructions. Images that include real-world information "have more accurate content," the model "can handle more complex layouts including transparent backgrounds," and it is better at reflecting a requested visual style. The system card adds that it "improves infographic accuracy and layout." OpenAI specifically names UI concepts that preserve a hierarchy and presentation visuals that fit a defined structure.
+
+### 5. Speed
+
+Generation latency is "up to 50%" lower than Images 2.0. In the API, the default model is positioned as delivering higher quality than GPT-Image-2 at half the latency.
+
+What OpenAI did not publish: benchmark numbers for text rendering, any prompt-length guidance, or a side-by-side with other vendors. If you read those claims elsewhere, they are not from the launch.
+
+## What changed in ChatGPT (not the model)
+
+Four features shipped alongside the model. They live in the ChatGPT app, and the API does not expose them as such.
+
+- **Sketch.** Draw directly in ChatGPT and use the drawing as a visual guide for the final image. You invoke it by typing @Sketch. OpenAI's examples are a room layout, the contour of an outfit, and a doodle.
+- **Templates.** Pick a format like "Poster" or "Merch" and fill in the information, design elements, and style instead of starting from a blank prompt.
+- **Comments on images.** Place a comment directly on part of an image to focus an edit there.
+- **Shared prompts.** When you share an image you can include the prompt that made it, so someone else can rerun it with their own photos and details.
+
+The important thing for prompting: Sketch and comments are new ways to hand the model a spatial reference. They do not replace the words. A sketch tells the model where; the prompt still has to say what, in what style, and what to leave alone.
+
+## What changed in the API
+
+Two models, both released the same day and both snapshotted 2026-09-08:
+
+- **gpt-image-2.5-flare** is the default. OpenAI describes it as its fastest model for high-quality everyday generation, well suited to creator and social content, product experiences, visual search, prototyping, and high-volume work.
+- **gpt-image-2.5-sunburst** is for "premium visual workflows that benefit from tighter control across edits," with longer generation times. Think campaign creative and polished product imagery.
+
+The Flare model page lists quality levels of low, medium, high, xhigh, max, and auto, and both image generation and image edit endpoints. If you are not building on the API, none of this changes how you prompt in ChatGPT.
+
+## What it means for prompting
+
+From here on this is Depikt's reading of the launch, not OpenAI's guidance.
+
+### The payoff for being explicit went up
+
+Images 2.0 would often ignore a "keep everything else the same" instruction and re-imagine the frame anyway. If 2.5 is genuinely better at leaving unmentioned things alone, then the prompt's job splits cleanly into two lists: what to change and what to preserve. Prompts that only describe the desired end state will still work, but they leave the model to guess which parts of the source were load-bearing.
+
+**Before:**
+
+\`\`\`
+Make this photo look like it was taken at golden hour.
+\`\`\`
+
+**After:**
+
+\`\`\`
+Edit the attached photo. CHANGE: the light to late golden hour, warm low sun from camera-left, long soft shadows. PRESERVE: the subject's face, pose, clothing, the framing and crop, the background buildings and their positions. MATCH: the new light must fall consistently on the subject and the background.
+\`\`\`
+
+The second prompt is not longer for its own sake. Every clause is a decision the model would otherwise make for you. This is the [CHANGE / PRESERVE / MATCH](/blog/ai-image-editing-change-preserve-match) structure we have used since the GPT Image 2 era; 2.5 is the first model where we expect the PRESERVE list to be respected most of the time rather than some of the time.
+
+### Say how the reference should be used
+
+"Better at preserving the subjects in reference photos" is only useful if the model knows the photo is a subject reference and not a style or composition reference. A photo of your friend can mean "put this person in the scene," "copy this lighting," or "copy this framing." State it:
+
+\`\`\`
+Reference image: use as SUBJECT IDENTITY only. Keep the face, hair, and build recognizable. Do not copy the reference's clothing, background, or lighting.
+\`\`\`
+
+The [Prompt Builder](/generate) asks for this explicitly (style, subject identity, edit source, product, composition, or sketch layout) and writes the corresponding clause into the prompt.
+
+### Put text and layout in their own sentences
+
+The layout improvements are the ones most likely to be over-read. "More accurate real-world content" and "complex layouts including transparent backgrounds" mean the model is more likely to honor a defined structure, not that it will invent one for you. For posters, slides, and infographics, name the exact text in quotes, give an order, and say what is largest:
+
+\`\`\`
+Exact text, verbatim: headline "OPEN STUDIO" (largest, top third), subhead "Saturday 14 Sept, 10:00-18:00" (below headline, half its size), footer "Free entry" (bottom-left, small). No other text anywhere in the image.
+\`\`\`
+
+The last sentence matters. Unlabeled space invites invented copy.
+
+### Multi-turn: treat each edit as a new prompt
+
+Better consistency across turns does not mean the model remembers your constraints. It means it is less likely to drift when you repeat them. In a long session, restate PRESERVE on every edit. Copying the previous turn's PRESERVE list forward costs you ten seconds and saves the face.
+
+### What did not change
+
+The [aspect ratio](/blog/ai-image-aspect-ratios-guide-gpt-image-2) still needs to be stated. Vague quality adjectives still do nothing that a concrete constraint would not do better. And a prompt that contradicts itself ("minimal, with lots of detail") still produces a coin-flip. The [Prompt Critic](/critique) scores exactly these things: intent fidelity, contradictions, reference handling, edit preservation, text and layout, and efficiency.
+
+## What Depikt changed
+
+- The Prompt Builder now targets ChatGPT Images 2.5. Its intent stage extracts the format, reference use, aspect ratio, exact text, series count, and transparent background before writing a word of the prompt.
+- The Prompt Critic scores prompts against a 2.5 rubric, with a hard cap when an essential dimension such as edit preservation fails.
+- The 500-prompt [Library](/library) stays what it is: the GPT Image 2 collection, kept as written. Remix any entry to get a version rewritten for 2.5. A separate 2.5 collection is coming.
+
+## What to read next
+
+- [How to prompt ChatGPT Images 2.5](/blog/how-to-prompt-chatgpt-images-2-5): the full structure, with before and after examples.
+- [Precise edits and reference images in Images 2.5](/blog/chatgpt-images-2-5-precise-edits-reference-images): the two headline capabilities, worked through.
+- [Posters, infographics, and slides with Images 2.5](/blog/chatgpt-images-2-5-posters-infographics-slides): structured visuals and exact text.
+
+## Sources
+
+- OpenAI, "Introducing ChatGPT Images 2.5," September 8, 2026: [openai.com/index/introducing-chatgpt-images-2-5](https://openai.com/index/introducing-chatgpt-images-2-5/)
+- OpenAI, ChatGPT Images 2.5 System Card: [deploymentsafety.openai.com/chatgpt-images-2-5](https://deploymentsafety.openai.com/chatgpt-images-2-5)
+- OpenAI, gpt-image-2.5-flare model page: [developers.openai.com/api/docs/models/gpt-image-2.5-flare](https://developers.openai.com/api/docs/models/gpt-image-2.5-flare)
+`,
+  },
+  {
+    slug: "how-to-prompt-chatgpt-images-2-5",
+    title: "How to Prompt ChatGPT Images 2.5",
+    subtitle:
+      "A working structure for Images 2.5 prompts: intent, subject, layout, exact text, style, and the constraints that stop the model from guessing. With before-and-after rewrites.",
+    category: "Images 2.5",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-09-09",
+    excerpt:
+      "Images 2.5 is better at doing exactly what you say and leaving alone what you do not mention. That changes where the effort in a prompt should go. Here is the six-part structure we use, the mistakes that still waste generations, and five rough ideas rewritten into prompts that ship.",
+    seo_title: "How to Prompt ChatGPT Images 2.5: Structure, Examples, and Mistakes (2026)",
+    seo_description:
+      "A practical guide to writing prompts for ChatGPT Images 2.5: the six-part structure, how to specify text and references, common mistakes, and five before-and-after prompt rewrites.",
+    faq: [
+      {
+        question: "What should a ChatGPT Images 2.5 prompt contain?",
+        answer:
+          "Six things, in roughly this order: the intent (what kind of image and what it is for), the subject, the composition and aspect ratio, any exact text in quotes with placement, the style and medium, and constraints that say what to avoid or keep. A generation prompt can skip the reference clause; an edit prompt cannot.",
+      },
+      {
+        question: "Are shorter prompts better in Images 2.5?",
+        answer:
+          "OpenAI has not published guidance on prompt length. In our experience the length that matters is the number of decisions you leave to the model, not the word count. A 120-word prompt with no contradictions beats a 40-word prompt that leaves the text, ratio, and reference use unstated.",
+      },
+      {
+        question: "How do I stop Images 2.5 from adding text I did not ask for?",
+        answer:
+          "Name every piece of text in quotes, say where each goes and which is largest, and end with a clause such as 'no other text anywhere in the image.' Empty space with no instruction is where invented copy appears.",
+      },
+      {
+        question: "Can I use the same prompt structure in the API?",
+        answer:
+          "Yes. The structure is model-facing, not app-facing. In the API you would put the aspect ratio in the size parameter rather than in the prompt text, and use the edit endpoint with a source image for edits.",
+      },
+    ],
+    content: `
+## What changed, in one sentence
+
+ChatGPT Images 2.5 is better at doing precisely what you say and, importantly, at leaving alone what you do not mention. OpenAI describes it as following editing instructions more reliably, keeping reference subjects recognizable, and handling more complex layouts. (The launch details are in [what's new in Images 2.5](/blog/chatgpt-images-2-5-whats-new).)
+
+For prompting, that moves the effort. In earlier models you spent words fighting drift. Now the words that pay are the ones that remove a decision from the model: what the image is for, what the text says, what the reference is, what must not change.
+
+This guide is the structure we use in the [Prompt Builder](/generate). It works typed by hand too.
+
+## The six-part structure
+
+Not every prompt needs all six. Every prompt that fails is missing at least one.
+
+### 1. Intent
+
+One line: what kind of image this is and what it is for. "Editorial poster for a print run." "App store screenshot." "Product photo for a white-background listing." Intent sets the defaults for everything below, and the model uses it. A "poster" gets typographic hierarchy; a "photo" gets a lens.
+
+### 2. Subject
+
+Who or what, with the two or three details that make it this subject and not a generic one. "A ceramic pour-over dripper, matte sand glaze, on a walnut board" beats "a coffee product." If a reference image supplies the subject, say so here (see part 6).
+
+### 3. Composition and ratio
+
+Aspect ratio, framing, camera position, where the subject sits. State the ratio even in ChatGPT; the model does not read your mind about vertical versus square. Our [aspect ratio guide](/blog/ai-image-aspect-ratios-guide-gpt-image-2) was written for GPT Image 2 and the recommendations still hold: 2:3 for posters, 4:5 for feed posts, 16:9 for slides and thumbnails, 1:1 for marks and icons.
+
+### 4. Exact text
+
+If text should appear, quote it verbatim, give each piece a position and relative size, and close the door on extra text. Images 2.5 handles defined layouts better than 2.0; it does not read your intent from a blank corner.
+
+\`\`\`
+Text, exactly as written: "RAIN CHECK" (headline, top, largest); "A short film by Ana Ruiz" (below, small caps). No other text, logos, or watermarks.
+\`\`\`
+
+### 5. Style and medium
+
+Medium first, then the two or three properties that define the look: "risograph print, two inks, visible grain" or "35mm photo, Portra 400 look, soft window light." Avoid stacking six adjectives; pick a medium and let it carry the style. The [vocabulary cheat sheet](/blog/ai-image-prompt-vocabulary-cheat-sheet) is model-agnostic and still the best place to steal precise words.
+
+### 6. Constraints and preservation
+
+What to avoid, and, for edits, what to keep. This is where Images 2.5 earns its update. Because the model is better at preserving unmentioned details, an explicit PRESERVE list is more likely to be honored, which means it is worth writing one. The [CHANGE / PRESERVE / MATCH](/blog/ai-image-editing-change-preserve-match) framework covers this in depth; the short form is: name the change, list what stays, and say the new elements must match the old ones in light and grain.
+
+## Five rewrites
+
+Rough idea on top, Builder-style prompt underneath. These are our examples, not OpenAI's.
+
+### Poster
+
+**Rough:** "a poster for my pottery open studio"
+
+\`\`\`
+Editorial print poster, 2:3 portrait, for a pottery open-studio day. Subject: one hand-thrown stoneware bowl, speckled oatmeal glaze, photographed straight-on against warm off-white paper. Composition: bowl centered in the lower two-thirds, generous margin. Exact text: "OPEN STUDIO" (top, largest, condensed grotesk, near-black); "Sat 14 Sept · 10:00-18:00" (directly under headline, one-third the size); "Kiln Lane Pottery, Unit 4" (bottom-left, small). No other text. Style: risograph two-ink print, ochre and near-black, slight misregistration, paper grain. Avoid gradients, drop shadows, and any decorative border.
+\`\`\`
+
+### Product photo
+
+**Rough:** "product shot of our water bottle"
+
+\`\`\`
+E-commerce product photo, 1:1. Subject: a 750 ml matte steel water bottle, forest green, brushed steel cap, no label. Composition: bottle upright, centered, filling 70% of the frame height, on a seamless pure white background. Lighting: large soft box from upper-left, gentle gradient reflection down the bottle's left side, soft contact shadow only. Style: clean catalog photography, 85mm lens, no props. Avoid: reflections of a room, colored casts, extra objects.
+\`\`\`
+
+### Infographic
+
+**Rough:** "infographic on how a heat pump works"
+
+\`\`\`
+Explainer infographic, 4:5 portrait, for a landing page. Layout: three horizontal panels top to bottom, numbered 1-3, each panel a simple line diagram on the left and a two-line caption on the right. Exact text: title "How a heat pump works" (top, largest); panel captions verbatim: 1 "Outdoor air passes over the evaporator coil"; 2 "The compressor raises the refrigerant's temperature"; 3 "The condenser releases heat indoors". Footer: "Source: US Department of Energy" (bottom, smallest). No other text or labels. Style: flat vector, two-color (deep blue, warm gray) on white, 2px consistent line weight. Do not draw a house cross-section or add decorative icons.
+\`\`\`
+
+Note the footer. If the image carries real-world information, give the model the exact source line rather than letting it invent one.
+
+### Reference-led portrait
+
+**Rough:** "put my friend in a 1970s magazine cover" (with a photo attached)
+
+\`\`\`
+Magazine cover, 2:3. Reference image: use as SUBJECT IDENTITY only. Keep the face, hairline, and build recognizable; do not copy the reference's clothing, background, or lighting. Subject wears a 1970s wide-collar shirt and is lit by a single warm tungsten key from camera-right. Composition: head-and-shoulders, subject looking slightly past camera, masthead across the top. Exact text: "TEMPO" (masthead, largest); "The interview" (small, lower-left). No other text. Style: 1976 fashion editorial, film grain, slightly faded color. Avoid modern clothing, logos, and glasses unless present in the reference.
+\`\`\`
+
+### Edit
+
+**Rough:** "change the sky to sunset" (with a photo attached)
+
+\`\`\`
+Edit the attached photo. CHANGE: the sky only, to a late-sunset sky with warm orange near the horizon fading to violet above, thin high clouds. PRESERVE: everything below the horizon line, the buildings, the people, the road, the crop and framing, and the original grain. MATCH: warm the light on the sunlit faces of the buildings to agree with the new sky; keep shadow directions unchanged. Do not add or remove any object.
+\`\`\`
+
+## Mistakes that still waste generations
+
+- **Describing the end state only.** "A photo of Sam in Tokyo" tells the model nothing about which parts of the attached photo of Sam matter. Say what the reference is for.
+- **Adjective stacking.** "Stunning, cinematic, ultra-detailed, 8K" adds nothing a lens, a light, and a medium would not add better. The 2.0-era list of [prompt mistakes](/blog/ai-image-prompt-mistakes) still applies.
+- **Unquoted text.** If the words are not in quotes, the model treats them as a description and may paraphrase.
+- **Contradictions.** "Minimal" and "richly detailed" in the same prompt. The [Prompt Critic](/critique) flags these first because they cap the score of everything else.
+- **No ratio.** You get a square. You wanted a poster.
+- **Forgetting PRESERVE on turn four.** Multi-turn consistency improved; it did not become memory. Restate what stays on every edit.
+
+## A note on prompt length
+
+You may see advice that Images 2.5 prefers short prompts. OpenAI has not said that. Our experience is that the number of decisions you leave open is what matters, not the word count. A 120-word prompt with no contradictions and every text string quoted will beat a 30-word prompt every time. What you should cut is repetition and vibes, not specification.
+
+## Use the tools
+
+- Paste a rough idea into the [Prompt Builder](/generate) and it will produce a prompt in this structure, with the intent stage shown so you can see what it inferred.
+- Paste an existing prompt into the [Prompt Critic](/critique) for a score across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency.
+- Browse the [Library](/library) for 500 worked examples from the GPT Image 2 era, each with a note on why it works, and remix any of them for 2.5.
+
+## Sources
+
+- OpenAI, "Introducing ChatGPT Images 2.5," September 8, 2026: [openai.com/index/introducing-chatgpt-images-2-5](https://openai.com/index/introducing-chatgpt-images-2-5/)
+`,
+  },
+  {
+    slug: "chatgpt-images-2-5-precise-edits-reference-images",
+    title: "Precise Edits and Reference Images in ChatGPT Images 2.5",
+    subtitle:
+      "The two headline capabilities of Images 2.5, worked through: how to ask for a change that leaves the rest alone, how to tell the model what a reference is for, and how to keep a face through a long editing session.",
+    category: "Images 2.5",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-09-09",
+    excerpt:
+      "OpenAI's two biggest claims for Images 2.5 are better reference fidelity and edits that change only what you asked for. Both depend on the prompt saying what the reference is and what must stay. Here is how to write those prompts, with examples for identity, style, product, composition, and sketch references, and a routine for multi-turn edits.",
+    seo_title: "Precise Edits and Reference Images in ChatGPT Images 2.5 (2026 Guide)",
+    seo_description:
+      "How to write edit and reference-image prompts for ChatGPT Images 2.5: the five reference intents, the CHANGE / PRESERVE / MATCH structure, Sketch as a layout reference, and a routine for keeping a subject consistent across many edits.",
+    faq: [
+      {
+        question:
+          "How do I edit one part of an image in ChatGPT Images 2.5 without changing the rest?",
+        answer:
+          "Attach the image, name the single change, list everything that must stay (subject, pose, framing, background, colors, grain), and say the new element must match the existing light. OpenAI says Images 2.5 is better at editing only what you asked for, and a prompt with an explicit preserve list gives it something to hold on to. You can also place a comment on the region in ChatGPT to focus the edit.",
+      },
+      {
+        question: "How do I keep a person's face the same when using a reference photo?",
+        answer:
+          "State that the reference is a subject-identity reference, name the features to keep (face, hairline, build), and say which parts of the reference not to copy (clothing, background, lighting). Restate this on every subsequent edit in the conversation.",
+      },
+      {
+        question: "Does Images 2.5 remember my constraints between edits?",
+        answer:
+          "OpenAI says earlier edits are more likely to stay consistent across turns and quality degrades less. That is not the same as memory. Restate the preserve list on each turn; it is cheap and it works.",
+      },
+      {
+        question: "What is the difference between a style reference and a subject reference?",
+        answer:
+          "A subject reference supplies who or what appears; the model should keep identity and ignore the reference's lighting and background. A style reference supplies how it looks; the model should copy palette, medium, and mood and ignore the reference's subject. If you do not say which, the model guesses.",
+      },
+    ],
+    content: `
+## Why these two capabilities go together
+
+OpenAI leads the Images 2.5 announcement with reference fidelity ("better at preserving the subjects in your reference photos") and precision editing ("better at editing only what you've asked for, while keeping the rest of the details the same"). In practice they are one skill: the model has to understand which pixels are load-bearing and which are up for grabs.
+
+The prompt is where you tell it. A photo attached with no instruction could be a subject, a style, a composition, or a thing to edit. Images 2.5 guesses better than 2.0 did. It still guesses. This guide is about not making it guess.
+
+Everything below the official claims is Depikt's method, built from the [CHANGE / PRESERVE / MATCH](/blog/ai-image-editing-change-preserve-match) framework we used with GPT Image 2 and adjusted for a model that is more likely to honor a preserve list.
+
+## Part 1: say what the reference is for
+
+We use five reference intents in the [Prompt Builder](/generate), plus a sketch mode. Each one produces a different clause.
+
+### Subject identity
+
+The reference supplies who. Keep identity; ignore everything else about the photo.
+
+\`\`\`
+Reference image: SUBJECT IDENTITY only. Keep the face, hairline, skin tone, and build recognizable. Do not copy the reference's clothing, background, lighting, or expression.
+\`\`\`
+
+Then describe the new scene as you would in any generation prompt. If you want the expression kept too, say so; by default we free it.
+
+### Style
+
+The reference supplies how it looks. Copy palette, medium, and mood; ignore its subject.
+
+\`\`\`
+Reference image: STYLE only. Match its color palette, medium (gouache on paper), brush texture, and soft daylight mood. Do not reproduce the reference's subject, composition, or any text in it.
+\`\`\`
+
+### Edit source
+
+The reference is the image to modify. This is the precision-editing case and gets the full CHANGE / PRESERVE / MATCH treatment (Part 2).
+
+### Product or object
+
+The reference supplies an exact object that must be reproduced faithfully: a bottle, a shoe, a logo mark. Identity rules apply to the object.
+
+\`\`\`
+Reference image: PRODUCT. Reproduce the bottle exactly (shape, proportions, cap, label text and position). Place it in the new scene below. Do not restyle, recolor, or simplify the product.
+\`\`\`
+
+### Composition
+
+The reference supplies the framing and arrangement. Copy where things sit; replace what they are.
+
+\`\`\`
+Reference image: COMPOSITION only. Match the camera height, the subject's position in the frame, and the negative space on the right. Replace the subject, setting, and palette with those described below.
+\`\`\`
+
+### Sketch or layout
+
+Images 2.5 ships with Sketch in ChatGPT: type @Sketch, draw, and the drawing becomes a visual guide. OpenAI's examples are a room layout and the contour of an outfit. A sketch is a composition reference with the subject drawn in. The prompt still carries the style and the specifics:
+
+\`\`\`
+Use the attached sketch as the LAYOUT. Keep the placement and relative sizes of the sofa, the window, and the plant exactly as drawn. Render as a photoreal interior, late-afternoon window light, oak floor, linen sofa in oatmeal. Ignore the sketch's line quality and colors.
+\`\`\`
+
+## Part 2: the edit prompt
+
+For an edit-source reference, write three lists.
+
+**CHANGE.** The one thing (or the short list of things) that should be different. One change per turn is still the safest habit.
+
+**PRESERVE.** Everything that must not move. Be literal: subject, pose, expression, clothing, framing and crop, background objects and their positions, color grade, grain. Images 2.5 is better at leaving unmentioned details alone, but the mentioned ones are the ones you can hold it to.
+
+**MATCH.** How the new element should agree with the old ones: light direction, color temperature, depth of field, grain, perspective. This is the difference between an edit and a paste.
+
+\`\`\`
+Edit the attached photo. CHANGE: replace the red car with a dark green 1970s station wagon, same size and position. PRESERVE: the people on the sidewalk, their poses and clothing, the storefronts, the road, the crop, the overcast color grade, and the film grain. MATCH: the wagon must sit under the same flat overcast light with a soft shadow beneath it, same perspective as the original car. Do not add or remove any other object.
+\`\`\`
+
+### Comments as a focus tool
+
+ChatGPT now lets you place a comment directly on an image. It is the best way to point at a region, and it does not replace the PRESERVE list. Use the comment for where and the prompt for what stays.
+
+### When to regenerate instead
+
+If the change is larger than the preserved part, you are not editing, you are generating with a reference. Switch to a subject-identity or composition prompt and describe the whole scene. Edits are for surgery.
+
+## Part 3: multi-turn editing without drift
+
+OpenAI says Images 2.5 follows instructions more reliably across multiple turns and that quality degrades less over a long session. Our routine for making the most of that:
+
+1. **Turn one is the anchor.** Get the base image right before editing anything. If the face is wrong on turn one, no number of edits fixes it.
+2. **One change per turn.** Two changes in one instruction means the model has to weigh them. Split them.
+3. **Restate PRESERVE every turn.** Copy the list forward. Consistency improved; memory was not promised.
+4. **Say "same image" explicitly.** "Edit the image from the previous turn" removes the chance of a fresh generation.
+5. **Check the anchor features.** After every turn, look at the two or three features you care about most (face, product label, brand color). If one has drifted, go back one turn rather than trying to repair forward.
+6. **Restart after a big drift.** Reattach the original as an edit source and redo the surviving edits in one prompt. Three good edits from a clean base beats eight edits on a degraded one.
+
+## Part 4: the Imago handoff
+
+If you build the prompt in Depikt and open it in Imago (our ChatGPT handoff), the reference image does not travel with it; ChatGPT sessions do not share attachments. Depikt shows a re-attach note whenever the prompt depends on a reference. Attach the same image in the new session before you send the prompt.
+
+## Common failures and fixes
+
+- **The face changed.** The reference was read as a style or composition reference. Add "SUBJECT IDENTITY only" and name the features to keep.
+- **The whole image was regenerated.** No PRESERVE list, or the change was described as a new scene. Rewrite as CHANGE / PRESERVE / MATCH and say "edit the attached photo."
+- **The new object looks pasted in.** No MATCH clause. Name the light direction, color temperature, and grain the new element must share.
+- **The product's label is wrong.** Product references need the label text quoted in the prompt; the reference alone is not enough for text.
+- **Edits keep getting worse.** You are five turns past a drift. Go back to the last good frame or restart from the original.
+
+Paste any edit prompt into the [Prompt Critic](/critique); it scores reference handling and edit preservation as essential dimensions and caps the overall score when either one fails.
+
+## Sources
+
+- OpenAI, "Introducing ChatGPT Images 2.5," September 8, 2026: [openai.com/index/introducing-chatgpt-images-2-5](https://openai.com/index/introducing-chatgpt-images-2-5/)
+- OpenAI, ChatGPT Images 2.5 System Card: [deploymentsafety.openai.com/chatgpt-images-2-5](https://deploymentsafety.openai.com/chatgpt-images-2-5)
+`,
+  },
+  {
+    slug: "chatgpt-images-2-5-posters-infographics-slides",
+    title: "Posters, Infographics, and Slides: Structured Visuals with ChatGPT Images 2.5",
+    subtitle:
+      "Images 2.5 handles defined layouts and real-world content better than its predecessor. That only helps if the prompt defines the layout. Here is how to specify text, hierarchy, data, and transparency for the three formats people ask for most.",
+    category: "Images 2.5",
+    author: "Depikt Team",
+    read_time: "6 min",
+    published: "2026-09-09",
+    excerpt:
+      "OpenAI says Images 2.5 handles more complex layouts, renders real-world information more accurately, and improves infographic accuracy. Those gains go to prompts that define the structure. This guide covers exact text, hierarchy, data captions, transparent backgrounds, and templates for posters, infographics, and presentation slides.",
+    seo_title: "Posters, Infographics, and Slides with ChatGPT Images 2.5: Text and Layout Guide",
+    seo_description:
+      "How to prompt ChatGPT Images 2.5 for posters, infographics, and presentation visuals: quoting exact text, defining hierarchy, keeping data accurate, transparent backgrounds, and the ChatGPT Poster template.",
+    faq: [
+      {
+        question: "Can ChatGPT Images 2.5 render accurate text on a poster?",
+        answer:
+          "OpenAI says Images 2.5 handles more complex layouts and more accurate real-world content, and its own examples include posters and a presentation slide with labeled diagrams. Results depend on the prompt: quote every string verbatim, give each one a position and relative size, and forbid extra text. OpenAI has not published an accuracy figure, so proof-read every render.",
+      },
+      {
+        question: "How do I make an infographic with correct data in Images 2.5?",
+        answer:
+          "Put the numbers and captions in the prompt, in quotes, in order, and give the source line. Do not ask the model to know the data. Keep the diagram simple (three to five items) and name the visual form: numbered panels, a horizontal timeline, a single bar row.",
+      },
+      {
+        question: "Can Images 2.5 make a transparent background?",
+        answer:
+          "OpenAI lists transparent backgrounds among the more complex layouts Images 2.5 can handle. Ask for it explicitly ('transparent background, no backdrop, no shadow on the ground') and export as PNG. In the API the background parameter controls this.",
+      },
+      {
+        question: "Should I use the ChatGPT Poster template or write my own prompt?",
+        answer:
+          "The template is a good starting frame for a one-off. For anything with a brand, exact copy, or a series, write the full prompt so the text, ratio, and constraints are yours. You can do both: start from the template, then paste the Builder prompt in.",
+      },
+    ],
+    content: `
+## What OpenAI actually claims
+
+Three lines from the launch matter for structured visuals. Images 2.5 "can handle more complex layouts including transparent backgrounds." Images "that include real-world information have more accurate content." And the model is more likely to retain "the requested visual direction, composition, and individual details" as instructions get more specific, which OpenAI ties to "UI concepts that preserve a given hierarchy, or presentation visuals that fit a defined structure." The system card adds that it "improves infographic accuracy and layout."
+
+What OpenAI does not claim: a text-accuracy percentage, or that the model will design a hierarchy for you. The phrase to notice is "a defined structure." The gains go to prompts that define one.
+
+Everything past this point is Depikt's method. The examples are ours.
+
+## The rules that apply to all three formats
+
+1. **Quote every string.** Text outside quotes is a description and may be paraphrased. Text inside quotes is content.
+2. **Give each string a position and a relative size.** "Top, largest" and "bottom-left, smallest" are enough; the model handles the type.
+3. **Close the door.** End with "No other text, labels, logos, or watermarks." Unlabeled space is where invented copy appears.
+4. **Name the ratio.** 2:3 for print posters, 4:5 or 1:1 for social, 16:9 for slides.
+5. **Pick one medium.** Risograph, flat vector, photo. A medium carries a style better than six adjectives.
+6. **Keep the count low.** Three to five text elements, three to five diagram items. More than that and you are designing a document, not an image.
+
+## Posters
+
+The GPT Image 2 era guide to [posters with text](/blog/how-to-prompt-gpt-image-2-for-posters) laid out a six-part structure: ratio, headline, image, palette, finish, grounding details. It still holds. What is new is that 2.5 is more likely to keep a stated hierarchy intact, so state it.
+
+\`\`\`
+Print poster, 2:3 portrait. Layout, top to bottom: headline band (top 25%), full-bleed image (middle 60%), footer strip (bottom 15%). Exact text: "NIGHT SWIM" (headline, largest, condensed grotesk, all caps); "Open-air cinema · Fri 26 Sept · 21:00" (footer, left, small); "Free with a lido ticket" (footer, right, small). No other text. Image: a single swimmer floating in a floodlit outdoor pool at night, seen from above, turquoise water, one strong overhead light. Style: screen print, three inks (turquoise, warm white, near-black), visible halftone, paper texture. Avoid gradients, drop shadows, decorative borders, and any second swimmer.
+\`\`\`
+
+Notes:
+
+- The layout is given as bands with percentages. This is the "defined structure."
+- The footer has two strings with left and right positions, so the model does not stack them.
+- "Any second swimmer" is a constraint you only think to add after the model has added one. Add it first.
+
+The ChatGPT Poster template (new with 2.5) gives you a frame to fill: information, design elements, style. It is a fine starting point for a one-off. For brand work, exact copy, or a series, write the full prompt so the text and constraints are yours.
+
+## Infographics
+
+The 2.5 launch says real-world content is more accurate and the system card says infographic layout improved. Neither says the model knows your numbers. The rule is simple: everything factual goes in the prompt, in quotes, with a source line.
+
+\`\`\`
+Explainer infographic, 4:5 portrait, for a blog post. Layout: title at top; below it a single horizontal row of four equal panels, numbered 1-4 left to right; each panel has one simple line icon above a two-line caption; a footer line at the bottom. Exact text: title "Where a household's water goes" (largest); panel captions, verbatim: 1 "Toilets · 24%"; 2 "Showers · 20%"; 3 "Taps · 19%"; 4 "Washing machines · 17%"; footer "Source: EPA WaterSense, indoor use" (smallest). No other text, numbers, or labels. Style: flat vector, two colors (deep teal, warm gray) on white, 2px consistent line weight, no gradients, no 3D. Do not draw a house, a pie chart, or decorative water droplets.
+\`\`\`
+
+Notes:
+
+- Four items with four numbers, all supplied. If you do not have a source line, you are not ready to make the infographic.
+- The visual form is named ("a single horizontal row of four equal panels"). Left to the model, you may get a pie chart and a house.
+- Percentages are in the captions, so the model does not have to draw a proportional chart, which is where numbers go wrong.
+
+The older [infographics guide](/blog/how-to-prompt-gpt-image-2-for-infographics) has more on the five-block structure; it was written for GPT Image 2 and the structure is unchanged.
+
+## Slides and presentation visuals
+
+OpenAI's own gallery for 2.5 includes a presentation slide explaining solar flares with a four-step diagram. The prompt shape for a slide is an infographic at 16:9 with less on it.
+
+\`\`\`
+Presentation slide, 16:9, white background, for a company all-hands. Layout: slide title top-left; a horizontal four-step process diagram across the middle (four rounded rectangles connected by arrows, left to right); one-line takeaway bottom-left. Exact text: title "How a support ticket moves" (largest); steps, verbatim, one per box: "Received", "Triaged", "Assigned", "Resolved"; takeaway "Median time to resolve: 2 days" (small). No other text. Style: flat, single accent color (deep blue) with dark gray text, 16px-equivalent consistent stroke, plenty of margin. No icons inside the boxes, no gradients, no clip art.
+\`\`\`
+
+For a deck, generate one slide per prompt and keep the style clause identical across prompts. Images 2.5 is described as better at holding a visual direction across a series; it will not hold one you did not write down.
+
+## Transparent backgrounds
+
+Transparency is named in the launch as one of the "more complex layouts" 2.5 handles. Ask for it in words and export as PNG:
+
+\`\`\`
+Isolated illustration of a single paper coffee cup with a plain white sleeve, three-quarter view. Transparent background: no backdrop, no floor, no ground shadow, no vignette. Flat vector, three colors. Nothing else in the frame.
+\`\`\`
+
+"No ground shadow" is the clause people forget; a shadow on a transparent canvas becomes a gray smear on whatever you place the image over. In the API, the background parameter controls this directly.
+
+## Mistakes specific to structured visuals
+
+- **Letting the model pick the data.** It will. Supply every number and the source.
+- **Six text elements.** You get five right and one wrong, and you cannot tell which until you read them all. Cut to four.
+- **Describing type instead of naming it.** "Elegant font" means nothing. "Condensed grotesk, all caps" or "high-contrast serif, sentence case" does.
+- **A chart with real proportions.** Proportional bars and pie slices are where numbers drift. Put the values in captions and keep the chart schematic.
+- **Forgetting the close.** No "no other text" clause. Something will appear in the empty corner.
+
+## Check it before you generate
+
+Paste the prompt into the [Prompt Critic](/critique). Text and layout is one of the rubric's essential dimensions; an unquoted string or a missing ratio caps the overall score, which is the point. Or start from a rough idea in the [Prompt Builder](/generate), which asks for the exact text and ratio before it writes anything. The [Library](/library) has dozens of poster and infographic prompts from the GPT Image 2 era to study; remix any of them for 2.5.
+
+## Sources
+
+- OpenAI, "Introducing ChatGPT Images 2.5," September 8, 2026: [openai.com/index/introducing-chatgpt-images-2-5](https://openai.com/index/introducing-chatgpt-images-2-5/)
+- OpenAI, ChatGPT Images 2.5 System Card: [deploymentsafety.openai.com/chatgpt-images-2-5](https://deploymentsafety.openai.com/chatgpt-images-2-5)
+`,
+  },
+  {
+    slug: "chatgpt-images-2-5-prompt-examples",
+    title: "ChatGPT Images 2.5 Prompt Examples: 12 Recipes",
+    subtitle:
+      "Twelve complete prompts for Images 2.5, one per format people ask for most, each with the rough idea it came from and a note on the clause that does the work.",
+    category: "Images 2.5",
+    author: "Depikt Team",
+    read_time: "8 min",
+    published: "2026-09-09",
+    excerpt:
+      "Twelve copy-paste prompts written for ChatGPT Images 2.5: posters, product shots, infographics, UI mockups, storyboards, reference-led portraits, precision edits, and more. Each shows the one-line idea it started from and explains which clause earns its place.",
+    seo_title: "ChatGPT Images 2.5 Prompt Examples: 12 Copy-Paste Recipes (2026)",
+    seo_description:
+      "Twelve complete ChatGPT Images 2.5 prompts across posters, product photography, infographics, UI mockups, storyboards, edits, and reference images, each with the rough idea and a note on why the prompt works.",
+    faq: [
+      {
+        question: "Are these prompts specific to ChatGPT Images 2.5?",
+        answer:
+          "They are written for the way Images 2.5 behaves: explicit preserve lists for edits, a named reference intent, quoted text with positions, and a stated ratio. Most will work in earlier models too, with less reliable text and edit preservation.",
+      },
+      {
+        question: "Can I use these prompts in the API?",
+        answer:
+          "Yes. Move the aspect ratio into the size parameter, use the edit endpoint for the edit recipes, and attach reference images as inputs. The prompt text itself does not change.",
+      },
+      {
+        question: "Why do the prompts end with a list of things to avoid?",
+        answer:
+          "Because the things you did not mention are the things the model decides for you. A short avoid list closes the most common doors: extra text, extra objects, gradients, watermarks. It is cheaper than a second generation.",
+      },
+    ],
+    content: `
+## How to use this page
+
+Each recipe has three parts: the one-line idea a person would actually type, the full prompt for ChatGPT Images 2.5, and the clause that does the work. Copy the prompt, replace the specifics, keep the structure. The structure is explained in [how to prompt Images 2.5](/blog/how-to-prompt-chatgpt-images-2-5).
+
+These are Depikt's examples, produced with the [Prompt Builder](/generate). They are not OpenAI's. Where a recipe uses an attached image, attach one; the prompt says how it will be used.
+
+## 1. Event poster
+
+**Idea:** "poster for a jazz night at a bar"
+
+\`\`\`
+Print poster, 2:3 portrait. Layout: headline band top 25%, image middle 60%, footer strip bottom 15%. Exact text: "LATE SET" (headline, largest, condensed grotesk, all caps); "Live jazz · Thursdays from 9" (footer left, small); "The Alcove, 12 Rue Vieille" (footer right, small). No other text. Image: a single upright bass leaning against a dark green velvet curtain, one warm spotlight from upper-left, deep shadows. Style: screen print, three inks (bottle green, cream, near-black), visible halftone, paper grain. Avoid: musicians, instruments other than the bass, gradients, decorative borders.
+\`\`\`
+
+**The clause that works:** the footer split into left and right. Without it the two lines stack and fight the headline.
+
+## 2. Product on white
+
+**Idea:** "product shot of our candle"
+
+\`\`\`
+E-commerce product photo, 1:1. Subject: a 220 g soy candle in a frosted amber glass jar with a plain kraft label reading "No. 4 · Cedar & Smoke" (label text exactly as written, centered on the jar). Composition: jar centered, filling 65% of frame height, on seamless pure white. Lighting: large soft box upper-left, soft gradient on the glass, one soft contact shadow. 85mm catalog look. Avoid: lit flame, props, colored casts, room reflections, extra labels.
+\`\`\`
+
+**The clause that works:** the label text is quoted and positioned. Product references alone do not carry text; the prompt has to.
+
+## 3. Three-panel explainer infographic
+
+**Idea:** "how sourdough starter works, infographic"
+
+\`\`\`
+Explainer infographic, 4:5. Layout: title top; three horizontal panels stacked, numbered 1-3, each with a simple line diagram left and a two-line caption right; footer line bottom. Exact text: title "How a sourdough starter works" (largest); captions verbatim: 1 "Flour and water feed wild yeast and bacteria"; 2 "Fermentation produces gas and lactic acid"; 3 "The starter doubles in 4-8 hours at room temperature"; footer "Source: King Arthur Baking" (smallest). No other text. Style: flat vector, two colors (rust, charcoal) on off-white, 2px line weight, no gradients, no 3D. Do not draw a loaf of bread.
+\`\`\`
+
+**The clause that works:** the source line. If the image carries facts, give the model the facts and where they came from.
+
+## 4. Mobile app screen
+
+**Idea:** "onboarding screen for a habit tracker app"
+
+\`\`\`
+Mobile app screen mockup, 9:16, presented flat (no phone frame). Layout: status bar area top; large illustration in the upper 45%; headline; one-line body; primary button; text link. Exact text: headline "Build one habit at a time" (largest); body "Pick a habit, set a time, and we'll check in daily." (small); button "Get started" (full-width, high-contrast); link "I already have an account" (smallest, centered). No other text. Illustration: a single line-drawn calendar page with one checkmark, two colors. Style: clean iOS-like layout, 24px margins, white background, one accent color (deep green), system-style sans. Avoid: gradients, stock-photo people, extra icons, a navigation bar.
+\`\`\`
+
+**The clause that works:** "presented flat (no phone frame)." Frames eat 40% of the pixels and blur the UI.
+
+## 5. Reference-led portrait
+
+**Idea:** "put me in a 1960s passport photo" (attach a photo)
+
+\`\`\`
+Reference image: SUBJECT IDENTITY only. Keep the face, hairline, and build recognizable; do not copy the reference's clothing, background, or lighting. Passport photo, 1:1, 1960s. Subject in a plain dark wool jacket and white shirt, neutral expression, looking directly at camera. Composition: head and shoulders, centered, plain light gray backdrop. Lighting: flat frontal flash, slight vignette. Style: black-and-white silver gelatin print, fine grain, slightly soft. Avoid: modern eyewear, smiling, color, any text or stamps.
+\`\`\`
+
+**The clause that works:** the first sentence. It tells the model the photo is a who, not a how.
+
+## 6. Precision edit: swap one object
+
+**Idea:** "replace the coffee cup with a teapot" (attach a photo)
+
+\`\`\`
+Edit the attached photo. CHANGE: replace the white coffee cup on the table with a small cast-iron teapot, same position and roughly the same footprint. PRESERVE: the person, their hands and pose, the table surface, the window, the plant, the crop, the color grade, and the grain. MATCH: the teapot must sit under the same soft window light from the left, with a matching soft shadow, same perspective as the cup. Do not add or remove any other object.
+\`\`\`
+
+**The clause that works:** MATCH. Without it you get a teapot that was lit somewhere else.
+
+## 7. Precision edit: background only
+
+**Idea:** "put this product on a marble counter" (attach a product photo)
+
+\`\`\`
+Edit the attached photo. CHANGE: the background and surface only, to a white Carrara marble counter with a soft out-of-focus kitchen behind it. PRESERVE: the product exactly (shape, color, label text, position, and scale), the camera angle, the crop, and the product's own highlights. MATCH: add a soft contact shadow on the marble consistent with the product's existing highlight direction (upper-left). Do not restyle, recolor, or move the product.
+\`\`\`
+
+**The clause that works:** "the product exactly (shape, color, label text...)." Naming the label keeps the text from being redrawn.
+
+## 8. Style transfer from a reference
+
+**Idea:** "make this in the style of the attached painting" (attach an artwork)
+
+\`\`\`
+Reference image: STYLE only. Match its palette, medium (gouache on toned paper), visible brush texture, and flat, slightly naive perspective. Do not reproduce the reference's subject, composition, or any text. New subject: a corner bakery at dawn, one baker in the doorway, bread in the window, wet cobblestones. Composition: 4:5, street-level, bakery filling the right two-thirds. Avoid: photorealism, lens effects, signage text.
+\`\`\`
+
+**The clause that works:** "Do not reproduce the reference's subject." Style references drag their subjects along unless told not to.
+
+## 9. Four-panel storyboard
+
+**Idea:** "storyboard for a 15-second coffee ad"
+
+\`\`\`
+Storyboard, 16:9, four equal panels in a single row, thin black gutters, numbered 1-4 in the top-left corner of each panel (numbers only, no other text). Same character in every panel: a woman in her thirties, short dark curly hair, mustard raincoat. Same style in every panel: loose ink line with one gray wash. Panel 1: wide shot, she steps out of an apartment door into rain. Panel 2: medium shot, she ducks under a café awning, shakes off her hood. Panel 3: close-up, hands around a paper cup, steam. Panel 4: wide shot from behind, she walks on, rain easing, cup in hand. Avoid: dialogue, captions, different characters, color.
+\`\`\`
+
+**The clause that works:** the character anchor repeated as "same character in every panel" with three concrete features. This is what stops the face changing between panels.
+
+## 10. Sketch to render
+
+**Idea:** "turn my room sketch into a real photo" (attach a sketch, or draw one with @Sketch)
+
+\`\`\`
+Use the attached sketch as the LAYOUT. Keep the placement and relative sizes of the bed, the window, the desk, and the rug exactly as drawn; keep the camera position implied by the sketch. Render as a photoreal bedroom, 3:2, late-morning light from the window, white walls, oak floor, a linen duvet in stone, a small desk lamp. Ignore the sketch's line quality, colors, and any handwriting. Avoid: adding furniture not in the sketch, people, text.
+\`\`\`
+
+**The clause that works:** "Ignore the sketch's line quality, colors, and any handwriting." Sketches carry noise; say which parts are signal.
+
+## 11. Transparent sticker
+
+**Idea:** "a sticker of a cat astronaut"
+
+\`\`\`
+Single sticker illustration, 1:1, transparent background: no backdrop, no floor, no ground shadow, no vignette. Subject: a round-faced tabby cat in a white spacesuit, helmet visor up, waving one paw. Style: flat vector, thick 6px white die-cut outline around the whole figure, four colors, no gradients. Nothing else in the frame; no text.
+\`\`\`
+
+**The clause that works:** "no ground shadow." A shadow on a transparent canvas becomes a gray smear on whatever you place the sticker on.
+
+## 12. Presentation slide
+
+**Idea:** "slide showing our three product tiers"
+
+\`\`\`
+Presentation slide, 16:9, white background. Layout: title top-left; three equal columns across the middle, each a rounded rectangle with a tier name at the top and three short lines below; nothing else. Exact text: title "Three ways to start" (largest); column 1: "Free", "1 project", "Community support", "No card required"; column 2: "Pro", "Unlimited projects", "Priority support", "$12/month"; column 3: "Team", "Shared workspaces", "SSO", "Talk to us". No other text. Style: flat, one accent color (deep blue) for the middle column's border only, dark gray text, generous margins. No icons, no gradients, no checkmarks.
+\`\`\`
+
+**The clause that works:** "for the middle column's border only." Accent color without a target gets sprayed across the slide.
+
+## Adapting a recipe
+
+Change the specifics, keep the skeleton: intent, subject, composition and ratio, quoted text with positions, medium, and an avoid list. If you attach an image, keep the reference clause and change only the description after it. Then paste the result into the [Prompt Critic](/critique); it will tell you if a change introduced a contradiction or dropped the ratio.
+
+For 500 more worked examples from the GPT Image 2 era, each with a note on why it works, browse the [Library](/library) and remix any of them for 2.5.
+
+## Sources
+
+- OpenAI, "Introducing ChatGPT Images 2.5," September 8, 2026: [openai.com/index/introducing-chatgpt-images-2-5](https://openai.com/index/introducing-chatgpt-images-2-5/)
+`,
+  },
+  // ---- GPT Image 2 era (historical; claims kept as written) ----
   {
     slug: "how-to-prompt-gpt-image-2-for-logos",
     title: "How to prompt GPT Image 2 for logos and brand marks",
-    subtitle: "The four-block prompt structure that gets clean, scalable, on-brief logo concepts — not generic AI mush.",
+    subtitle:
+      "The four-block prompt structure that gets clean, scalable, on-brief logo concepts — not generic AI mush.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "6 min",
@@ -44,12 +800,12 @@ export const posts: Post[] = [
       {
         question: "What aspect ratio should I use for a logo prompt?",
         answer:
-          "1:1 square for standalone marks. 16:9 or 4:5 if you want a horizontal lockup with wordmark next to symbol. Always state \"centered on a clean white background, generous padding\" so the model gives you a usable crop.",
+          '1:1 square for standalone marks. 16:9 or 4:5 if you want a horizontal lockup with wordmark next to symbol. Always state "centered on a clean white background, generous padding" so the model gives you a usable crop.',
       },
       {
         question: "Why do my AI logos look generic?",
         answer:
-          "Three reasons: no concept anchor (vague brief), too many stylistic adjectives (pick one direction), and no constraint on detail. Add \"flat, single-color, no gradients, no 3D, no drop shadows\" to force the model into real logo territory.",
+          'Three reasons: no concept anchor (vague brief), too many stylistic adjectives (pick one direction), and no constraint on detail. Add "flat, single-color, no gradients, no 3D, no drop shadows" to force the model into real logo territory.',
       },
     ],
     content: `
@@ -113,13 +869,14 @@ This is the constraint block that kills the AI-mush look:
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt templates index](/templates).
+[Depikt's Prompt Builder](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt templates index](/templates).
 `,
   },
   {
     slug: "how-to-prompt-gpt-image-2-for-infographics",
     title: "How to prompt GPT Image 2 for infographics and diagrams",
-    subtitle: "The five-block structure that gets clean labels, real data marks, and a readable hierarchy.",
+    subtitle:
+      "The five-block structure that gets clean labels, real data marks, and a readable hierarchy.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "6 min",
@@ -133,7 +890,7 @@ This is the constraint block that kills the AI-mush look:
       {
         question: "Can GPT Image 2 render real charts and graphs?",
         answer:
-          "Yes — bar charts, line charts, sparklines, simple flow diagrams, and step graphics all render legibly if you specify the chart type, axis labels in quotes, and an approximate data shape (e.g. \"5 bars trending up from 12 to 47\").",
+          'Yes — bar charts, line charts, sparklines, simple flow diagrams, and step graphics all render legibly if you specify the chart type, axis labels in quotes, and an approximate data shape (e.g. "5 bars trending up from 12 to 47").',
       },
       {
         question: "What aspect ratio works best for infographics?",
@@ -199,13 +956,14 @@ This is what separates "AI infographic" from "designed object":
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) detects infographic intent and applies this five-block structure automatically. The [library](/library) has dozens of infographic prompts you can copy directly.
+[Depikt's Prompt Builder](/generate) detects infographic intent and applies this five-block structure automatically. The [library](/library) has dozens of infographic prompts you can copy directly.
 `,
   },
   {
     slug: "how-to-prompt-gpt-image-2-for-ui-mockups",
     title: "How to prompt GPT Image 2 for UI mockups",
-    subtitle: "Get pixel-clean app screens, dashboards, and onboarding flows out of GPT Image 2 — without the AI mush.",
+    subtitle:
+      "Get pixel-clean app screens, dashboards, and onboarding flows out of GPT Image 2 — without the AI mush.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "6 min",
@@ -224,12 +982,12 @@ This is what separates "AI infographic" from "designed object":
       {
         question: "Should I prompt for mobile or desktop UI?",
         answer:
-          "Be explicit. \"iPhone 15 mockup, 9:19.5 portrait\" for mobile. \"Desktop dashboard, 16:10 landscape, MacBook frame\" for web. The wrong ratio is the most common reason a UI mockup looks wrong.",
+          'Be explicit. "iPhone 15 mockup, 9:19.5 portrait" for mobile. "Desktop dashboard, 16:10 landscape, MacBook frame" for web. The wrong ratio is the most common reason a UI mockup looks wrong.',
       },
       {
         question: "How do I get readable buttons and labels?",
         answer:
-          "Quote every label and CTA exactly (\"Sign in\", \"Get started\"). Keep individual labels under 4 words. Specify font weight (\"medium\", \"semibold\") and size relationship (\"primary CTA, larger than the secondary text link below\").",
+          'Quote every label and CTA exactly ("Sign in", "Get started"). Keep individual labels under 4 words. Specify font weight ("medium", "semibold") and size relationship ("primary CTA, larger than the secondary text link below").',
       },
     ],
     content: `
@@ -299,7 +1057,8 @@ What separates "AI screenshot" from "designed screen":
   {
     slug: "how-to-prompt-gpt-image-2-for-storyboards",
     title: "How to prompt GPT Image 2 for storyboards and multi-panel scenes",
-    subtitle: "The exact structure for 3-, 4-, and 6-panel storyboards with consistent character and lighting.",
+    subtitle:
+      "The exact structure for 3-, 4-, and 6-panel storyboards with consistent character and lighting.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "6 min",
@@ -313,7 +1072,7 @@ What separates "AI screenshot" from "designed screen":
       {
         question: "Can GPT Image 2 keep the same character across panels?",
         answer:
-          "Yes — name a single character with 3–4 specific physical features (\"a woman in her 30s with short black hair, denim jacket, round glasses\") and repeat that exact phrase in each panel description.",
+          'Yes — name a single character with 3–4 specific physical features ("a woman in her 30s with short black hair, denim jacket, round glasses") and repeat that exact phrase in each panel description.',
       },
       {
         question: "What's the best aspect ratio for a storyboard?",
@@ -375,13 +1134,14 @@ The single line that makes the storyboard feel like one piece, not four images g
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) recognizes storyboard intent and applies this structure automatically — including the character anchor and shared-style line.
+[Depikt's Prompt Builder](/generate) recognizes storyboard intent and applies this structure automatically — including the character anchor and shared-style line.
 `,
   },
   {
     slug: "how-to-prompt-gpt-image-2-for-product-shots",
     title: "How to prompt GPT Image 2 for product shots",
-    subtitle: "Studio-quality product photography from a prompt — surface, lens, lighting, and the one detail most prompts skip.",
+    subtitle:
+      "Studio-quality product photography from a prompt — surface, lens, lighting, and the one detail most prompts skip.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "5 min",
@@ -395,12 +1155,12 @@ The single line that makes the storyboard feel like one piece, not four images g
       {
         question: "Can GPT Image 2 produce e-commerce-quality product photos?",
         answer:
-          "Yes — for hero shots, lifestyle scenes, and packshots. The key is specifying surface, lens, lighting direction, and adding one grounding detail (steam, condensation, soft shadow, fingerprint smudge) that breaks the \"too clean\" AI look.",
+          'Yes — for hero shots, lifestyle scenes, and packshots. The key is specifying surface, lens, lighting direction, and adding one grounding detail (steam, condensation, soft shadow, fingerprint smudge) that breaks the "too clean" AI look.',
       },
       {
         question: "Should I name a real brand in the prompt?",
         answer:
-          "GPT Image 2 will avoid rendering trademarked logos. Describe the product generically (\"a minimalist matte-black water bottle\") and add your own logo in post if needed.",
+          'GPT Image 2 will avoid rendering trademarked logos. Describe the product generically ("a minimalist matte-black water bottle") and add your own logo in post if needed.',
       },
       {
         question: "Why do my product shots look fake?",
@@ -474,13 +1234,14 @@ One imperfection. That's what separates rendered from photographed.
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) detects product-shot intent and applies this structure automatically, including the grounding-detail line that most prompts skip.
+[Depikt's Prompt Builder](/generate) detects product-shot intent and applies this structure automatically, including the grounding-detail line that most prompts skip.
 `,
   },
   {
     slug: "ai-image-aspect-ratios-guide-gpt-image-2",
     title: "Aspect ratios for AI images: which to use for what (GPT Image 2 guide)",
-    subtitle: "The right ratio for posters, social, slides, mobile screens, storyboards, and print — copy-paste table included.",
+    subtitle:
+      "The right ratio for posters, social, slides, mobile screens, storyboards, and print — copy-paste table included.",
     category: "Reference",
     author: "Depikt Team",
     read_time: "4 min",
@@ -509,7 +1270,7 @@ One imperfection. That's what separates rendered from photographed.
       {
         question: "How do I state an aspect ratio in my prompt?",
         answer:
-          "Use plain English with the ratio number and orientation: \"2:3 portrait,\" \"16:9 landscape,\" \"9:16 vertical.\" Don't use Midjourney-style flags like --ar; they're ignored.",
+          'Use plain English with the ratio number and orientation: "2:3 portrait," "16:9 landscape," "9:16 vertical." Don\'t use Midjourney-style flags like --ar; they\'re ignored.',
       },
     ],
     content: `
@@ -556,13 +1317,14 @@ GPT Image 2 doesn't crop your image after rendering — it **composes** for the 
 
 ## Skip the lookup
 
-[Depikt's generator](/generate) infers the right aspect ratio from your idea automatically — "a movie poster" gets 2:3, "an Instagram ad" gets 4:5, "a desktop hero" gets 16:9. You don't have to remember the table.
+[Depikt's Prompt Builder](/generate) infers the right aspect ratio from your idea automatically — "a movie poster" gets 2:3, "an Instagram ad" gets 4:5, "a desktop hero" gets 16:9. You don't have to remember the table.
 `,
   },
   {
     slug: "free-alternative-to-promptbase-for-gpt-image-2",
     title: "Free alternative to PromptBase for GPT Image 2",
-    subtitle: "If you just want production-grade prompts without paying per download, here's the honest answer.",
+    subtitle:
+      "If you just want production-grade prompts without paying per download, here's the honest answer.",
     category: "Comparison",
     author: "Depikt Team",
     read_time: "5 min",
@@ -625,7 +1387,7 @@ PromptBase has breadth — Midjourney, Stable Diffusion, DALL·E, Flux, Sora, al
 ## Try it
 
 - Browse the [500-prompt library](/library)
-- Open the [generator](/generate) and turn one sentence into a structured prompt
+- Open the [Prompt Builder](/generate) and turn one sentence into a structured prompt
 - Paste any prompt into [critique](/critique) for a score and a rewrite
 
 All free, no account required.
@@ -634,13 +1396,14 @@ All free, no account required.
   {
     slug: "best-free-ai-image-prompt-generator-2026",
     title: "Best free AI image prompt generator in 2026",
-    subtitle: "Tested against real GPT Image 2 outputs — which free tool actually produces ship-ready prompts.",
+    subtitle:
+      "Tested against real GPT Image 2 outputs — which free tool actually produces ship-ready prompts.",
     category: "Comparison",
     author: "Depikt Team",
     read_time: "6 min",
     published: "2026-05-30",
     excerpt:
-      "Most \"AI prompt generators\" just wrap a chat model and return vague text. We tested the free ones against real GPT Image 2 generations. Here's which tool produces prompts you can actually ship, and why structure matters more than cleverness.",
+      'Most "AI prompt generators" just wrap a chat model and return vague text. We tested the free ones against real GPT Image 2 generations. Here\'s which tool produces prompts you can actually ship, and why structure matters more than cleverness.',
     seo_title: "Best Free AI Image Prompt Generator in 2026 (Tested)",
     seo_description:
       "We tested the leading free AI image prompt generators against real GPT Image 2 outputs. Here's which one produces ship-ready prompts and why structure beats clever wording.",
@@ -658,7 +1421,7 @@ All free, no account required.
       {
         question: "What makes one prompt generator better than another?",
         answer:
-          "Three things: it produces structural cues the model actually responds to (lens, lighting direction, palette), it locks aspect ratio and text rendering correctly, and it avoids vague filler words like \"stunning\" or \"beautiful.\"",
+          'Three things: it produces structural cues the model actually responds to (lens, lighting direction, palette), it locks aspect ratio and text rendering correctly, and it avoids vague filler words like "stunning" or "beautiful."',
       },
     ],
     content: `
@@ -692,13 +1455,14 @@ Most free generators do one of two things wrong:
 
 ## Try it
 
-[Open the generator](/generate). Type one sentence. Compare what comes back to whatever your current tool produces. The structural difference is usually obvious within one image.
+[Open the Prompt Builder](/generate). Type one sentence. Compare what comes back to whatever your current tool produces. The structural difference is usually obvious within one image.
 `,
   },
   {
     slug: "how-to-prompt-gpt-image-2-for-posters",
     title: "How to prompt GPT Image 2 for posters with text",
-    subtitle: "The exact structure that gets clean type, locked layout, and print-ready output on the first try.",
+    subtitle:
+      "The exact structure that gets clean type, locked layout, and print-ready output on the first try.",
     category: "How-to",
     author: "Depikt Team",
     read_time: "6 min",
@@ -722,12 +1486,12 @@ Most free generators do one of two things wrong:
       {
         question: "Why does my poster text come out garbled?",
         answer:
-          "Three common causes: the headline isn't in quotes, you didn't specify a font style (\"condensed grotesk,\" \"slab serif\"), or the headline is too long. Keep it under 8 words and quote it exactly.",
+          'Three common causes: the headline isn\'t in quotes, you didn\'t specify a font style ("condensed grotesk," "slab serif"), or the headline is too long. Keep it under 8 words and quote it exactly.',
       },
       {
         question: "Can I get a poster with my own brand colors?",
         answer:
-          "Yes. Name 3–4 specific colors (\"ivory, deep teal, near-black, one orange accent\") rather than vague descriptors. Hex codes also work.",
+          'Yes. Name 3–4 specific colors ("ivory, deep teal, near-black, one orange accent") rather than vague descriptors. Hex codes also work.',
       },
     ],
     content: `
@@ -785,13 +1549,14 @@ Small captions, data marks, a thin brand strip — these take output from "AI ar
 
 ## Skip the rewrite
 
-[Depikt's generator](/generate) applies this exact structure automatically. Type "a poster about climate change" and get back a six-part structured prompt ready to paste into ChatGPT. The [library](/library) has 50+ poster prompts you can copy directly.
+[Depikt's Prompt Builder](/generate) applies this exact structure automatically. Type "a poster about climate change" and get back a six-part structured prompt ready to paste into ChatGPT. The [library](/library) has 50+ poster prompts you can copy directly.
 `,
   },
   {
     slug: "depikt-vs-prompthero-for-gpt-image-2",
     title: "Depikt vs PromptHero: which is better for GPT Image 2?",
-    subtitle: "Both are free. Both have big libraries. Here's the honest difference and when each one wins.",
+    subtitle:
+      "Both are free. Both have big libraries. Here's the honest difference and when each one wins.",
     category: "Comparison",
     author: "Depikt Team",
     read_time: "5 min",
@@ -809,8 +1574,7 @@ Small captions, data marks, a thin brand strip — these take output from "AI ar
       },
       {
         question: "Is PromptHero free?",
-        answer:
-          "Yes, the library is free to browse. PromptHero also has paid features.",
+        answer: "Yes, the library is free to browse. PromptHero also has paid features.",
       },
       {
         question: "Does Depikt have a generator?",
@@ -855,7 +1619,7 @@ Both are free. Both are useful. The difference is **focus**:
 
 If your job is exploring the wider AI image space, PromptHero is the bigger sandbox. If your job is shipping images with GPT Image 2 today, Depikt is the faster path — smaller library, but every prompt works, plus you can generate new ones in seconds.
 
-[Browse the Depikt library](/library) or [try the generator](/generate).
+[Browse the Depikt library](/library) or [try the Prompt Builder](/generate).
 `,
   },
   {
@@ -867,7 +1631,7 @@ If your job is exploring the wider AI image space, PromptHero is the bigger sand
     read_time: "7 min",
     published: "2026-05-17",
     excerpt:
-      "Vague words like \"good lighting\" or \"nice composition\" do almost nothing. Specific photographic and design vocabulary changes the output dramatically. Here's the working cheat sheet — camera, lighting, composition, color, and medium terms that GPT Image 2 actually responds to.",
+      'Vague words like "good lighting" or "nice composition" do almost nothing. Specific photographic and design vocabulary changes the output dramatically. Here\'s the working cheat sheet — camera, lighting, composition, color, and medium terms that GPT Image 2 actually responds to.',
     seo_title: "AI Image Prompt Vocabulary Cheat Sheet (2026 Reference)",
     seo_description:
       "A practical cheat sheet of camera, lighting, composition, color, and medium vocabulary for AI image prompts. Copy-paste terms that GPT Image 2 actually responds to.",
@@ -998,13 +1762,14 @@ The second prompt is shorter and produces a far more consistent image — becaus
   {
     slug: "how-to-prompt-ai-image-generators",
     title: "How to Prompt AI Image Generators: A Practical Guide",
-    subtitle: "The structural pattern that works across GPT Image 2, Midjourney, and Nano Banana — without keyword stacking.",
+    subtitle:
+      "The structural pattern that works across GPT Image 2, Midjourney, and Nano Banana — without keyword stacking.",
     category: "Guides",
     author: "Depikt Team",
     read_time: "10 min",
     published: "2026-05-18",
     excerpt:
-      "Most guides teach keyword stacking — \"8K, ultra-detailed, masterpiece.\" That advice is outdated. Here's the structural pattern that actually works with modern reasoning-based image models, with copy-paste examples.",
+      'Most guides teach keyword stacking — "8K, ultra-detailed, masterpiece." That advice is outdated. Here\'s the structural pattern that actually works with modern reasoning-based image models, with copy-paste examples.',
     seo_title: "How to Prompt AI Image Generators (2026 Practical Guide)",
     seo_description:
       "Learn how to prompt AI image generators like GPT Image 2 with a structural pattern that beats keyword stacking. Copy-paste examples, common mistakes, and a checklist.",
@@ -1022,7 +1787,7 @@ The second prompt is shorter and produces a far more consistent image — becaus
       {
         question: "How do I get AI image generators to render text correctly?",
         answer:
-          "Wrap the text in quotation marks, specify the font style (condensed grotesk, geometric sans, slab serif), specify weight and color, and pin its placement on the canvas. Example: Headline reads \"THE CLOCK IS TICKING\" in condensed grotesk, near-black, top-aligned. GPT Image 2 renders text accurately above 95% on first attempt when prompts follow this structure.",
+          'Wrap the text in quotation marks, specify the font style (condensed grotesk, geometric sans, slab serif), specify weight and color, and pin its placement on the canvas. Example: Headline reads "THE CLOCK IS TICKING" in condensed grotesk, near-black, top-aligned. GPT Image 2 renders text accurately above 95% on first attempt when prompts follow this structure.',
       },
       {
         question: "What are negative prompts and do I need them?",
@@ -2030,6 +2795,24 @@ export const CATEGORY_COLORS: Record<string, string> = {
   Guide: "from-cyan-500/30 to-blue-500/10",
   Mistakes: "from-red-500/30 to-orange-500/10",
 };
+
+/** Posts sorted newest first (the array order is not guaranteed to be chronological). */
+export function getPostsByDate(): Post[] {
+  return [...posts].sort((a, b) => b.published.localeCompare(a.published));
+}
+
+/**
+ * Homepage "Latest guides": the newest posts, preferring the current-model
+ * category so a fresh Images 2.5 guide is never pushed out by an older post.
+ */
+export const CURRENT_MODEL_CATEGORY = "Images 2.5";
+
+export function getLatestGuides(limit = 3): Post[] {
+  const sorted = getPostsByDate();
+  const current = sorted.filter((p) => p.category === CURRENT_MODEL_CATEGORY);
+  const rest = sorted.filter((p) => p.category !== CURRENT_MODEL_CATEGORY);
+  return [...current, ...rest].slice(0, limit);
+}
 
 export function getPostBySlug(slug: string): Post | undefined {
   return posts.find((p) => p.slug === slug);

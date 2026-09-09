@@ -105,6 +105,15 @@ When user sends new prompts, follow these steps in order:
 - No service role key in `.env`
 - Storage uploads work with anon key, but `thumbnail_url` DB updates do not
 
+## Design System (Images 2.5 refresh, September 2026)
+
+- All colors, radii, shadows, and type sizes are CSS variables in `src/styles.css`. Monochrome: white paper (`--bg`), a short gray ladder (`--bg-subtle`, `--bg-muted`), near-black ink (`--text-primary`, `--accent`), hairline borders. No cream/beige tokens; do not reintroduce raw hex in components.
+- `.ink` is the one dark surface: prompt output blocks, the footer, and emphasis CTAs. Use `--ink-*` tokens inside it; `Button variant="inverse"` sits on it.
+- Typography scale: `.text-display-*`, `.text-heading-*`, `.text-body-*`, `.eyebrow` (mono uppercase label). Display and heading weights are 500; do not bold for emphasis.
+- Chips use `.pill`; the selected state is `.pill-solid`. Cards are hairline-bordered `gap-px` grids, not shadowed boxes.
+- Shared chrome: `Header` (nav underline active state), `Footer` (ink band, every route), `AnnouncementBar` (driven by `ANNOUNCEMENT` in `src/lib/product.ts`; flip `active` or set `until` to retire it, change `id` for a new announcement).
+- Blog: `getPostsByDate()` and `getLatestGuides()` in `src/data/posts.ts` drive ordering; the homepage never uses array order. Posts in the `Images 2.5` category are the current-model set. Historical GPT Image 2 posts keep their model claims (guarded by `tests/unit/product-phase3.test.ts`). The markdown renderer supports `![alt](src "caption")` figures.
+
 ## Code Style
 
 - Path alias: `@/*` → `./src/*`
