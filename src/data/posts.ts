@@ -475,7 +475,7 @@ If you build the prompt in Depikt and open it in Imago (our ChatGPT handoff), th
 - **The product's label is wrong.** Product references need the label text quoted in the prompt; the reference alone is not enough for text.
 - **Edits keep getting worse.** You are five turns past a drift. Go back to the last good frame or restart from the original.
 
-Paste any edit prompt into the [Prompt Critic](/critique); it scores reference handling and edit preservation as essential dimensions and caps the overall score when either one fails.
+Paste any edit prompt into the [Prompt Critic](/critique); it scores reference handling and edit preservation as essential dimensions and caps the overall score when either one fails. For finished prompts that use these clauses, browse the [Prompt Library](/library), or start from the [12 Images 2.5 recipes](/blog/chatgpt-images-2-5-prompt-examples).
 
 ## Sources
 

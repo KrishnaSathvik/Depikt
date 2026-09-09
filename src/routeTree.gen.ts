@@ -26,7 +26,7 @@ import { Route as ExamplesChar123IdChar125RouteImport } from './routes/examples.
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
 import { Route as ApiPublicCritiquePromptRouteImport } from './routes/api/public/critique-prompt'
-import { Route as ApiBlogRssXmlRouteImport } from './routes/api/blog.rss.xml'
+import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -114,9 +114,9 @@ const ApiPublicCritiquePromptRoute = ApiPublicCritiquePromptRouteImport.update({
   path: '/api/public/critique-prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBlogRssXmlRoute = ApiBlogRssXmlRouteImport.update({
-  id: '/api/blog/rss/xml',
-  path: '/api/blog/rss/xml',
+const ApiBlogRssDotxmlRoute = ApiBlogRssDotxmlRouteImport.update({
+  id: '/api/blog/rss.xml',
+  path: '/api/blog/rss.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -136,9 +136,9 @@ export interface FileRoutesByFullPath {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -156,9 +156,9 @@ export interface FileRoutesByTo {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
+  '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -177,9 +177,9 @@ export interface FileRoutesById {
   '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/blog/rss/xml': typeof ApiBlogRssXmlRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -199,9 +199,9 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/blog/'
     | '/templates/'
+    | '/api/blog/rss.xml'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
-    | '/api/blog/rss/xml'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -219,9 +219,9 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/blog'
     | '/templates'
+    | '/api/blog/rss.xml'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
-    | '/api/blog/rss/xml'
   id:
     | '__root__'
     | '/'
@@ -239,9 +239,9 @@ export interface FileRouteTypes {
     | '/templates/$slug'
     | '/blog/'
     | '/templates/'
+    | '/api/blog/rss.xml'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
-    | '/api/blog/rss/xml'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -260,9 +260,9 @@ export interface RootRouteChildren {
   TemplatesSlugRoute: typeof TemplatesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  ApiBlogRssDotxmlRoute: typeof ApiBlogRssDotxmlRoute
   ApiPublicCritiquePromptRoute: typeof ApiPublicCritiquePromptRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
-  ApiBlogRssXmlRoute: typeof ApiBlogRssXmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -386,11 +386,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCritiquePromptRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/blog/rss/xml': {
-      id: '/api/blog/rss/xml'
-      path: '/api/blog/rss/xml'
-      fullPath: '/api/blog/rss/xml'
-      preLoaderRoute: typeof ApiBlogRssXmlRouteImport
+    '/api/blog/rss.xml': {
+      id: '/api/blog/rss.xml'
+      path: '/api/blog/rss.xml'
+      fullPath: '/api/blog/rss.xml'
+      preLoaderRoute: typeof ApiBlogRssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -412,9 +412,9 @@ const rootRouteChildren: RootRouteChildren = {
   TemplatesSlugRoute: TemplatesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  ApiBlogRssDotxmlRoute: ApiBlogRssDotxmlRoute,
   ApiPublicCritiquePromptRoute: ApiPublicCritiquePromptRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,
-  ApiBlogRssXmlRoute: ApiBlogRssXmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

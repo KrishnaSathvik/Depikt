@@ -11,6 +11,7 @@ import {
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
   LIBRARY_COPY,
+  LIBRARY_PROMPT_COUNT,
   NAV_ITEMS,
   POSITIONING,
   REFERENCE_REATTACH_NOTE,
@@ -102,7 +103,13 @@ test("current product copy targets ChatGPT Images 2.5 and never claims to genera
     assert.match(SEO[k].title, /ChatGPT Images 2\.5/, k);
   assert.equal(SEO.builder.title, "ChatGPT Images 2.5 Prompt Builder | Depikt");
   assert.equal(SEO.critic.title, "ChatGPT Images 2.5 Prompt Critic | Depikt");
-  assert.match(SEO.library.title, /GPT Image 2/);
+  assert.equal(
+    SEO.library.title,
+    `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples for ChatGPT | Depikt`,
+  );
+  assert.equal(SEO.home.title, "Depikt — AI Image Prompt Builder for ChatGPT Images 2.5");
+  assert.notEqual(SEO.home.title, SEO.root.title);
+  assert.equal(SEO.blog.title, "AI Image Prompt Guides & ChatGPT Images 2.5 Tips | Depikt");
   assert.equal(JSONLD_NAMES.builder, "Depikt Prompt Builder");
   assert.equal(JSONLD_NAMES.critic, "Depikt Prompt Critic");
   for (const d of Object.values(JSONLD_DESCRIPTIONS))

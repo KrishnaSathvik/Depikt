@@ -11,7 +11,7 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
-export const Route = createFileRoute("/api/blog/rss/xml")({
+export const Route = createFileRoute("/api/blog/rss.xml")({
   server: {
     handlers: {
       GET: async () => {

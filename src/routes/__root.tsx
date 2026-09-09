@@ -40,11 +40,6 @@ const STRUCTURED_DATA = [
     name: "Depikt",
     url: "https://depikt.app",
     description: DEFAULT_DESCRIPTION,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://depikt.app/library?page=1&view=browse",
-      "query-input": "required name=search_term_string",
-    },
   },
   {
     "@context": "https://schema.org",

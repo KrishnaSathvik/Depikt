@@ -4,12 +4,12 @@ import { Header } from "@/components/Header";
 import { ScrollRow } from "@/components/ScrollRow";
 import { Footer } from "@/components/Footer";
 import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
-import { TARGET_MODEL_NAME, TOOL } from "@/lib/product";
+import { SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
-const PAGE_TITLE = "AI Image Prompt Engineering — Depikt Blog";
-const PAGE_DESCRIPTION = `Field-tested guides for getting better images from ${TARGET_MODEL_NAME}: prompting, precise edits, reference images, posters and infographics, plus the historical GPT Image 2 guides. Frameworks, examples, comparisons.`;
+const PAGE_TITLE = SEO.blog.title;
+const PAGE_DESCRIPTION = SEO.blog.description;
 const PAGE_URL = absoluteUrl("/blog");
 
 export const Route = createFileRoute("/blog/")({
