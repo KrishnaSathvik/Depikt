@@ -13,8 +13,6 @@ import {
   ChevronRight,
   Code2,
   FileText,
-  ImagePlus,
-  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +20,12 @@ import { Header } from "@/components/Header";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
+import {
+  ReferenceImagePicker,
+  fileToReferenceState,
+  MAX_UPLOAD_BYTES,
+  type ReferenceImageState,
+} from "@/components/ReferenceImagePicker";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
@@ -38,7 +42,7 @@ const GENERATE_JSONLD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 import { readSSEStream } from "@/lib/sse";
-import { resizeImageToBase64, urlToBase64 } from "@/lib/image-utils";
+import { urlToProcessedImage } from "@/lib/image-utils";
 
 interface AppSearch {
   seed?: string;
@@ -56,38 +60,58 @@ export const Route = createFileRoute("/generate")({
     const ref = search.ref;
     return {
       seed: typeof seed === "string" && seed.length > 0 && seed.length <= 4000 ? seed : undefined,
-      prefill: typeof prefill === "string" && prefill.length > 0 && prefill.length <= 4000 ? prefill : undefined,
-      remixRef: typeof search.remixRef === "string" && search.remixRef.length > 0 && search.remixRef.length <= 8000 ? search.remixRef : undefined,
+      prefill:
+        typeof prefill === "string" && prefill.length > 0 && prefill.length <= 4000
+          ? prefill
+          : undefined,
+      remixRef:
+        typeof search.remixRef === "string" &&
+        search.remixRef.length > 0 &&
+        search.remixRef.length <= 8000
+          ? search.remixRef
+          : undefined,
       restore: typeof restore === "string" && restore.length > 0 ? restore : undefined,
       ref: typeof ref === "string" && ref.startsWith("/gallery/") ? ref : undefined,
     };
   },
-  head: () => { const GENERATE_OG_IMAGE = getOgImageForPath(); return ({
-    meta: [
-      { title: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
-      {
-        name: "description",
-        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-      },
-      { property: "og:title", content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
-      {
-        property: "og:description",
-        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-      },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: GENERATE_URL },
-      { property: "og:image", content: GENERATE_OG_IMAGE },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
-      {
-        name: "twitter:description",
-        content: "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
-      },
-      { name: "twitter:image", content: GENERATE_OG_IMAGE },
-    ],
-    links: [{ rel: "canonical", href: GENERATE_URL }],
-    scripts: [{ type: "application/ld+json", children: JSON.stringify(GENERATE_JSONLD) }],
-  }); },
+  head: () => {
+    const GENERATE_OG_IMAGE = getOgImageForPath();
+    return {
+      meta: [
+        { title: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt" },
+        {
+          name: "description",
+          content:
+            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
+        },
+        {
+          property: "og:title",
+          content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt",
+        },
+        {
+          property: "og:description",
+          content:
+            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: GENERATE_URL },
+        { property: "og:image", content: GENERATE_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        {
+          name: "twitter:title",
+          content: "GPT Image 2 Prompt Writer — Idea to Production Prompt | Depikt",
+        },
+        {
+          name: "twitter:description",
+          content:
+            "Type a rough idea, get a structured GPT Image 2 prompt with composition, lighting, type, and palette spelled out. Free, no login.",
+        },
+        { name: "twitter:image", content: GENERATE_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: GENERATE_URL }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(GENERATE_JSONLD) }],
+    };
+  },
   component: AppPage,
 });
 
@@ -100,6 +124,7 @@ interface PromptResult {
   quality?: string;
   aspect_ratio?: string;
   prompt_version?: string;
+  intent?: Record<string, unknown>;
 }
 
 const EXAMPLE_CHIPS = [
@@ -125,10 +150,11 @@ function AppPage() {
   const [result, setResult] = useState<PromptResult | null>(null);
   const [savedRoughIdea, setSavedRoughIdea] = useState("");
   const [inputCollapsed, setInputCollapsed] = useState(false);
-  // Reference image state
-  const [referenceImage, setReferenceImage] = useState<string | null>(null);
+  // Reference image state (processed data URL + how it should be used)
+  const [reference, setReference] = useState<ReferenceImageState | null>(null);
   const [imageLoading, setImageLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Intent reported by the analyzer stage while streaming (dev/debug + history)
+  const [liveIntent, setLiveIntent] = useState<Record<string, unknown> | null>(null);
   // Lazy "more variations" state — appended to the original output
   const [moreLoading, setMoreLoading] = useState(false);
   const [moreVariants, setMoreVariants] = useState<string[] | null>(null);
@@ -139,14 +165,13 @@ function AppPage() {
 
   const handleImageFile = async (file: File) => {
     if (!file.type.startsWith("image/")) return;
-    if (file.size > 10 * 1024 * 1024) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       toast.error("Image too large (max 10MB)");
       return;
     }
     setImageLoading(true);
     try {
-      const dataUrl = await resizeImageToBase64(file, 1024, 0.8);
-      setReferenceImage(dataUrl);
+      setReference(await fileToReferenceState(file, reference?.intent ?? "auto"));
     } catch {
       toast.error("Failed to process image");
     } finally {
@@ -164,6 +189,15 @@ function AppPage() {
         setSavedRoughIdea(entry.roughIdea);
         setResult(entry.result as PromptResult);
         setInputCollapsed(true);
+        if (entry.referenceImage) {
+          setReference({
+            dataUrl: entry.referenceImage,
+            file: null,
+            intent: (entry.referenceIntent as ReferenceImageState["intent"]) ?? "auto",
+          });
+        } else if (entry.referenceImageOmitted) {
+          toast.message("Restored without its reference image (too large to store).");
+        }
       }
       // Strip the restore param so a refresh doesn't replay it
       navigate({ to: "/generate", search: {}, replace: true });
@@ -175,8 +209,8 @@ function AppPage() {
   useEffect(() => {
     if (!ref) return;
     setImageLoading(true);
-    urlToBase64(ref)
-      .then((dataUrl) => setReferenceImage(dataUrl))
+    urlToProcessedImage(ref)
+      .then((img) => setReference({ dataUrl: img.dataUrl, file: null, intent: "auto", meta: img }))
       .catch(() => toast.error("Failed to load reference image"))
       .finally(() => setImageLoading(false));
     navigate({ to: "/generate", search: {}, replace: true });
@@ -228,7 +262,12 @@ function AppPage() {
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        body: JSON.stringify({ userInput: seedInput, referenceImageUrl: undefined, category: "auto", mode: "default" }),
+        body: JSON.stringify({
+          userInput: seedInput,
+          referenceImageUrl: undefined,
+          category: "auto",
+          mode: "default",
+        }),
       });
 
       if (!res.ok || !res.body) {
@@ -288,7 +327,14 @@ function AppPage() {
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        body: JSON.stringify({ userInput, referenceImageUrl: referenceImage || undefined, remixRef: remixReference || undefined, category: "auto", mode: "default" }),
+        body: JSON.stringify({
+          userInput,
+          referenceImageUrl: reference?.dataUrl || undefined,
+          referenceIntent: reference?.intent || undefined,
+          remixRef: remixReference || undefined,
+          category: "auto",
+          mode: "default",
+        }),
       });
 
       if (!res.ok || !res.body) {
@@ -303,6 +349,7 @@ function AppPage() {
         return;
       }
 
+      setLiveIntent(null);
       const finalResult = await streamPrompt(
         res,
         (partial) => setResult(partial),
@@ -310,6 +357,7 @@ function AppPage() {
           setLoading(false);
           setStreaming(true);
         },
+        (intent) => setLiveIntent(intent),
       );
       if (finalResult) {
         setResult(finalResult);
@@ -319,6 +367,8 @@ function AppPage() {
           kind: "generate",
           roughIdea: userInput,
           result: finalResult as Record<string, unknown>,
+          referenceImage: reference?.dataUrl ?? null,
+          referenceIntent: reference?.intent ?? null,
         });
       } else {
         toast.error("Generation ended before a final result arrived. Please try again.");
@@ -339,7 +389,13 @@ function AppPage() {
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        body: JSON.stringify({ userInput: savedRoughIdea, referenceImageUrl: referenceImage || undefined, category: "auto", mode: "BATCH" }),
+        body: JSON.stringify({
+          userInput: savedRoughIdea,
+          referenceImageUrl: reference?.dataUrl || undefined,
+          referenceIntent: reference?.intent || undefined,
+          category: "auto",
+          mode: "BATCH",
+        }),
       });
       if (!res.ok || !res.body) {
         toast.error("Couldn't generate variations");
@@ -373,7 +429,8 @@ function AppPage() {
     setResult(null);
     setMoreVariants(null);
     setSavedRoughIdea("");
-    setReferenceImage(null);
+    setReference(null);
+    setLiveIntent(null);
     setRemixReference(null);
     setInputCollapsed(false);
     setTimeout(() => {
@@ -414,7 +471,10 @@ function AppPage() {
                 Rough idea
               </label>
               <div
-                onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
                 onDrop={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -440,52 +500,15 @@ function AppPage() {
                 />
               </div>
 
-              {/* Reference image preview / upload button */}
+              {/* Reference image + "use as" selector */}
               <div className="mt-3">
                 {imageLoading ? (
                   <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                     Processing image…
                   </div>
-                ) : referenceImage ? (
-                  <div className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5">
-                    <img
-                      src={referenceImage}
-                      alt="Reference image thumbnail"
-                      className="h-8 w-8 rounded object-cover"
-                    />
-                    <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">Reference image</span>
-                    <button
-                      type="button"
-                      onClick={() => setReferenceImage(null)}
-                      className="ml-1 rounded p-0.5 text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] hover:bg-[color:var(--bg-elevated)] transition-colors"
-                      aria-label="Remove reference image"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
                 ) : (
-                  <>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleImageFile(file);
-                        e.target.value = "";
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-mono text-[color:var(--text-tertiary)] hover:text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] border border-dashed border-[color:var(--border-subtle)] hover:border-[color:var(--border-default)] transition-colors"
-                    >
-                      <ImagePlus className="h-3.5 w-3.5" />
-                      Add reference image
-                    </button>
-                  </>
+                  <ReferenceImagePicker value={reference} onChange={setReference} />
                 )}
               </div>
 
@@ -541,7 +564,7 @@ function AppPage() {
         {/* OUTPUT */}
         {showOutput && (
           <div className="mt-10 pt-10 border-t border-[color:var(--border-subtle)]">
-            {loading && !result && <LoadingState />}
+            {loading && !result && <LoadingState intent={liveIntent} />}
             {result && (
               <ResultView
                 result={result}
@@ -565,6 +588,7 @@ async function streamPrompt(
   res: Response,
   onPartial?: (partial: PromptResult) => void,
   onFirstByte?: () => void,
+  onIntent?: (intent: Record<string, unknown>) => void,
 ): Promise<PromptResult | null> {
   let gotFirst = false;
 
@@ -583,6 +607,11 @@ async function streamPrompt(
   };
 
   return readSSEStream<PromptResult>(res, {
+    onStatus: (json) => {
+      if (json.message === "intent" && json.intent && typeof json.intent === "object") {
+        onIntent?.(json.intent as Record<string, unknown>);
+      }
+    },
     onDelta: (json) => {
       if (typeof json.args !== "string") return;
       if (!gotFirst) {
@@ -617,12 +646,19 @@ function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void
   );
 }
 
-function LoadingState() {
+function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
+  const cat = intent && typeof intent.category === "string" ? intent.category : null;
+  const ref =
+    intent && typeof intent.reference_intent === "string" && intent.reference_intent !== "none"
+      ? intent.reference_intent
+      : null;
   return (
     <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6">
       <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Crafting your prompt…
+        {cat
+          ? `Understood: ${cat.replace("_", " ")}${ref ? ` · reference as ${ref.replace("_", " ")}` : ""}. Writing your prompt…`
+          : "Understanding your idea…"}
       </div>
       <div className="mt-6 space-y-2">
         <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] animate-pulse" />
@@ -763,6 +799,7 @@ function ResultView({
                     quality: result.quality,
                     aspect_ratio: result.aspect_ratio,
                     why_it_works: result.why_it_works,
+                    intent: result.intent,
                   }
                 : undefined
             }
@@ -859,7 +896,6 @@ function WhyItWorks({ text, defaultOpen = false }: { text: string; defaultOpen?:
     </div>
   );
 }
-
 
 function Tag({ label, value }: { label: string; value: string }) {
   return (
