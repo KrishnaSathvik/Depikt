@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "sdk_version": "2.0.4",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "depikt",
+      "version": "1.0.0",
+      "title": "Depikt"
+    },
+    "tools": [
+      {
+        "name": "search_prompts",
+        "title": "Search prompt library",
+        "description": "Search Depikt's public library of production-grade ChatGPT image prompts by keyword and/or category. Returns matching prompts with their full prompt text.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Keywords to match against prompt title, body and tags. Omit to browse.",
+              "type": "string"
+            },
+            "category": {
+              "description": "Category filter, e.g. Posters, Infographics, UI Mockups, Cinematic.",
+              "type": "string"
+            },
+            "limit": {
+              "description": "Max results to return (default 10, max 50).",
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_prompt",
+        "title": "Get a prompt",
+        "description": "Fetch one prompt from Depikt's public library by its id or slug, including the full prompt text and why it works.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The prompt id or slug."
+            }
+          },
+          "required": [
+            "id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_templates",
+        "title": "List prompt templates",
+        "description": "List Depikt's prompt templates — reusable prompt formulas, each answering one question with a copy-ready prompt and an explanation of why it works.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "category": {
+              "description": "Optional category filter, e.g. Posters.",
+              "type": "string"
+            },
+            "slug": {
+              "description": "Return only the template with this slug.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_guide",
+        "title": "Read a Depikt guide",
+        "description": "List Depikt's published prompting guides, or read the full text of one guide by slug. Covers prompt structure, text rendering, infographics, UI mockups, product shots and more.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "slug": {
+              "description": "Slug of the guide to read in full. Omit to list all available guides.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

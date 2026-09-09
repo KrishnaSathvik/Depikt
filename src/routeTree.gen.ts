@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LaunchChecklistRouteImport } from './routes/launch-checklist'
@@ -24,6 +25,7 @@ import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as ExamplesChar123IdChar125RouteImport } from './routes/examples.{-$id}'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
 import { Route as ApiPublicCritiquePromptRouteImport } from './routes/api/public/critique-prompt'
 import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
@@ -41,6 +43,11 @@ const SignupRoute = SignupRouteImport.update({
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   id: '/robots.txt',
   path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -104,6 +111,12 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicGeneratePromptRoute = ApiPublicGeneratePromptRouteImport.update({
   id: '/api/public/generate-prompt',
   path: '/api/public/generate-prompt',
@@ -128,9 +141,11 @@ export interface FileRoutesByFullPath {
   '/launch-checklist': typeof LaunchChecklistRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/templates/$slug': typeof TemplatesSlugRoute
@@ -148,9 +163,11 @@ export interface FileRoutesByTo {
   '/launch-checklist': typeof LaunchChecklistRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/templates/$slug': typeof TemplatesSlugRoute
@@ -169,9 +186,11 @@ export interface FileRoutesById {
   '/launch-checklist': typeof LaunchChecklistRoute
   '/library': typeof LibraryRoute
   '/login': typeof LoginRoute
+  '/mcp': typeof McpRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/signup': typeof SignupRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/examples/{-$id}': typeof ExamplesChar123IdChar125Route
   '/templates/$slug': typeof TemplatesSlugRoute
@@ -191,9 +210,11 @@ export interface FileRouteTypes {
     | '/launch-checklist'
     | '/library'
     | '/login'
+    | '/mcp'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
+    | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
     | '/templates/$slug'
@@ -211,9 +232,11 @@ export interface FileRouteTypes {
     | '/launch-checklist'
     | '/library'
     | '/login'
+    | '/mcp'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
+    | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
     | '/templates/$slug'
@@ -231,9 +254,11 @@ export interface FileRouteTypes {
     | '/launch-checklist'
     | '/library'
     | '/login'
+    | '/mcp'
     | '/robots.txt'
     | '/signup'
     | '/sitemap.xml'
+    | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/examples/{-$id}'
     | '/templates/$slug'
@@ -252,9 +277,11 @@ export interface RootRouteChildren {
   LaunchChecklistRoute: typeof LaunchChecklistRoute
   LibraryRoute: typeof LibraryRoute
   LoginRoute: typeof LoginRoute
+  McpRoute: typeof McpRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SignupRoute: typeof SignupRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BlogSlugRoute: typeof BlogSlugRoute
   ExamplesChar123IdChar125Route: typeof ExamplesChar123IdChar125Route
   TemplatesSlugRoute: typeof TemplatesSlugRoute
@@ -286,6 +313,13 @@ declare module '@tanstack/react-router' {
       path: '/robots.txt'
       fullPath: '/robots.txt'
       preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -372,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/generate-prompt': {
       id: '/api/public/generate-prompt'
       path: '/api/public/generate-prompt'
@@ -404,9 +445,12 @@ const rootRouteChildren: RootRouteChildren = {
   LaunchChecklistRoute: LaunchChecklistRoute,
   LibraryRoute: LibraryRoute,
   LoginRoute: LoginRoute,
+  McpRoute: McpRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SignupRoute: SignupRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BlogSlugRoute: BlogSlugRoute,
   ExamplesChar123IdChar125Route: ExamplesChar123IdChar125Route,
   TemplatesSlugRoute: TemplatesSlugRoute,
