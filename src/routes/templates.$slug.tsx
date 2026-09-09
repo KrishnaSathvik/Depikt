@@ -1,8 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Copy, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { getTemplateBySlug, templates } from "@/data/templates";
 import { absoluteUrl } from "@/lib/site";
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/templates/$slug")({
       description: template.short_answer,
       step: [
         { "@type": "HowToStep", name: "Copy the prompt", text: template.prompt },
-        { "@type": "HowToStep", name: "Paste into ChatGPT", text: "Paste this prompt into ChatGPT Images, the OpenAI API, or fal.ai to make the image." },
+        {
+          "@type": "HowToStep",
+          name: "Paste into ChatGPT",
+          text: "Paste this prompt into ChatGPT Images, the OpenAI API, or fal.ai to make the image.",
+        },
       ],
     };
 
@@ -38,7 +43,10 @@ export const Route = createFileRoute("/templates/$slug")({
         {
           "@type": "Question",
           name: template.question,
-          acceptedAnswer: { "@type": "Answer", text: `${template.short_answer}\n\nPrompt:\n${template.prompt}\n\nWhy it works: ${template.why_it_works}` },
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: `${template.short_answer}\n\nPrompt:\n${template.prompt}\n\nWhy it works: ${template.why_it_works}`,
+          },
         },
       ],
     };
@@ -100,9 +108,9 @@ function TemplatePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto max-w-3xl px-6 lg:px-12 py-10">
+      <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10 sm:px-6 lg:px-12">
         <Link
           to="/templates"
           className="inline-flex items-center gap-1.5 text-mono-sm text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] transition-colors"
@@ -122,7 +130,7 @@ function TemplatePage() {
         {/* TL;DR */}
         <aside
           aria-label="Short answer"
-          className="mt-8 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6"
+          className="mt-8 border-t border-[color:var(--text-primary)] pt-6"
         >
           <p className="eyebrow">Short answer</p>
           <p className="mt-3 text-body-lg text-[color:var(--text-primary)]">
@@ -131,22 +139,21 @@ function TemplatePage() {
         </aside>
 
         {/* The prompt */}
-        <section className="mt-10 rounded-xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] overflow-hidden">
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[color:var(--border-subtle)]">
-            <span className="pill">
-              <Sparkles className="h-3 w-3 mr-1.5" />
+        <section className="ink mt-10 overflow-hidden rounded-lg">
+          <div className="flex items-center justify-between border-b border-[color:var(--ink-border)] px-6 py-4">
+            <span className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-[color:var(--ink-text-secondary)]">
               Copy-paste prompt
             </span>
             <button
               type="button"
               onClick={onCopy}
-              className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[color:var(--ink-text-secondary)] transition-colors hover:text-[color:var(--ink-text)]"
             >
               <Copy className="h-3.5 w-3.5" />
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
-          <pre className="px-6 py-5 text-[13px] leading-relaxed font-mono text-[color:var(--code-text)] bg-[color:var(--code-bg)] whitespace-pre-wrap break-words">
+          <pre className="whitespace-pre-wrap break-words px-6 py-6 font-mono text-[13px] leading-[1.75]">
             {template.prompt}
           </pre>
         </section>
@@ -160,20 +167,18 @@ function TemplatePage() {
         </section>
 
         {/* CTA */}
-        <div className="mt-12 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-8 text-center">
-          <h3 className="text-heading-md text-white">Want one for your exact idea?</h3>
-          <p className="mt-2 text-body-sm text-white/70">
+        <div className="mt-12 border-t border-[color:var(--text-primary)] pt-8">
+          <h3 className="text-heading-md text-[color:var(--text-primary)]">
+            Want one for your exact idea?
+          </h3>
+          <p className="mt-2 max-w-[52ch] text-body-md text-[color:var(--text-secondary)]">
             Depikt's Prompt Builder writes a template-style prompt from any rough sentence.
           </p>
-          <Link to="/generate" className="mt-5 inline-block">
-            <Button
-              size="default"
-              variant="secondary"
-              className="bg-white text-[color:var(--accent)] hover:bg-[color:var(--bg-subtle)] border-transparent"
-            >
-              Open Prompt Builder <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Button>
-          </Link>
+          <Button asChild className="mt-5">
+            <Link to="/generate">
+              Open Prompt Builder <ArrowRight />
+            </Link>
+          </Button>
         </div>
 
         {/* Related */}
@@ -200,6 +205,7 @@ function TemplatePage() {
           </section>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

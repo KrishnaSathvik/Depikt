@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
@@ -260,9 +261,9 @@ function CritiquePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <div className="mx-auto max-w-[960px] px-6 py-12 sm:py-16">
+      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
         {collapsed && savedInput ? (
           <CollapsedInput
             text={savedInput}
@@ -277,10 +278,10 @@ function CritiquePage() {
             <p className="eyebrow">
               {TOOL.critic} · for {TARGET_MODEL_NAME}
             </p>
-            <h1 className="mt-4 text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
+            <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
               Find what is weakening your prompt.
             </h1>
-            <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-[64ch]">
+            <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[60ch]">
               Paste any image prompt. The {TOOL.critic} evaluates it for {TARGET_MODEL_NAME}:
               intent, clarity, reference and edit handling, text and layout where relevant, style
               consistency, and unnecessary prompt bloat. You get a score, a breakdown, ranked
@@ -318,7 +319,7 @@ function CritiquePage() {
                     }
                   }}
                   placeholder="Paste a prompt to critique…"
-                  className="min-h-[240px] resize-y bg-[color:var(--bg-elevated)] border-[color:var(--border-default)] text-[15px] font-mono leading-[1.65] focus-visible:border-[color:var(--accent)] focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]/15 px-5 py-4"
+                  className="min-h-[240px] resize-y text-[16px] leading-[1.65] px-5 py-4 font-mono"
                 />
               </div>
 
@@ -363,12 +364,12 @@ function CritiquePage() {
         )}
 
         {(loading || result) && (
-          <div className="mt-10 pt-10 border-t border-[color:var(--border-subtle)]">
+          <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
             {loading && !result && (
               <div
                 role="status"
                 aria-live="polite"
-                className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6"
+                className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
               >
                 <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -386,6 +387,7 @@ function CritiquePage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
@@ -466,7 +468,7 @@ function CritiqueView({
         </div>
       )}
 
-      <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6">
+      <div>
         <div className="flex justify-end mb-4">
           <div className="flex items-center rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg)] p-0.5">
             <button
@@ -497,22 +499,36 @@ function CritiqueView({
         </div>
 
         {view === "json" ? (
-          <pre className="text-[13px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto text-[color:var(--text-primary)]">
+          <pre className="ink rounded-lg px-5 py-5 text-[13px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto">
             {JSON.stringify(result, null, 2)}
           </pre>
         ) : (
           <>
-            <div className="flex items-center justify-between mb-4">
+            <div className="grid gap-6 border-b border-[color:var(--border-subtle)] pb-8 mb-8 sm:grid-cols-[auto_1fr] sm:items-end sm:gap-10">
               <div>
-                <span className="eyebrow">Score</span>
-                <p className="mt-1 text-[11px] text-[color:var(--text-tertiary)]">
+                <span className="eyebrow">Overall score</span>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span
+                    className="text-display-xl tabular-nums leading-none"
+                    style={{ color: scoreColor(overall) }}
+                  >
+                    {overall === null
+                      ? "—"
+                      : Number.isInteger(overall)
+                        ? overall
+                        : overall.toFixed(1)}
+                  </span>
+                  <span className="text-heading-md text-[color:var(--text-tertiary)]">/10</span>
+                </div>
+                <p className="mt-2 text-[11.5px] font-mono uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
                   Evaluated for {TARGET_MODEL_NAME}
                 </p>
               </div>
-              <span className="text-display-md tabular-nums" style={{ color: scoreColor(overall) }}>
-                {overall === null ? "—" : Number.isInteger(overall) ? overall : overall.toFixed(1)}
-                <span className="text-[color:var(--text-tertiary)]">/10</span>
-              </span>
+              {result.summary && (
+                <p className="text-body-lg text-[color:var(--text-primary)] max-w-[52ch]">
+                  {result.summary}
+                </p>
+              )}
             </div>
 
             {result.score_cap && (
@@ -529,12 +545,6 @@ function CritiqueView({
                 {result.score_cap.score}/10.
               </p>
             )}
-            {result.summary && (
-              <p className="mb-6 text-body-md text-[color:var(--text-secondary)]">
-                {result.summary}
-              </p>
-            )}
-
             {dimensions.length > 0 && (
               <div className="mb-6">
                 <button
@@ -548,25 +558,39 @@ function CritiqueView({
                   />
                 </button>
                 {dimsOpen && (
-                  <ul className="space-y-2">
+                  <ul className="border-t border-[color:var(--border-subtle)]">
                     {applicable.map((d) => (
                       <li
                         key={d.id}
-                        className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-4 gap-y-1 items-start"
+                        className="grid grid-cols-[minmax(0,1fr)_auto] gap-x-6 gap-y-1 items-start border-b border-[color:var(--border-subtle)] py-4"
                       >
-                        <div>
-                          <div className="text-body-sm font-medium text-[color:var(--text-primary)]">
+                        <div className="min-w-0">
+                          <div className="text-body-md font-medium text-[color:var(--text-primary)]">
                             {DIMENSION_LABELS[d.id] ?? d.id}
                           </div>
-                          <div className="text-body-sm text-[color:var(--text-secondary)]">
+                          <div className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
                             {d.reason}
                           </div>
                         </div>
-                        <div
-                          className="font-mono text-[13px] tabular-nums"
-                          style={{ color: scoreColor(d.score) }}
-                        >
-                          {d.score}/10
+                        <div className="flex w-[104px] shrink-0 flex-col items-end gap-2 pt-1">
+                          <span
+                            className="font-mono text-[13px] tabular-nums"
+                            style={{ color: scoreColor(d.score) }}
+                          >
+                            {d.score}/10
+                          </span>
+                          <span
+                            className="h-1 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]"
+                            aria-hidden
+                          >
+                            <span
+                              className="block h-full rounded-full"
+                              style={{
+                                width: `${Math.max(0, Math.min(10, d.score ?? 0)) * 10}%`,
+                                background: scoreColor(d.score),
+                              }}
+                            />
+                          </span>
                         </div>
                       </li>
                     ))}
@@ -581,31 +605,39 @@ function CritiqueView({
               </div>
             )}
 
-            {result.weaknesses && result.weaknesses.length > 0 && (
-              <div className="mb-6">
-                <h2 className="text-heading-sm mb-3">Weaknesses</h2>
-                <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
-                  {result.weaknesses.map((w, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-[color:var(--error)] mt-0.5">·</span>
-                      <span>{w}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {result.improvements && result.improvements.length > 0 && (
-              <div>
-                <h2 className="text-heading-sm mb-3">Improvements</h2>
-                <ul className="space-y-2 text-body-sm text-[color:var(--text-secondary)]">
-                  {result.improvements.map((w, i) => (
-                    <li key={i} className="flex gap-2">
-                      <span className="text-[color:var(--success)] mt-0.5">→</span>
-                      <span>{w}</span>
-                    </li>
-                  ))}
-                </ul>
+            {((result.weaknesses && result.weaknesses.length > 0) ||
+              (result.improvements && result.improvements.length > 0)) && (
+              <div className="grid gap-8 md:grid-cols-2 md:gap-12">
+                {result.weaknesses && result.weaknesses.length > 0 && (
+                  <div>
+                    <h2 className="text-heading-sm mb-4">Weaknesses</h2>
+                    <ol className="space-y-3 text-body-md text-[color:var(--text-secondary)]">
+                      {result.weaknesses.map((w, i) => (
+                        <li key={i} className="flex gap-3">
+                          <span className="mt-1 shrink-0 font-mono text-[11.5px] tabular-nums text-[color:var(--text-tertiary)]">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span>{w}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
+                {result.improvements && result.improvements.length > 0 && (
+                  <div>
+                    <h2 className="text-heading-sm mb-4">Improvements</h2>
+                    <ol className="space-y-3 text-body-md text-[color:var(--text-secondary)]">
+                      {result.improvements.map((w, i) => (
+                        <li key={i} className="flex gap-3">
+                          <span className="mt-1 shrink-0 font-mono text-[11.5px] tabular-nums text-[color:var(--text-tertiary)]">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <span>{w}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                )}
               </div>
             )}
           </>
@@ -613,7 +645,7 @@ function CritiqueView({
       </div>
 
       {result.rewritten_prompt && (
-        <div className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6">
+        <div className="border-t border-[color:var(--border-subtle)] pt-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-heading-sm">Rewritten prompt</h2>
             <div className="flex items-center gap-2">
@@ -631,7 +663,7 @@ function CritiqueView({
               </button>
             </div>
           </div>
-          <pre className="rounded-md bg-[color:var(--code-bg)] border border-[color:var(--code-border)] px-5 py-4 text-[13px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto text-[color:var(--code-text)]">
+          <pre className="ink rounded-lg px-5 py-5 sm:px-6 sm:py-6 text-[13px] sm:text-[14px] font-mono leading-[1.75] whitespace-pre-wrap overflow-x-auto">
             {result.rewritten_prompt}
           </pre>
           <div className="mt-4 space-y-2">

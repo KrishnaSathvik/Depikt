@@ -2,8 +2,10 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { getPostBySlug, getRelatedPosts, type PostFaqItem } from "@/data/posts";
+import { TOOL } from "@/lib/product";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -24,7 +26,9 @@ export const Route = createFileRoute("/blog/$slug")({
     const { post } = loaderData;
     const url = absoluteUrl(`/blog/${post.slug}`);
     const ogImage = post.cover_image
-      ? (post.cover_image.startsWith("http") ? post.cover_image : absoluteUrl(post.cover_image))
+      ? post.cover_image.startsWith("http")
+        ? post.cover_image
+        : absoluteUrl(post.cover_image)
       : getOgImageForPath(`/blog/${post.slug}`);
 
     const articleJsonLd = {
@@ -34,7 +38,7 @@ export const Route = createFileRoute("/blog/$slug")({
       description: post.excerpt,
       image: ogImage,
       datePublished: post.published,
-      dateModified: post.published,
+      dateModified: post.updated ?? post.published,
       author: { "@type": "Organization", name: post.author },
       publisher: { "@type": "Organization", name: "Depikt" },
       mainEntityOfPage: { "@type": "WebPage", "@id": url },
@@ -77,6 +81,7 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "og:type", content: "article" },
         { property: "og:url", content: url },
         { property: "article:published_time", content: post.published },
+        { property: "article:modified_time", content: post.updated ?? post.published },
         { property: "article:author", content: post.author },
         { property: "article:section", content: post.category },
         { property: "og:image", content: ogImage },
@@ -95,18 +100,19 @@ export const Route = createFileRoute("/blog/$slug")({
 
 function PostNotFound() {
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto max-w-2xl px-6 py-32 text-center">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-32 text-center">
         <p className="eyebrow">Error · 404</p>
         <h1 className="mt-4 text-display-md">Post not found</h1>
         <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">
           That article doesn’t exist.
         </p>
-        <Link to="/blog" className="mt-8 inline-block">
-          <Button variant="outline">Back to blog</Button>
-        </Link>
+        <Button asChild variant="outline" className="mt-8">
+          <Link to="/blog">Back to blog</Link>
+        </Button>
       </main>
+      <Footer />
     </div>
   );
 }
@@ -151,10 +157,10 @@ function PostPage() {
   }, [headings]);
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
-      <article className="mx-auto max-w-[1400px] px-6 lg:px-12 py-10">
+      <article className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-10 sm:px-6 lg:px-12">
         <Link
           to="/blog"
           className="inline-flex items-center gap-1.5 text-mono-sm text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] transition-colors"
@@ -163,27 +169,48 @@ function PostPage() {
         </Link>
 
         {/* Single grid wraps everything: header, content, and bottom blocks flow in the left column */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-[1fr_240px]">
-          <div className="min-w-0">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-20">
+          <div className="min-w-0 lg:max-w-[760px]">
             {/* Post header */}
             <header>
-              <div className="flex items-center gap-3">
-                <span className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
-                  {post.category}
-                </span>
-                <span className="text-[color:var(--text-quaternary)]">·</span>
-                <span className="font-mono text-[12px] tabular-nums text-[color:var(--text-tertiary)]">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+                <span>{post.category}</span>
+                <span aria-hidden>·</span>
+                <time dateTime={post.published} className="tabular-nums">
                   {formatDate(post.published)}
-                </span>
-                <span className="text-[color:var(--text-quaternary)]">·</span>
-                <span className="font-mono text-[12px] tabular-nums text-[color:var(--text-tertiary)]">
-                  {post.read_time}
-                </span>
+                </time>
+                {post.updated && post.updated !== post.published && (
+                  <>
+                    <span aria-hidden>·</span>
+                    <span className="tabular-nums">Updated {formatDate(post.updated)}</span>
+                  </>
+                )}
+                <span aria-hidden>·</span>
+                <span className="tabular-nums">{post.read_time}</span>
               </div>
 
-              <h1 className="mt-5 text-display-lg text-[color:var(--text-primary)]">{post.title}</h1>
-              <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">{post.subtitle}</p>
+              <h1 className="mt-6 text-display-md md:text-display-lg text-[color:var(--text-primary)]">
+                {post.title}
+              </h1>
+              <p className="mt-5 text-body-lg text-[color:var(--text-secondary)]">
+                {post.subtitle}
+              </p>
+              <p className="mt-6 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+                By {post.author}
+              </p>
             </header>
+
+            {post.cover_image && (
+              <figure className="mt-10">
+                <img
+                  src={post.cover_image}
+                  alt={post.cover_alt ?? ""}
+                  width={1200}
+                  height={630}
+                  className="w-full rounded-md border border-[color:var(--border-subtle)]"
+                />
+              </figure>
+            )}
 
             {/* Mobile TOC */}
             {headings.length > 0 && (
@@ -220,7 +247,7 @@ function PostPage() {
             {post.faq && post.faq.length > 0 && (
               <aside
                 aria-label="What this page answers"
-                className="mt-10 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-6"
+                className="mt-10 border-t border-[color:var(--text-primary)] pt-5"
               >
                 <p className="eyebrow">What this page answers</p>
                 <ul className="mt-4 space-y-2 text-body-md text-[color:var(--text-secondary)] list-disc pl-5 marker:text-[color:var(--text-quaternary)]">
@@ -237,30 +264,28 @@ function PostPage() {
             </div>
 
             {/* CTA */}
-            <div className="mt-14 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-8 sm:px-10 sm:py-10 text-center">
-              <p className="font-mono text-[11px] font-medium tracking-[0.1em] uppercase text-white/60">
-                Build yours
-              </p>
-              <h3 className="mt-2 text-heading-md text-white">
-                Build polished prompts in seconds.
-              </h3>
-              <p className="mt-2 text-body-sm text-white/70">
-                Paste a rough idea. Get back a structured prompt that ships.
-              </p>
-              <Link to="/generate" className="mt-5 inline-block">
-                <Button
-                  size="default"
-                  variant="secondary"
-                  className="bg-white text-[color:var(--accent)] hover:bg-[color:var(--bg-subtle)] border-transparent"
-                >
-                  Open Depikt <ArrowRight className="ml-1.5 h-4 w-4" />
+            <div className="ink mt-14 rounded-lg px-6 py-8 sm:px-10 sm:py-10">
+              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--ink-text-secondary)]">
+                    Build yours
+                  </p>
+                  <h3 className="mt-2 text-heading-md">Build a prompt that follows this guide.</h3>
+                  <p className="mt-2 text-body-md text-[color:var(--ink-text-secondary)]">
+                    Paste a rough idea. Get back a structured prompt for ChatGPT.
+                  </p>
+                </div>
+                <Button asChild variant="inverse" size="lg" className="shrink-0">
+                  <Link to="/generate">
+                    Open {TOOL.builder} <ArrowRight />
+                  </Link>
                 </Button>
-              </Link>
+              </div>
             </div>
 
             {/* Related posts */}
             {related.length > 0 && (
-              <div className="mt-12">
+              <div className="mt-12 border-t border-[color:var(--text-primary)] pt-5">
                 <p className="eyebrow">More in {post.category}</p>
                 <div className="mt-4 grid gap-px bg-[color:var(--border-subtle)] border border-[color:var(--border-subtle)] sm:grid-cols-2">
                   {related.map((r) => (
@@ -268,7 +293,7 @@ function PostPage() {
                       key={r.slug}
                       to="/blog/$slug"
                       params={{ slug: r.slug }}
-                      className="group block bg-[color:var(--bg-elevated)] p-6 hover:bg-[color:var(--bg-subtle)] transition-colors"
+                      className="group block bg-[color:var(--bg-elevated)] p-6 hover:bg-[color:var(--bg-muted)] transition-colors"
                     >
                       <span className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
                         {r.category}
@@ -297,9 +322,9 @@ function PostPage() {
                       <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
                         <a
                           href={`#${h.id}`}
-                          className={`block border-l-2 -ml-px py-1.5 pl-3 font-mono text-[12px] tracking-[0.04em] uppercase transition-colors ${
+                          className={`block border-l -ml-px py-1.5 pl-3 text-[13px] transition-colors ${
                             activeId === h.id
-                              ? "border-[color:var(--accent)] text-[color:var(--text-primary)]"
+                              ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
                               : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
                           }`}
                         >
@@ -310,11 +335,11 @@ function PostPage() {
                   </ul>
                 </div>
               )}
-
             </div>
           </aside>
         </div>
       </article>
+      <Footer />
     </div>
   );
 }

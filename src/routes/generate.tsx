@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
@@ -442,9 +443,9 @@ function AppPage() {
   const showOutput = loading || streaming || result;
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <div className="mx-auto max-w-[960px] px-6 py-12 sm:py-16">
+      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
         {/* INPUT */}
         {inputCollapsed && savedRoughIdea ? (
           <CollapsedInput
@@ -460,10 +461,10 @@ function AppPage() {
             <p className="eyebrow">
               {TOOL.builder} · for {TARGET_MODEL_NAME}
             </p>
-            <h1 className="mt-4 text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
+            <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
               What do you want to make?
             </h1>
-            <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-[60ch]">
+            <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[56ch]">
               Describe the image, or attach a reference and say how to use it. You get a precise{" "}
               {TARGET_MODEL_NAME} prompt to paste into ChatGPT.
             </p>
@@ -498,7 +499,7 @@ function AppPage() {
                     }
                   }}
                   placeholder="e.g. cinematic shot of empty Tokyo street at dawn"
-                  className="min-h-[200px] resize-y bg-[color:var(--bg-elevated)] border-[color:var(--border-default)] text-[15px] font-mono leading-[1.65] focus-visible:border-[color:var(--accent)] focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]/15 px-5 py-4"
+                  className="min-h-[220px] resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px]"
                 />
               </div>
 
@@ -521,7 +522,7 @@ function AppPage() {
                     key={chip.label}
                     type="button"
                     onClick={() => handleChipClick(chip.text)}
-                    className="px-2.5 py-1 rounded-full text-[12px] font-mono bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] transition-colors"
+                    className="pill normal-case tracking-normal text-[12px] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
                   >
                     {chip.label}
                   </button>
@@ -565,7 +566,7 @@ function AppPage() {
 
         {/* OUTPUT */}
         {showOutput && (
-          <div className="mt-10 pt-10 border-t border-[color:var(--border-subtle)]">
+          <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
             {loading && !result && <LoadingState intent={liveIntent} />}
             {result && (
               <ResultView
@@ -586,6 +587,7 @@ function AppPage() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }
@@ -665,7 +667,7 @@ function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
     <div
       role="status"
       aria-live="polite"
-      className="rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--code-bg)] p-6"
+      className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
     >
       <div className="flex items-start gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
         <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
@@ -683,11 +685,11 @@ function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
           <span>{INTENT_STAGE_LABELS.understanding}</span>
         )}
       </div>
-      <div className="mt-6 space-y-2">
-        <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] animate-pulse" />
-        <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] animate-pulse" />
-        <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] w-4/5 animate-pulse" />
-        <div className="h-2.5 rounded-sm bg-[color:var(--bg-elevated)] w-3/4 animate-pulse" />
+      <div className="mt-6 space-y-2.5">
+        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 w-4/5 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 w-3/4 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
       </div>
     </div>
   );
@@ -708,15 +710,15 @@ function CodeBlock({ text, jsonView, streaming = false }: CodeBlockProps) {
       {/* View toggle — sits above the code block on mobile, overlays on desktop */}
       {!streaming && jsonView && (
         <div className="flex justify-end mb-2 sm:mb-0 sm:absolute sm:top-3 sm:right-3 sm:z-10">
-          <div className="flex items-center rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] p-0.5">
+          <div className="flex items-center rounded-md border border-[color:var(--ink-border)] bg-[color:var(--ink-elevated)] p-0.5">
             <button
               type="button"
               onClick={() => setView("text")}
               aria-pressed={view === "text"}
               className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
                 view === "text"
-                  ? "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
-                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+                  ? "bg-[color:var(--ink-text)] text-[color:var(--ink)]"
+                  : "text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)]"
               }`}
               aria-label="Text view"
             >
@@ -728,8 +730,8 @@ function CodeBlock({ text, jsonView, streaming = false }: CodeBlockProps) {
               aria-pressed={view === "json"}
               className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
                 view === "json"
-                  ? "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
-                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+                  ? "bg-[color:var(--ink-text)] text-[color:var(--ink)]"
+                  : "text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)]"
               }`}
               aria-label="JSON view"
             >
@@ -738,10 +740,10 @@ function CodeBlock({ text, jsonView, streaming = false }: CodeBlockProps) {
           </div>
         </div>
       )}
-      <pre className="rounded-lg bg-[color:var(--code-bg)] text-[color:var(--code-text)] px-4 py-4 sm:px-6 sm:py-5 sm:pr-40 text-[13px] sm:text-[14px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto border border-[color:var(--code-border)]">
+      <pre className="ink rounded-lg px-5 py-5 sm:px-6 sm:py-6 sm:pr-40 text-[13px] sm:text-[14px] font-mono leading-[1.75] whitespace-pre-wrap overflow-x-auto">
         {display}
         {streaming && (
-          <span className="inline-block w-1.5 h-4 -mb-0.5 ml-0.5 bg-[color:var(--accent)] animate-pulse align-middle" />
+          <span className="inline-block w-1.5 h-4 -mb-0.5 ml-0.5 bg-[color:var(--ink-text)] animate-pulse align-middle" />
         )}
       </pre>
     </div>
@@ -883,7 +885,7 @@ function ResultView({
           type="button"
           onClick={onMoreVariations}
           disabled={moreLoading}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] hover:bg-[color:var(--bg-subtle)] border border-dashed border-[color:var(--border-default)] hover:border-[color:var(--border-strong)] transition-colors disabled:opacity-50"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md text-body-sm text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] border border-dashed border-[color:var(--border-default)] hover:border-[color:var(--border-strong)] transition-colors disabled:opacity-50"
         >
           {moreLoading ? (
             <>
@@ -940,7 +942,7 @@ function WhyItWorks({ text, defaultOpen = false }: { text: string; defaultOpen?:
 
 function Tag({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-2.5 py-1 text-[12px] font-mono font-medium">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-default)] px-2.5 py-1 text-[12px] font-mono font-medium">
       <span className="text-[color:var(--text-tertiary)] uppercase tracking-[0.06em]">{label}</span>
       <span className="text-[color:var(--text-primary)]">{value}</span>
     </span>

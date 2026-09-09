@@ -3,7 +3,8 @@ import { Copy, Check } from "lucide-react";
 
 // Lightweight markdown renderer tailored to the blog content.
 // Supports: H2/H3, paragraphs, bold, italic, inline code, links,
-// fenced code blocks, unordered/ordered lists, blockquotes, tables, hr.
+// fenced code blocks, unordered/ordered lists, blockquotes, tables, hr,
+// and standalone images: ![alt](src "caption") renders a <figure>.
 
 interface RenderedContent {
   nodes: React.ReactNode;
@@ -27,18 +28,22 @@ function CodeBlock({ code }: { code: string }) {
   };
   return (
     <div className="group relative my-8">
-      <pre className="overflow-x-auto rounded-lg border border-[color:var(--code-border)] bg-[color:var(--code-bg)] px-6 py-5">
-        <code className="font-mono text-[14px] leading-[1.6] text-[color:var(--code-text)] whitespace-pre-wrap break-words">
+      <pre className="ink overflow-x-auto rounded-lg px-6 py-5">
+        <code className="font-mono text-[13.5px] leading-[1.7] whitespace-pre-wrap break-words">
           {code}
         </code>
       </pre>
       <button
         type="button"
         onClick={handleCopy}
-        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
+        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--ink-border)] bg-[color:var(--ink-elevated)] text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)] opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
         aria-label="Copy code"
       >
-        {copied ? <Check className="h-4 w-4 text-[color:var(--success)]" /> : <Copy className="h-4 w-4" />}
+        {copied ? (
+          <Check className="h-4 w-4 text-[color:var(--success)]" />
+        ) : (
+          <Copy className="h-4 w-4" />
+        )}
       </button>
     </div>
   );
@@ -64,13 +69,13 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
           className="rounded-sm bg-[color:var(--code-bg)] border border-[color:var(--code-border)] px-1.5 py-0.5 font-mono text-[0.85em] text-[color:var(--code-text)]"
         >
           {token.slice(1, -1)}
-        </code>
+        </code>,
       );
     } else if (token.startsWith("**")) {
       nodes.push(
         <strong key={key} className="font-semibold text-[color:var(--text-primary)]">
           {token.slice(2, -2)}
-        </strong>
+        </strong>,
       );
     } else if (token.startsWith("[")) {
       const m = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token);
@@ -82,7 +87,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
             className="text-[color:var(--text-primary)] underline underline-offset-[3px] decoration-[color:var(--border-default)] hover:decoration-[color:var(--accent-orange)]"
           >
             {m[1]}
-          </a>
+          </a>,
         );
       }
     }
@@ -104,6 +109,20 @@ export function renderMarkdown(md: string): RenderedContent {
   while (i < lines.length) {
     const line = lines[i];
 
+    // Standalone image line → figure (caption from the optional title)
+    const img = /^!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)\s*$/.exec(line);
+    if (img) {
+      const [, alt, src, caption] = img;
+      out.push(
+        <figure key={`fig-${key++}`}>
+          <img src={src} alt={alt} loading="lazy" />
+          {caption && <figcaption>{renderInline(caption, `cap-${key}`)}</figcaption>}
+        </figure>,
+      );
+      i++;
+      continue;
+    }
+
     if (line.startsWith("```")) {
       const codeLines: string[] = [];
       i++;
@@ -124,10 +143,10 @@ export function renderMarkdown(md: string): RenderedContent {
         <h2
           key={`h-${key++}`}
           id={id}
-          className="mt-24 mb-6 text-heading-lg text-[color:var(--text-primary)]"
+          className="mt-16 mb-5 text-heading-lg text-[color:var(--text-primary)] first:mt-0"
         >
           {text}
-        </h2>
+        </h2>,
       );
       i++;
       continue;
@@ -140,10 +159,10 @@ export function renderMarkdown(md: string): RenderedContent {
         <h3
           key={`h-${key++}`}
           id={id}
-          className="mt-12 mb-4 text-heading-md text-[color:var(--text-primary)]"
+          className="mt-10 mb-3 text-heading-md text-[color:var(--text-primary)]"
         >
           {text}
-        </h3>
+        </h3>,
       );
       i++;
       continue;
@@ -167,12 +186,16 @@ export function renderMarkdown(md: string): RenderedContent {
           className="my-8 border-l-[3px] border-[color:var(--accent)] bg-[color:var(--bg-subtle)] px-6 py-4 italic text-[18px] leading-[1.6] text-[color:var(--text-secondary)]"
         >
           {renderInline(quoteLines.join(" "), `q-${key}`)}
-        </blockquote>
+        </blockquote>,
       );
       continue;
     }
 
-    if (line.startsWith("|") && i + 1 < lines.length && /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())) {
+    if (
+      line.startsWith("|") &&
+      i + 1 < lines.length &&
+      /^\|[\s\-:|]+\|$/.test(lines[i + 1].trim())
+    ) {
       const headerCells = line
         .slice(1, -1)
         .split("|")
@@ -184,7 +207,7 @@ export function renderMarkdown(md: string): RenderedContent {
           lines[i]
             .slice(1, -1)
             .split("|")
-            .map((c) => c.trim())
+            .map((c) => c.trim()),
         );
         i++;
       }
@@ -210,7 +233,10 @@ export function renderMarkdown(md: string): RenderedContent {
               {rows.map((row, rIdx) => (
                 <tr key={rIdx} className="border-t border-[color:var(--border-subtle)]">
                   {row.map((c, cIdx) => (
-                    <td key={cIdx} className="px-4 py-3 align-top text-[color:var(--text-secondary)]">
+                    <td
+                      key={cIdx}
+                      className="px-4 py-3 align-top text-[color:var(--text-secondary)]"
+                    >
                       {renderInline(c, `td-${rIdx}-${cIdx}`)}
                     </td>
                   ))}
@@ -218,7 +244,7 @@ export function renderMarkdown(md: string): RenderedContent {
               ))}
             </tbody>
           </table>
-        </div>
+        </div>,
       );
       continue;
     }
@@ -239,7 +265,7 @@ export function renderMarkdown(md: string): RenderedContent {
               {renderInline(it, `li-${idx}`)}
             </li>
           ))}
-        </ul>
+        </ul>,
       );
       continue;
     }
@@ -260,7 +286,7 @@ export function renderMarkdown(md: string): RenderedContent {
               {renderInline(it, `oli-${idx}`)}
             </li>
           ))}
-        </ol>
+        </ol>,
       );
       continue;
     }
@@ -278,6 +304,7 @@ export function renderMarkdown(md: string): RenderedContent {
       !lines[i].startsWith("#") &&
       !lines[i].startsWith("```") &&
       !lines[i].startsWith("> ") &&
+      !lines[i].startsWith("![") &&
       !/^[-*] /.test(lines[i]) &&
       !/^\d+\.\s/.test(lines[i]) &&
       !lines[i].startsWith("|")
@@ -288,7 +315,7 @@ export function renderMarkdown(md: string): RenderedContent {
     out.push(
       <p key={`p-${key++}`} className="my-6">
         {renderInline(paraLines.join(" "), `p-${key}`)}
-      </p>
+      </p>,
     );
   }
 

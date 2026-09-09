@@ -1,13 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
 import { templates } from "@/data/templates";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 
 const PAGE_TITLE = "Prompt Templates — One question, one citable prompt | Depikt";
 const PAGE_DESCRIPTION =
-  "A growing index of one-question, one-prompt templates for GPT Image 2. Each template answers a specific question (\"What's a prompt for a 3-panel storyboard?\") with a single copy-paste prompt.";
+  'A growing index of one-question, one-prompt templates for GPT Image 2. Each template answers a specific question ("What\'s a prompt for a 3-panel storyboard?") with a single copy-paste prompt.';
 const PAGE_URL = absoluteUrl("/templates");
 
 export const Route = createFileRoute("/templates/")({
@@ -49,9 +51,9 @@ export const Route = createFileRoute("/templates/")({
 
 function TemplatesIndex() {
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto max-w-[1200px] px-6 lg:px-12 py-16">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-12 sm:px-6 lg:px-12 lg:py-16">
         <header className="max-w-[60ch]">
           <p className="eyebrow">Prompt Templates</p>
           <h1 className="mt-4 text-display-lg text-[color:var(--text-primary)]">
@@ -88,19 +90,23 @@ function TemplatesIndex() {
           ))}
         </section>
 
-        <aside className="mt-16 rounded-md border border-[color:var(--accent)] bg-[color:var(--accent)] px-8 py-8 sm:px-10 sm:py-10 text-center">
-          <Sparkles className="mx-auto h-5 w-5 text-white/80" />
-          <h3 className="mt-3 text-heading-md text-white">Don't see your exact question?</h3>
-          <p className="mt-2 text-body-sm text-white/70">
-            The Prompt Builder writes a template-style prompt from any rough idea in seconds.
-          </p>
-          <Link to="/generate" className="mt-5 inline-block">
-            <button className="rounded-md bg-white px-5 py-2.5 text-body-sm font-medium text-[color:var(--accent)] hover:bg-[color:var(--bg-subtle)]">
-              Open Prompt Builder
-            </button>
-          </Link>
+        <aside className="ink mt-16 rounded-lg px-6 py-8 sm:px-10 sm:py-10">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="text-heading-md">Don't see your exact question?</h3>
+              <p className="mt-2 text-body-md text-[color:var(--ink-text-secondary)]">
+                The Prompt Builder writes a template-style prompt from any rough idea in seconds.
+              </p>
+            </div>
+            <Button asChild variant="inverse" size="lg" className="shrink-0">
+              <Link to="/generate">
+                Open Prompt Builder <ArrowRight />
+              </Link>
+            </Button>
+          </div>
         </aside>
       </main>
+      <Footer />
     </div>
   );
 }

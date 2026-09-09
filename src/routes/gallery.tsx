@@ -2,11 +2,9 @@ import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Wand2 } from "lucide-react";
 import { Header } from "@/components/Header";
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -15,34 +13,37 @@ import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
 const GALLERY_URL = absoluteUrl("/gallery");
 
 export const Route = createFileRoute("/gallery")({
-  head: () => { const GALLERY_OG_IMAGE = getOgImageForPath(); return ({
-    meta: [
-      { title: SEO.gallery.title },
-      { name: "description", content: SEO.gallery.description },
-      { property: "og:title", content: SEO.gallery.title },
-      { property: "og:description", content: SEO.gallery.description },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: GALLERY_URL },
-      { property: "og:image", content: GALLERY_OG_IMAGE },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: SEO.gallery.title },
-      { name: "twitter:description", content: SEO.gallery.description },
-      { name: "twitter:image", content: GALLERY_OG_IMAGE },
-    ],
-    links: [{ rel: "canonical", href: GALLERY_URL }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: JSONLD_NAMES.gallery,
-          url: GALLERY_URL,
-          description: JSONLD_DESCRIPTIONS.gallery,
-        }),
-      },
-    ],
-  }); },
+  head: () => {
+    const GALLERY_OG_IMAGE = getOgImageForPath();
+    return {
+      meta: [
+        { title: SEO.gallery.title },
+        { name: "description", content: SEO.gallery.description },
+        { property: "og:title", content: SEO.gallery.title },
+        { property: "og:description", content: SEO.gallery.description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: GALLERY_URL },
+        { property: "og:image", content: GALLERY_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: SEO.gallery.title },
+        { name: "twitter:description", content: SEO.gallery.description },
+        { name: "twitter:image", content: GALLERY_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: GALLERY_URL }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: JSONLD_NAMES.gallery,
+            url: GALLERY_URL,
+            description: JSONLD_DESCRIPTIONS.gallery,
+          }),
+        },
+      ],
+    };
+  },
   component: GalleryPage,
 });
 
@@ -58,31 +59,32 @@ function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <div className="mx-auto max-w-[1400px] px-6 py-12 sm:py-16 lg:px-12">
-        <h1 className="text-display-md sm:text-display-lg tracking-tight text-[color:var(--text-primary)]">
+      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-10 sm:px-6 sm:py-16 lg:px-12">
+        <p className="eyebrow">{TOOL.gallery}</p>
+        <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
           Reference Gallery
         </h1>
-        <p className="mt-3 text-body-md text-[color:var(--text-secondary)] max-w-2xl">
+        <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
           Click any image to preview it, then send it to the {TOOL.builder} as a reference. You
           choose there how it is used: style, subject, composition, and so on.
         </p>
 
-        <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="mt-10 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3">
           {GALLERY_IMAGES.map((filename) => (
             <button
               key={filename}
               type="button"
               onClick={() => setSelected(filename)}
               aria-label={`Preview gallery image ${filename}`}
-              className="group relative aspect-square overflow-hidden rounded-lg border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] cursor-pointer"
+              className="group relative aspect-square cursor-pointer overflow-hidden rounded-sm bg-[color:var(--bg-subtle)]"
             >
               <img
                 src={`/gallery/${filename}`}
                 alt=""
                 loading="lazy"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
               />
             </button>
           ))}
@@ -99,18 +101,15 @@ function GalleryPage() {
                 alt=""
                 className="max-h-[70vh] w-full rounded-md object-contain"
               />
-              <button
-                type="button"
-                onClick={() => handleUseAsReference(selected)}
-                className="flex items-center gap-2 rounded-md bg-[color:var(--accent)] px-4 py-2.5 text-sm font-medium text-[color:var(--bg-elevated)] shadow-sm hover:opacity-90 transition-opacity"
-              >
+              <Button type="button" onClick={() => handleUseAsReference(selected)}>
                 <Wand2 className="h-4 w-4" />
                 Use as reference in {TOOL.builder}
-              </button>
+              </Button>
             </div>
           )}
         </DialogContent>
       </Dialog>
+      <Footer />
     </div>
   );
 }

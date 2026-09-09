@@ -16,6 +16,8 @@ import {
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -40,7 +42,6 @@ import {
 const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { CATEGORY_GRADIENTS } from "@/data/examples";
 import { useFavoriteIds, toggleFavoriteLocal } from "@/lib/favorites";
 import {
   useHistory,
@@ -65,34 +66,37 @@ export const Route = createFileRoute("/library")({
   loader: async (): Promise<LibraryPrompt[]> => fetchLibrary(),
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
-  head: () => { const LIBRARY_OG_IMAGE = getOgImageForPath(); return ({
-    meta: [
-      { title: SEO.library.title },
-      { name: "description", content: SEO.library.description },
-      { property: "og:title", content: SEO.library.title },
-      { property: "og:description", content: SEO.library.description },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: LIBRARY_URL },
-      { property: "og:image", content: LIBRARY_OG_IMAGE },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: SEO.library.title },
-      { name: "twitter:description", content: SEO.library.description },
-      { name: "twitter:image", content: LIBRARY_OG_IMAGE },
-    ],
-    links: [{ rel: "canonical", href: LIBRARY_URL }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          name: JSONLD_NAMES.library,
-          url: LIBRARY_URL,
-          description: JSONLD_DESCRIPTIONS.library,
-        }),
-      },
-    ],
-  }); },
+  head: () => {
+    const LIBRARY_OG_IMAGE = getOgImageForPath();
+    return {
+      meta: [
+        { title: SEO.library.title },
+        { name: "description", content: SEO.library.description },
+        { property: "og:title", content: SEO.library.title },
+        { property: "og:description", content: SEO.library.description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: LIBRARY_URL },
+        { property: "og:image", content: LIBRARY_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: SEO.library.title },
+        { name: "twitter:description", content: SEO.library.description },
+        { name: "twitter:image", content: LIBRARY_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: LIBRARY_URL }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "CollectionPage",
+            name: JSONLD_NAMES.library,
+            url: LIBRARY_URL,
+            description: JSONLD_DESCRIPTIONS.library,
+          }),
+        },
+      ],
+    };
+  },
   component: HomePage,
 });
 
@@ -183,7 +187,15 @@ function HomePage() {
       );
     }
     return list;
-  }, [prompts, activeCategory, activeCollection, showCollections, debouncedSearch, view, favoriteIds]);
+  }, [
+    prompts,
+    activeCategory,
+    activeCollection,
+    showCollections,
+    debouncedSearch,
+    view,
+    favoriteIds,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -201,7 +213,7 @@ function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
       {/*
@@ -210,15 +222,16 @@ function HomePage() {
         subline is supporting, Imago is a feature mention, not a pitch.
       */}
       <section className="border-b border-[color:var(--border-subtle)]">
-        <div className="mx-auto max-w-[1400px] px-6 pt-6 pb-3 md:pt-14 md:pb-6">
-          <h1 className="text-display-md text-[color:var(--text-primary)]">
+        <div className="mx-auto max-w-[1400px] px-4 pt-8 pb-3 sm:px-6 md:pt-14 md:pb-6 lg:px-12">
+          <p className="eyebrow">{TOOL.library}</p>
+          <h1 className="mt-4 max-w-[22ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
             {LIBRARY_COPY.headline}
           </h1>
-          <p className="mt-2 hidden max-w-3xl text-body-lg text-[color:var(--text-secondary)] md:mt-3 md:block">
-            500 sample prompts collected from across the web. Study what works, copy one that
-            fits, or remix it in the {TOOL.builder}.
+          <p className="mt-3 hidden max-w-[60ch] text-body-lg text-[color:var(--text-secondary)] md:block">
+            Sample prompts collected from across the web. Study what works, copy one that fits, or
+            remix it in the {TOOL.builder}.
           </p>
-          <p className="mt-2 max-w-3xl text-[12px] leading-snug text-[color:var(--text-tertiary)] md:text-body-sm">
+          <p className="mt-2 max-w-[70ch] text-[12.5px] leading-snug text-[color:var(--text-tertiary)] md:text-body-sm">
             {LIBRARY_COPY.note}
           </p>
 
@@ -240,14 +253,14 @@ function HomePage() {
           {/* Search — only for browse and favorites */}
           {view !== "history" && (
             <div className="relative mt-3 max-w-2xl md:mt-5">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
+              <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="Search by mood, subject, or style…"
                 aria-label="Search prompts"
-                className="w-full rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] py-3 pl-11 pr-4 text-body-md text-[color:var(--text-primary)] placeholder:text-[color:var(--text-tertiary)] focus:border-[color:var(--accent)] focus:outline-none focus:ring-2 focus:ring-[color:var(--accent)]/15"
+                className="w-full border-0 border-b border-[color:var(--border-default)] bg-transparent py-3 pl-7 pr-4 text-body-lg text-[color:var(--text-primary)] placeholder:text-[color:var(--text-quaternary)] focus:border-[color:var(--text-primary)] focus:outline-none focus-visible:outline-none rounded-none"
               />
             </div>
           )}
@@ -255,7 +268,7 @@ function HomePage() {
 
         {/* Collection chips — only once a second collection exists */}
         {view !== "history" && showCollections && (
-          <div className="mx-auto max-w-[1400px] px-6 pb-2">
+          <div className="mx-auto max-w-[1400px] px-4 pb-2 sm:px-6 lg:px-12">
             <div
               role="group"
               aria-label="Collection"
@@ -269,10 +282,10 @@ function HomePage() {
                     if (page !== 1) navigate({ search: { page: 1, view } });
                   }}
                   aria-pressed={activeCollection === c.value}
-                  className={`pill shrink-0 font-mono uppercase tracking-wider text-mono-sm transition-colors ${
+                  className={`pill shrink-0 ${
                     activeCollection === c.value
-                      ? "bg-[color:var(--text-primary)] text-[color:var(--bg-elevated)]"
-                      : "border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)]"
+                      ? "pill-solid"
+                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
                   }`}
                 >
                   {c.label} · {c.count}
@@ -284,16 +297,17 @@ function HomePage() {
 
         {/* Category chips — only for browse and favorites */}
         {view !== "history" && (
-          <div className="mx-auto max-w-[1400px] px-6 pb-3 md:pb-5">
+          <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
             <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {CATEGORIES.map((c) => (
                 <button
                   key={c}
                   onClick={() => setCategory(c)}
-                  className={`pill shrink-0 font-mono uppercase tracking-wider text-mono-sm transition-colors ${
+                  aria-pressed={activeCategory === c}
+                  className={`pill shrink-0 ${
                     activeCategory === c
-                      ? "bg-[color:var(--accent)] text-[color:var(--bg-elevated)]"
-                      : "border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)]"
+                      ? "pill-solid"
+                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
                   }`}
                 >
                   {c}
@@ -308,20 +322,19 @@ function HomePage() {
       {view === "history" ? (
         <HistoryView entries={historyEntries} />
       ) : (
-        <section className="mx-auto max-w-[1400px] px-6 py-5 md:py-8">
+        <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 md:py-8 lg:px-12">
           {/* Grid header */}
-          <div className="mb-3 flex items-center justify-between gap-4 md:mb-5">
-            <p className="text-[11px] text-[color:var(--text-tertiary)]">
-              Images are sample {TARGET_MODEL_LABELS["gpt-image-2"]} outputs — your results will
-              vary.
+          <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
+            <p className="font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+              {filtered.length} prompts · sample {TARGET_MODEL_LABELS["gpt-image-2"]} outputs, your
+              results will vary
             </p>
-            <Link
-              to="/generate"
-              className="pill inline-flex shrink-0 items-center gap-1.5 bg-[color:var(--accent)] text-[color:var(--bg-elevated)] hover:opacity-90"
-            >
-              <Wand2 className="h-3.5 w-3.5" />
-              Build your own
-            </Link>
+            <Button asChild size="sm" className="shrink-0">
+              <Link to="/generate">
+                <Wand2 className="h-3.5 w-3.5" />
+                Build your own
+              </Link>
+            </Button>
           </div>
 
           {filtered.length === 0 ? (
@@ -338,7 +351,7 @@ function HomePage() {
                     setSearch("");
                     if (page !== 1) navigate({ search: { page: 1, view } });
                   }}
-                  className="mt-4 text-mono-sm uppercase tracking-wider text-[color:var(--accent)] hover:underline"
+                  className="mt-4 text-body-sm font-medium text-[color:var(--text-primary)] underline underline-offset-4"
                 >
                   Clear filters
                 </button>
@@ -346,7 +359,7 @@ function HomePage() {
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px">
+              <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {pageItems.map((p: LibraryPrompt) => (
                   <PromptCard
                     key={`${p.source}-${p.id}`}
@@ -370,6 +383,7 @@ function HomePage() {
       )}
 
       <PromptDetailDialog prompt={selected} onClose={() => setSelected(null)} />
+      <Footer />
     </div>
   );
 }
@@ -386,9 +400,9 @@ function ViewTabButton({
   return (
     <button
       onClick={onClick}
-      className={`inline-flex items-center gap-1.5 pb-3 text-body-sm font-medium transition-colors border-b-2 -mb-px ${
+      className={`inline-flex items-center gap-1.5 pb-3 text-body-sm font-medium transition-colors border-b -mb-px ${
         active
-          ? "border-[color:var(--accent)] text-[color:var(--text-primary)]"
+          ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
           : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-secondary)]"
       }`}
     >
@@ -396,7 +410,6 @@ function ViewTabButton({
     </button>
   );
 }
-
 
 // ─── Pagination ──────────────────────────────────────────────────────────────
 
@@ -435,11 +448,10 @@ function Pagination({
   }
 
   const btnBase =
-    "inline-flex h-10 min-w-[2.5rem] items-center justify-center rounded-lg border text-body-sm font-medium transition-colors";
+    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border text-body-sm font-medium tabular-nums transition-colors";
   const btnInactive =
-    "border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]";
-  const btnActive =
-    "border-[color:var(--accent)] bg-[color:var(--accent)]/10 text-[color:var(--text-primary)] ring-1 ring-[color:var(--accent)]/30";
+    "border-[color:var(--border-default)] bg-transparent text-[color:var(--text-secondary)] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]";
+  const btnActive = "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--ink-text)]";
   const btnDisabled = "cursor-not-allowed opacity-40";
 
   return (
@@ -474,7 +486,7 @@ function Pagination({
           >
             {p}
           </button>
-        )
+        ),
       )}
 
       {/* Next */}
@@ -502,12 +514,19 @@ function PromptCard({
   onOpen: () => void;
   isFavorited: boolean;
 }) {
-  const gradient = CATEGORY_GRADIENTS[prompt.category] ?? CATEGORY_GRADIENTS["Open-Ended Creative"];
-
   return (
     <article
       onClick={onOpen}
-      className="group relative flex cursor-pointer flex-col bg-[color:var(--bg-elevated)] border border-[color:var(--border-subtle)] transition-shadow hover:shadow-md-card"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      aria-label={`View prompt: ${prompt.title}`}
+      className="group relative flex cursor-pointer flex-col bg-[color:var(--bg-elevated)] transition-colors hover:bg-[color:var(--bg-muted)] focus-visible:z-10"
     >
       {/* Star icon */}
       <button
@@ -516,11 +535,11 @@ function PromptCard({
           toggleFavoriteLocal(`${prompt.source}-${prompt.id}`, prompt.source);
         }}
         className={`absolute top-3 right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full transition-all ${
-          prompt.thumbnail_url ? "bg-black/30 backdrop-blur-sm" : ""
+          prompt.thumbnail_url ? "bg-black/40 backdrop-blur-sm" : "bg-[color:var(--bg-subtle)]"
         } ${
           isFavorited
             ? "text-[color:var(--accent-orange)] opacity-100"
-            : "text-white opacity-0 group-hover:opacity-100 hover:text-[color:var(--accent-orange)]"
+            : "text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[color:var(--accent-orange)]"
         }`}
         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
       >
@@ -529,30 +548,32 @@ function PromptCard({
 
       {/* Thumbnail */}
       {prompt.thumbnail_url ? (
-        <div className="relative aspect-square w-full overflow-hidden">
+        <div className="relative aspect-square w-full overflow-hidden bg-[color:var(--bg-subtle)]">
           <img
             src={prompt.thumbnail_url}
             alt=""
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            className="h-full w-full object-cover"
           />
-          {/* Gradient overlay for text readability */}
-          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/50 to-transparent" />
         </div>
       ) : (
-        <div className="px-6 pt-6">
-          <div className="h-2 w-12 rounded-sm" style={{ background: gradient }} aria-hidden />
+        <div className="flex aspect-[3/1] items-end px-5 pt-5 sm:aspect-auto">
+          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+            {prompt.category}
+          </span>
         </div>
       )}
 
-      <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
-        <h2 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">{prompt.title}</h2>
+      <div className="flex flex-1 flex-col gap-2 p-5">
+        <h2 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">
+          {prompt.title}
+        </h2>
         <p className="line-clamp-2 text-body-sm text-[color:var(--text-secondary)]">
           {prompt.prompt}
         </p>
-        <span className="mt-auto flex items-center gap-1 pt-2 text-mono-sm uppercase tracking-wider text-[color:var(--accent)]">
+        <span className="mt-auto flex items-center gap-1 pt-3 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
           View prompt
-          <ArrowRight className="h-3 w-3" />
+          <ArrowRight className="h-3.5 w-3.5" />
         </span>
       </div>
     </article>
@@ -572,7 +593,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
 
   if (entries.length === 0) {
     return (
-      <section className="mx-auto max-w-[1400px] px-6 py-20 text-center">
+      <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-20 text-center sm:px-6 lg:px-12">
         <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)]">
           <Clock className="h-4 w-4 text-[color:var(--text-tertiary)]" />
         </div>
@@ -584,7 +605,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
   }
 
   return (
-    <section className="mx-auto max-w-[1400px] px-6 py-8">
+    <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 lg:px-12">
       <div className="mb-5 flex items-center justify-between gap-4">
         <p className="font-mono text-mono-sm uppercase tracking-wider text-[color:var(--text-tertiary)]">
           {entries.length} {entries.length === 1 ? "entry" : "entries"}
@@ -600,21 +621,15 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-px">
+      <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {entries.map((entry) => (
           <article
             key={entry.id}
-            className="group relative flex cursor-pointer flex-col gap-3 bg-[color:var(--bg-elevated)] border border-[color:var(--border-subtle)] p-6 transition-shadow hover:shadow-md-card"
+            className="group relative flex cursor-pointer flex-col gap-3 bg-[color:var(--bg-elevated)] p-6 transition-colors hover:bg-[color:var(--bg-muted)]"
             onClick={() => handleRestore(entry)}
           >
             <div className="flex items-center gap-2">
-              <span
-                className={`font-mono text-[10px] tracking-[0.08em] uppercase font-semibold ${
-                  entry.kind === "critique"
-                    ? "text-[color:var(--accent)]"
-                    : "text-[color:var(--accent-orange)]"
-                }`}
-              >
+              <span className="font-mono text-[10.5px] tracking-[0.08em] uppercase font-medium text-[color:var(--text-primary)]">
                 {historyKindLabel(entry.kind)}
               </span>
               {typeof entry.result.category === "string" && (
@@ -662,51 +677,43 @@ function PromptDetailDialog({
 
   return (
     <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[color:var(--bg-elevated)]">
-        <DialogHeader>
-          <p className="eyebrow text-[color:var(--text-tertiary)]">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[color:var(--bg-elevated)] p-6 sm:p-8">
+        <DialogHeader className="pr-8">
+          <p className="eyebrow">
             {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
             collection
           </p>
-          <DialogTitle className="text-display-md text-[color:var(--text-primary)]">
+          <DialogTitle className="text-heading-lg text-[color:var(--text-primary)]">
             {prompt.title}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="mt-6">
-          <pre
-            className="overflow-x-auto whitespace-pre-wrap rounded-md p-4 font-mono text-mono-sm text-[color:var(--text-primary)]"
-            style={{ background: "var(--code-bg)" }}
-          >
+        <div className="mt-4">
+          <pre className="ink overflow-x-auto whitespace-pre-wrap rounded-lg px-5 py-5 font-mono text-[13px] leading-[1.7]">
             {prompt.prompt}
           </pre>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-3">
-          <Link
-            to="/generate"
-            search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
-            className="pill flex items-center gap-2 bg-[color:var(--accent)] text-[color:var(--bg-elevated)] hover:opacity-90"
-          >
-            <Wand2 className="h-3.5 w-3.5" />
-            {CTA.remix}
-          </Link>
-          <button
-            onClick={() => openInImago(prompt.prompt)}
-            className="pill flex items-center gap-2 border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:bg-[color:var(--bg-subtle)]"
-          >
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <Link
+              to="/generate"
+              search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
+            >
+              <Wand2 className="h-3.5 w-3.5" />
+              {CTA.remix}
+            </Link>
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => openInImago(prompt.prompt)}>
             Open in Imago
             <ExternalLink className="h-3.5 w-3.5" />
-          </button>
-          <button
-            onClick={() => copyPrompt(prompt.prompt)}
-            className="pill flex items-center gap-2 border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:bg-[color:var(--bg-subtle)]"
-          >
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => copyPrompt(prompt.prompt)}>
             <Copy className="h-3.5 w-3.5" />
             Copy
-          </button>
+          </Button>
         </div>
-        <p className="mt-2 text-[11px] text-[color:var(--text-tertiary)]">
+        <p className="mt-2 text-[12px] text-[color:var(--text-tertiary)]">
           <span className="hidden sm:inline">
             Opens Imago with your prompt copied. Paste with{" "}
             <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
@@ -720,12 +727,11 @@ function PromptDetailDialog({
         </p>
 
         {prompt.why_it_works && (
-          <div className="mt-8 border-t border-[color:var(--border-subtle)] pt-6">
-            <p className="eyebrow mb-2 text-[color:var(--text-tertiary)]">Why it works</p>
+          <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
+            <p className="eyebrow mb-2">Why it works</p>
             <p className="text-body-md text-[color:var(--text-secondary)]">{prompt.why_it_works}</p>
           </div>
         )}
-
       </DialogContent>
     </Dialog>
   );
