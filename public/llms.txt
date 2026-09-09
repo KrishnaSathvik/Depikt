@@ -1,48 +1,100 @@
 # Depikt
 
-> Depikt is a reference library and prompt workspace for ChatGPT Images. It turns rough ideas and reference images into image-ready prompts for ChatGPT Images 2.5, critiques existing prompts, and keeps a curated collection of 500 GPT Image 2 prompt examples. Depikt writes and reviews prompts; it does not generate images. Free, no login.
+> Depikt is a prompt workspace and reference library for AI image creation. Explore proven prompt examples, turn rough ideas and reference images into structured prompts with Prompt Builder, improve existing prompts with Prompt Critic, browse visual references, and learn from practical prompting guides.
+
+Depikt's Library currently includes **523 curated prompts**: 500 original GPT Image 2 examples and 23 tested ChatGPT Images 2.5 recipes.
 
 ## Core tools
 
-- [Library](https://depikt.app/library): The GPT Image 2 collection: 500 curated prompt examples across 10 categories (posters, infographics, UI mockups, social posts, cinematic, product, illustrations, image edits, multi-panel, and more), each with a thumbnail and a "why it works" note. These were written for GPT Image 2; use them to learn, copy, or remix. A separate ChatGPT Images 2.5 collection is planned.
-- [Prompt Builder](https://depikt.app/generate): Describe what you want, optionally attach a reference image and say how it should be used (style, subject/identity, edit source, product, composition, sketch/layout). Depikt analyzes the intent (format, ratio, exact text, reference use, series, missing facts), then writes one precise prompt for ChatGPT Images 2.5 with a "why it works" explanation. Open the result in ChatGPT (Imago) to make the image; re-attach the same reference image there when the prompt depends on one.
-- [Prompt Critic](https://depikt.app/critique): Paste any image prompt (optionally with its source or reference image). Depikt scores it for ChatGPT Images 2.5 across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, lists weaknesses and concrete improvements, and returns a rewritten prompt.
-- [Reference Gallery](https://depikt.app/gallery): Hand-picked reference images. Click any image to send it to the Prompt Builder as a reference.
+- [Library](https://depikt.app/library): Browse 523 curated image prompts across posters, infographics, UI concepts, social graphics, cinematic scenes, product imagery, illustrations, image edits, multi-panel layouts, reference workflows, and more. Each entry includes a sample image, the full prompt, and an explanation of why it works. The Library contains both GPT Image 2 and tested ChatGPT Images 2.5 examples in one collection.
 
-## ChatGPT Images 2.5 guides (September 2026)
+- [Prompt Builder](https://depikt.app/generate): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
 
-OpenAI released ChatGPT Images 2.5 on September 8, 2026. These guides separate official model changes from ChatGPT features, and explain how each one changes the prompt you write. Depikt's Prompt Builder and Prompt Critic are tuned for this model.
+- [Prompt Critic](https://depikt.app/critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
 
-- [ChatGPT Images 2.5: What's New and What It Means for Prompting](https://depikt.app/blog/chatgpt-images-2-5-whats-new): The launch, sorted into model changes, ChatGPT features (Sketch, Templates, comments, shared prompts), and API models (gpt-image-2.5-flare, gpt-image-2.5-sunburst), with what each means for prompting.
-- [How to Prompt ChatGPT Images 2.5](https://depikt.app/blog/how-to-prompt-chatgpt-images-2-5): The six-part prompt structure (intent, subject, composition and ratio, exact text, style, constraints) with five before-and-after rewrites.
-- [Precise Edits and Reference Images in ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-precise-edits-reference-images): The five reference intents, CHANGE / PRESERVE / MATCH edit prompts, Sketch as a layout reference, and a routine for multi-turn edits without drift.
-- [Posters, Infographics, and Slides with ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-posters-infographics-slides): Exact text, hierarchy, data captions with sources, transparent backgrounds, and presentation slides.
-- [ChatGPT Images 2.5 Prompt Examples: 12 Recipes](https://depikt.app/blog/chatgpt-images-2-5-prompt-examples): Twelve complete prompts across posters, product photos, infographics, UI mockups, storyboards, edits, and reference images.
+- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked visual references across different styles and formats. Open an image to inspect it or send it into Prompt Builder as a reference.
 
-## Templates — reusable structures for common image jobs
+- [Templates](https://depikt.app/templates): Reusable prompt starters for common image tasks. Templates provide a useful structure for getting started before refining the idea in Prompt Builder.
 
-Model-neutral structures, not prompt examples. Each one lists the details you provide and a prompt skeleton with placeholders; fill it in and continue in the Prompt Builder. They contain no model-specific syntax, so they work with ChatGPT Images, Midjourney, FLUX, Firefly, Ideogram, and others.
+## ChatGPT Images 2.5
 
-- [Templates](https://depikt.app/templates): All 15 structures, grouped into Create (Portrait / Photography, Product Photography, Poster / Flyer, Social Creative / Ad, Architecture / Interior), Structure (Infographic / Explainer, Presentation Visual, UI / App Concept, Character Design Sheet, Storyboard / Multi-Panel), Edit (Precise Image Edit, Style Transfer / Restyle), References (Reference-Based Subject, Multi-Reference Composition), and Brand (Logo / Brand to Merch).
-- MCP-compatible assistants can read the same catalogue with `list_templates` and `get_template` at https://depikt.app/mcp.
+OpenAI released ChatGPT Images 2.5 on September 8, 2026. Depikt's Prompt Builder and Prompt Critic have been updated around the newer model's stronger reference handling, precise edits, structured visuals, text-heavy layouts, and multi-turn workflows.
 
-## How-to guides (historical GPT Image 2 guides)
+The Library contains **23 generated and reviewed ChatGPT Images 2.5 recipes** alongside the original GPT Image 2 collection.
 
-Each guide answers one concrete prompting question with a TL;DR, a working template, and an explanation of why each part matters. These articles were written about GPT Image 2 and are kept as historical references; the Prompt Builder and Prompt Critic now target ChatGPT Images 2.5.
+### Images 2.5 guides
+
+- [ChatGPT Images 2.5: What's New and What It Means for Prompting](https://depikt.app/blog/chatgpt-images-2-5-whats-new): A practical look at the Images 2.5 release, including reference fidelity, precise editing, multi-turn consistency, Sketch, Templates, shared prompts, and the API models.
+
+- [How to Prompt ChatGPT Images 2.5](https://depikt.app/blog/how-to-prompt-chatgpt-images-2-5): A structured approach to intent, subject, composition, aspect ratio, exact text, style, references, and constraints.
+
+- [Precise Edits and Reference Images in ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-precise-edits-reference-images): How to describe targeted changes, preserve important details, assign reference roles, use sketches as layout guides, and reduce drift during editing.
+
+- [Posters, Infographics, and Slides with ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-posters-infographics-slides): Techniques for exact text, hierarchy, structured layouts, diagrams, infographics, and presentation-ready visuals.
+
+- [ChatGPT Images 2.5 Prompt Examples: 12 Recipes](https://depikt.app/blog/chatgpt-images-2-5-prompt-examples): Complete examples across posters, product imagery, infographics, UI concepts, edits, reference images, and other common workflows.
+
+## Use Depikt through MCP
+
+Depikt is available through a **public, read-only MCP integration** for compatible AI assistants such as ChatGPT and Claude.
+
+Assistants can use Depikt to:
+
+- search approved prompts in the Library
+- open an individual prompt in full
+- list available prompt templates
+- read published Depikt guides
+
+The MCP integration exposes only information that is already publicly available on depikt.app. It does not provide access to private user information, unpublished content, account data, or write actions.
+
+This allows workflows such as:
+
+- "Search Depikt for a vintage travel-poster prompt."
+- "Find three prompt examples for product photography."
+- "Open the full prompt for this reference style."
+- "What templates does Depikt have for infographics?"
+- "Read Depikt's guide to precise image editing and explain the recommended structure."
+
+## Prompt templates
+
+[Browse all prompt templates](https://depikt.app/templates).
+
+Current template examples include:
+
+- [Minimalist startup logo poster](https://depikt.app/templates/minimalist-startup-logo-poster)
+- [3-panel vertical storyboard](https://depikt.app/templates/3-panel-storyboard-vertical)
+- [Instagram quote card](https://depikt.app/templates/instagram-quote-card)
+- [Clean SaaS dashboard mockup](https://depikt.app/templates/saas-dashboard-mockup)
+- [Cinematic golden-hour portrait](https://depikt.app/templates/cinematic-portrait-golden-hour)
+- [3-step process infographic](https://depikt.app/templates/infographic-3-step-process)
+- [Minimalist product packshot](https://depikt.app/templates/minimalist-product-packshot)
+- [Mobile app onboarding screen](https://depikt.app/templates/mobile-onboarding-screen)
+- [Editorial magazine cover](https://depikt.app/templates/editorial-magazine-cover)
+- [Isometric tech illustration](https://depikt.app/templates/isometric-tech-illustration)
+
+## Prompting guides
+
+Depikt also keeps the original GPT Image 2 guides as historical references. Many of the underlying techniques remain useful for understanding image prompting, while newer Images 2.5-specific guidance is covered in the guides above.
+
+### Creating specific image types
 
 - [How to prompt GPT Image 2 for posters with text](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-posters)
 - [How to prompt GPT Image 2 for infographics and diagrams](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-infographics)
 - [How to prompt GPT Image 2 for UI mockups](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-ui-mockups)
 - [How to prompt GPT Image 2 for storyboards and multi-panel scenes](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-storyboards)
 - [How to prompt GPT Image 2 for product shots](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-product-shots)
-- [Aspect ratios for AI images: which to use for what](https://depikt.app/blog/ai-image-aspect-ratios-guide-gpt-image-2)
-- [AI image prompt vocabulary cheat sheet (camera, lighting, composition)](https://depikt.app/blog/ai-image-prompt-vocabulary-cheat-sheet)
+
+### Prompt structure and technique
+
+- [Aspect ratios for AI images](https://depikt.app/blog/ai-image-aspect-ratios-guide-gpt-image-2)
+- [AI image prompt vocabulary cheat sheet](https://depikt.app/blog/ai-image-prompt-vocabulary-cheat-sheet)
 - [The AI image prompt framework](https://depikt.app/blog/ai-image-prompt-framework)
 - [How to prompt AI image generators](https://depikt.app/blog/how-to-prompt-ai-image-generators)
 - [AI image prompts with readable text](https://depikt.app/blog/ai-image-prompts-with-text)
 - [Common AI image prompt mistakes](https://depikt.app/blog/ai-image-prompt-mistakes)
+- [AI image editing: change, preserve, match](https://depikt.app/blog/ai-image-editing-change-preserve-match)
 
-## Comparisons and alternatives
+## Comparisons and prompt resources
 
 - [Free alternative to PromptBase for GPT Image 2](https://depikt.app/blog/free-alternative-to-promptbase-for-gpt-image-2)
 - [Best free AI image prompt generator in 2026](https://depikt.app/blog/best-free-ai-image-prompt-generator-2026)
@@ -50,15 +102,15 @@ Each guide answers one concrete prompting question with a TL;DR, a working templ
 - [GPT Image 2 vs Nano Banana vs Midjourney](https://depikt.app/blog/gpt-image-2-vs-nano-banana-vs-midjourney)
 - [GPT Image 2 prompt examples](https://depikt.app/blog/gpt-image-2-prompt-examples)
 - [ChatGPT image prompt tips](https://depikt.app/blog/chatgpt-image-prompt-tips)
-- [AI image editing: change, preserve, match](https://depikt.app/blog/ai-image-editing-change-preserve-match)
 
-## Writing
+## Blog
 
-- [Blog](https://depikt.app/blog): Field-tested techniques for getting better AI images. Frameworks, examples, model comparisons.
+- [Field Notes](https://depikt.app/blog): Practical guides, prompt frameworks, tested examples, editing techniques, model comparisons, and lessons from real image-generation workflows.
 
 ## About
 
-- Built for designers, marketers, indie founders, and creative engineers who want sharp prompts without spending an hour iterating.
-- Depikt does not generate images. Prompts are used in ChatGPT Images (for example through the Imago GPT) or any image workflow that accepts a text prompt.
-- Free to use. No login required.
-- Contact: hi@depikt.app
+Depikt is built for designers, marketers, founders, developers, and anyone who wants a better starting point for image creation.
+
+The Library and Gallery help with discovery and inspiration. Templates provide reusable structures. Prompt Builder turns an idea into a stronger prompt. Prompt Critic helps identify what is missing or weakening an existing prompt.
+
+Depikt currently prepares and evaluates prompts rather than generating the final image inside the product.
