@@ -6,7 +6,8 @@ import { cn } from "@/lib/utils";
 
 /**
  * Button — design system rules:
- *  - default (primary): near-black accent on white text, rounded-md (8px), 150ms ease-out
+ *  - default (primary): ink on white text, rounded-md (6px), 150ms ease-out
+ *  - inverse: white on ink — for buttons placed on a dark surface
  *  - secondary: white card, default border, primary text
  *  - outline: transparent, default border, primary text
  *  - ghost: transparent, secondary text, hover bg-subtle
@@ -20,20 +21,20 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-[color:var(--accent)] text-[color:var(--accent-text)] hover:bg-[color:var(--accent-hover)]",
-        destructive:
-          "bg-[color:var(--error)] text-white hover:opacity-90",
+        destructive: "bg-[color:var(--error)] text-white hover:opacity-90",
         outline:
-          "border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
+          "border border-[color:var(--border-default)] bg-transparent text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
         secondary:
-          "border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:bg-[color:var(--bg-subtle)]",
+          "border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
+        inverse:
+          "bg-[color:var(--ink-text)] text-[color:var(--ink)] hover:bg-[color:var(--bg-subtle)]",
         ghost:
           "bg-transparent text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]",
-        link:
-          "text-[color:var(--text-primary)] underline-offset-4 hover:underline px-0 h-auto",
+        link: "text-[color:var(--text-primary)] underline-offset-4 hover:underline px-0 h-auto",
       },
       size: {
-        default: "h-10 px-5 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
+        default: "h-10 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-[13px]",
         lg: "h-12 rounded-md px-6 text-[15px]",
         icon: "h-9 w-9",
       },

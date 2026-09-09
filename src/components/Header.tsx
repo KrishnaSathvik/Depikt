@@ -1,17 +1,20 @@
 import { Link } from "@tanstack/react-router";
 import logo from "@/assets/logo.png";
-import { NAV_ITEMS } from "@/lib/product";
+import { ANNOUNCEMENT, NAV_ITEMS, TARGET_MODEL_NAME } from "@/lib/product";
 
 // Visible labels come from product.ts (Library · Prompt Builder · Prompt
 // Critic · Gallery · Blog); the route URLs (/generate, /critique) are unchanged.
+//
+// White, translucent, hairline bottom border. The active route is marked
+// with a 1px ink underline rather than a pill or background.
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/85 backdrop-blur-md">
-      <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-6 lg:px-12">
-        <Link to="/" className="flex items-center gap-2.5">
-          <img src={logo} alt="Depikt logo" width={28} height={28} className="h-7 w-7 dark:invert" />
-          <span className="text-[15px] font-semibold tracking-tight text-[color:var(--text-primary)]">
+    <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/90 backdrop-blur-md">
+      <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-12">
+        <Link to="/" className="flex items-center gap-2.5" aria-label="Depikt home">
+          <img src={logo} alt="" width={24} height={24} className="h-6 w-6" />
+          <span className="text-[15px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
             Depikt
           </span>
         </Link>
@@ -19,7 +22,7 @@ export function Header() {
         {/* Desktop: centered nav */}
         <nav
           aria-label="Primary"
-          className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 items-center gap-1 whitespace-nowrap"
+          className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 whitespace-nowrap md:flex"
         >
           {NAV_ITEMS.map(({ to, label, exact }) => (
             <Link
@@ -33,12 +36,20 @@ export function Header() {
             </Link>
           ))}
         </nav>
+
+        <Link
+          to="/blog/$slug"
+          params={{ slug: ANNOUNCEMENT.slug }}
+          className="hidden font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)] transition-colors hover:text-[color:var(--text-primary)] lg:inline"
+        >
+          For {TARGET_MODEL_NAME}
+        </Link>
       </div>
 
       {/* Mobile: scrollable nav row */}
       <nav
         aria-label="Primary"
-        className="flex md:hidden overflow-x-auto border-t border-[color:var(--border-subtle)] px-2 no-scrollbar"
+        className="no-scrollbar flex overflow-x-auto border-t border-[color:var(--border-subtle)] px-2 md:hidden"
       >
         {NAV_ITEMS.map(({ to, label, exact }) => (
           <Link
@@ -56,11 +67,12 @@ export function Header() {
   );
 }
 
-const NAV_CLS =
-  "px-3 py-2 text-sm font-medium text-[color:var(--text-secondary)] transition-colors duration-150 hover:text-[color:var(--text-primary)]";
-const NAV_CLS_ACTIVE = "px-3 py-2 text-sm font-medium text-[color:var(--text-primary)]";
+const NAV_BASE =
+  "relative px-3 py-2 text-[14px] font-medium transition-colors duration-150 after:absolute after:inset-x-3 after:-bottom-[15px] after:h-px after:bg-[color:var(--text-primary)] after:opacity-0 after:transition-opacity";
+const NAV_CLS = `${NAV_BASE} text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]`;
+const NAV_CLS_ACTIVE = `${NAV_BASE} text-[color:var(--text-primary)] after:opacity-100`;
 
 const MOBILE_NAV_CLS =
-  "shrink-0 whitespace-nowrap px-3 py-2.5 text-sm font-medium text-[color:var(--text-secondary)] transition-colors";
+  "shrink-0 whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors border-b border-transparent";
 const MOBILE_NAV_CLS_ACTIVE =
-  "shrink-0 whitespace-nowrap px-3 py-2.5 text-sm font-medium text-[color:var(--text-primary)] border-b-2 border-[color:var(--accent)]";
+  "shrink-0 whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-primary)] border-b border-[color:var(--text-primary)] -mb-px";
