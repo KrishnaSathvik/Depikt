@@ -8,6 +8,7 @@ import {
   normalizeReferenceMode,
   normalizeSourceType,
   normalizeStatus,
+  orderForDisplay,
 } from '@/lib/library-metadata';
 import { publicStagedPrompts } from '@/data/images-2-5-staged';
 
@@ -128,8 +129,33 @@ function deriveTitle(input: string | null | undefined, id: string): string {
 }
 
 /**
- * Hand-picked prompts that appear first on page 1 (in this order).
- * Chosen for visual impact and category diversity.
+ * Images 2.5 recipes that open the "All" view, in this order: the
+ * gallery-ready results of batch 1 (2026-09-09). Recipe-only 2.5 rows follow
+ * automatically, then the legacy features below.
+ */
+const FEATURED_25_SLUGS: string[] = [
+  'showa-travel-poster-exact-title',
+  'nine-poster-grid',
+  'sticker-pack-poster',
+  'national-park-stamp-sheet',
+  'four-image-role-merge',
+  'impressionist-san-francisco',
+  'historical-illustrated-poster-silk-road',
+  'ticket-localization-edit',
+  '80s-portrait-identity-lock',
+  'mosaic-earth-and-stars',
+  'aurora-explainer-slide',
+  'watercolor-ink-fashion-illustration',
+  'sketch-to-garden-plan-render',
+  'product-style-reference-ugc',
+  'architectural-minimalist-poster-pavilion',
+  'identity-clothing-merge',
+  'change-background-only',
+];
+
+/**
+ * Hand-picked legacy GPT Image 2 prompts that follow the Images 2.5 set (in
+ * this order). Chosen for visual impact and category diversity.
  */
 const FEATURED_IDS: string[] = [
   'curated-expressive-motion-study',
@@ -186,25 +212,12 @@ export async function fetchLibrary(): Promise<LibraryPrompt[]> {
       isAuthed ? fetchUserPrompts() : Promise.resolve([] as LibraryPrompt[]),
     ]);
 
-    // Display order: featured first (in curated order), then remaining
-    // thumbnails newest-first, then no-thumbnail cards at the end.
-    const byDateDesc = (a: LibraryPrompt, b: LibraryPrompt) =>
-      (b.created_at ?? '').localeCompare(a.created_at ?? '');
-
     // Images 2.5 records staged in the repo join the library once approved.
     // A database row with the same id wins, so promotion never double-lists.
     const all = [...mergeById(curated, publicStagedPrompts()), ...user];
-    const featuredSet = new Set(FEATURED_IDS);
-    const featured: LibraryPrompt[] = [];
-    for (const id of FEATURED_IDS) {
-      const p = all.find((x) => x.id === id);
-      if (p) featured.push(p);
-    }
-    const rest = all.filter((p) => !featuredSet.has(p.id));
-    const withThumb = rest.filter((p) => !!p.thumbnail_url).sort(byDateDesc);
-    const withoutThumb = rest.filter((p) => !p.thumbnail_url).sort(byDateDesc);
-
-    const merged = [...featured, ...withThumb, ...withoutThumb];
+    // Display order: the current-model set leads, then legacy features, then
+    // the rest newest-first with thumbnailed cards before bare ones.
+    const merged = orderForDisplay(all, FEATURED_25_SLUGS, FEATURED_IDS);
     _libraryCache = merged;
     return merged;
   })();

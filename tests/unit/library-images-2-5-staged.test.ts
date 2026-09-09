@@ -22,6 +22,7 @@ import {
   normalizeReferenceMode,
   normalizeSourceType,
   normalizeStatus,
+  orderForDisplay,
   slugify,
   sortNewest,
 } from "../../src/lib/library-metadata.ts";
@@ -334,4 +335,41 @@ test("library fetch layer filters to public rows, merges staged records by id, a
 test("staged records use only display categories that already exist in the library", () => {
   const used = new Set(stagedImages25Prompts.map((p) => p.category));
   for (const c of used) assert.ok(LIBRARY_CATEGORIES.has(c), c);
+});
+
+// ---------- display order ----------
+
+test("All view leads with the Images 2.5 set: featured order, then remaining 2.5 rows, then legacy", () => {
+  const rows = [
+    { id: "L1", target_model: "gpt-image-2", thumbnail_url: "x", created_at: "2026-01-02" },
+    { id: "L-feat", target_model: "gpt-image-2", thumbnail_url: "x", created_at: "2025-01-01" },
+    { id: "L-bare", target_model: "gpt-image-2", created_at: "2026-05-05" },
+    { id: "N-b", slug: "b", target_model: "gpt-image-2.5", gallery_ready: true, title: "B" },
+    { id: "N-a", slug: "a", target_model: "gpt-image-2.5", gallery_ready: true, title: "A" },
+    {
+      id: "N-z",
+      slug: "z",
+      target_model: "gpt-image-2.5",
+      gallery_ready: false,
+      title: "Z recipe",
+    },
+    { id: "N-y", slug: "y", target_model: "gpt-image-2.5", gallery_ready: true, title: "Y extra" },
+    { id: "L2", target_model: "gpt-image-2", thumbnail_url: "x", created_at: "2026-03-03" },
+  ];
+  const ordered = orderForDisplay(rows, ["b", "a"], ["L-feat"]).map((r) => r.id);
+  assert.deepEqual(ordered, ["N-b", "N-a", "N-y", "N-z", "L-feat", "L2", "L1", "L-bare"]);
+});
+
+test("featured Images 2.5 slugs in the fetch layer are exactly the 17 gallery-ready promoted rows", () => {
+  const lib = read("src/lib/library.ts");
+  const block = lib.slice(
+    lib.indexOf("FEATURED_25_SLUGS: string[] = ["),
+    lib.indexOf("];", lib.indexOf("FEATURED_25_SLUGS")),
+  );
+  const slugs = [...block.matchAll(/'([a-z0-9-]+)'/g)].map((m) => m[1]);
+  const galleryReady = new Set(promoted.filter((r) => r.gallery_ready).map((r) => r.slug));
+  assert.equal(slugs.length, 17);
+  assert.equal(new Set(slugs).size, 17);
+  for (const s of slugs) assert.ok(galleryReady.has(s), `${s} is not a gallery-ready promoted row`);
+  assert.match(lib, /orderForDisplay\(all, FEATURED_25_SLUGS, FEATURED_IDS\)/);
 });

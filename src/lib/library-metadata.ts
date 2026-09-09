@@ -150,6 +150,56 @@ export function mergeById<T extends MetadataLike>(
   return [...primary, ...secondary.filter((p) => !seen.has(p.id))];
 }
 
+// ---------- display order ----------
+
+export interface OrderLike extends MetadataLike {
+  slug?: string;
+  gallery_ready?: boolean;
+  thumbnail_url?: string | null;
+  title?: string;
+}
+
+/**
+ * Library display order for the "All" view. The current-model collection
+ * leads: Images 2.5 rows in the order of `featured25` (gallery-ready recipes
+ * in batch order), then any remaining Images 2.5 rows (gallery-ready first,
+ * then by title). After that the legacy hand-picked features, then the rest
+ * newest-first with thumbnailed cards before bare ones.
+ */
+export function orderForDisplay<T extends OrderLike>(
+  prompts: ReadonlyArray<T>,
+  featured25: ReadonlyArray<string>,
+  featuredLegacyIds: ReadonlyArray<string>,
+): T[] {
+  const byDateDesc = (a: T, b: T) => (b.created_at ?? "").localeCompare(a.created_at ?? "");
+  const rank25 = new Map(featured25.map((slug, i) => [slug, i]));
+  const isCurrent = (p: T) => normalizeTargetModel(p.target_model) === "gpt-image-2.5";
+
+  const current = prompts.filter(isCurrent);
+  const lead = current
+    .filter((p) => rank25.has(p.slug ?? ""))
+    .sort((a, b) => rank25.get(a.slug ?? "")! - rank25.get(b.slug ?? "")!);
+  const trailing = current
+    .filter((p) => !rank25.has(p.slug ?? ""))
+    .sort(
+      (a, b) =>
+        Number(!!b.gallery_ready) - Number(!!a.gallery_ready) ||
+        (a.title ?? "").localeCompare(b.title ?? ""),
+    );
+
+  const legacy = prompts.filter((p) => !isCurrent(p));
+  const featuredSet = new Set(featuredLegacyIds);
+  const featured: T[] = [];
+  for (const id of featuredLegacyIds) {
+    const p = legacy.find((x) => x.id === id);
+    if (p) featured.push(p);
+  }
+  const rest = legacy.filter((p) => !featuredSet.has(p.id));
+  const withThumb = rest.filter((p) => !!p.thumbnail_url).sort(byDateDesc);
+  const withoutThumb = rest.filter((p) => !p.thumbnail_url).sort(byDateDesc);
+  return [...lead, ...trailing, ...featured, ...withThumb, ...withoutThumb];
+}
+
 // ---------- slugs ----------
 
 export function slugify(input: string): string {
