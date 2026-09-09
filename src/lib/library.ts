@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { LibraryPrompt, PromptSource } from '@/types/library';
+import { normalizeTargetModel } from '@/lib/target-model';
 
 const IMAGO_URL =
   'https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago' +
@@ -10,16 +11,43 @@ const IMAGO_URL =
  * Read curated content (examples + X-sourced) from `curated_prompts`.
  * Public read — no auth required.
  */
+const CURATED_COLUMNS =
+  'id, title, category, user_input, prompt, why_it_works, source, tags, thumbnail_url, created_at';
+
 async function fetchCurated(): Promise<LibraryPrompt[]> {
-  const { data, error } = await supabase
+  type Row = Record<string, unknown>;
+  let rows: Row[] | null = null;
+  let error: { code?: string; message?: string } | null = null;
+
+  const first = await supabase
     .from('curated_prompts')
-    .select(
-      'id, title, category, user_input, prompt, why_it_works, source, tags, thumbnail_url, created_at'
-    )
+    .select(`${CURATED_COLUMNS}, target_model`)
     .order('created_at', { ascending: false });
+  rows = first.data as Row[] | null;
+  error = first.error;
+
+  // Databases where the target_model migration has not run yet: fall back to
+  // the pre-migration column list; every row then reads as the legacy collection.
+  if (error && isUndefinedColumn(error)) {
+    const second = await supabase
+      .from('curated_prompts')
+      .select(CURATED_COLUMNS)
+      .order('created_at', { ascending: false });
+    rows = second.data as Row[] | null;
+    error = second.error;
+  }
 
   if (error) throw error;
-  return (data ?? []) as LibraryPrompt[];
+  return (rows ?? []).map(
+    (r): LibraryPrompt => ({
+      ...(r as unknown as LibraryPrompt),
+      target_model: normalizeTargetModel(r.target_model),
+    })
+  );
+}
+
+function isUndefinedColumn(error: { code?: string; message?: string }): boolean {
+  return error.code === '42703' || /target_model/.test(error.message ?? '');
 }
 
 /**
@@ -59,6 +87,8 @@ async function fetchUserPrompts(): Promise<LibraryPrompt[]> {
       why_it_works: r.why_it_works,
       source: 'user',
       tags: r.tags ?? [],
+      // User prompts predate model versioning; treat them as the legacy collection.
+      target_model: normalizeTargetModel(r.target_model),
       created_at: r.created_at,
       user_id: r.user_id,
     })

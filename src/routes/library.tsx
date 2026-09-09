@@ -19,6 +19,23 @@ import { Header } from "@/components/Header";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import {
+  CTA,
+  JSONLD_DESCRIPTIONS,
+  JSONLD_NAMES,
+  LIBRARY_COPY,
+  SEO,
+  TARGET_MODEL_NAME,
+  TOOL,
+  historyKindLabel,
+} from "@/lib/product";
+import {
+  TARGET_MODEL_LABELS,
+  availableCollections,
+  normalizeTargetModel,
+  shouldShowCollectionFilter,
+  type TargetModel,
+} from "@/lib/target-model";
 
 const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
@@ -50,34 +67,16 @@ export const Route = createFileRoute("/library")({
   gcTime: 30 * 60 * 1000,
   head: () => { const LIBRARY_OG_IMAGE = getOgImageForPath(); return ({
     meta: [
-      { title: "Prompt Library — 500 Curated AI Image Prompts | Depikt" },
-      {
-        name: "description",
-        content:
-          "Browse 500 curated AI image prompts for posters, infographics, UI mockups, cinematic scenes, and more. Copy and paste straight into GPT Image 2.",
-      },
-      {
-        property: "og:title",
-        content: "Prompt Library — 500 Curated AI Image Prompts | Depikt",
-      },
-      {
-        property: "og:description",
-        content:
-          "500 ready-to-use AI image prompts across 10 categories. Copy and paste straight into GPT Image 2.",
-      },
+      { title: SEO.library.title },
+      { name: "description", content: SEO.library.description },
+      { property: "og:title", content: SEO.library.title },
+      { property: "og:description", content: SEO.library.description },
       { property: "og:type", content: "website" },
       { property: "og:url", content: LIBRARY_URL },
       { property: "og:image", content: LIBRARY_OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      {
-        name: "twitter:title",
-        content: "Prompt Library — 500 Curated AI Image Prompts | Depikt",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "500 ready-to-use AI image prompts across 10 categories. Copy and paste straight into GPT Image 2.",
-      },
+      { name: "twitter:title", content: SEO.library.title },
+      { name: "twitter:description", content: SEO.library.description },
       { name: "twitter:image", content: LIBRARY_OG_IMAGE },
     ],
     links: [{ rel: "canonical", href: LIBRARY_URL }],
@@ -87,10 +86,9 @@ export const Route = createFileRoute("/library")({
         children: JSON.stringify({
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          name: "Depikt Prompt Library",
+          name: JSONLD_NAMES.library,
           url: LIBRARY_URL,
-          description:
-            "A curated collection of 500 production-grade AI image prompts across 10 categories, built for OpenAI's GPT Image 2.",
+          description: JSONLD_DESCRIPTIONS.library,
         }),
       },
     ],
@@ -122,6 +120,11 @@ function HomePage() {
   const { page, view } = Route.useSearch();
   const navigate = useNavigate({ from: "/library" });
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
+  // Collection (target model) filter. Rendered only once more than one
+  // collection actually has prompts, so there is never an empty Images 2.5 tab.
+  const [activeCollection, setActiveCollection] = useState<TargetModel | "all">("all");
+  const collections = useMemo(() => availableCollections(prompts), [prompts]);
+  const showCollections = shouldShowCollectionFilter(prompts);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<LibraryPrompt | null>(null);
@@ -166,6 +169,9 @@ function HomePage() {
     if (activeCategory !== "All") {
       list = list.filter((p) => p.category === activeCategory);
     }
+    if (showCollections && activeCollection !== "all") {
+      list = list.filter((p) => normalizeTargetModel(p.target_model) === activeCollection);
+    }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       list = list.filter(
@@ -177,7 +183,7 @@ function HomePage() {
       );
     }
     return list;
-  }, [prompts, activeCategory, debouncedSearch, view, favoriteIds]);
+  }, [prompts, activeCategory, activeCollection, showCollections, debouncedSearch, view, favoriteIds]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -206,11 +212,14 @@ function HomePage() {
       <section className="border-b border-[color:var(--border-subtle)]">
         <div className="mx-auto max-w-[1400px] px-6 pt-6 pb-3 md:pt-14 md:pb-6">
           <h1 className="text-display-md text-[color:var(--text-primary)]">
-            Curated prompt library for GPT Image 2.
+            {LIBRARY_COPY.headline}
           </h1>
           <p className="mt-2 hidden max-w-3xl text-body-lg text-[color:var(--text-secondary)] md:mt-3 md:block">
-            500 sample prompts collected from across the web. Pick one that fits your
-            vision, or use the Generator to craft your own from a rough idea.
+            500 sample prompts collected from across the web. Study what works, copy one that
+            fits, or remix it in the {TOOL.builder}.
+          </p>
+          <p className="mt-2 max-w-3xl text-[12px] leading-snug text-[color:var(--text-tertiary)] md:text-body-sm">
+            {LIBRARY_COPY.note}
           </p>
 
           {/* View tabs */}
@@ -244,6 +253,35 @@ function HomePage() {
           )}
         </div>
 
+        {/* Collection chips — only once a second collection exists */}
+        {view !== "history" && showCollections && (
+          <div className="mx-auto max-w-[1400px] px-6 pb-2">
+            <div
+              role="group"
+              aria-label="Collection"
+              className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {collections.map((c) => (
+                <button
+                  key={c.value}
+                  onClick={() => {
+                    setActiveCollection(c.value);
+                    if (page !== 1) navigate({ search: { page: 1, view } });
+                  }}
+                  aria-pressed={activeCollection === c.value}
+                  className={`pill shrink-0 font-mono uppercase tracking-wider text-mono-sm transition-colors ${
+                    activeCollection === c.value
+                      ? "bg-[color:var(--text-primary)] text-[color:var(--bg-elevated)]"
+                      : "border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)]"
+                  }`}
+                >
+                  {c.label} · {c.count}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Category chips — only for browse and favorites */}
         {view !== "history" && (
           <div className="mx-auto max-w-[1400px] px-6 pb-3 md:pb-5">
@@ -274,7 +312,8 @@ function HomePage() {
           {/* Grid header */}
           <div className="mb-3 flex items-center justify-between gap-4 md:mb-5">
             <p className="text-[11px] text-[color:var(--text-tertiary)]">
-              Images are sample outputs — your results will vary.
+              Images are sample {TARGET_MODEL_LABELS["gpt-image-2"]} outputs — your results will
+              vary.
             </p>
             <Link
               to="/generate"
@@ -538,7 +577,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
           <Clock className="h-4 w-4 text-[color:var(--text-tertiary)]" />
         </div>
         <p className="text-body-md text-[color:var(--text-tertiary)]">
-          No history yet. Generate a prompt to get started.
+          No history yet. Build or critique a prompt to get started.
         </p>
       </section>
     );
@@ -576,7 +615,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
                     : "text-[color:var(--accent-orange)]"
                 }`}
               >
-                {entry.kind === "critique" ? "CRITIQUE" : "GENERATE"}
+                {historyKindLabel(entry.kind)}
               </span>
               {typeof entry.result.category === "string" && (
                 <>
@@ -625,7 +664,10 @@ function PromptDetailDialog({
     <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto bg-[color:var(--bg-elevated)]">
         <DialogHeader>
-          <p className="eyebrow text-[color:var(--text-tertiary)]">{prompt.category}</p>
+          <p className="eyebrow text-[color:var(--text-tertiary)]">
+            {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
+            collection
+          </p>
           <DialogTitle className="text-display-md text-[color:var(--text-primary)]">
             {prompt.title}
           </DialogTitle>
@@ -647,7 +689,7 @@ function PromptDetailDialog({
             className="pill flex items-center gap-2 bg-[color:var(--accent)] text-[color:var(--bg-elevated)] hover:opacity-90"
           >
             <Wand2 className="h-3.5 w-3.5" />
-            Remix in generator
+            {CTA.remix}
           </Link>
           <button
             onClick={() => openInImago(prompt.prompt)}
@@ -673,7 +715,8 @@ function PromptDetailDialog({
           </span>
           <span className="sm:hidden">
             Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-          </span>
+          </span>{" "}
+          Remix rewrites this example for {TARGET_MODEL_NAME}.
         </p>
 
         {prompt.why_it_works && (
