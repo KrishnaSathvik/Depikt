@@ -1,17 +1,17 @@
 # Depikt
 
-> Depikt turns rough ideas into production-grade AI image prompts for OpenAI's GPT Image 2. Browse 500 curated prompts, generate new ones from a sentence, critique your own prompts, or look up one-question answer templates. Free, no login.
+> Depikt is a reference library and prompt workspace for ChatGPT Images. It turns rough ideas and reference images into image-ready prompts for ChatGPT Images 2.5, critiques existing prompts, and keeps a curated collection of 500 GPT Image 2 prompt examples. Depikt writes and reviews prompts; it does not generate images. Free, no login.
 
 ## Core tools
 
-- [Prompt Library](https://depikt.app/library): Browse 500 curated, ready-to-ship AI image prompts across 10 categories (posters, infographics, UI mockups, social posts, cinematic, product, illustrations, image edits, multi-panel, and more).
-- [Prompt Generator](https://depikt.app/generate): Paste a rough idea, get back a structured production-grade prompt with category, settings, and a "why it works" explanation.
-- [Prompt Critique](https://depikt.app/critique): Paste any prompt, get a score, list of weaknesses, concrete improvements, and a rewritten version.
-- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked reference images. Click any image to start a prompt from it.
+- [Library](https://depikt.app/library): The GPT Image 2 collection: 500 curated prompt examples across 10 categories (posters, infographics, UI mockups, social posts, cinematic, product, illustrations, image edits, multi-panel, and more), each with a thumbnail and a "why it works" note. These were written for GPT Image 2; use them to learn, copy, or remix. A separate ChatGPT Images 2.5 collection is planned.
+- [Prompt Builder](https://depikt.app/generate): Describe what you want, optionally attach a reference image and say how it should be used (style, subject/identity, edit source, product, composition, sketch/layout). Depikt analyzes the intent (format, ratio, exact text, reference use, series, missing facts), then writes one precise prompt for ChatGPT Images 2.5 with a "why it works" explanation. Open the result in ChatGPT (Imago) to make the image; re-attach the same reference image there when the prompt depends on one.
+- [Prompt Critic](https://depikt.app/critique): Paste any image prompt (optionally with its source or reference image). Depikt scores it for ChatGPT Images 2.5 across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, lists weaknesses and concrete improvements, and returns a rewritten prompt.
+- [Reference Gallery](https://depikt.app/gallery): Hand-picked reference images. Click any image to send it to the Prompt Builder as a reference.
 
-## Prompt Templates — one question, one prompt
+## Prompt Templates — one question, one prompt (GPT Image 2 era)
 
-Each template answers one specific question with a single copy-paste prompt. Designed to be cited directly.
+Each template answers one specific question with a single copy-paste prompt. Written for GPT Image 2; still useful as structure examples.
 
 - [Prompt Templates index](https://depikt.app/templates): Full list of one-question prompt templates.
 - [Prompt for a minimalist startup logo poster](https://depikt.app/templates/minimalist-startup-logo-poster)
@@ -25,9 +25,9 @@ Each template answers one specific question with a single copy-paste prompt. Des
 - [Prompt for an editorial magazine cover](https://depikt.app/templates/editorial-magazine-cover)
 - [Prompt for an isometric tech illustration](https://depikt.app/templates/isometric-tech-illustration)
 
-## How-to guides for GPT Image 2
+## How-to guides (historical GPT Image 2 guides)
 
-Each guide answers one concrete prompting question with a TL;DR, a working template, and an explanation of why each part matters.
+Each guide answers one concrete prompting question with a TL;DR, a working template, and an explanation of why each part matters. These articles were written about GPT Image 2 and are kept as historical references; the Prompt Builder and Prompt Critic now target ChatGPT Images 2.5.
 
 - [How to prompt GPT Image 2 for posters with text](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-posters)
 - [How to prompt GPT Image 2 for infographics and diagrams](https://depikt.app/blog/how-to-prompt-gpt-image-2-for-infographics)
@@ -58,5 +58,6 @@ Each guide answers one concrete prompting question with a TL;DR, a working templ
 ## About
 
 - Built for designers, marketers, indie founders, and creative engineers who want sharp prompts without spending an hour iterating.
+- Depikt does not generate images. Prompts are used in ChatGPT Images (for example through the Imago GPT) or any image workflow that accepts a text prompt.
 - Free to use. No login required.
 - Contact: hi@depikt.app

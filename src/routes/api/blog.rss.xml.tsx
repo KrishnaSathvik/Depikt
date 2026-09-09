@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/blog/rss/xml")({
     <title>Depikt Blog</title>
     <link>${absoluteUrl("/blog")}</link>
     <atom:link href="${absoluteUrl("/api/blog/rss.xml")}" rel="self" type="application/rss+xml" />
-    <description>Field-tested techniques for getting better AI images from OpenAI's GPT Image 2.</description>
+    <description>Field-tested techniques for getting better AI images from ChatGPT Images and other image models.</description>
     <language>en-us</language>
     <lastBuildDate>${lastBuild}</lastBuildDate>
 ${items}

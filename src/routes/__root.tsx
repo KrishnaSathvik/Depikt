@@ -4,13 +4,12 @@ import { AuthProvider } from "@/lib/auth-context";
 import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO } from "@/lib/product";
 
 import appCss from "../styles.css?url";
 
-const DEFAULT_TITLE = "Depikt — AI image prompt generator for GPT Image 2";
-const DEFAULT_DESCRIPTION =
-  "Turn rough ideas into production-grade AI image prompts in seconds. Browse 500 curated prompts for posters, infographics, UI mockups, and more.";
+const DEFAULT_TITLE = SEO.root.title;
+const DEFAULT_DESCRIPTION = SEO.root.description;
 
 function NotFoundComponent() {
   return (
@@ -43,19 +42,18 @@ const STRUCTURED_DATA = [
     description: DEFAULT_DESCRIPTION,
     potentialAction: {
       "@type": "SearchAction",
-      target: "https://depikt.app/?page=1&view=browse",
+      target: "https://depikt.app/library?page=1&view=browse",
       "query-input": "required name=search_term_string",
     },
   },
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "Depikt",
+    name: JSONLD_NAMES.builder,
     url: "https://depikt.app/generate",
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
-    description:
-      "AI image prompt generator that turns rough ideas into production-grade prompts for OpenAI's GPT Image 2.",
+    description: JSONLD_DESCRIPTIONS.app,
     offers: {
       "@type": "Offer",
       price: "0",

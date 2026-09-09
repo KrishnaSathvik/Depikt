@@ -1,7 +1,7 @@
 {
   "name": "Depikt",
   "short_name": "Depikt",
-  "description": "Pro-grade AI image prompts in seconds.",
+  "description": "Prompt Builder, Prompt Critic, and curated prompt library for ChatGPT Images 2.5.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
