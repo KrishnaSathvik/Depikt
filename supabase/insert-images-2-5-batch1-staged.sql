@@ -323,13 +323,13 @@ No other text. No frame, no logo, no date line.$p$,
   false,
   'none',
   $r$Check the pavilion is recognisable, the word PLANE is exact and cropped by the edges, and all four annotations are present and correctly placed.
-Outcome: Attempt 1 (Flare) rendered a photoreal pavilion despite "flat illustration"; prompt revised to state "flat graphic illustration, not a photograph or 3D render" and name the flat pool shape. Attempt 2 passes: three flat tones, PLANE cropped by the edges, four exact mono annotations with leader lines.
+Outcome: Attempt 1 (Flare) rendered a photoreal pavilion despite "flat illustration"; prompt revised to state "flat graphic illustration, not a photograph or 3D render" and name the flat pool shape. Attempt 2 passes: three flat tones, PLANE cropped by the edges, four exact mono annotations with leader lines. Published image replaced 2026-09-09 with a ChatGPT (Images 2.5) run of the same prompt supplied by the Depikt team: flat illustration, PLANE cropped, pool and travertine wall; note the "onyx and marble" label is drawn as a leader line without its text in this version.
 Model used: flare; attempts: 2.
 Success: Recognisable pavilion, one giant word, four exact mono annotations, lots of clean ground.
 Likely failure: Extra annotations; the giant word rendered fully inside the frame and dominating; a photographic render instead of flat illustration.
 Check first: The four annotations.
 Attempts: 2. Model: either.$r$,
-  2,
+  3,
   '/library/images-2-5/architectural-minimalist-poster-pavilion.webp',
   '2026-09-09T18:00:00.000Z',
   '2026-09-09T18:00:00.000Z'
@@ -382,13 +382,13 @@ Thin arrows between the steps. Footer left: "small changes, a clearer sky". Foot
   false,
   'none',
   $r$Read the paragraph and all four captions and sentences. Check that icons are distinct and that the aurora photo does not sit under the text.
-Outcome: Pass on attempt 1 (Sunburst medium). Title, paragraph, four captions and sentences, both footers exact; four distinct icons; photo confined to the right third.
+Outcome: Pass on attempt 1 (Sunburst medium). Title, paragraph, four captions and sentences, both footers exact; four distinct icons; photo confined to the right third. Published image replaced 2026-09-09 with a ChatGPT (Images 2.5) run of the same prompt supplied by the Depikt team; same layout and copy, all strings exact.
 Model used: sunburst; attempts: 1.
 Success: Every string exact; four distinct icons with arrows; readable hierarchy; photo confined to the right.
 Likely failure: The body paragraph paraphrased; captions merged; icons duplicated.
 Check first: The body paragraph, the longest string.
 Attempts: 2. Model: sunburst.$r$,
-  1,
+  2,
   '/library/images-2-5/aurora-explainer-slide.webp',
   '2026-09-09T18:00:00.000Z',
   '2026-09-09T18:00:00.000Z'

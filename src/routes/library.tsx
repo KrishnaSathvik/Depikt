@@ -558,11 +558,12 @@ function PromptCard({
       {/* Thumbnail */}
       {prompt.thumbnail_url ? (
         <div className="relative aspect-square w-full overflow-hidden bg-[color:var(--bg-subtle)]">
+          {/* Square frame, whole image: landscape and portrait results are never cropped. */}
           <img
             src={prompt.thumbnail_url}
             alt=""
             loading="lazy"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
           />
         </div>
       ) : (

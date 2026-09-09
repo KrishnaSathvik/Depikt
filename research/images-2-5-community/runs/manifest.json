@@ -36,7 +36,7 @@
       "slug": "architectural-minimalist-poster-pavilion",
       "status": "approved",
       "model_used": "flare",
-      "attempts": 2,
+      "attempts": 3,
       "quality": [
         "medium"
       ],
@@ -45,13 +45,14 @@
       ],
       "selected_result": null,
       "setup_image": false,
-      "total_ms": 29283
+      "total_ms": 29283,
+      "note": "Published image replaced 2026-09-09 with a user-supplied ChatGPT run (user-supplied-v2.png); onyx-and-marble label missing its text."
     },
     {
       "slug": "aurora-explainer-slide",
       "status": "approved",
       "model_used": "sunburst",
-      "attempts": 1,
+      "attempts": 2,
       "quality": [
         "medium"
       ],
@@ -60,7 +61,8 @@
       ],
       "selected_result": null,
       "setup_image": false,
-      "total_ms": 17480
+      "total_ms": 17480,
+      "note": "Published image replaced 2026-09-09 with a user-supplied ChatGPT run (user-supplied-v2.png)."
     },
     {
       "slug": "change-background-only",

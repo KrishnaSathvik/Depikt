@@ -118,8 +118,8 @@ export const ANNOUNCEMENT: Announcement = {
       span: "wide",
     },
     {
-      slug: "mosaic-earth-and-stars",
-      alt: "Tile mosaic of Earth under a starry sky",
+      slug: "ticket-localization-edit",
+      alt: "Vintage travel ticket localized from Tokyo to Lisbon",
       span: "wide",
     },
   ],
