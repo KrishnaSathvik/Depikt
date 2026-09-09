@@ -85,20 +85,35 @@ export interface ModelConfig {
  * the route file; the benchmark decides their final values.
  */
 export type ModelRole =
+  | "INTENT"
   | "BUILDER_DEFAULT"
   | "BUILDER_REFERENCE_HEAVY"
   | "CRITIC"
   | "BENCHMARK_JUDGE";
 
+/**
+ * Production routing after Phase 2 (chosen from the Phase 1 benchmark):
+ * - INTENT and BUILDER_DEFAULT: gpt-5.6-luna, reasoning none (temperature 0.7 for the writer).
+ * - CRITIC: gpt-5.6-terra, reasoning medium, no temperature.
+ * - BUILDER_REFERENCE_HEAVY: Terra candidate, benchmarked in Phase 2 but not routed by default.
+ * - BENCHMARK_JUDGE: GPT-6 Astra, offline evaluation only, never used by a public route.
+ */
 export const MODEL_ROLES: Record<ModelRole, ModelConfig> = {
-  // Unchanged production behavior for Phase 1.
-  BUILDER_DEFAULT: { model: "gpt-5.4-mini", temperature: 0.7, timeoutMs: 90_000 },
-  // Not yet used by the route (reference-heavy routing is Phase 2).
+  INTENT: {
+    model: "gpt-5.6-luna",
+    reasoningEffort: "none",
+    maxOutputTokens: 900,
+    timeoutMs: 45_000,
+  },
+  BUILDER_DEFAULT: {
+    model: "gpt-5.6-luna",
+    reasoningEffort: "none",
+    temperature: 0.7,
+    timeoutMs: 90_000,
+  },
   BUILDER_REFERENCE_HEAVY: { model: "gpt-5.6-terra", reasoningEffort: "low", timeoutMs: 120_000 },
-  // Phase 1: same model as the builder so critique output does not change.
-  CRITIC: { model: "gpt-5.4-mini", temperature: 0.7, timeoutMs: 90_000 },
-  // Offline evaluation only. Never referenced by the public route.
-  BENCHMARK_JUDGE: { model: "gpt-6-astra", reasoningEffort: "high", timeoutMs: 300_000 },
+  CRITIC: { model: "gpt-5.6-terra", reasoningEffort: "medium", timeoutMs: 150_000 },
+  BENCHMARK_JUDGE: { model: "gpt-6-astra", reasoningEffort: "medium", timeoutMs: 300_000 },
 };
 
 /** Token usage in the shape the Responses API reports. */
@@ -134,7 +149,11 @@ export function resolveRequestParams(config: ModelConfig): {
 } {
   const spec = getModelSpec(config.model);
   const out: ReturnType<typeof resolveRequestParams> = {};
-  if (config.temperature !== undefined && spec.supportsTemperature) {
+  // Verified 2026-09-08: the API rejects `temperature` on 5.6 models whenever
+  // reasoning is active (effort other than "none"). Send it only when the
+  // model supports it AND reasoning is off.
+  const reasoningOff = config.reasoningEffort === undefined || config.reasoningEffort === "none";
+  if (config.temperature !== undefined && spec.supportsTemperature && reasoningOff) {
     out.temperature = config.temperature;
   }
   if (config.reasoningEffort !== undefined) {

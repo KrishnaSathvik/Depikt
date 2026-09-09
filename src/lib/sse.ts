@@ -1,4 +1,5 @@
 export interface SSEHandlers<T> {
+  onStatus?: (data: Record<string, unknown>) => void;
   onDelta?: (data: Record<string, unknown>) => void;
   onDone?: (data: T) => void;
   onError?: (data: Record<string, unknown>) => void;
@@ -39,7 +40,9 @@ export async function readSSEStream<T>(
 
           try {
             const json = JSON.parse(payload);
-            if (currentEvent === "delta") {
+            if (currentEvent === "status") {
+              handlers.onStatus?.(json);
+            } else if (currentEvent === "delta") {
               handlers.onDelta?.(json);
             } else if (currentEvent === "done") {
               final = json as T;

@@ -24,8 +24,8 @@ const env = Object.fromEntries(
 );
 
 // Import the system prompt dynamically (it's TypeScript, so just read and extract)
-const depiktFile = readFileSync(resolve(ROOT, "src/lib/depikt.ts"), "utf8");
-const systemPromptMatch = depiktFile.match(/export const SYSTEM_PROMPT = `([\s\S]*?)`;/);
+const depiktFile = readFileSync(resolve(ROOT, "src/lib/prompt-engine/legacy-v2.9.ts"), "utf8");
+const systemPromptMatch = depiktFile.match(/export const LEGACY_SYSTEM_PROMPT = `([\s\S]*?)`;/);
 const SYSTEM_PROMPT = systemPromptMatch[1];
 
 const TEST_INPUTS = [
