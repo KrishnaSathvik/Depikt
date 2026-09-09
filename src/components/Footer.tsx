@@ -14,9 +14,17 @@ export function Footer() {
             A workspace for better image prompts.
           </span>
         </div>
-        <span className="text-body-sm text-[color:var(--text-tertiary)]">
-          © {new Date().getFullYear()} Depikt
-        </span>
+        <div className="flex items-baseline gap-4">
+          <a
+            href="/integrations/mcp"
+            className="text-body-sm text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+          >
+            MCP
+          </a>
+          <span className="text-body-sm text-[color:var(--text-tertiary)]">
+            © {new Date().getFullYear()} Depikt
+          </span>
+        </div>
       </div>
     </footer>
   );
