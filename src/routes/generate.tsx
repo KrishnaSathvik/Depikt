@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PromptSurface } from "@/components/PromptSurface";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
@@ -38,7 +39,6 @@ import {
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
   SEO,
-  TARGET_MODEL_NAME,
   TOOL,
   describeIntent,
   needsReferenceReattach,
@@ -458,15 +458,12 @@ function AppPage() {
           />
         ) : (
           <div>
-            <p className="eyebrow">
-              {TOOL.builder} · for {TARGET_MODEL_NAME}
-            </p>
+            <p className="eyebrow">{TOOL.builder}</p>
             <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
               What do you want to make?
             </h1>
             <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[56ch]">
-              Describe the image, or attach a reference and say how to use it. You get a precise{" "}
-              {TARGET_MODEL_NAME} prompt to paste into ChatGPT.
+              Describe your idea or add a reference image.
             </p>
 
             <div className="mt-8">
@@ -643,8 +640,8 @@ function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void
       className="group w-full text-left rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-4 py-3 hover:border-[color:var(--border-strong)] transition-colors"
     >
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[10px] tracking-[0.08em] uppercase font-semibold text-[color:var(--text-tertiary)] shrink-0">
-          IDEA
+        <span className="shrink-0 text-[13px] font-medium text-[color:var(--text-tertiary)]">
+          Idea
         </span>
         <span className="text-body-sm text-[color:var(--text-secondary)] truncate flex-1">
           {text}
@@ -699,54 +696,48 @@ interface CodeBlockProps {
   text: string;
   jsonView?: object;
   streaming?: boolean;
+  /** Header label; variants pass "Safe", "Stylized", "Experimental". */
+  label?: string;
 }
 
-function CodeBlock({ text, jsonView, streaming = false }: CodeBlockProps) {
+function CodeBlock({ text, jsonView, streaming = false, label = "Your prompt" }: CodeBlockProps) {
   const [view, setView] = useState<"text" | "json">("text");
   const display = view === "json" && jsonView ? JSON.stringify(jsonView, null, 2) : text;
 
+  const toggle =
+    !streaming && jsonView ? (
+      <div
+        role="tablist"
+        aria-label="Prompt view"
+        className="flex items-center gap-0.5 rounded-md bg-[color:var(--bg-subtle)] p-0.5"
+      >
+        {(["text", "json"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            onClick={() => setView(v)}
+            className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[12px] font-medium transition-colors ${
+              view === v
+                ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-sm-card"
+                : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+            }`}
+          >
+            {v === "text" ? <FileText className="h-3 w-3" /> : <Code2 className="h-3 w-3" />}
+            {v === "text" ? "Text" : "JSON"}
+          </button>
+        ))}
+      </div>
+    ) : undefined;
+
   return (
-    <div className="relative">
-      {/* View toggle — sits above the code block on mobile, overlays on desktop */}
-      {!streaming && jsonView && (
-        <div className="flex justify-end mb-2 sm:mb-0 sm:absolute sm:top-3 sm:right-3 sm:z-10">
-          <div className="flex items-center rounded-md border border-[color:var(--ink-border)] bg-[color:var(--ink-elevated)] p-0.5">
-            <button
-              type="button"
-              onClick={() => setView("text")}
-              aria-pressed={view === "text"}
-              className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
-                view === "text"
-                  ? "bg-[color:var(--ink-text)] text-[color:var(--ink)]"
-                  : "text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)]"
-              }`}
-              aria-label="Text view"
-            >
-              <FileText className="h-3 w-3" /> Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("json")}
-              aria-pressed={view === "json"}
-              className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
-                view === "json"
-                  ? "bg-[color:var(--ink-text)] text-[color:var(--ink)]"
-                  : "text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)]"
-              }`}
-              aria-label="JSON view"
-            >
-              <Code2 className="h-3 w-3" /> JSON
-            </button>
-          </div>
-        </div>
+    <PromptSurface label={label} actions={toggle}>
+      {display}
+      {streaming && (
+        <span className="ml-0.5 inline-block h-4 w-1.5 -mb-0.5 animate-pulse bg-[color:var(--text-primary)] align-middle" />
       )}
-      <pre className="ink rounded-lg px-5 py-5 sm:px-6 sm:py-6 sm:pr-40 text-[13px] sm:text-[14px] font-mono leading-[1.75] whitespace-pre-wrap overflow-x-auto">
-        {display}
-        {streaming && (
-          <span className="inline-block w-1.5 h-4 -mb-0.5 ml-0.5 bg-[color:var(--ink-text)] animate-pulse align-middle" />
-        )}
-      </pre>
-    </div>
+    </PromptSurface>
   );
 }
 
@@ -783,11 +774,9 @@ function ResultView({
           const isLast = i === result.prompts!.length - 1;
           return (
             <div key={i} className="space-y-2">
-              <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-tertiary)] font-medium">
-                {labels[i] || `Variant ${i + 1}`}
-              </div>
               <CodeBlock
                 text={p}
+                label={labels[i] || `Variant ${i + 1}`}
                 streaming={streaming && isLast}
                 jsonView={
                   !streaming
@@ -816,13 +805,9 @@ function ResultView({
       {result.category && <CategoryEyebrow category={result.category} />}
       {result.prompt && (
         <div className="space-y-2">
-          {moreVariants && moreVariants.length > 0 && (
-            <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-tertiary)] font-medium">
-              Safe
-            </div>
-          )}
           <CodeBlock
             text={result.prompt}
+            label={moreVariants && moreVariants.length > 0 ? "Safe" : "Your prompt"}
             streaming={streaming}
             jsonView={
               !streaming
@@ -864,10 +849,7 @@ function ResultView({
             const label = i === 0 ? "Stylized" : "Experimental";
             return (
               <div key={i} className="space-y-2">
-                <div className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-tertiary)] font-medium">
-                  {label}
-                </div>
-                <CodeBlock text={p} jsonView={{ variant: label, prompt: p }} />
+                <CodeBlock text={p} label={label} jsonView={{ variant: label, prompt: p }} />
                 <ActionRow
                   promptText={p}
                   onRegenerate={onRegenerate}
@@ -911,9 +893,7 @@ function ResultView({
 
 function CategoryEyebrow({ category }: { category: string }) {
   return (
-    <div className="font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-[color:var(--text-tertiary)]">
-      {category}
-    </div>
+    <div className="text-[13px] font-medium text-[color:var(--text-tertiary)]">{category}</div>
   );
 }
 
@@ -942,8 +922,8 @@ function WhyItWorks({ text, defaultOpen = false }: { text: string; defaultOpen?:
 
 function Tag({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-default)] px-2.5 py-1 text-[12px] font-mono font-medium">
-      <span className="text-[color:var(--text-tertiary)] uppercase tracking-[0.06em]">{label}</span>
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-default)] px-2.5 py-1 text-[13px] font-medium">
+      <span className="text-[color:var(--text-tertiary)]">{label}</span>
       <span className="text-[color:var(--text-primary)]">{value}</span>
     </span>
   );
@@ -1008,7 +988,7 @@ function ActionRow({
       </div>
       {promptText && referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
       {promptText && (
-        <p className="text-[11px] text-[color:var(--text-tertiary)]">
+        <p className="text-[13px] text-[color:var(--text-tertiary)]">
           <span className="hidden sm:inline">
             Opens Imago with your prompt copied. Paste with{" "}
             <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">

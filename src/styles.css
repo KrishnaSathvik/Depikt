@@ -7,10 +7,11 @@
 /* =====================================================================
    DEPIKT — monochrome design system (Images 2.5 era).
 
-   White paper, near-black ink, a short ladder of neutral grays, and one
-   dark "ink" surface reserved for prompt output and high-emphasis CTAs.
-   Typography carries the hierarchy; borders are hairlines; shadows are
-   almost never used. Geist + Geist Mono. Light mode only.
+   White is the canvas, black is the ink. The application is overwhelmingly
+   white; black appears as text, primary buttons, active states, and icons,
+   never as a large content surface. Typography and spacing carry the
+   hierarchy; borders are hairlines; shadows are almost never used.
+   Geist + Geist Mono. Light mode only.
    ===================================================================== */
 
 @theme inline {
@@ -68,33 +69,30 @@
 }
 
 :root {
-  /* ------ Surface ------ */
+  /* ------ Surface (pure white canvas; subtle grays used sparingly) ------ */
   --bg: #ffffff;
   --bg-elevated: #ffffff;
-  --bg-subtle: #f5f5f5;
+  --bg-subtle: #f7f7f7;
   --bg-muted: #fafafa;
 
-  /* Dark "ink" surface: prompt output, emphasis CTAs, footer */
-  --ink: #0a0a0a;
-  --ink-elevated: #171717;
-  --ink-text: #fafafa;
-  --ink-text-secondary: #a3a3a3;
-  --ink-border: rgba(255, 255, 255, 0.12);
+  /* Ink: text, primary buttons, active states. Not a surface color. */
+  --ink: #111111;
+  --ink-text: #ffffff;
 
   /* ------ Text ------ */
-  --text-primary: #0a0a0a;
-  --text-secondary: #525252;
-  --text-tertiary: #737373;
-  --text-quaternary: #a3a3a3;
+  --text-primary: #111111;
+  --text-secondary: #5f5f5f;
+  --text-tertiary: #777777;
+  --text-quaternary: #a6a6a6;
 
-  /* ------ Borders ------ */
-  --border-subtle: rgba(0, 0, 0, 0.08);
-  --border-default: rgba(0, 0, 0, 0.12);
-  --border-strong: rgba(0, 0, 0, 0.24);
+  /* ------ Borders (opaque neutrals, no warm cast) ------ */
+  --border-subtle: #e6e6e6;
+  --border-default: #dddddd;
+  --border-strong: #cfcfcf;
 
   /* ------ Accent ------ */
-  --accent: #0a0a0a;
-  --accent-hover: #262626;
+  --accent: #111111;
+  --accent-hover: #2a2a2a;
   --accent-text: #ffffff;
   --accent-orange: #e85d2c;
 
@@ -104,10 +102,10 @@
   --error: #b91c1c;
   --info: #1d4ed8;
 
-  /* ------ Code / prompt output (dark surface) ------ */
-  --code-bg: var(--ink);
-  --code-text: var(--ink-text);
-  --code-border: var(--ink);
+  /* ------ Prompt / code surfaces (light; prompts are reading material) ------ */
+  --code-bg: #f7f7f7;
+  --code-text: #111111;
+  --code-border: #e6e6e6;
 
   /* ------ Spacing scale (4px base) ------ */
   --space-1: 4px;
@@ -125,7 +123,7 @@
   --space-32: 128px;
   --space-40: 160px;
 
-  /* ------ Shadows (used only for floating layers) ------ */
+  /* ------ Shadows (floating layers only) ------ */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 2px 6px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
@@ -165,8 +163,8 @@
   }
 
   body {
-    font-size: 16px;
-    line-height: 1.5;
+    font-size: 17px;
+    line-height: 1.55;
   }
 
   ::selection {
@@ -227,112 +225,151 @@
 }
 
 /* =====================================================================
-   Typography scale (use these instead of arbitrary text-Nxl)
+   Typography scale (six levels), labels, and chips. Declared with @utility
+   so responsive variants (md:text-display-xl) are generated.
    ===================================================================== */
-@layer utilities {
-  .text-display-xl {
-    font-size: 84px;
-    line-height: 0.98;
-    font-weight: 500;
-    letter-spacing: -0.035em;
-  }
-  .text-display-lg {
-    font-size: 64px;
-    line-height: 1.02;
-    font-weight: 500;
-    letter-spacing: -0.03em;
-  }
-  .text-display-md {
-    font-size: 44px;
-    line-height: 1.06;
-    font-weight: 500;
-    letter-spacing: -0.025em;
-  }
-  .text-heading-lg {
-    font-size: 32px;
-    line-height: 1.15;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-  .text-heading-md {
-    font-size: 24px;
-    line-height: 1.25;
-    font-weight: 500;
-    letter-spacing: -0.015em;
-  }
-  .text-heading-sm {
-    font-size: 19px;
-    line-height: 1.35;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-  }
-  .text-body-lg {
-    font-size: 18px;
-    line-height: 1.55;
-    font-weight: 400;
-    letter-spacing: -0.005em;
-  }
-  .text-body-md {
-    font-size: 16px;
-    line-height: 1.55;
-    font-weight: 400;
-  }
-  .text-body-sm {
-    font-size: 14px;
-    line-height: 1.5;
-    font-weight: 400;
-  }
-  .text-caption {
-    font-size: 13px;
-    line-height: 1.4;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-  }
-  .text-mono-sm {
-    font-size: 12.5px;
-    line-height: 1.4;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    font-family: var(--font-mono);
-  }
+@utility text-display-xl {
+  font-size: 76px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
 
+@utility text-display-lg {
+  font-size: 64px;
+  line-height: 1.04;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+@utility text-display-md {
+  font-size: 48px;
+  line-height: 1.08;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+@utility text-heading-lg {
+  font-size: 36px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+@utility text-heading-md {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+}
+
+@utility text-heading-sm {
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+@utility text-body-lg {
+  font-size: 19px;
+  line-height: 1.55;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+@utility text-body-md {
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+@utility text-body-sm {
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+@utility text-caption {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+@utility text-mono-sm {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  font-family: var(--font-mono);
+}
+
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+@utility pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+@utility pill-solid {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--ink-text);
+}
+
+@layer utilities {
   /* Mobile reflow */
   @media (max-width: 768px) {
     .text-display-xl {
-      font-size: 48px;
+      font-size: 46px;
     }
     .text-display-lg {
       font-size: 40px;
     }
     .text-display-md {
-      font-size: 32px;
+      font-size: 34px;
     }
     .text-heading-lg {
-      font-size: 26px;
+      font-size: 28px;
     }
     .text-heading-md {
       font-size: 22px;
     }
   }
 
-  /* Small mono label used above sections and inside tool UI */
-  .eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-  }
+  /* Section label: small, sans, sentence case. */
 
-  /* Hairline rules that replace card borders in editorial layouts */
-  .rule {
-    border-top: 1px solid var(--border-subtle);
-  }
-  .rule-strong {
-    border-top: 1px solid var(--text-primary);
-  }
+  /* Data label: mono, small, uppercase. Reserved for metadata. */
 
   .no-scrollbar {
     -ms-overflow-style: none;
@@ -355,44 +392,9 @@
     box-shadow: var(--shadow-xl);
   }
 
-  /* Tag / pill — quiet by default; add .pill-solid for the selected state */
-  .pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border: 1px solid var(--border-default);
-    background: transparent;
-    color: var(--text-secondary);
-    font-family: var(--font-mono);
-    font-size: 11.5px;
-    line-height: 1;
-    font-weight: 500;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    border-radius: var(--radius-full);
-    transition:
-      border-color var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out),
-      background-color var(--duration-fast) var(--ease-out);
-  }
-  .pill-solid {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--ink-text);
-  }
+  /* Chip: quiet by default; .pill-solid is the selected state */
 
-  /* Dark ink surface (prompt output, emphasis CTA) */
-  .ink {
-    background: var(--ink);
-    color: var(--ink-text);
-  }
-  .ink ::selection {
-    background-color: var(--ink-text);
-    color: var(--ink);
-  }
-
-  /* Reveal on load — used once per page for the hero, staggered by inline delay */
+  /* Reveal on load — hero only, staggered by inline delay */
   .reveal {
     opacity: 0;
     transform: translateY(6px);
@@ -445,8 +447,7 @@
 }
 .prose-content figcaption {
   margin-top: 0.75rem;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--text-tertiary);
 }

@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PromptSurface } from "@/components/PromptSurface";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { absoluteUrl } from "@/lib/site";
@@ -27,15 +28,7 @@ import {
   MAX_UPLOAD_BYTES,
   type ReferenceImageState,
 } from "@/components/ReferenceImagePicker";
-import {
-  CTA,
-  IMAGO_URL,
-  JSONLD_DESCRIPTIONS,
-  JSONLD_NAMES,
-  SEO,
-  TARGET_MODEL_NAME,
-  TOOL,
-} from "@/lib/product";
+import { CTA, IMAGO_URL, JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 
 // Route URL stays /critique (compatibility + SEO); the visible tool is the Prompt Critic.
@@ -275,18 +268,14 @@ function CritiquePage() {
           />
         ) : (
           <div>
-            <p className="eyebrow">
-              {TOOL.critic} · for {TARGET_MODEL_NAME}
-            </p>
+            <p className="eyebrow">{TOOL.critic}</p>
             <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
               Find what is weakening your prompt.
             </h1>
             <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[60ch]">
-              Paste any image prompt. The {TOOL.critic} evaluates it for {TARGET_MODEL_NAME}:
-              intent, clarity, reference and edit handling, text and layout where relevant, style
-              consistency, and unnecessary prompt bloat. You get a score, a breakdown, ranked
-              weaknesses, concrete fixes, and a rewritten prompt. Attach the source or reference
-              image if the prompt edits or references one.
+              Paste any image prompt. You get a score, a breakdown of what is working and what is
+              not, and a rewritten prompt. Attach the source or reference image if the prompt edits
+              or references one.
             </p>
 
             <div className="mt-8">
@@ -373,7 +362,7 @@ function CritiquePage() {
               >
                 <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Critiquing your prompt for {TARGET_MODEL_NAME}…
+                  Critiquing your prompt…
                 </div>
               </div>
             )}
@@ -400,8 +389,8 @@ function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void
       className="group w-full text-left rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-4 py-3 hover:border-[color:var(--border-strong)] transition-colors"
     >
       <div className="flex items-center gap-3">
-        <span className="font-mono text-[10px] tracking-[0.08em] uppercase font-semibold text-[color:var(--text-tertiary)] shrink-0">
-          PROMPT
+        <span className="shrink-0 text-[13px] font-medium text-[color:var(--text-tertiary)]">
+          Prompt
         </span>
         <span className="text-body-sm text-[color:var(--text-secondary)] truncate flex-1">
           {text}
@@ -463,45 +452,40 @@ function CritiqueView({
   return (
     <div className="space-y-6">
       {result.category && (
-        <div className="font-mono text-[11px] tracking-[0.12em] uppercase font-semibold text-[color:var(--text-tertiary)]">
+        <div className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
           {result.category}
         </div>
       )}
 
       <div>
         <div className="flex justify-end mb-4">
-          <div className="flex items-center rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg)] p-0.5">
-            <button
-              type="button"
-              onClick={() => setView("text")}
-              aria-pressed={view === "text"}
-              className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
-                view === "text"
-                  ? "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
-                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-              }`}
-            >
-              <FileText className="h-3 w-3" /> Text
-            </button>
-            <button
-              type="button"
-              onClick={() => setView("json")}
-              aria-pressed={view === "json"}
-              className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[11px] font-mono transition-colors ${
-                view === "json"
-                  ? "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
-                  : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-              }`}
-            >
-              <Code2 className="h-3 w-3" /> JSON
-            </button>
+          <div
+            role="tablist"
+            aria-label="Critique view"
+            className="flex items-center gap-0.5 rounded-md bg-[color:var(--bg-subtle)] p-0.5"
+          >
+            {(["text", "json"] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                role="tab"
+                aria-selected={view === v}
+                onClick={() => setView(v)}
+                className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[12px] font-medium transition-colors ${
+                  view === v
+                    ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-sm-card"
+                    : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+                }`}
+              >
+                {v === "text" ? <FileText className="h-3 w-3" /> : <Code2 className="h-3 w-3" />}
+                {v === "text" ? "Report" : "JSON"}
+              </button>
+            ))}
           </div>
         </div>
 
         {view === "json" ? (
-          <pre className="ink rounded-lg px-5 py-5 text-[13px] font-mono leading-[1.7] whitespace-pre-wrap overflow-x-auto">
-            {JSON.stringify(result, null, 2)}
-          </pre>
+          <PromptSurface label="Critique JSON">{JSON.stringify(result, null, 2)}</PromptSurface>
         ) : (
           <>
             <div className="grid gap-6 border-b border-[color:var(--border-subtle)] pb-8 mb-8 sm:grid-cols-[auto_1fr] sm:items-end sm:gap-10">
@@ -520,9 +504,6 @@ function CritiqueView({
                   </span>
                   <span className="text-heading-md text-[color:var(--text-tertiary)]">/10</span>
                 </div>
-                <p className="mt-2 text-[11.5px] font-mono uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
-                  Evaluated for {TARGET_MODEL_NAME}
-                </p>
               </div>
               {result.summary && (
                 <p className="text-body-lg text-[color:var(--text-primary)] max-w-[52ch]">
@@ -533,7 +514,7 @@ function CritiqueView({
 
             {result.score_cap && (
               <p
-                className="mb-3 text-[11px] font-mono text-[color:var(--text-tertiary)]"
+                className="mb-3 text-[13px] text-[color:var(--text-tertiary)]"
                 title={
                   typeof result.weighted_mean === "number"
                     ? `Weighted mean before the cap: ${result.weighted_mean}`
@@ -595,7 +576,7 @@ function CritiqueView({
                       </li>
                     ))}
                     {skipped.length > 0 && (
-                      <li className="pt-2 text-[11px] font-mono text-[color:var(--text-tertiary)]">
+                      <li className="pt-3 text-[13px] text-[color:var(--text-tertiary)]">
                         Not applicable:{" "}
                         {skipped.map((d) => DIMENSION_LABELS[d.id] ?? d.id).join(", ")}
                       </li>
@@ -614,7 +595,7 @@ function CritiqueView({
                     <ol className="space-y-3 text-body-md text-[color:var(--text-secondary)]">
                       {result.weaknesses.map((w, i) => (
                         <li key={i} className="flex gap-3">
-                          <span className="mt-1 shrink-0 font-mono text-[11.5px] tabular-nums text-[color:var(--text-tertiary)]">
+                          <span className="mt-1 shrink-0 font-mono text-[12px] tabular-nums text-[color:var(--text-tertiary)]">
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           <span>{w}</span>
@@ -629,7 +610,7 @@ function CritiqueView({
                     <ol className="space-y-3 text-body-md text-[color:var(--text-secondary)]">
                       {result.improvements.map((w, i) => (
                         <li key={i} className="flex gap-3">
-                          <span className="mt-1 shrink-0 font-mono text-[11.5px] tabular-nums text-[color:var(--text-tertiary)]">
+                          <span className="mt-1 shrink-0 font-mono text-[12px] tabular-nums text-[color:var(--text-tertiary)]">
                             {String(i + 1).padStart(2, "0")}
                           </span>
                           <span>{w}</span>
@@ -646,33 +627,36 @@ function CritiqueView({
 
       {result.rewritten_prompt && (
         <div className="border-t border-[color:var(--border-subtle)] pt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-heading-sm">Rewritten prompt</h2>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopyRewritten}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-[color:var(--bg)] hover:bg-[color:var(--bg-subtle)] border border-[color:var(--border-default)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)] transition-colors"
-                aria-label="Copy rewritten prompt"
-              >
-                {rewrittenCopied ? (
-                  <Check className="h-4 w-4 text-[color:var(--success)]" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </button>
-            </div>
+          <h2 className="text-heading-md">Rewritten prompt</h2>
+          <div className="mt-4">
+            <PromptSurface
+              label="Rewritten prompt"
+              actions={
+                <button
+                  type="button"
+                  onClick={handleCopyRewritten}
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
+                  aria-label="Copy rewritten prompt"
+                >
+                  {rewrittenCopied ? (
+                    <Check className="h-3.5 w-3.5" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                  {rewrittenCopied ? "Copied" : "Copy"}
+                </button>
+              }
+            >
+              {result.rewritten_prompt}
+            </PromptSurface>
           </div>
-          <pre className="ink rounded-lg px-5 py-5 sm:px-6 sm:py-6 text-[13px] sm:text-[14px] font-mono leading-[1.75] whitespace-pre-wrap overflow-x-auto">
-            {result.rewritten_prompt}
-          </pre>
           <div className="mt-4 space-y-2">
             <Button onClick={handleOpenInImago} size="sm" className="gap-2">
               <ExternalLink className="h-3.5 w-3.5" />
               {CTA.openImago}
             </Button>
             {referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
-            <p className="text-[11px] text-[color:var(--text-tertiary)]">
+            <p className="text-[13px] text-[color:var(--text-tertiary)]">
               Opens Imago with your prompt copied. Paste with{" "}
               <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
                 {navigator.platform?.toUpperCase().includes("MAC") ? "⌘V" : "Ctrl+V"}

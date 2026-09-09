@@ -50,7 +50,7 @@ export function AnnouncementBar() {
           params={{ slug: ANNOUNCEMENT.slug }}
           className="group flex min-w-0 flex-1 items-center gap-3 text-[13px] text-[color:var(--text-primary)]"
         >
-          <span className="pill pill-solid shrink-0 !py-[3px] !px-2 text-[10.5px]">
+          <span className="pill pill-solid shrink-0 !px-2 !py-[3px] !text-[11px]">
             {ANNOUNCEMENT.badge}
           </span>
           <span className="truncate">

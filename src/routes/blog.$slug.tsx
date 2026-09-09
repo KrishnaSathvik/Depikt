@@ -173,7 +173,7 @@ function PostPage() {
           <div className="min-w-0 lg:max-w-[760px]">
             {/* Post header */}
             <header>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--text-tertiary)]">
                 <span>{post.category}</span>
                 <span aria-hidden>·</span>
                 <time dateTime={post.published} className="tabular-nums">
@@ -195,9 +195,7 @@ function PostPage() {
               <p className="mt-5 text-body-lg text-[color:var(--text-secondary)]">
                 {post.subtitle}
               </p>
-              <p className="mt-6 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
-                By {post.author}
-              </p>
+              <p className="mt-6 text-[13px] text-[color:var(--text-tertiary)]">By {post.author}</p>
             </header>
 
             {post.cover_image && (
@@ -264,18 +262,17 @@ function PostPage() {
             </div>
 
             {/* CTA */}
-            <div className="ink mt-14 rounded-lg px-6 py-8 sm:px-10 sm:py-10">
-              <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="mt-14 border-t border-[color:var(--text-primary)] pt-8">
+              <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <p className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--ink-text-secondary)]">
-                    Build yours
-                  </p>
-                  <h3 className="mt-2 text-heading-md">Build a prompt that follows this guide.</h3>
-                  <p className="mt-2 text-body-md text-[color:var(--ink-text-secondary)]">
-                    Paste a rough idea. Get back a structured prompt for ChatGPT.
+                  <h3 className="text-heading-md text-[color:var(--text-primary)]">
+                    Build a prompt that follows this guide.
+                  </h3>
+                  <p className="mt-2 max-w-[48ch] text-body-md text-[color:var(--text-secondary)]">
+                    Paste a rough idea. Get back a structured prompt.
                   </p>
                 </div>
-                <Button asChild variant="inverse" size="lg" className="shrink-0">
+                <Button asChild size="lg" className="shrink-0">
                   <Link to="/generate">
                     Open {TOOL.builder} <ArrowRight />
                   </Link>
@@ -295,7 +292,7 @@ function PostPage() {
                       params={{ slug: r.slug }}
                       className="group block bg-[color:var(--bg-elevated)] p-6 hover:bg-[color:var(--bg-muted)] transition-colors"
                     >
-                      <span className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
+                      <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
                         {r.category}
                       </span>
                       <h5 className="mt-3 text-heading-sm text-[color:var(--text-primary)] group-hover:underline underline-offset-4">

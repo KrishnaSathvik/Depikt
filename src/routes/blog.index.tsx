@@ -73,7 +73,7 @@ type PostItem = (typeof posts)[number];
 
 function Meta({ post }: { post: PostItem }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)] md:flex-col md:items-start md:gap-y-1.5">
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--text-tertiary)] md:flex-col md:items-start md:gap-y-1.5">
       <span
         className={
           post.category === CURRENT_MODEL_CATEGORY ? "text-[color:var(--text-primary)]" : ""
@@ -162,8 +162,7 @@ function BlogIndex() {
           <p className="eyebrow">{TOOL.blog}</p>
           <h1 className="mt-4 text-display-lg md:text-display-xl">Field notes.</h1>
           <p className="mt-5 max-w-[52ch] text-body-lg text-[color:var(--text-secondary)]">
-            Guides for getting better images from {TARGET_MODEL_NAME}, written by people who ship
-            prompts every day. The older GPT Image 2 guides stay as written.
+            Guides for writing better image prompts, from people who ship prompts every day.
           </p>
         </header>
 
@@ -183,7 +182,7 @@ function BlogIndex() {
               <section aria-label="Earlier guides" className="mt-16">
                 <div className="flex items-baseline justify-between border-t border-[color:var(--text-primary)] pt-4">
                   <p className="eyebrow">Earlier guides · GPT Image 2 era</p>
-                  <span className="font-mono text-[11.5px] tabular-nums text-[color:var(--text-tertiary)]">
+                  <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
                     {older.length}
                   </span>
                 </div>
@@ -219,7 +218,7 @@ function BlogIndex() {
                     className="flex items-baseline justify-between text-body-sm text-[color:var(--text-secondary)]"
                   >
                     <span>{cat}</span>
-                    <span className="font-mono text-[12px] tabular-nums text-[color:var(--text-tertiary)]">
+                    <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
                       {String(count).padStart(2, "0")}
                     </span>
                   </li>

@@ -34,6 +34,7 @@ export const CTA = {
   critiquing: "Critiquing…",
   critiqueAnother: "Critique Another Prompt",
   browse: "Browse 500 Prompts",
+  browseShort: "Browse Prompts",
   remix: "Remix in Prompt Builder",
   openImago: "Open in Imago",
 } as const;
@@ -85,7 +86,7 @@ export const ANNOUNCEMENT: Announcement = {
   id: "images-2-5-launch",
   badge: "New",
   title: `${TARGET_MODEL_NAME} is here.`,
-  body: `Depikt's ${TOOL.builder} and ${TOOL.critic} are tuned for it.`,
+  body: "Depikt has been updated for it.",
   slug: "chatgpt-images-2-5-whats-new",
   cta: "Read what's new",
   active: true,

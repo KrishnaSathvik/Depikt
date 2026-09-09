@@ -74,7 +74,7 @@ function TemplatesIndex() {
               params={{ slug: r.slug }}
               className="group block bg-[color:var(--bg-elevated)] p-6 hover:bg-[color:var(--bg-subtle)] transition-colors"
             >
-              <span className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
+              <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
                 {r.category}
               </span>
               <h2 className="mt-3 text-heading-sm text-[color:var(--text-primary)] group-hover:underline underline-offset-4">
@@ -90,15 +90,15 @@ function TemplatesIndex() {
           ))}
         </section>
 
-        <aside className="ink mt-16 rounded-lg px-6 py-8 sm:px-10 sm:py-10">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+        <aside className="mt-16 border-t border-[color:var(--text-primary)] pt-8">
+          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
               <h3 className="text-heading-md">Don't see your exact question?</h3>
-              <p className="mt-2 text-body-md text-[color:var(--ink-text-secondary)]">
-                The Prompt Builder writes a template-style prompt from any rough idea in seconds.
+              <p className="mt-2 max-w-[48ch] text-body-md text-[color:var(--text-secondary)]">
+                The Prompt Builder writes a template-style prompt from any rough idea.
               </p>
             </div>
-            <Button asChild variant="inverse" size="lg" className="shrink-0">
+            <Button asChild size="lg" className="shrink-0">
               <Link to="/generate">
                 Open Prompt Builder <ArrowRight />
               </Link>

@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import logo from "@/assets/logo.png";
-import { ANNOUNCEMENT, NAV_ITEMS, TARGET_MODEL_NAME } from "@/lib/product";
+import { NAV_ITEMS } from "@/lib/product";
 
 // Visible labels come from product.ts (Library · Prompt Builder · Prompt
 // Critic · Gallery · Blog); the route URLs (/generate, /critique) are unchanged.
@@ -36,14 +36,6 @@ export function Header() {
             </Link>
           ))}
         </nav>
-
-        <Link
-          to="/blog/$slug"
-          params={{ slug: ANNOUNCEMENT.slug }}
-          className="hidden font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)] transition-colors hover:text-[color:var(--text-primary)] lg:inline"
-        >
-          For {TARGET_MODEL_NAME}
-        </Link>
       </div>
 
       {/* Mobile: scrollable nav row */}

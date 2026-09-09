@@ -367,8 +367,9 @@ test("historical GPT Image 2 blog posts and prompt text are untouched by the mig
 test("announcement strip is data-driven and points at the launch article", () => {
   assert.equal(ANNOUNCEMENT.badge, "New");
   assert.match(ANNOUNCEMENT.title, /ChatGPT Images 2\.5/);
-  assert.match(ANNOUNCEMENT.body, /Prompt Builder/);
-  assert.match(ANNOUNCEMENT.body, /Prompt Critic/);
+  assert.match(ANNOUNCEMENT.body, /updated for it/);
+  assert.equal(/Images 2\.5/.test(read("src/components/Header.tsx")), false, "header stays quiet");
+  assert.equal(/Images 2\.5/.test(read("src/components/Footer.tsx")), false, "footer stays quiet");
   assert.ok(getPostBySlug(ANNOUNCEMENT.slug), "announcement slug resolves to a post");
   assert.equal(isAnnouncementLive({ ...ANNOUNCEMENT, active: false }), false);
   assert.equal(

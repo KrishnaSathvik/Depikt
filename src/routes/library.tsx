@@ -18,6 +18,7 @@ import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { PromptSurface } from "@/components/PromptSurface";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -27,7 +28,6 @@ import {
   JSONLD_NAMES,
   LIBRARY_COPY,
   SEO,
-  TARGET_MODEL_NAME,
   TOOL,
   historyKindLabel,
 } from "@/lib/product";
@@ -325,9 +325,9 @@ function HomePage() {
         <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 md:py-8 lg:px-12">
           {/* Grid header */}
           <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
-            <p className="font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
-              {filtered.length} prompts · sample {TARGET_MODEL_LABELS["gpt-image-2"]} outputs, your
-              results will vary
+            <p className="text-[13px] text-[color:var(--text-tertiary)]">
+              {filtered.length} prompts · thumbnails are sample {TARGET_MODEL_LABELS["gpt-image-2"]}{" "}
+              outputs
             </p>
             <Button asChild size="sm" className="shrink-0">
               <Link to="/generate">
@@ -558,7 +558,7 @@ function PromptCard({
         </div>
       ) : (
         <div className="flex aspect-[3/1] items-end px-5 pt-5 sm:aspect-auto">
-          <span className="font-mono text-[11px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+          <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
             {prompt.category}
           </span>
         </div>
@@ -607,7 +607,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
   return (
     <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 lg:px-12">
       <div className="mb-5 flex items-center justify-between gap-4">
-        <p className="font-mono text-mono-sm uppercase tracking-wider text-[color:var(--text-tertiary)]">
+        <p className="text-[13px] text-[color:var(--text-tertiary)]">
           {entries.length} {entries.length === 1 ? "entry" : "entries"}
         </p>
         <button
@@ -629,13 +629,13 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
             onClick={() => handleRestore(entry)}
           >
             <div className="flex items-center gap-2">
-              <span className="font-mono text-[10.5px] tracking-[0.08em] uppercase font-medium text-[color:var(--text-primary)]">
+              <span className="text-[13px] font-medium text-[color:var(--text-primary)]">
                 {historyKindLabel(entry.kind)}
               </span>
               {typeof entry.result.category === "string" && (
                 <>
                   <span className="text-[color:var(--text-tertiary)]">·</span>
-                  <span className="font-mono text-[10px] tracking-[0.08em] uppercase text-[color:var(--text-secondary)] truncate">
+                  <span className="truncate text-[13px] text-[color:var(--text-secondary)]">
                     {entry.result.category}
                   </span>
                 </>
@@ -645,7 +645,7 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
               {entry.roughIdea}
             </p>
             <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="font-mono text-[10px] text-[color:var(--text-tertiary)]">
+              <span className="text-[13px] text-[color:var(--text-tertiary)]">
                 {formatRelativeTime(entry.createdAt)}
               </span>
               <button
@@ -689,9 +689,7 @@ function PromptDetailDialog({
         </DialogHeader>
 
         <div className="mt-4">
-          <pre className="ink overflow-x-auto whitespace-pre-wrap rounded-lg px-5 py-5 font-mono text-[13px] leading-[1.7]">
-            {prompt.prompt}
-          </pre>
+          <PromptSurface label="Prompt">{prompt.prompt}</PromptSurface>
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -713,7 +711,7 @@ function PromptDetailDialog({
             Copy
           </Button>
         </div>
-        <p className="mt-2 text-[12px] text-[color:var(--text-tertiary)]">
+        <p className="mt-2 text-[13px] text-[color:var(--text-tertiary)]">
           <span className="hidden sm:inline">
             Opens Imago with your prompt copied. Paste with{" "}
             <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
@@ -722,8 +720,7 @@ function PromptDetailDialog({
           </span>
           <span className="sm:hidden">
             Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-          </span>{" "}
-          Remix rewrites this example for {TARGET_MODEL_NAME}.
+          </span>
         </p>
 
         {prompt.why_it_works && (

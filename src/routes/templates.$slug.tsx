@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PromptSurface } from "@/components/PromptSurface";
 import { Button } from "@/components/ui/button";
 import { getTemplateBySlug, templates } from "@/data/templates";
 import { absoluteUrl } from "@/lib/site";
@@ -119,7 +120,7 @@ function TemplatePage() {
         </Link>
 
         <header className="mt-8">
-          <span className="font-mono text-[11px] font-medium tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
+          <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
             {template.category}
           </span>
           <h1 className="mt-4 text-display-md text-[color:var(--text-primary)]">
@@ -139,23 +140,22 @@ function TemplatePage() {
         </aside>
 
         {/* The prompt */}
-        <section className="ink mt-10 overflow-hidden rounded-lg">
-          <div className="flex items-center justify-between border-b border-[color:var(--ink-border)] px-6 py-4">
-            <span className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-[color:var(--ink-text-secondary)]">
-              Copy-paste prompt
-            </span>
-            <button
-              type="button"
-              onClick={onCopy}
-              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[color:var(--ink-text-secondary)] transition-colors hover:text-[color:var(--ink-text)]"
-            >
-              <Copy className="h-3.5 w-3.5" />
-              {copied ? "Copied" : "Copy"}
-            </button>
-          </div>
-          <pre className="whitespace-pre-wrap break-words px-6 py-6 font-mono text-[13px] leading-[1.75]">
+        <section className="mt-10">
+          <PromptSurface
+            label="Copy-paste prompt"
+            actions={
+              <button
+                type="button"
+                onClick={onCopy}
+                className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
+              >
+                <Copy className="h-3.5 w-3.5" />
+                {copied ? "Copied" : "Copy"}
+              </button>
+            }
+          >
             {template.prompt}
-          </pre>
+          </PromptSurface>
         </section>
 
         {/* Why it works */}
@@ -193,7 +193,7 @@ function TemplatePage() {
                   params={{ slug: r.slug }}
                   className="group block bg-[color:var(--bg-elevated)] p-5 hover:bg-[color:var(--bg-subtle)] transition-colors"
                 >
-                  <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-[color:var(--text-tertiary)]">
+                  <span className="text-[13px] text-[color:var(--text-tertiary)]">
                     {r.category}
                   </span>
                   <h5 className="mt-2 text-body-md font-medium text-[color:var(--text-primary)] group-hover:underline underline-offset-4">

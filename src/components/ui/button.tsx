@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 /**
  * Button — design system rules:
  *  - default (primary): ink on white text, rounded-md (6px), 150ms ease-out
- *  - inverse: white on ink — for buttons placed on a dark surface
  *  - secondary: white card, default border, primary text
  *  - outline: transparent, default border, primary text
  *  - ghost: transparent, secondary text, hover bg-subtle
@@ -26,8 +25,6 @@ const buttonVariants = cva(
           "border border-[color:var(--border-default)] bg-transparent text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
         secondary:
           "border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
-        inverse:
-          "bg-[color:var(--ink-text)] text-[color:var(--ink)] hover:bg-[color:var(--bg-subtle)]",
         ghost:
           "bg-transparent text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]",
         link: "text-[color:var(--text-primary)] underline-offset-4 hover:underline px-0 h-auto",

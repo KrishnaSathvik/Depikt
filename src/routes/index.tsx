@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Copy, Check } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import {
   CTA,
   JSONLD_DESCRIPTIONS,
@@ -13,6 +13,7 @@ import {
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { PromptSurface } from "@/components/PromptSurface";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -68,51 +69,54 @@ const ROUGH_INPUT = "a poster about climate change";
 
 const POLISHED_PROMPT = `Editorial print poster, 2:3 portrait. Bold sans-serif headline "THE CLOCK IS TICKING" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "ARCTIC SEA ICE — SEPT 2026" with a thin 6-tick data sparkline trending down. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality.`;
 
-// Learn → Build → Improve. The step word is an eyebrow; the tool name stays
-// the visible title so the cards match the navigation.
+// Learn → Build → Improve. The step word is a small label; the tool name
+// stays the visible title so the cards match the navigation.
 const FEATURES = [
   {
     to: "/library" as const,
-    index: "01",
     step: "Learn",
     title: TOOL.library,
-    body: `500 proven ${LEGACY_MODEL_NAME} prompt examples across 10 categories, each with a note on why it works. Study them, copy them, or use one as a remix starting point.`,
+    body: `500 proven ${LEGACY_MODEL_NAME} prompts across 10 categories, each with a note on why it works. Study them, copy them, or use one as a starting point.`,
     cta: "Browse the library",
   },
   {
     to: "/generate" as const,
-    index: "02",
     step: "Build",
     title: TOOL.builder,
-    body: `Turn a rough idea or a reference image into a ${TARGET_MODEL_NAME}-ready prompt, with the intent, aspect ratio, exact text, and reference handling spelled out.`,
+    body: "Turn a rough idea or a reference image into a precise prompt, with the intent, aspect ratio, exact text, and reference handling spelled out.",
     cta: "Open the Prompt Builder",
   },
   {
     to: "/critique" as const,
-    index: "03",
     step: "Improve",
     title: TOOL.critic,
-    body: "Paste an existing prompt and find the weak instructions, contradictions, missing edit protection, and unnecessary bloat. Get a score, a breakdown, and a rewrite.",
+    body: "Paste an existing prompt and find the weak instructions, contradictions, and missing edit protection. Get a score, a breakdown, and a rewrite.",
     cta: "Open the Prompt Critic",
   },
 ];
 
-// What changed in the model, and what Depikt does about each one. Model
-// facts paraphrase OpenAI's launch post; the right column is Depikt's job.
-const WHY_RETUNED = [
+// Editorial capability stories. The first sentence of each body paraphrases
+// OpenAI's launch post; the second is what Depikt does about it.
+const CAPABILITIES = [
   {
-    model: "Better at preserving the subjects in your reference photos.",
-    depikt: "The Builder asks how a reference should be used and writes that into the prompt.",
+    label: "Reference fidelity",
+    heading: "Keep the subject. Change the setting.",
+    body: `${TARGET_MODEL_NAME} is better at keeping the people and objects in a reference photo recognizable. Depikt asks how the reference should be used and writes that into the prompt.`,
   },
   {
-    model: "Edits only what you asked for and keeps the rest the same.",
-    depikt: "The Critic scores edit preservation and flags prompts that never say what to keep.",
+    label: "Precision edits",
+    heading: "Change one thing. Protect everything else.",
+    body: "The model is better at editing only what you ask for. Depikt separates what changes from what must stay, and the Critic flags prompts that never say what to keep.",
   },
   {
-    model:
-      "More accurate real-world content and more complex layouts, including transparent backgrounds.",
-    depikt:
-      "Exact text, hierarchy, ratio, and transparency are separate fields in the intent stage.",
+    label: "Complex layouts",
+    heading: "Control structure, hierarchy, and exact text.",
+    body: "Layouts, real-world content, and transparent backgrounds are handled more reliably. Depikt treats exact text, ratio, and hierarchy as first-class instructions.",
+  },
+  {
+    label: "Series consistency",
+    heading: "Carry approved choices forward.",
+    body: "Edits hold up better across a long conversation. Depikt restates what to preserve on every turn so a face or a product does not drift.",
   },
 ];
 
@@ -124,7 +128,7 @@ function LandingPage() {
       <main>
         <Hero />
         <FeatureGrid />
-        <WhyRetuned />
+        <Capabilities />
         <BeforeAfter />
         <LatestGuides />
         <FinalCTA />
@@ -138,40 +142,31 @@ function LandingPage() {
 
 function Hero() {
   return (
-    <section className="border-b border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 pb-16 pt-14 sm:px-6 md:pb-28 md:pt-24 lg:px-12">
-        <p className="eyebrow reveal">{POSITIONING.eyebrow}</p>
-        <h1
-          className="reveal mt-6 max-w-[14ch] text-display-lg md:text-display-xl text-[color:var(--text-primary)]"
-          style={{ animationDelay: "60ms" }}
-        >
+    <section>
+      <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-20 sm:px-6 md:pb-36 md:pt-36 lg:px-12">
+        <h1 className="reveal max-w-[13ch] text-display-lg md:text-display-xl text-[color:var(--text-primary)]">
           {POSITIONING.headline}
         </h1>
+        <p
+          className="reveal mt-8 max-w-[44ch] text-body-lg text-[color:var(--text-secondary)]"
+          style={{ animationDelay: "60ms" }}
+        >
+          Describe what you want, or add a reference. Depikt helps turn it into a clear, precise
+          prompt.
+        </p>
         <div
-          className="reveal mt-8 flex flex-col gap-8 md:mt-10 md:flex-row md:items-end md:justify-between"
+          className="reveal mt-10 flex flex-col gap-3 sm:flex-row"
           style={{ animationDelay: "120ms" }}
         >
-          <p className="max-w-[48ch] text-body-lg text-[color:var(--text-secondary)]">
-            Describe what you want, or attach a reference image. The {TOOL.builder} writes a precise{" "}
-            {TARGET_MODEL_NAME} prompt you paste into ChatGPT.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link to="/generate">
-                {CTA.buildHero} <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/library">{CTA.browse}</Link>
-            </Button>
-          </div>
+          <Button asChild size="lg">
+            <Link to="/generate">
+              {CTA.buildHero} <ArrowRight />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/library">{CTA.browseShort}</Link>
+          </Button>
         </div>
-        <p
-          className="reveal mt-8 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]"
-          style={{ animationDelay: "180ms" }}
-        >
-          Free · No login · Depikt writes the prompt; ChatGPT makes the image
-        </p>
       </div>
     </section>
   );
@@ -181,32 +176,19 @@ function Hero() {
 
 function FeatureGrid() {
   return (
-    <section className="border-b border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 md:py-24 lg:px-12">
-        <div className="grid gap-8 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12">
-          <div>
-            <p className="eyebrow">Learn · Build · Improve</p>
-            <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-              Three tools, one workflow.
-            </h2>
-          </div>
-          <p className="max-w-[56ch] text-body-lg text-[color:var(--text-secondary)] md:pt-9">
-            Learn from prompts that worked, build your own from an idea or a reference, then improve
-            it before you spend a generation. The Builder and Critic are tuned for{" "}
-            {TARGET_MODEL_NAME}: precise edits, reference fidelity, exact text, and clean layouts.
-          </p>
-        </div>
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+        <p className="eyebrow">Learn · Build · Improve</p>
+        <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
+          Three tools, one workflow.
+        </h2>
 
-        <div className="mt-12 grid border-t border-[color:var(--border-subtle)] md:mt-16 md:grid-cols-3">
+        <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
           {FEATURES.map((f) => (
-            <Link
-              key={f.to}
-              to={f.to}
-              className="group flex flex-col border-b border-[color:var(--border-subtle)] py-8 transition-colors hover:bg-[color:var(--bg-muted)] md:border-b-0 md:border-r md:px-8 md:py-10 md:first:pl-0 md:last:border-r-0"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-[color:var(--text-tertiary)]">
-                  {f.index} · {f.step}
+            <Link key={f.to} to={f.to} className="group flex flex-col">
+              <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
+                <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
+                  {f.step}
                 </span>
                 <ArrowUpRight className="h-4 w-4 text-[color:var(--text-quaternary)] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]" />
               </div>
@@ -227,36 +209,25 @@ function FeatureGrid() {
 
 /* ============================================================ */
 
-function WhyRetuned() {
+function Capabilities() {
   return (
-    <section className="border-b border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 md:py-24 lg:px-12">
-        <div className="max-w-[60ch]">
-          <p className="eyebrow">Why Depikt was retuned</p>
-          <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-            {TARGET_MODEL_NAME} rewards prompts that say what to change, what to keep, and where the
-            text goes.
-          </h2>
-        </div>
-        <dl className="mt-12 border-t border-[color:var(--border-subtle)]">
-          <div className="hidden grid-cols-2 gap-8 py-3 font-mono text-[11.5px] uppercase tracking-[0.08em] text-[color:var(--text-tertiary)] md:grid">
-            <span>What the model does now</span>
-            <span>What Depikt does about it</span>
-          </div>
-          {WHY_RETUNED.map((row) => (
-            <div
-              key={row.model}
-              className="grid gap-2 border-t border-[color:var(--border-subtle)] py-6 md:grid-cols-2 md:gap-8"
-            >
-              <dt className="text-body-lg text-[color:var(--text-primary)]">{row.model}</dt>
-              <dd className="text-body-md text-[color:var(--text-secondary)]">{row.depikt}</dd>
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+        <p className="eyebrow">What changed</p>
+        <h2 className="mt-4 max-w-[22ch] text-display-md text-[color:var(--text-primary)]">
+          The new model rewards prompts that say what to change, what to keep, and where the text
+          goes.
+        </h2>
+
+        <div className="mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-x-16 md:gap-y-20">
+          {CAPABILITIES.map((c) => (
+            <div key={c.label} className="max-w-[46ch]">
+              <p className="text-[13px] font-medium text-[color:var(--text-tertiary)]">{c.label}</p>
+              <h3 className="mt-4 text-heading-lg text-[color:var(--text-primary)]">{c.heading}</h3>
+              <p className="mt-4 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
             </div>
           ))}
-        </dl>
-        <p className="mt-6 text-body-sm text-[color:var(--text-tertiary)]">
-          Model behaviour is as described in OpenAI's announcement of {TARGET_MODEL_NAME}. Depikt
-          does not generate images.
-        </p>
+        </div>
       </div>
     </section>
   );
@@ -278,57 +249,47 @@ function BeforeAfter() {
   };
 
   return (
-    <section className="border-b border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 md:py-24 lg:px-12">
-        <div className="max-w-[60ch]">
-          <p className="eyebrow">From rough idea to image-ready prompt</p>
-          <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-            One sentence in. A real prompt out.
-          </h2>
-          <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">
-            The {TOOL.builder} first works out what you are asking for (format, reference use,
-            ratio, exact text), then writes the prompt. You take it to ChatGPT to make the image.
-          </p>
-        </div>
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+        <p className="eyebrow">From rough idea to image-ready prompt</p>
+        <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
+          One sentence in. A real prompt out.
+        </h2>
 
-        <div className="mt-12 grid grid-cols-1 items-stretch gap-0 overflow-hidden rounded-lg border border-[color:var(--border-default)] lg:grid-cols-5">
-          {/* Before */}
-          <div className="flex flex-col border-b border-[color:var(--border-subtle)] p-6 lg:col-span-2 lg:border-b-0 lg:border-r lg:p-8">
-            <span className="eyebrow">You type</span>
-            <p className="mt-6 text-heading-md text-[color:var(--text-primary)]">“{ROUGH_INPUT}”</p>
-            <div className="mt-auto flex items-center gap-2 pt-10 text-[color:var(--text-tertiary)]">
-              <ArrowRight className="h-4 w-4" />
-              <span className="text-body-sm">The {TOOL.builder} rewrites it</span>
+        <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
+          <div className="flex flex-col">
+            <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
+              You type
+            </span>
+            <p className="mt-5 text-heading-lg text-[color:var(--text-primary)]">“{ROUGH_INPUT}”</p>
+            <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
+              The {TOOL.builder} works out the format, the reference use, the ratio, and the exact
+              text first, then writes the prompt.
+            </p>
+            <div className="mt-8">
+              <Button asChild variant="outline">
+                <Link to="/generate">
+                  Build one from your own idea <ArrowRight />
+                </Link>
+              </Button>
             </div>
           </div>
 
-          {/* After */}
-          <div className="ink flex flex-col lg:col-span-3">
-            <div className="flex items-center justify-between border-b border-[color:var(--ink-border)] px-6 py-4">
-              <span className="font-mono text-[11.5px] uppercase tracking-[0.08em] text-[color:var(--ink-text-secondary)]">
-                Depikt prompt · Poster · 2:3
-              </span>
+          <PromptSurface
+            label="Your prompt · Poster · 2:3"
+            actions={
               <button
                 type="button"
                 onClick={onCopy}
-                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[color:var(--ink-text-secondary)] transition-colors hover:text-[color:var(--ink-text)]"
+                className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
               >
                 {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                 {copied ? "Copied" : "Copy"}
               </button>
-            </div>
-            <pre className="flex-1 whitespace-pre-wrap break-words px-6 py-6 font-mono text-[13px] leading-[1.7] text-[color:var(--ink-text)]">
-              {POLISHED_PROMPT}
-            </pre>
-          </div>
-        </div>
-
-        <div className="mt-8">
-          <Button asChild variant="outline">
-            <Link to="/generate">
-              Build one from your own idea <ArrowRight />
-            </Link>
-          </Button>
+            }
+          >
+            {POLISHED_PROMPT}
+          </PromptSurface>
         </div>
       </div>
     </section>
@@ -340,13 +301,13 @@ function BeforeAfter() {
 function LatestGuides() {
   const guides = getLatestGuides(3);
   return (
-    <section className="border-b border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 md:py-24 lg:px-12">
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
         <div className="flex flex-wrap items-end justify-between gap-6">
-          <div className="max-w-[60ch]">
-            <p className="eyebrow">Latest guides</p>
+          <div>
+            <p className="eyebrow">From the blog</p>
             <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-              Prompting {TARGET_MODEL_NAME}, deconstructed.
+              Latest guides.
             </h2>
           </div>
           <Link
@@ -357,15 +318,15 @@ function LatestGuides() {
           </Link>
         </div>
 
-        <div className="mt-12 grid border-t border-[color:var(--border-subtle)] md:grid-cols-3">
+        <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
           {guides.map((p) => (
             <Link
               key={p.slug}
               to="/blog/$slug"
               params={{ slug: p.slug }}
-              className="group flex flex-col border-b border-[color:var(--border-subtle)] py-7 transition-colors hover:bg-[color:var(--bg-muted)] md:border-b-0 md:border-r md:px-8 md:py-8 md:first:pl-0 md:last:border-r-0"
+              className="group flex flex-col border-t border-[color:var(--border-subtle)] pt-5"
             >
-              <div className="flex items-center gap-3 font-mono text-[11.5px] uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+              <div className="flex items-center gap-2 text-[13px] text-[color:var(--text-tertiary)]">
                 <span>{p.category}</span>
                 <span aria-hidden>·</span>
                 <span className="tabular-nums">{p.read_time}</span>
@@ -388,25 +349,20 @@ function LatestGuides() {
 
 function FinalCTA() {
   return (
-    <section>
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-        <h2 className="max-w-[16ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
-          Your next image is one good prompt away.
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <div className="mx-auto max-w-[1400px] px-4 py-24 sm:px-6 md:py-40 lg:px-12">
+        <h2 className="max-w-[14ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
+          Your next image starts with a better prompt.
         </h2>
-        <div className="mt-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <p className="max-w-[44ch] text-body-lg text-[color:var(--text-secondary)]">
-            No account. No credit card. Build a prompt, open it in ChatGPT, and make the image.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link to="/generate">
-                {CTA.buildHero} <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/library">Browse the library</Link>
-            </Button>
-          </div>
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <Button asChild size="lg">
+            <Link to="/generate">
+              {CTA.buildHero} <ArrowRight />
+            </Link>
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link to="/library">{CTA.browseShort}</Link>
+          </Button>
         </div>
       </div>
     </section>

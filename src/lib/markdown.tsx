@@ -1,5 +1,6 @@
 import React from "react";
 import { Copy, Check } from "lucide-react";
+import { PromptSurface } from "@/components/PromptSurface";
 
 // Lightweight markdown renderer tailored to the blog content.
 // Supports: H2/H3, paragraphs, bold, italic, inline code, links,
@@ -19,7 +20,12 @@ function slugify(text: string): string {
     .replace(/\s+/g, "-");
 }
 
-function CodeBlock({ code }: { code: string }) {
+/**
+ * Prompt / code example. Light surface: prompts are reading material, not
+ * terminal output. The fence info string becomes the label (```before,
+ * ```after, ```prompt); a bare fence reads as "Prompt".
+ */
+function CodeBlock({ code, label }: { code: string; label?: string }) {
   const [copied, setCopied] = React.useState(false);
   const handleCopy = async () => {
     await navigator.clipboard.writeText(code);
@@ -27,24 +33,23 @@ function CodeBlock({ code }: { code: string }) {
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <div className="group relative my-8">
-      <pre className="ink overflow-x-auto rounded-lg px-6 py-5">
-        <code className="font-mono text-[13.5px] leading-[1.7] whitespace-pre-wrap break-words">
-          {code}
-        </code>
-      </pre>
-      <button
-        type="button"
-        onClick={handleCopy}
-        className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[color:var(--ink-border)] bg-[color:var(--ink-elevated)] text-[color:var(--ink-text-secondary)] hover:text-[color:var(--ink-text)] opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-visible:opacity-100"
-        aria-label="Copy code"
+    <div className="my-8">
+      <PromptSurface
+        label={label || "Prompt"}
+        actions={
+          <button
+            type="button"
+            onClick={handleCopy}
+            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
+            aria-label="Copy prompt"
+          >
+            {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+        }
       >
-        {copied ? (
-          <Check className="h-4 w-4 text-[color:var(--success)]" />
-        ) : (
-          <Copy className="h-4 w-4" />
-        )}
-      </button>
+        {code}
+      </PromptSurface>
     </div>
   );
 }
@@ -124,6 +129,8 @@ export function renderMarkdown(md: string): RenderedContent {
     }
 
     if (line.startsWith("```")) {
+      const info = line.slice(3).trim();
+      const fenceLabel = info ? info.charAt(0).toUpperCase() + info.slice(1) : undefined;
       const codeLines: string[] = [];
       i++;
       while (i < lines.length && !lines[i].startsWith("```")) {
@@ -131,7 +138,7 @@ export function renderMarkdown(md: string): RenderedContent {
         i++;
       }
       i++;
-      out.push(<CodeBlock key={`code-${key++}`} code={codeLines.join("\n")} />);
+      out.push(<CodeBlock key={`code-${key++}`} code={codeLines.join("\n")} label={fenceLabel} />);
       continue;
     }
 
