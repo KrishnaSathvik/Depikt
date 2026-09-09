@@ -17,7 +17,10 @@ export default defineTool({
     if (slug) results = results.filter((t) => t.slug === slug);
     if (category) results = results.filter((t) => t.category.toLowerCase() === category.toLowerCase());
 
-    const payload = { count: results.length, templates: results };
+    const payload = {
+      count: results.length,
+      templates: results.map((t) => ({ ...t })),
+    };
     return {
       content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
       structuredContent: payload,
