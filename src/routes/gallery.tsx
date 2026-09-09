@@ -54,8 +54,8 @@ function GalleryPage() {
 
   const handleUseAsReference = (filename: string) => {
     navigate({
-      to: "/generate",
-      search: { ref: `/gallery/${filename}` },
+      to: "/prompt",
+      search: { mode: "build" as const, ref: `/gallery/${filename}` },
     });
   };
 

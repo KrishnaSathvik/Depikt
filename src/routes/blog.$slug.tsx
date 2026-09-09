@@ -305,7 +305,7 @@ function PostPage() {
                   </p>
                 </div>
                 <Button asChild size="lg" className="shrink-0">
-                  <Link to="/generate">
+                  <Link to="/prompt" search={{ mode: "build" as const }}>
                     Open {TOOL.builder} <ArrowRight />
                   </Link>
                 </Button>

@@ -25,6 +25,8 @@ export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COU
 /** Visible tool names. */
 export const TOOL = {
   library: "Library",
+  /** Unified workspace (navigation label). Build and Critique are its modes. */
+  prompt: "Prompt",
   builder: "Prompt Builder",
   critic: "Prompt Critic",
   gallery: "Gallery",
@@ -49,6 +51,8 @@ export const CTA = {
 /** Route URLs are frozen for compatibility and SEO. */
 export const ROUTES = {
   library: "/library",
+  /** Canonical unified workspace. /generate and /critique redirect here. */
+  prompt: "/prompt",
   builder: "/generate",
   critic: "/critique",
   gallery: "/gallery",
@@ -62,8 +66,7 @@ export const NAV_ITEMS: ReadonlyArray<{
   exact?: boolean;
 }> = [
   { to: ROUTES.library, label: TOOL.library, exact: true },
-  { to: ROUTES.builder, label: TOOL.builder },
-  { to: ROUTES.critic, label: TOOL.critic },
+  { to: ROUTES.prompt, label: TOOL.prompt },
   { to: ROUTES.gallery, label: TOOL.gallery },
   { to: ROUTES.blog, label: TOOL.blog },
 ];
@@ -152,7 +155,7 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp" | "templates",
+  "root" | "home" | "prompt" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp" | "templates",
   PageMeta
 > = {
   root: {
@@ -162,6 +165,10 @@ export const SEO: Record<
   home: {
     title: `Depikt — AI Image Prompt Builder for ${TARGET_MODEL_NAME}`,
     description: `Build better ChatGPT image prompts, explore ${LIBRARY_PROMPT_COUNT} real examples, and improve existing prompts with Depikt’s Prompt Builder and Prompt Critic.`,
+  },
+  prompt: {
+    title: `AI Image Prompt Workspace — Build and Critique | Depikt`,
+    description: `Write a new image prompt or improve an existing one in one workspace. Build turns an idea or reference into a structured prompt; Critique scores a prompt and rewrites it.`,
   },
   builder: {
     title: `${TARGET_MODEL_NAME} Prompt Builder | Depikt`,
@@ -257,6 +264,7 @@ export const MCP = {
 /** Search-facing names for structured data. */
 export const JSONLD_NAMES = {
   site: "Depikt",
+  prompt: "Depikt Prompt Workspace",
   builder: "Depikt Prompt Builder",
   critic: "Depikt Prompt Critic",
   library: "Depikt Prompt Library",
@@ -264,6 +272,7 @@ export const JSONLD_NAMES = {
 } as const;
 
 export const JSONLD_DESCRIPTIONS = {
+  prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite. Does not generate images.`,
   app: `Prompt builder, prompt critic, and curated prompt library for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
   builder: `Prompt builder for ${TARGET_MODEL_NAME}: turns a rough idea or reference image into a precise, image-ready prompt.`,
   critic: `Prompt critic for ${TARGET_MODEL_NAME}: scores an image prompt across intent, clarity, reference and edit handling, text and layout, style, and efficiency, and returns a rewritten prompt.`,

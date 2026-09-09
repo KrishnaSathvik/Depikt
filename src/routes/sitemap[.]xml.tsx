@@ -26,19 +26,13 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "daily",
           },
           {
-            loc: absoluteUrl("/generate"),
+            loc: absoluteUrl("/prompt"),
             lastmod: STATIC_LASTMOD,
             priority: "0.9",
             changefreq: "weekly",
           },
           {
             loc: absoluteUrl("/gallery"),
-            lastmod: STATIC_LASTMOD,
-            priority: "0.8",
-            changefreq: "weekly",
-          },
-          {
-            loc: absoluteUrl("/critique"),
             lastmod: STATIC_LASTMOD,
             priority: "0.8",
             changefreq: "weekly",

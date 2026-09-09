@@ -4,13 +4,15 @@
 
 Depikt's Library currently includes **523 curated prompts**: 500 original GPT Image 2 examples and 23 tested ChatGPT Images 2.5 recipes.
 
+Build and Critique are two modes of one workspace at https://depikt.app/prompt. Depikt writes and reviews prompts; it does not generate images. The older URLs https://depikt.app/generate and https://depikt.app/critique redirect to the matching mode.
+
 ## Core tools
 
 - [Library](https://depikt.app/library): Browse 523 curated image prompts across posters, infographics, UI concepts, social graphics, cinematic scenes, product imagery, illustrations, image edits, multi-panel layouts, reference workflows, and more. Each entry includes a sample image, the full prompt, and an explanation of why it works. The Library contains both GPT Image 2 and tested ChatGPT Images 2.5 examples in one collection.
 
-- [Prompt Builder](https://depikt.app/generate): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
+- [Prompt workspace — Build mode](https://depikt.app/prompt?mode=build): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
 
-- [Prompt Critic](https://depikt.app/critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
+- [Prompt workspace — Critique mode](https://depikt.app/prompt?mode=critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
 
 - [Reference Gallery](https://depikt.app/gallery): Browse hand-picked visual references across different styles and formats. Open an image to inspect it or send it into Prompt Builder as a reference.
 
@@ -59,18 +61,7 @@ This allows workflows such as:
 
 [Browse all prompt templates](https://depikt.app/templates).
 
-Current template examples include:
-
-- [Minimalist startup logo poster](https://depikt.app/templates/minimalist-startup-logo-poster)
-- [3-panel vertical storyboard](https://depikt.app/templates/3-panel-storyboard-vertical)
-- [Instagram quote card](https://depikt.app/templates/instagram-quote-card)
-- [Clean SaaS dashboard mockup](https://depikt.app/templates/saas-dashboard-mockup)
-- [Cinematic golden-hour portrait](https://depikt.app/templates/cinematic-portrait-golden-hour)
-- [3-step process infographic](https://depikt.app/templates/infographic-3-step-process)
-- [Minimalist product packshot](https://depikt.app/templates/minimalist-product-packshot)
-- [Mobile app onboarding screen](https://depikt.app/templates/mobile-onboarding-screen)
-- [Editorial magazine cover](https://depikt.app/templates/editorial-magazine-cover)
-- [Isometric tech illustration](https://depikt.app/templates/isometric-tech-illustration)
+The 15 active templates are grouped into Create, Structure, Edit, References, and Brand, and all live on the single [Templates](https://depikt.app/templates) page. Each template opens in the prompt workspace with its structure prefilled.
 
 ## Prompting guides
 

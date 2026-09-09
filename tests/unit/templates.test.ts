@@ -83,8 +83,8 @@ test("buildTemplateStarter fills provided values and labels the gaps", () => {
 test("Template → Prompt Builder uses the existing prefill flow", () => {
   const page = read("src/routes/templates.index.tsx");
   assert.match(page, /buildTemplateStarter/);
-  assert.match(page, /to: "\/generate", search: \{ prefill/);
-  assert.match(read("src/routes/generate.tsx"), /prefill\?: string/);
+  assert.match(page, /to: "\/prompt", search: \{ mode: "build" as const, prefill/);
+  assert.match(read("src/components/prompt/BuildMode.tsx"), /prefill\?: string/);
 });
 
 test("MCP exposes the canonical catalogue and stays read-only", () => {

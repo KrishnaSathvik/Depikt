@@ -5,10 +5,12 @@
  * Generation: node scripts/og-images-run.ts (prompts in research/og-images/).
  */
 
-export type OgRouteKey = "home" | "library" | "builder" | "critic" | "gallery" | "blog" | "mcp";
+export type OgRouteKey = "prompt" | "home" | "library" | "builder" | "critic" | "gallery" | "blog" | "mcp";
 
 export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
   home: "/og/home.png",
+  // The workspace reuses the Prompt Builder card until a dedicated one exists.
+  prompt: "/og/prompt-builder.png",
   library: "/og/library.png",
   builder: "/og/prompt-builder.png",
   critic: "/og/prompt-critic.png",
@@ -20,6 +22,7 @@ export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
 /** Cards that exist in public/og/. Add a key here after its PNG is committed. */
 export const OG_ROUTE_READY: ReadonlySet<OgRouteKey> = new Set<OgRouteKey>([
   "home",
+  "prompt",
   "library",
   "builder",
   "critic",
