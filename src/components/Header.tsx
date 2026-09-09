@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import logo from "@/assets/logo.png";
 import { NAV_ITEMS } from "@/lib/product";
+import { ScrollRow } from "@/components/ScrollRow";
+import { useRouterState } from "@tanstack/react-router";
 
 // Visible labels come from product.ts (Library · Prompt Builder · Prompt
 // Critic · Gallery · Blog); the route URLs (/generate, /critique) are unchanged.
@@ -9,6 +11,7 @@ import { NAV_ITEMS } from "@/lib/product";
 // with a 1px ink underline rather than a pill or background.
 
 export function Header() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-12">
@@ -38,10 +41,13 @@ export function Header() {
         </nav>
       </div>
 
-      {/* Mobile: scrollable nav row */}
-      <nav
-        aria-label="Primary"
-        className="no-scrollbar flex overflow-x-auto border-t border-[color:var(--border-subtle)] px-2 md:hidden"
+      {/* Mobile: scrollable nav row with an overflow cue; the active route scrolls into view. */}
+      <ScrollRow
+        as="nav"
+        ariaLabel="Primary"
+        activeKey={pathname}
+        className="border-t border-[color:var(--border-subtle)] md:hidden"
+        innerClassName="px-2"
       >
         {NAV_ITEMS.map(({ to, label, exact }) => (
           <Link
@@ -54,7 +60,7 @@ export function Header() {
             {label}
           </Link>
         ))}
-      </nav>
+      </ScrollRow>
     </header>
   );
 }
@@ -65,6 +71,6 @@ const NAV_CLS = `${NAV_BASE} text-[color:var(--text-secondary)] hover:text-[colo
 const NAV_CLS_ACTIVE = `${NAV_BASE} text-[color:var(--text-primary)] after:opacity-100`;
 
 const MOBILE_NAV_CLS =
-  "shrink-0 whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors border-b border-transparent";
+  "shrink-0 snap-start whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors border-b border-transparent";
 const MOBILE_NAV_CLS_ACTIVE =
-  "shrink-0 whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-primary)] border-b border-[color:var(--text-primary)] -mb-px";
+  "shrink-0 snap-start whitespace-nowrap px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-primary)] border-b border-[color:var(--text-primary)] -mb-px";

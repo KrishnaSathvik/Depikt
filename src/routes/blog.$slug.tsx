@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -160,7 +160,7 @@ function PostPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
-      <article className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-10 sm:px-6 lg:px-12">
+      <article className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-10 sm:px-6 lg:px-12">
         <Link
           to="/blog"
           className="inline-flex items-center gap-1.5 text-mono-sm text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] transition-colors"
@@ -242,21 +242,27 @@ function PostPage() {
                 <button
                   type="button"
                   onClick={() => setTocOpen((v) => !v)}
-                  className="flex w-full items-center justify-between rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 py-3 text-body-sm font-medium"
+                  aria-expanded={tocOpen}
+                  aria-controls="mobile-toc"
+                  className="flex min-h-[44px] w-full items-center justify-between rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 py-3 text-body-sm font-medium"
                 >
                   <span>On this page</span>
-                  <ArrowRight
-                    className={`h-4 w-4 transition-transform ${tocOpen ? "rotate-90" : ""}`}
+                  <ChevronDown
+                    aria-hidden="true"
+                    className={`h-4 w-4 transition-transform ${tocOpen ? "rotate-180" : ""}`}
                   />
                 </button>
                 {tocOpen && (
-                  <ul className="mt-2 space-y-1 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-4 text-body-sm">
+                  <ul
+                    id="mobile-toc"
+                    className="mt-2 space-y-1 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-4 text-body-sm"
+                  >
                     {headings.map((h) => (
                       <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
                         <a
                           href={`#${h.id}`}
                           onClick={() => setTocOpen(false)}
-                          className="block py-1 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+                          className="block py-2 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
                         >
                           {h.text}
                         </a>

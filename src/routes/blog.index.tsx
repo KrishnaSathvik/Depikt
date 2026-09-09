@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
+import { ScrollRow } from "@/components/ScrollRow";
 import { Footer } from "@/components/Footer";
 import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
 import { TARGET_MODEL_NAME, TOOL } from "@/lib/product";
@@ -156,7 +157,7 @@ function BlogIndex() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
-      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-12 sm:px-6 lg:px-12 lg:py-20">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-12 sm:px-6 lg:px-12 lg:py-20">
         <header className="max-w-3xl">
           <p className="eyebrow">{TOOL.blog}</p>
           <h1 className="mt-4 text-display-lg md:text-display-xl">Field notes.</h1>
@@ -165,14 +166,27 @@ function BlogIndex() {
           </p>
         </header>
 
-        <div className="mt-12 grid gap-10 lg:mt-16 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-16">
-          <aside aria-label="Categories" className="lg:sticky lg:top-24 lg:self-start">
-            <p className="eyebrow">Categories</p>
-            <ul className="no-scrollbar mt-4 flex gap-x-5 gap-y-2 overflow-x-auto lg:flex-col lg:gap-y-2.5">
+        <div className="mt-8 grid gap-6 lg:mt-16 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-16">
+          {/* Desktop: left rail. Mobile: one horizontal chip row above the articles. */}
+          <aside aria-label="Categories" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <p className="eyebrow hidden lg:block">Categories</p>
+            <ScrollRow className="-mx-5 sm:-mx-6 lg:hidden" innerClassName="gap-2 px-5 sm:px-6">
+              {categoryCounts.map(([cat, count]) => (
+                <span
+                  key={cat}
+                  className={`pill shrink-0 snap-start ${
+                    cat === CURRENT_MODEL_CATEGORY ? "pill-solid" : ""
+                  }`}
+                >
+                  {cat} · {count}
+                </span>
+              ))}
+            </ScrollRow>
+            <ul className="mt-4 hidden flex-col gap-y-2.5 lg:flex">
               {categoryCounts.map(([cat, count]) => (
                 <li
                   key={cat}
-                  className="flex shrink-0 items-baseline gap-2 text-body-sm text-[color:var(--text-secondary)] lg:justify-between"
+                  className="flex items-baseline justify-between gap-2 text-body-sm text-[color:var(--text-secondary)]"
                 >
                   <span
                     className={

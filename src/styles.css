@@ -361,7 +361,7 @@
       font-size: 40px;
     }
     .text-display-md {
-      font-size: 34px;
+      font-size: 36px;
     }
     .text-heading-lg {
       font-size: 28px;
@@ -486,4 +486,46 @@
   font-size: 13px;
   line-height: 1.5;
   color: var(--text-tertiary);
+}
+/* Nothing inside an article may widen the page: long URLs wrap, images and
+   code stay inside the column, tables scroll in their own wrapper. */
+.prose-content {
+  overflow-wrap: break-word;
+}
+.prose-content a {
+  overflow-wrap: anywhere;
+}
+.prose-content img {
+  max-width: 100%;
+  height: auto;
+}
+.prose-content pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Anchor targets clear the sticky header (56px) plus the mobile nav row. */
+.prose-content h2,
+.prose-content h3 {
+  scroll-margin-top: 112px;
+}
+@media (min-width: 768px) {
+  .prose-content h2,
+  .prose-content h3 {
+    scroll-margin-top: 72px;
+  }
+}
+@media (max-width: 768px) {
+  .prose-content {
+    font-size: 17px;
+    line-height: 1.65;
+    max-width: none;
+  }
+  .prose-content h2 {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+  .prose-content h3 {
+    font-size: 22px;
+    line-height: 1.3;
+  }
 }
