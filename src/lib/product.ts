@@ -113,8 +113,8 @@ export const ANNOUNCEMENT: Announcement = {
       span: "tall",
     },
     {
-      slug: "four-image-role-merge",
-      alt: "Person on a misty forest road at dawn, composed from four references",
+      slug: "impressionist-san-francisco",
+      alt: "Impressionist painting of a San Francisco street toward the bay",
       span: "wide",
     },
     {
