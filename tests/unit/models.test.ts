@@ -13,8 +13,14 @@ test("model ids are centralized and roles reference known models", () => {
     assert.ok(MODELS[role.model], `role model ${role.model} must exist in MODELS`);
     assert.ok(role.timeoutMs > 0);
   }
-  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-5.4-mini");
+  // Phase 2 routing: Luna builder (reasoning none, temp 0.7), Luna intent, Terra critic (medium), Astra offline only.
+  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-5.6-luna");
+  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.reasoningEffort, "none");
   assert.equal(MODEL_ROLES.BUILDER_DEFAULT.temperature, 0.7);
+  assert.equal(MODEL_ROLES.INTENT.model, "gpt-5.6-luna");
+  assert.equal(MODEL_ROLES.INTENT.reasoningEffort, "none");
+  assert.equal(MODEL_ROLES.CRITIC.model, "gpt-5.6-terra");
+  assert.equal(MODEL_ROLES.CRITIC.reasoningEffort, "medium");
   assert.equal(MODEL_ROLES.BENCHMARK_JUDGE.model, "gpt-6-astra");
 });
 
@@ -35,6 +41,27 @@ test("temperature is sent only when the model supports it", () => {
     {
       reasoning: { effort: "high" },
     },
+  );
+});
+
+test("temperature is dropped whenever reasoning is active (API rejects it)", () => {
+  assert.deepEqual(
+    resolveRequestParams({
+      model: "gpt-5.6-terra",
+      reasoningEffort: "low",
+      temperature: 0.7,
+      timeoutMs: 1,
+    }),
+    { reasoning: { effort: "low" } },
+  );
+  assert.deepEqual(
+    resolveRequestParams({
+      model: "gpt-5.6-luna",
+      reasoningEffort: "none",
+      temperature: 0.7,
+      timeoutMs: 1,
+    }),
+    { reasoning: { effort: "none" }, temperature: 0.7 },
   );
 });
 
