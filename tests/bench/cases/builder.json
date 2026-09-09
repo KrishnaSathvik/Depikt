@@ -376,7 +376,12 @@
         "(CTA|button)",
         "attached (reference |source |sketch |product )?(image|photo|picture|sketch|screenshot|reference)"
       ],
-      "must_not_match": ["hand-drawn (look|quality|style) (is|should be) (kept|preserved)"],
+      "must_not_match": [
+        "hand-drawn (look|quality|style) (is|should be) (kept|preserved)",
+        "(example|sample|placeholder) (copy|text)[\\s\\S]*no (other|additional|extra) (text|words|copy)",
+        "no (other|additional|extra) (text|words|copy)[\\s\\S]*(example|sample|placeholder) (copy|text)",
+        "example copy"
+      ],
       "intent": {
         "reference_intent": "sketch_layout",
         "category": "ui"

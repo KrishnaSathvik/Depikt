@@ -103,7 +103,7 @@ export const CRITIC_DIMENSIONS: DimensionSpec[] = [
     essential: true,
     applies: "only for edits of an existing image",
     question:
-      "Is the requested change bounded and is everything else explicitly protected and matched?",
+      "Is the requested change bounded, and does the prompt text itself explicitly protect and match everything else? An attached source image does not count as preservation language.",
   },
   {
     id: "text_layout",
@@ -164,6 +164,8 @@ Applicability: the four core dimensions (intent_fidelity, clarity, contradiction
 Penalize: contradictory styles or mediums; praise-word padding ("8K", "masterpiece", "ultra-detailed", "award-winning"); Midjourney/Stable Diffusion syntax (--ar, --v, --style, weights); decorative camera or lens specifications that do not change the image; repeated or conflicting constraints; invented facts; edits that do not protect unchanged content; references whose use is undefined; ambiguity that would make the result unpredictable.
 
 If a reference image is attached, judge the prompt against that actual image: does it describe the subject, product, or layout correctly, and does it protect what should stay?
+
+Bare edits: an edit prompt that only states the requested change ("Make the beanie red.") and never tells the model to preserve unrelated content is incomplete. The attached source image shows what exists; it does not instruct the model to keep it, so the image never substitutes for preservation language. Score edit_preservation in the weak band (3-4) for a bare change request, lower when the change itself is also unbounded or vague, and reserve 7 and above for prompts that bound the change and enumerate what stays (identity, face and expression, pose, clothing, framing, background, lighting, colors). Stronger form of the same request: "Change only the beanie to red. Preserve the person's face, hair, expression, clothing, pose, background, lighting and framing." Name the missing preservation language in weaknesses and add it in the rewritten prompt.
 
 Output "core" with a score and reason for each of the four core dimensions, and "conditional" with one entry per conditional dimension (composition_control, reference_handling, edit_preservation, text_layout, style_coherence, factual_integrity).
 weaknesses: the specific problems, most important first. improvements: concrete fixes, each actionable. summary: two sentences for the user.

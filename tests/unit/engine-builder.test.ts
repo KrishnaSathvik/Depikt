@@ -181,3 +181,63 @@ test("writer contracts have no category field; results validate per mode", () =>
     true,
   );
 });
+
+// ---------- Phase 3 carryover A: sketch/layout text policy ----------
+
+test("text policy (3.A): writer instructions never ask for example copy and forbid other text at once", () => {
+  // The rule set itself
+  assert.match(CORE_RULES, /Never pair an instruction to include example, sample, or placeholder copy/);
+  assert.match(CORE_RULES, /text appears only in the regions described/);
+  assert.equal(/write short example copy instead/.test(CORE_RULES), false);
+
+  // Every playbook and every reference block that can carry text
+  const contradictionPhrases = [
+    /label it as example copy/i,
+    /mark it as example content/i,
+    /say it is example copy/i,
+    /use short plausible example copy/i,
+  ];
+  for (const pb of Object.values(PLAYBOOKS)) {
+    for (const re of contradictionPhrases)
+      assert.equal(re.test(pb.guidance), false, `${pb.id}: ${re}`);
+  }
+  const sketch = assembleWriterRequest({
+    intent: intent({
+      category: "ui",
+      reference_intent: "sketch_layout",
+      exact_text: [{ role: "brand", text: "Ledgerly" }],
+      factual_requirements: {
+        user_supplied_facts: ["Ledgerly"],
+        missing_facts: [],
+        placeholders_required: false,
+      },
+    }),
+    userInput: "use this sketch as the layout for a landing page hero for Ledgerly",
+    mode: "default",
+    hasImage: true,
+  });
+  for (const re of contradictionPhrases) assert.equal(re.test(sketch.instructions), false, String(re));
+  assert.match(sketch.instructions, /describe each region's role/);
+  assert.match(sketch.instructions, /text appears only in the regions described, nothing else/);
+  // Poster keeps the strict "only the quoted copy" rule when copy is supplied
+  assert.match(PLAYBOOKS.poster.guidance, /only the quoted copy/);
+  assert.match(PLAYBOOKS.poster.guidance, /Never ask for example copy and forbid other text/);
+});
+
+// ---------- Phase 3 carryover C: reference handoff stays explicit ----------
+
+test("reference handoff (3.C): every reference block addresses the attached image the user re-attaches in Imago", async () => {
+  const { REFERENCE_INTENTS, referenceGuidance } = await import(
+    "../../src/lib/prompt-engine/reference.ts"
+  );
+  for (const ri of REFERENCE_INTENTS) {
+    const g = referenceGuidance(ri);
+    if (ri === "none") {
+      assert.equal(g, "");
+      continue;
+    }
+    assert.match(g, /attached/, ri);
+    assert.match(g, /Open (the prompt )?with/, ri);
+  }
+  assert.match(CORE_RULES, /the user will attach the same reference image alongside this prompt/);
+});

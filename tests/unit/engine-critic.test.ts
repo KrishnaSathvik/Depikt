@@ -226,3 +226,35 @@ test("critic user message states the reference usage when an image is attached",
   assert.match(buildCriticUserMessage("p", true, "auto"), /infer how it is meant to be used/);
   assert.equal(buildCriticUserMessage(" p ", false), "PROMPT TO CRITIQUE:\np");
 });
+
+// ---------- Phase 3 carryover B: bare edit rule ----------
+
+test("bare edit rule (3.B): the source image is not preservation language", () => {
+  assert.match(CRITIC_INSTRUCTIONS, /Bare edits:/);
+  assert.match(CRITIC_INSTRUCTIONS, /image never substitutes for preservation language/);
+  assert.match(CRITIC_INSTRUCTIONS, /"Make the beanie red\."/);
+  assert.match(CRITIC_INSTRUCTIONS, /Change only the beanie to red\. Preserve the person's face/);
+  assert.match(CRITIC_INSTRUCTIONS, /weak band \(3-4\) for a bare change request/);
+  const ep = CRITIC_DIMENSIONS.find((d) => d.id === "edit_preservation")!;
+  assert.match(ep.question, /source image does not count as preservation/);
+  assert.equal(ep.essential, true);
+  // No new generic cap: the existing essential-dimension cap does the work.
+  // A bare edit scored 4 on edit_preservation lands at most at 6 even when
+  // the image-backed reference handling and the core dimensions are strong.
+  const r = computeOverallScore([
+    dim("intent_fidelity", 9),
+    dim("clarity", 8),
+    dim("contradictions", 10),
+    dim("efficiency", 9),
+    dim("reference_handling", 7),
+    dim("edit_preservation", 4),
+    dim("composition_control", null),
+    dim("text_layout", null),
+    dim("style_coherence", null),
+    dim("factual_integrity", null),
+  ]);
+  assert.equal(r.cap?.dimension, "edit_preservation");
+  assert.equal(r.cap?.cap, 6);
+  assert.ok(r.overall !== null && r.overall <= 6);
+  assert.equal(essentialCap(7), null);
+});
