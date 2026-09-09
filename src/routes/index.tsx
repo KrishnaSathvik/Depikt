@@ -30,7 +30,7 @@ const DESCRIPTION = SEO.home.description;
 
 export const Route = createFileRoute("/")({
   head: () => {
-    const ogImage = getOgImageForPath();
+    const ogImage = getOgImageForPath("home");
     return {
       meta: [
         { title: TITLE },

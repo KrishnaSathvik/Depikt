@@ -54,7 +54,7 @@ export const Route = createFileRoute("/critique")({
     return { restore: typeof restore === "string" && restore.length > 0 ? restore : undefined };
   },
   head: () => {
-    const CRITIQUE_OG_IMAGE = getOgImageForPath();
+    const CRITIQUE_OG_IMAGE = getOgImageForPath("critic");
     return {
       meta: [
         { title: SEO.critic.title },

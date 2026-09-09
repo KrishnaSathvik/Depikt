@@ -43,3 +43,6 @@ research/images-2-5-community/runs/_verification/
 
 # OpenAI showcase assets downloaded for research (9 MB); reference only
 research/images-2-5-community/openai-assets/
+
+# OG card attempts (approved crops are copied to public/og/)
+research/og-images/runs/

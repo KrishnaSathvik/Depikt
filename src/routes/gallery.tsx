@@ -15,7 +15,7 @@ const GALLERY_URL = absoluteUrl("/gallery");
 
 export const Route = createFileRoute("/gallery")({
   head: () => {
-    const GALLERY_OG_IMAGE = getOgImageForPath();
+    const GALLERY_OG_IMAGE = getOgImageForPath("gallery");
     return {
       meta: [
         { title: SEO.gallery.title },

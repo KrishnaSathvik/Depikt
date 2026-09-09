@@ -29,7 +29,7 @@ export const Route = createFileRoute("/blog/$slug")({
       ? post.cover_image.startsWith("http")
         ? post.cover_image
         : absoluteUrl(post.cover_image)
-      : getOgImageForPath(`/blog/${post.slug}`);
+      : getOgImageForPath();
 
     const articleJsonLd = {
       "@context": "https://schema.org",

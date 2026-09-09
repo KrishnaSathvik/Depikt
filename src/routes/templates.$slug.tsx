@@ -20,7 +20,7 @@ export const Route = createFileRoute("/templates/$slug")({
     if (!loaderData?.template) return { meta: [{ title: "Template not found" }] };
     const { template } = loaderData;
     const url = absoluteUrl(`/templates/${template.slug}`);
-    const ogImage = getOgImageForPath(`/templates/${template.slug}`);
+    const ogImage = getOgImageForPath();
 
     const howToJsonLd = {
       "@context": "https://schema.org",

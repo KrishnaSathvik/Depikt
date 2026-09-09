@@ -76,7 +76,7 @@ export const Route = createFileRoute("/library")({
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
   head: () => {
-    const LIBRARY_OG_IMAGE = getOgImageForPath();
+    const LIBRARY_OG_IMAGE = getOgImageForPath("library");
     return {
       meta: [
         { title: SEO.library.title },

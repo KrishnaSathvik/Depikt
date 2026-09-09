@@ -89,7 +89,7 @@ export const Route = createFileRoute("/generate")({
     };
   },
   head: () => {
-    const GENERATE_OG_IMAGE = getOgImageForPath();
+    const GENERATE_OG_IMAGE = getOgImageForPath("builder");
     return {
       meta: [
         { title: SEO.builder.title },
