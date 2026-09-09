@@ -76,7 +76,7 @@ test("buildTemplateStarter fills provided values and labels the gaps", () => {
   const starter = buildTemplateStarter(poster, { HEADLINE: "NIGHT SESSIONS" });
   assert.match(starter, /^Template: Poster \/ Flyer/);
   assert.match(starter, /"NIGHT SESSIONS"/);
-  assert.match(starter, /\[exact headline\]/.test(starter) ? /never/ : /\[main visual\]/);
+  assert.match(starter, /\[main visual\]/);
   assert.equal(/\[[A-Z0-9_]+\]/.test(starter), false, "raw placeholder keys leaked");
 });
 
