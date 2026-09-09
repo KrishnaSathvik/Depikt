@@ -64,7 +64,7 @@ const referenceLines = REFERENCE_INTENTS.map((id) => `- ${id}: ${REFERENCE_DEFIN
 
 export const INTENT_INSTRUCTIONS = `You analyze a user's request for an AI image and return a compact JSON intent object. You do not write the image prompt. Be literal about what the user asked for; do not embellish.
 
-task: "edit" when an existing/attached image must be modified ("in this photo", "in my image", "this poster", "change/remove/replace/recolor the …", "keep everything else"); edits are category image_edit regardless of what the image depicts (a poster being edited is image_edit, not poster). "series" when the user wants several coordinated outputs (panels, pages, slides, matching assets); "remix" when a REMIX REFERENCE prompt is supplied; otherwise "create".
+task: "edit" when an existing/attached image must be modified ("in this photo", "in my image", "this poster", "change/remove/replace/recolor the …", "keep everything else"); edits are category image_edit regardless of what the image depicts (a poster being edited is image_edit, not poster), except a redesign of an app or web screenshot, which is category ui with reference_intent edit_source or sketch_layout. "series" when the user wants several coordinated outputs (panels, pages, slides, matching assets); "remix" when a REMIX REFERENCE prompt is supplied; otherwise "create".
 
 category (choose the single best fit):
 ${categoryLines}
