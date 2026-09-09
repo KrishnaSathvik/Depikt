@@ -113,13 +113,13 @@ export const ANNOUNCEMENT: Announcement = {
       span: "tall",
     },
     {
-      slug: "aurora-explainer-slide",
-      alt: "Explainer slide about the northern lights",
+      slug: "four-image-role-merge",
+      alt: "Person on a misty forest road at dawn, composed from four references",
       span: "wide",
     },
     {
-      slug: "ticket-localization-edit",
-      alt: "Travel ticket edited from Tokyo to Lisbon",
+      slug: "mosaic-earth-and-stars",
+      alt: "Tile mosaic of Earth under a starry sky",
       span: "wide",
     },
   ],
