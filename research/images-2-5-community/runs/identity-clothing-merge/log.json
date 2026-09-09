@@ -1,0 +1,30 @@
+[
+  {
+    "at": "2026-09-09T19:08:06.429Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png",
+      "research/images-2-5-community/runs/_fixtures/jacket-reference.png"
+    ],
+    "prompt": "Use image 1 as the identity reference: keep this exact person recognisably the same, including face, hair, skin tone, body shape and pose.\n\nUse image 2 as the clothing reference only: take the jacket's cut, fabric, colour, seams and hardware from it. Ignore the person, pose and background in image 2.\n\nProduce one photo of the person from image 1, in their original pose and setting, now wearing the jacket from image 2, fitted naturally to their body with correct drape and lighting. Do not change the face, hair, trousers, shoes, background or camera.",
+    "file": "research/images-2-5-community/runs/identity-clothing-merge/attempt-1.png",
+    "ms": 16684,
+    "usage": {
+      "input_tokens": 2883,
+      "input_tokens_details": {
+        "image_tokens": 2732,
+        "text_tokens": 151
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 3291
+    }
+  }
+]

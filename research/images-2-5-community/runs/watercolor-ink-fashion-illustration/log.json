@@ -1,0 +1,81 @@
+[
+  {
+    "at": "2026-09-09T19:06:03.709Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Full-body street-style photograph of a woman in a camel double-breasted wool coat with six buttons, a cream turtleneck, wide-leg charcoal trousers and black loafers, standing on a plain pale wall background, soft daylight, 3:4.",
+    "file": "research/images-2-5-community/runs/watercolor-ink-fashion-illustration/setup.png",
+    "ms": 13477,
+    "usage": {
+      "input_tokens": 58,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 58
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 466
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:52.137Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [
+      "research/images-2-5-community/runs/watercolor-ink-fashion-illustration/setup.png"
+    ],
+    "prompt": "Render the attached outfit photo as an editorial fashion illustration: confident hand-drawn ink contours, loose transparent watercolour washes that overshoot the lines, a few dry-brush strokes and paint spatters, on white paper with visible texture.\n\nKeep the garment faithful: same silhouette, colours, fabric weight, pockets, buttons and hem lengths as the photo. Full-body figure in the same pose, stylised long proportions, the face reduced to a few ink marks. Drop the background entirely. No text.",
+    "file": "research/images-2-5-community/runs/watercolor-ink-fashion-illustration/attempt-1.png",
+    "ms": 17308,
+    "usage": {
+      "input_tokens": 1568,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 116
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 1976
+    }
+  },
+  {
+    "at": "2026-09-09T19:13:44.357Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [
+      "research/images-2-5-community/runs/watercolor-ink-fashion-illustration/setup.png"
+    ],
+    "prompt": "Render the attached outfit photo as an editorial fashion illustration: confident hand-drawn ink contours, loose transparent watercolour washes that overshoot the lines, a few dry-brush strokes and paint spatters, on white paper with visible texture.\n\nKeep the garment faithful: same silhouette, colours, fabric weight, pockets, buttons and hem lengths as the photo. Add no accessories, bags or props that are not in the photo. Full-body figure in the same pose, stylised long proportions, the face reduced to a few ink marks. Drop the background entirely. No text.",
+    "file": "research/images-2-5-community/runs/watercolor-ink-fashion-illustration/attempt-2.png",
+    "ms": 15553,
+    "usage": {
+      "input_tokens": 1582,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 130
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 1990
+    },
+    "label": "v2: no added accessories"
+  }
+]

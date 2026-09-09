@@ -14,6 +14,7 @@ Depikt is a **reference library and prompt workspace for ChatGPT Images**. It wr
 
 - Visible copy: "Prompt Builder" / "Build Prompt", "Prompt Critic" / "Critique Prompt". Never "generator", "Generate prompt", or "image generator" in current product UI or metadata. All shared labels, SEO strings, and JSON-LD names live in `src/lib/product.ts`; tests read the same source.
 - The current Builder and Critic target **ChatGPT Images 2.5**. The 500-prompt library is the **GPT Image 2 collection** (`target_model = 'gpt-image-2'`), kept byte-for-byte; do not relabel it as Images 2.5 and do not create placeholder Images 2.5 rows. `src/lib/target-model.ts` holds the model vocabulary; the Library shows a collection filter only when a second collection has real rows.
+- **One library, two collections.** Images 2.5 entries live in `src/data/images-2-5-staged.ts` with provenance and review metadata (`src/lib/library-metadata.ts`: `source_type`, `status`, `reference_mode`, `generation_ready`, `gallery_ready`). Only `status = 'approved'` rows are public; `fetchLibrary` merges approved staged rows (23 as of 2026-09-09) and hides non-approved DB rows. Result images are `public/library/images-2-5/<slug>.webp`; every attempt, setup image, fixture and log is under `research/images-2-5-community/runs/`. Generation runs outside the product with `node scripts/images-2-5-run.ts` (needs `OPENAI_API_KEY`). Promotion: run → review → set status and `outcome_notes` in the TS file → `node scripts/export-staged-images-2-5.ts` (approved rows only) → run the upsert SQL → verify counts. The provenance migration is already applied in production; do not re-run it. Supabase is the approved library and DB rows win over staged rows on id, so staging is for work in progress. `approved` and `gallery_ready` are decided separately: a prompt can be a good recipe while its example image is not strong enough to promote. Never mark a record approved without a reviewed result. Library counts come from `LIBRARY_PROMPT_COUNT` in `src/lib/product.ts`.
 - Historical blog posts and templates about GPT Image 2 stay historically accurate; only index-level product copy and generic CTAs were migrated.
 - Reference images do not transfer to Imago; the UI shows a re-attach note when `reference_intent != none` and an image exists (`needsReferenceReattach`).
 - Model routing is locked: Intent + Builder = gpt-5.6-luna (reasoning none, writer temp 0.7); Critic = gpt-5.6-terra (reasoning medium); GPT-6 Astra offline evaluation only.
@@ -96,6 +97,11 @@ When user sends new prompts, follow these steps in order:
 | `src/routes/api/public/generate-prompt.ts` | Prompt Builder API route (SSE) |
 | `src/routes/api/public/critique-prompt.ts` | Prompt Critic API route (SSE) |
 | `supabase/migrations/20260908120000_add_target_model_to_curated_prompts.sql` | Adds `target_model` (default/backfill `gpt-image-2`) |
+| `supabase/migrations/20260909120000_add_prompt_provenance_to_curated_prompts.sql` | Adds slug, source_type, status, reference_mode, generation/gallery flags, review_notes |
+| `src/data/images-2-5-staged.ts` | Staged Images 2.5 records (batch 1: 24) with review guidance and setup prompts |
+| `src/lib/library-metadata.ts` | Status / source / reference vocabularies, public filter, model/status/source filters |
+| `scripts/export-staged-images-2-5.ts` | Writes `supabase/insert-images-2-5-batch1-staged.sql` from the staged records |
+| `scripts/images-2-5-run.ts` | Images 2.5 generation runner (setup / run / fixture) with per-record logs |
 
 ## RLS Constraints
 

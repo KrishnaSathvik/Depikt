@@ -1,0 +1,81 @@
+[
+  {
+    "at": "2026-09-09T19:05:50.133Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Photograph of a calm living room at night: a grey linen sofa centred against a plain warm-white wall with one framed print above it, a small round wooden side table at each end of the sofa, a lit brass table lamp with a linen shade on the LEFT side table casting a warm pool of light up the wall and across the sofa arm, the right side table empty, a wool rug, 3:2, eye-level camera.",
+    "file": "research/images-2-5-community/runs/move-one-object-recompute-light/setup.png",
+    "ms": 14133,
+    "usage": {
+      "input_tokens": 95,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 95
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 438
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:34.535Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/move-one-object-recompute-light/setup.png"
+    ],
+    "prompt": "Edit the attached photo. Move the table lamp from the side table on the left of the sofa to the matching side table on the right of the sofa.\n\nRecompute the light: the warm pool of light, the shadows on the wall and the reflections on the sofa and floor must now come from the lamp's new position, and the left side table should be lit only by the room's ambient light. Change nothing else: the sofa, tables, wall, artwork, rug, camera angle and framing stay exactly as they are.",
+    "file": "research/images-2-5-community/runs/move-one-object-recompute-light/attempt-1.png",
+    "ms": 11936,
+    "usage": {
+      "input_tokens": 1658,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 122
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 2001
+    }
+  },
+  {
+    "at": "2026-09-09T19:13:40.901Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/move-one-object-recompute-light/setup.png"
+    ],
+    "prompt": "Edit the attached photo. Move only the brass table lamp from the left side table to the empty right side table, keeping the lamp's size, shade and brass base identical. The potted plant and the coasters stay on the left side table exactly where they are; nothing else on either table changes.\n\nRecompute the light: the warm pool of light, the shadows on the wall and the reflections on the sofa and floor must now come from the lamp's new position on the right, and the left side of the room is lit only by ambient light. Change nothing else: the sofa, cushions, throw, tables, wall, framed print, rug, window, camera angle and framing stay exactly as they are.",
+    "file": "research/images-2-5-community/runs/move-one-object-recompute-light/attempt-2.png",
+    "ms": 12099,
+    "usage": {
+      "input_tokens": 1696,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 160
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 2039
+    },
+    "label": "v2: plant and coasters stay"
+  }
+]

@@ -15,6 +15,11 @@ import type { ReferenceIntent } from "./prompt-engine/reference.ts";
 export const TARGET_MODEL_NAME = "ChatGPT Images 2.5";
 export const LEGACY_MODEL_NAME = "GPT Image 2";
 
+/** Legacy GPT Image 2 rows (500) plus the approved ChatGPT Images 2.5 rows. */
+export const LEGACY_LIBRARY_COUNT = 500;
+export const IMAGES_25_LIBRARY_COUNT = 23;
+export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COUNT;
+
 /** Visible tool names. */
 export const TOOL = {
   library: "Library",
@@ -33,7 +38,7 @@ export const CTA = {
   critique: "Critique Prompt",
   critiquing: "Critiquing…",
   critiqueAnother: "Critique Another Prompt",
-  browse: "Browse 500 Prompts",
+  browse: `Browse ${LIBRARY_PROMPT_COUNT} Prompts`,
   browseShort: "Browse Prompts",
   remix: "Remix in Prompt Builder",
   openImago: "Open in Imago",
@@ -120,11 +125,11 @@ export const SEO: Record<"root" | "home" | "builder" | "critic" | "library" | "g
   {
     root: {
       title: `Depikt — Prompt Builder & Library for ${TARGET_MODEL_NAME}`,
-      description: `Turn rough ideas and reference images into image-ready prompts for ${TARGET_MODEL_NAME}. Browse 500 curated ${LEGACY_MODEL_NAME} prompts, build your own, and critique existing prompts. Free, no login.`,
+      description: `Turn rough ideas and reference images into image-ready prompts for ${TARGET_MODEL_NAME}. Browse ${LIBRARY_PROMPT_COUNT} curated prompts for ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}, build your own, and critique existing prompts. Free, no login.`,
     },
     home: {
       title: `Depikt — Prompt Builder & Library for ${TARGET_MODEL_NAME}`,
-      description: `Learn what works, build what you want. Browse 500 curated ${LEGACY_MODEL_NAME} prompt examples, build ${TARGET_MODEL_NAME}-ready prompts from an idea or reference image, and critique prompts before you use them. Free, no login.`,
+      description: `Learn what works, build what you want. Browse ${LIBRARY_PROMPT_COUNT} curated prompt examples for ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}, build ${TARGET_MODEL_NAME}-ready prompts from an idea or reference image, and critique prompts before you use them. Free, no login.`,
     },
     builder: {
       title: `${TARGET_MODEL_NAME} Prompt Builder | Depikt`,
@@ -135,8 +140,8 @@ export const SEO: Record<"root" | "home" | "builder" | "critic" | "library" | "g
       description: `Paste an image prompt and find what is weakening it: contradictions, missing edit protection, unclear reference use, and prompt bloat. Get a score, a breakdown, and a rewritten prompt for ${TARGET_MODEL_NAME}.`,
     },
     library: {
-      title: `Prompt Library — 500 Curated ${LEGACY_MODEL_NAME} Prompts | Depikt`,
-      description: `Browse the ${LEGACY_MODEL_NAME} collection: 500 curated AI image prompts for posters, infographics, UI mockups, cinematic scenes, and more. Study them, copy them, or remix them in the ${TARGET_MODEL_NAME} Prompt Builder.`,
+      title: `Prompt Library — ${LIBRARY_PROMPT_COUNT} Curated ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME} Prompts | Depikt`,
+      description: `Browse ${LIBRARY_PROMPT_COUNT} curated AI image prompts: the ${LEGACY_LIBRARY_COUNT}-prompt ${LEGACY_MODEL_NAME} collection plus ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes generated and reviewed on the current model. Posters, infographics, UI mockups, precise edits, and more. Study them, copy them, or remix them in the Prompt Builder.`,
     },
     gallery: {
       title: "Reference Gallery | Depikt",
@@ -157,7 +162,7 @@ export const JSONLD_DESCRIPTIONS = {
   app: `Prompt builder, prompt critic, and curated prompt library for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
   builder: `Prompt builder for ${TARGET_MODEL_NAME}: turns a rough idea or reference image into a precise, image-ready prompt.`,
   critic: `Prompt critic for ${TARGET_MODEL_NAME}: scores an image prompt across intent, clarity, reference and edit handling, text and layout, style, and efficiency, and returns a rewritten prompt.`,
-  library: `A curated collection of 500 ${LEGACY_MODEL_NAME} prompts across 10 categories, kept as examples and remix starting points.`,
+  library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes with reviewed results.`,
   gallery:
     "A gallery of reference images you can send to the Prompt Builder as a style, subject, or composition reference.",
 } as const;
@@ -165,8 +170,8 @@ export const JSONLD_DESCRIPTIONS = {
 // ---------- library collection copy ----------
 
 export const LIBRARY_COPY = {
-  headline: `500 curated prompts — ${LEGACY_MODEL_NAME} collection`,
-  note: `These examples were created for ${LEGACY_MODEL_NAME}. Depikt's Prompt Builder now targets ${TARGET_MODEL_NAME}; remix any of them to get a rewritten prompt for the current model.`,
+  headline: `${LIBRARY_PROMPT_COUNT} curated prompts — ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}`,
+  note: `The original ${LEGACY_LIBRARY_COUNT} were created for ${LEGACY_MODEL_NAME}. Depikt's Prompt Builder now targets ${TARGET_MODEL_NAME}, and every ${TARGET_MODEL_NAME} entry here was generated and reviewed on that model; remix any legacy prompt to get a rewritten version for the current model.`,
   collectionBadge: `${LEGACY_MODEL_NAME} collection`,
 } as const;
 

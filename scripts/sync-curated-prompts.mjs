@@ -30,14 +30,26 @@ const supabase = createClient(
   env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
 );
 
-// Fetch all curated prompts
-const { data, error } = await supabase
+// Fetch all curated prompts. Try the Phase 4 provenance columns first and
+// fall back to the Phase 3 column set if that migration has not run.
+const BASE_COLUMNS =
+  "id, title, category, prompt, why_it_works, source, source_creator, source_url, tags, target_model";
+const PROVENANCE_COLUMNS =
+  `${BASE_COLUMNS}, slug, source_type, source_notes, status, generation_ready, gallery_ready, ` +
+  "needs_reference_images, reference_mode, review_notes, result_count";
+let { data, error } = await supabase
   .from("curated_prompts")
-  .select(
-    "id, title, category, prompt, why_it_works, source, source_creator, source_url, tags, target_model"
-  )
+  .select(PROVENANCE_COLUMNS)
   .order("category", { ascending: true })
   .order("created_at", { ascending: true });
+if (error && /source_type|status|reference_mode|slug/.test(error.message)) {
+  console.warn("Provenance columns missing; falling back. Apply supabase/migrations/20260909120000_add_prompt_provenance_to_curated_prompts.sql.");
+  ({ data, error } = await supabase
+    .from("curated_prompts")
+    .select(BASE_COLUMNS)
+    .order("category", { ascending: true })
+    .order("created_at", { ascending: true }));
+}
 
 if (error) {
   console.error("Failed to fetch:", error.message);

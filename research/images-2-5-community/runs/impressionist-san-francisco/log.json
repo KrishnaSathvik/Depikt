@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:05:12.757Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Impressionist oil painting, portrait 3:4: looking down a steep San Francisco street between pastel Victorian houses toward the bay, with the Golden Gate Bridge in the distance at the left and Coit Tower on its hill at the right. Bougainvillea on a wall in the foreground, a few parked cars, one white sailboat on the water.\n\nThick visible brushstrokes, broken colour, no hard outlines; a bright midday palette of cobalt, lilac, peach and olive with the bridge in vermilion. The sky is a flat field of strokes with no clouds. No text, no signature.",
+    "file": "research/images-2-5-community/runs/impressionist-san-francisco/attempt-1.png",
+    "ms": 16838,
+    "usage": {
+      "input_tokens": 132,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 132
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 540
+    }
+  },
+  {
+    "at": "2026-09-09T19:09:36.598Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Impressionist oil painting, portrait 3:4: looking down a steep San Francisco street between pastel Victorian houses toward the bay, with the Golden Gate Bridge in the distance at the left and Coit Tower on its hill at the right. Bougainvillea on a wall in the foreground, a few parked cars, one white sailboat on the water.\n\nThick visible brushstrokes, broken colour, no hard outlines; a bright midday palette of cobalt, lilac, peach and olive with the bridge in vermilion. The sky is a flat field of strokes with no clouds. No text, no signature.",
+    "file": "research/images-2-5-community/runs/impressionist-san-francisco/attempt-2.png",
+    "ms": 14531,
+    "usage": {
+      "input_tokens": 132,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 132
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 540
+    },
+    "label": "attempt 2, checking signature"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:05:18.472Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x864",
+    "refs": [],
+    "prompt": "A tile mosaic, landscape 16:9, seen straight on: the curve of Earth fills the lower third with continents in green and ochre tesserae and oceans in three blues, cloud bands in white; above it a night sky of deep navy and cobalt tiles with gold eight-pointed stars, a ringed planet at the left, a spiral galaxy at the upper right and a small grey moon at the far right.\n\nEvery tile is an individual square or irregular piece of glass or stone with slight size variation, visible grout lines and small chips; light catches the gold tiles. No smooth gradients anywhere; all tone comes from tile colour. No text.",
+    "file": "research/images-2-5-community/runs/mosaic-earth-and-stars/attempt-1.png",
+    "ms": 10979,
+    "usage": {
+      "input_tokens": 138,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 138
+      },
+      "output_tokens": 280,
+      "output_tokens_details": {
+        "image_tokens": 280,
+        "text_tokens": 0
+      },
+      "total_tokens": 418
+    }
+  }
+]

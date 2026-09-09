@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:04:49.870Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "One image, landscape 3:2, on a black ground: eight postage stamps arranged in two rows of four with perforated edges and a thin cream border on each. Each stamp is a flat-colour illustration in a 1930s WPA travel-poster style with fine printed texture.\n\nEach stamp carries three lines of type: the park name large in a serif at the top left, \"NATIONAL PARK\" small and letter-spaced beneath it, the state at the top right, and a tagline in small capitals on a dark band at the bottom. Text and scenes, in order:\n\n1. \"Yosemite\" — \"CALIFORNIA\" — granite cliffs and a waterfall at sunrise — \"GRANITE AND LIGHT\"\n2. \"Olympic\" — \"WASHINGTON\" — mossy rainforest with a river — \"FOREST TO THE SEA\"\n3. \"Arches\" — \"UTAH\" — a red sandstone arch under stars — \"STONE WINDOWS\"\n4. \"Badlands\" — \"SOUTH DAKOTA\" — striped buttes at dusk — \"LAYERS OF TIME\"\n5. \"Joshua Tree\" — \"CALIFORNIA\" — Joshua trees and boulders at golden hour — \"DESERT SILENCE\"\n6. \"Shenandoah\" — \"VIRGINIA\" — blue ridges in mist — \"BLUE HORIZONS\"\n7. \"Redwood\" — \"CALIFORNIA\" — a road through giant trunks — \"AMONG GIANTS\"\n8. \"Crater Lake\" — \"OREGON\" — deep blue lake with Wizard Island — \"BLUE BEYOND BLUE\"\n\nEvery stamp uses the same layout and type sizes. No other text, no denominations.",
+    "file": "research/images-2-5-community/runs/national-park-stamp-sheet/attempt-1.png",
+    "ms": 16277,
+    "usage": {
+      "input_tokens": 360,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 360
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 703
+    }
+  }
+]

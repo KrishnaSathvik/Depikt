@@ -1,0 +1,367 @@
+{
+  "generated": "2026-09-09",
+  "note": "Selected result per record; full-size attempts are git-ignored, logs are kept.",
+  "records": [
+    {
+      "slug": "80s-portrait-identity-lock",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1024"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 25308
+    },
+    {
+      "slug": "add-glasses-preserve-eyes",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1280"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 23968
+    },
+    {
+      "slug": "architectural-minimalist-poster-pavilion",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 2,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 29283
+    },
+    {
+      "slug": "aurora-explainer-slide",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x864"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 17480
+    },
+    {
+      "slug": "change-background-only",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 25675
+    },
+    {
+      "slug": "change-outfit-only",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 29542
+    },
+    {
+      "slug": "four-image-role-merge",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x1024"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 17992
+    },
+    {
+      "slug": "historical-illustrated-poster-silk-road",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 20663
+    },
+    {
+      "slug": "identity-clothing-merge",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 16684
+    },
+    {
+      "slug": "impressionist-san-francisco",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 2,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 31369
+    },
+    {
+      "slug": "mosaic-earth-and-stars",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x864"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 10979
+    },
+    {
+      "slug": "move-one-object-recompute-light",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 2,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x1024"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 38168
+    },
+    {
+      "slug": "multi-turn-infographic-edits",
+      "status": "tested",
+      "model_used": "sunburst",
+      "attempts": 2,
+      "quality": [
+        "high",
+        "medium"
+      ],
+      "sizes": [
+        "1024x1536"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 266873
+    },
+    {
+      "slug": "national-park-stamp-sheet",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x1024"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 16277
+    },
+    {
+      "slug": "nine-poster-grid",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 20012
+    },
+    {
+      "slug": "product-scene-background-only",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1280"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 20134
+    },
+    {
+      "slug": "product-style-reference-ugc",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 2,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1280"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 40190
+    },
+    {
+      "slug": "recompose-to-new-aspect-ratio",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 2,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1920x1088"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 51409
+    },
+    {
+      "slug": "showa-travel-poster-exact-title",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 20517
+    },
+    {
+      "slug": "sketch-to-garden-plan-render",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x1024"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 23112
+    },
+    {
+      "slug": "sticker-pack-poster",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1536"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 18305
+    },
+    {
+      "slug": "three-step-rag-infographic",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1536x864"
+      ],
+      "selected_result": null,
+      "setup_image": false,
+      "total_ms": 15232
+    },
+    {
+      "slug": "ticket-localization-edit",
+      "status": "approved",
+      "model_used": "sunburst",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1024x1536"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 30984
+    },
+    {
+      "slug": "watercolor-ink-fashion-illustration",
+      "status": "approved",
+      "model_used": "flare",
+      "attempts": 1,
+      "quality": [
+        "medium"
+      ],
+      "sizes": [
+        "1152x1536"
+      ],
+      "selected_result": null,
+      "setup_image": true,
+      "total_ms": 46338
+    }
+  ]
+}

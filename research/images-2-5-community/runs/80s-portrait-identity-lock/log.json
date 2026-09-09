@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-09T19:09:20.444Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "Show me what I would look like if I was in the '80s.\n\nUse the attached photo as the identity reference: keep this exact person recognisably the same, with the same face, eyes, skin tone and smile. Restyle everything else as a 1980s studio portrait: period hair, a colour-block windbreaker, a thin gold chain, a laser-grid backdrop in magenta and blue, soft flash lighting, and the faded colour and slight grain of a printed photo from the time. Square 1:1. No text.",
+    "file": "research/images-2-5-community/runs/80s-portrait-identity-lock/attempt-1.png",
+    "ms": 25308,
+    "usage": {
+      "input_tokens": 1580,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 128
+      },
+      "output_tokens": 439,
+      "output_tokens_details": {
+        "image_tokens": 439,
+        "text_tokens": 0
+      },
+      "total_tokens": 2019
+    }
+  }
+]

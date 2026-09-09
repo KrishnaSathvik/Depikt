@@ -2,6 +2,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { LibraryPrompt, PromptSource } from '@/types/library';
 import { normalizeTargetModel } from '@/lib/target-model';
+import {
+  filterPublic,
+  mergeById,
+  normalizeReferenceMode,
+  normalizeSourceType,
+  normalizeStatus,
+} from '@/lib/library-metadata';
+import { publicStagedPrompts } from '@/data/images-2-5-staged';
 
 const IMAGO_URL =
   'https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago' +
@@ -13,41 +21,60 @@ const IMAGO_URL =
  */
 const CURATED_COLUMNS =
   'id, title, category, user_input, prompt, why_it_works, source, tags, thumbnail_url, created_at';
+// Phase 3 column.
+const MODEL_COLUMNS = `${CURATED_COLUMNS}, target_model`;
+// Phase 4 provenance / review columns (migration 20260909120000).
+const PROVENANCE_COLUMNS =
+  `${MODEL_COLUMNS}, slug, source_type, source_creator, source_url, source_notes, status, ` +
+  'generation_ready, gallery_ready, needs_reference_images, reference_mode, review_notes, ' +
+  'result_count, updated_at';
 
 async function fetchCurated(): Promise<LibraryPrompt[]> {
   type Row = Record<string, unknown>;
   let rows: Row[] | null = null;
   let error: { code?: string; message?: string } | null = null;
 
-  const first = await supabase
-    .from('curated_prompts')
-    .select(`${CURATED_COLUMNS}, target_model`)
-    .order('created_at', { ascending: false });
-  rows = first.data as Row[] | null;
-  error = first.error;
-
-  // Databases where the target_model migration has not run yet: fall back to
-  // the pre-migration column list; every row then reads as the legacy collection.
-  if (error && isUndefinedColumn(error)) {
-    const second = await supabase
+  // Try the newest column set first and fall back one migration at a time,
+  // so a database that has not applied a migration still serves the library.
+  for (const columns of [PROVENANCE_COLUMNS, MODEL_COLUMNS, CURATED_COLUMNS]) {
+    const res = await supabase
       .from('curated_prompts')
-      .select(CURATED_COLUMNS)
+      .select(columns)
       .order('created_at', { ascending: false });
-    rows = second.data as Row[] | null;
-    error = second.error;
+    rows = res.data as Row[] | null;
+    error = res.error;
+    if (!error || !isUndefinedColumn(error)) break;
   }
 
   if (error) throw error;
-  return (rows ?? []).map(
-    (r): LibraryPrompt => ({
-      ...(r as unknown as LibraryPrompt),
-      target_model: normalizeTargetModel(r.target_model),
-    })
-  );
+  const normalized = (rows ?? []).map((r): LibraryPrompt => normalizeCuratedRow(r));
+  // Only approved rows are public. Rows without the status column read as approved.
+  return filterPublic(normalized);
+}
+
+function normalizeCuratedRow(r: Record<string, unknown>): LibraryPrompt {
+  const base = r as unknown as LibraryPrompt;
+  return {
+    ...base,
+    slug: typeof r.slug === 'string' && r.slug ? r.slug : base.id.replace(/^curated-/, ''),
+    target_model: normalizeTargetModel(r.target_model),
+    source_type: normalizeSourceType(r.source_type),
+    status: normalizeStatus(r.status),
+    reference_mode: normalizeReferenceMode(r.reference_mode),
+    generation_ready: r.generation_ready === true,
+    gallery_ready: r.gallery_ready === true,
+    needs_reference_images: r.needs_reference_images === true,
+    result_count: typeof r.result_count === 'number' ? r.result_count : 0,
+  };
 }
 
 function isUndefinedColumn(error: { code?: string; message?: string }): boolean {
-  return error.code === '42703' || /target_model/.test(error.message ?? '');
+  return (
+    error.code === '42703' ||
+    /target_model|source_type|status|reference_mode|generation_ready|gallery_ready|result_count|updated_at|slug/.test(
+      error.message ?? ''
+    )
+  );
 }
 
 /**
@@ -164,7 +191,9 @@ export async function fetchLibrary(): Promise<LibraryPrompt[]> {
     const byDateDesc = (a: LibraryPrompt, b: LibraryPrompt) =>
       (b.created_at ?? '').localeCompare(a.created_at ?? '');
 
-    const all = [...curated, ...user];
+    // Images 2.5 records staged in the repo join the library once approved.
+    // A database row with the same id wins, so promotion never double-lists.
+    const all = [...mergeById(curated, publicStagedPrompts()), ...user];
     const featuredSet = new Set(FEATURED_IDS);
     const featured: LibraryPrompt[] = [];
     for (const id of FEATURED_IDS) {

@@ -34,3 +34,12 @@ dist-ssr
 
 # Benchmark outputs (model responses, may include user-like content)
 benchmark-results/
+
+# Images 2.5 generation scratch: full-size attempts, setup renders and screenshots
+# stay local. Keep logs, prompt revisions, the manifest, and webp fixtures.
+research/images-2-5-community/runs/**/*.png
+research/images-2-5-community/runs/_verification/
+!research/images-2-5-community/runs/**/log.json
+
+# OpenAI showcase assets downloaded for research (9 MB); reference only
+research/images-2-5-community/openai-assets/

@@ -1,0 +1,81 @@
+[
+  {
+    "at": "2026-09-09T19:06:02.962Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Square 1:1 photograph: a ceramicist at a wheel in a bright studio, centred, hands on a half-formed bowl, shelves of glazed pots behind, morning window light from the left, fine film grain.",
+    "file": "research/images-2-5-community/runs/recompose-to-new-aspect-ratio/setup.png",
+    "ms": 16654,
+    "usage": {
+      "input_tokens": 51,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 51
+      },
+      "output_tokens": 439,
+      "output_tokens_details": {
+        "image_tokens": 439,
+        "text_tokens": 0
+      },
+      "total_tokens": 490
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:49.395Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1920x1088",
+    "refs": [
+      "research/images-2-5-community/runs/recompose-to-new-aspect-ratio/setup.png"
+    ],
+    "prompt": "Recompose the attached 1:1 image for 16:9 (1920×1088). Do not simply crop it.\n\nKeep the subject at the same size and in the same pose, keep every existing element and the visual hierarchy, and extend the scene sideways with content that matches the original's perspective, light, colour and grain. Nothing that was visible may be lost; nothing new may compete with the subject. No text.",
+    "file": "research/images-2-5-community/runs/recompose-to-new-aspect-ratio/attempt-1.png",
+    "ms": 14777,
+    "usage": {
+      "input_tokens": 1128,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 104
+      },
+      "output_tokens": 344,
+      "output_tokens_details": {
+        "image_tokens": 344,
+        "text_tokens": 0
+      },
+      "total_tokens": 1472
+    }
+  },
+  {
+    "at": "2026-09-09T19:13:48.787Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1920x1088",
+    "refs": [
+      "research/images-2-5-community/runs/recompose-to-new-aspect-ratio/setup.png"
+    ],
+    "prompt": "Recompose the attached 1:1 image for 16:9 (1920×1088). Do not simply crop it. Treat this as an outpaint: the original image stays pixel-identical at the same scale in the centre of the frame, and only the new left and right margins are painted.\n\nExtend the scene sideways with content that matches the original's perspective, light, colour and grain: more of the studio wall, window and shelving in the same style. Nothing that was visible may change or be lost; nothing new may compete with the subject. No text.",
+    "file": "research/images-2-5-community/runs/recompose-to-new-aspect-ratio/attempt-2.png",
+    "ms": 19978,
+    "usage": {
+      "input_tokens": 1157,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 133
+      },
+      "output_tokens": 344,
+      "output_tokens_details": {
+        "image_tokens": 344,
+        "text_tokens": 0
+      },
+      "total_tokens": 1501
+    },
+    "label": "escalated to sunburst; outpaint wording"
+  }
+]

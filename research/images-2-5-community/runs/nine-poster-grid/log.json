@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:04:35.066Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "One image, portrait 3:4: a 3×3 grid of nine separate mid-century modern posters on an off-white ground, with even gutters between them. Each poster is its own composition of flat geometric shapes and one bold slogan, set in a different display style per poster (wide grotesque, rounded bubble type, condensed capitals, stencil, and so on).\n\nPalette across the whole grid: cobalt blue, tomato red, mustard yellow, pale pink, forest green and black on off-white. Exactly one poster may use a halftone photographic element (a single eye).\n\nSlogans, one per poster, reading left to right, top to bottom, spelled exactly:\n\"WALK MORE\"\n\"MAKE SOMETHING\"\n\"GROW TOGETHER\"\n\"LISTEN FIRST\"\n\"REST WELL\"\n\"DRINK WATER\"\n\"LEARN DAILY\"\n\"LOOK CLOSER\"\n\"BE KIND\"\n\nEach slogan is the only text on its poster. Shapes stay simple: sun, stairs, overlapping circles, leaf, profile faces, arch. No borders around the grid, no captions.",
+    "file": "research/images-2-5-community/runs/nine-poster-grid/attempt-1.png",
+    "ms": 20012,
+    "usage": {
+      "input_tokens": 225,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 225
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 633
+    }
+  }
+]

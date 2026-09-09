@@ -1,0 +1,32 @@
+[
+  {
+    "at": "2026-09-09T19:09:13.129Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png",
+      "research/images-2-5-community/runs/_fixtures/jacket-reference.png",
+      "research/images-2-5-community/runs/_fixtures/environment-forest-road.png",
+      "research/images-2-5-community/runs/_fixtures/composition-lowangle.png"
+    ],
+    "prompt": "Four reference images, one role each:\nImage 1 = identity. Keep this exact person: face, hair, skin tone, build.\nImage 2 = wardrobe. Take only the outfit: garments, colours, fabrics, fit.\nImage 3 = environment. Take only the location, time of day and light.\nImage 4 = composition. Take only the framing, camera height, lens feel and where the subject sits in the frame.\n\nUse each image only for its assigned role and ignore everything else in it. Combine them into one coherent photorealistic scene: the person from image 1, dressed as in image 2, standing in the place from image 3, framed as in image 4, with lighting that belongs to image 3. No text.",
+    "file": "research/images-2-5-community/runs/four-image-role-merge/attempt-1.png",
+    "ms": 17992,
+    "usage": {
+      "input_tokens": 6007,
+      "input_tokens_details": {
+        "image_tokens": 5804,
+        "text_tokens": 203
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 6350
+    }
+  }
+]

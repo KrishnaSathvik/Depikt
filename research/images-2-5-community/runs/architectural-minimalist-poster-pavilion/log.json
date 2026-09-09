@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:04:52.070Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [],
+    "prompt": "Vertical 2:3 minimalist architecture poster, off-white ground.\n\nSubject: the Barcelona Pavilion (Mies van der Rohe, 1929), drawn as a precise flat illustration in three tones: travertine cream, the green-marble wall in deep viridian, and the thin chrome columns in a single grey line. Slight elevation view showing the flat roof plane, the reflecting pool and one of the free-standing walls.\n\nBehind the building, one enormous word in a light-weight geometric sans, cropped by the poster edges, in a grey only two steps darker than the ground: \"PLANE\".\n\nSmall annotations in a mono typeface, each placed near what it names, in this exact wording: \"roof plane, 1929\" · \"onyx and marble\" · \"eight cruciform columns\" · \"reflecting pool\".\n\nNo other text. No frame, no logo, no date line.",
+    "file": "research/images-2-5-community/runs/architectural-minimalist-poster-pavilion/attempt-1.png",
+    "ms": 16418,
+    "usage": {
+      "input_tokens": 189,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 189
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 532
+    }
+  },
+  {
+    "at": "2026-09-09T19:09:34.932Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [],
+    "prompt": "Vertical 2:3 minimalist architecture poster, off-white ground. This is a flat graphic illustration, not a photograph or 3D render: no photographic lighting, no reflections, no gradients, no texture.\n\nSubject: the Barcelona Pavilion (Mies van der Rohe, 1929) drawn in exactly three flat tones: travertine cream for the walls, roof slab and paving; deep viridian for the green-marble wall; a single thin grey line for the chrome columns and edges. Slight elevation view showing the flat roof plane, the reflecting pool as one flat pale-blue shape, and one free-standing wall.\n\nBehind the building, one enormous word in a light-weight geometric sans, cropped by the left and right poster edges, in a grey only two steps darker than the ground: \"PLANE\".\n\nSmall annotations in a mono typeface, each placed near what it names with a thin leader line, in this exact wording: \"roof plane, 1929\" · \"onyx and marble\" · \"eight cruciform columns\" · \"reflecting pool\".\n\nNo other text. No frame, no logo, no date line.",
+    "file": "research/images-2-5-community/runs/architectural-minimalist-poster-pavilion/attempt-2.png",
+    "ms": 12865,
+    "usage": {
+      "input_tokens": 237,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 237
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 580
+    },
+    "label": "v2 flat-illustration clause"
+  }
+]

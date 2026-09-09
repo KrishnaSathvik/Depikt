@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-09T19:09:18.254Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/garden-plan-sketch.png"
+    ],
+    "prompt": "Use the attached sketch as the layout guide only: it is a rough top-down plan of a garden. Follow its regions, positions and relative sizes exactly; do not inherit its line quality or colours.\n\nRead the sketch as: a kidney-shaped swimming pool in the right half; a long rectangular dining table with chairs in the upper left; a row of three trees along the left edge; a curved path from the bottom edge to the pool; lawn everywhere else.\n\nRender one photorealistic image of this garden seen from a slightly elevated eye-level camera at the bottom edge of the plan, late afternoon sun, Mediterranean planting (olive trees, lavender, terracotta), limestone paving around the pool, a striped umbrella over the table. Keep every element where the sketch puts it.",
+    "file": "research/images-2-5-community/runs/sketch-to-garden-plan-render/attempt-1.png",
+    "ms": 23112,
+    "usage": {
+      "input_tokens": 1707,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 171
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 2050
+    }
+  }
+]

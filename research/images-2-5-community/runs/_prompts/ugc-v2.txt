@@ -1,0 +1,5 @@
+Use image 1 as the product reference: the product must stay exactly as shown, including shape, proportions, colours, materials and label text.
+
+Use image 2 as the style reference only: match its colour grading, light quality, grain, lens feel and casual framing. Do not copy its subject, its background or any object in it; the room, window, shelves, plants and furniture in image 2 must not appear.
+
+Produce one vertical 4:5 photo that looks like a phone snapshot posted by a customer: a person in their twenties holding the product from image 1 at chest height, product label facing the camera and fully readable, natural smile, in a different, plain modern white kitchen with a marble counter and a window on the left, with the look and grade of image 2. No added text or logos.

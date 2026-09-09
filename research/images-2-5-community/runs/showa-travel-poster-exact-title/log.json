@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:04:35.573Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Create a vertical 3:4 travel poster for Kyoto in the style of a 1960s Japanese National Railways tourism advertisement.\n\nScene: the Yasaka Pagoda seen up a narrow stone lane at dusk, two stylised figures in kimono walking away from the viewer, a single lit paper lantern. Simplified architecture, bold geometric forms, strong silhouettes, clean perspective lines, generous sky.\n\nPrint treatment: flat printed colour fields, no digital gradients. Palette limited to deep navy, warm ivory paper, muted mustard and one vermilion accent. Add subtle paper grain, slight ink wear and a small misregistration offset so it reads as a screen print, not a photo with a filter.\n\nTypography: reserve the bottom fifth as clean negative space. Set the title \"KYOTO\" in a wide bold sans, letter-spaced, in navy. Beneath it, smaller, the subtitle \"京都へ、汽車で。\" in vermilion. Text appears only in these two places; nothing else in the image carries lettering.",
+    "file": "research/images-2-5-community/runs/showa-travel-poster-exact-title/attempt-1.png",
+    "ms": 20517,
+    "usage": {
+      "input_tokens": 214,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 214
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 622
+    }
+  }
+]

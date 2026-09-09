@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:04:33.360Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [],
+    "prompt": "Vertical 2:3 poster on a flat royal-blue ground with a worn-paper finish: faint fold creases, a little edge wear, slightly soft ink.\n\nTop: the headline \"STICKER CLUB\" in very large condensed bold sans, bright yellow, two lines. Below it, smaller, in white: \"New pack: eight stickers\". Above the headline, small, in yellow: \"ステッカークラブ\".\n\nCentre: a black cat with yellow eyes sitting upright, photographic fur, holding a white sticker sheet in one paw and looking at the viewer. On the sheet, eight clearly separated die-cut stickers, each on its own: a speech bubble, a goldfish, a thumbs-up, a heart, a star, a small black cat face, a lightning bolt, a cloud. The sheet is tilted slightly toward the camera so every sticker is readable.\n\nDown the left edge, small vertical Japanese copy in yellow: \"はって、つたえよう。\"\n\nNo other text anywhere. No logos.",
+    "file": "research/images-2-5-community/runs/sticker-pack-poster/attempt-1.png",
+    "ms": 18305,
+    "usage": {
+      "input_tokens": 212,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 212
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 555
+    }
+  }
+]

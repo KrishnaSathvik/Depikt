@@ -9,6 +9,7 @@ import {
   SEO,
   TARGET_MODEL_NAME,
   TOOL,
+  LIBRARY_PROMPT_COUNT,
 } from "@/lib/product";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -76,7 +77,7 @@ const FEATURES = [
     to: "/library" as const,
     step: "Learn",
     title: TOOL.library,
-    body: `500 proven ${LEGACY_MODEL_NAME} prompts across 10 categories, each with a note on why it works. Study them, copy them, or use one as a starting point.`,
+    body: `${LIBRARY_PROMPT_COUNT} curated prompts across 10 categories, each with a note on why it works: the ${LEGACY_MODEL_NAME} collection plus ${TARGET_MODEL_NAME} recipes with reviewed results.`,
     cta: "Browse the library",
   },
   {

@@ -111,7 +111,7 @@ test("current product copy targets ChatGPT Images 2.5 and never claims to genera
   assert.equal(POSITIONING.eyebrow, "Built for ChatGPT Images 2.5");
   assert.equal(POSITIONING.headline, "Turn rough ideas into image-ready prompts.");
   assert.equal(CTA.buildHero, "Build a Prompt");
-  assert.equal(CTA.browse, "Browse 500 Prompts");
+  assert.equal(CTA.browse, "Browse 523 Prompts");
 });
 
 test("current product UI files carry no generator-era labels", () => {
@@ -285,7 +285,7 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
     assert.ok(p.prompt.length > 0);
     assert.equal("target_model" in p, false, "generated data file not re-synced in Phase 3");
   }
-  assert.equal(LIBRARY_COPY.headline, "500 curated prompts — GPT Image 2 collection");
+  assert.equal(LIBRARY_COPY.headline, "523 curated prompts — GPT Image 2 and ChatGPT Images 2.5");
   assert.match(LIBRARY_COPY.note, /created for GPT Image 2/);
   assert.match(LIBRARY_COPY.note, /Prompt Builder now targets ChatGPT Images 2\.5/);
   assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);

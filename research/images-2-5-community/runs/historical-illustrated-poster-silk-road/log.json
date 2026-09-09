@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:04:55.806Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Vertical 3:4 editorial poster on aged parchment.\n\nHeading, top centre, in a wide serif: \"THE SILK ROAD\". Directly beneath it, smaller, in small capitals: \"CARAVANS OF THE TANG DYNASTY, 618–907\". These are the only text elements.\n\nTop half: an illustrated map from Chang'an westward through the Hexi Corridor, the Taklamakan's edge, Kashgar and Samarkand to Baghdad, drawn in ink with watercolour washes: route lines in vermilion, mountains in hatched sepia, oasis towns as small walled icons. No place names are lettered; the towns are marked only with icons.\n\nBottom half: a cinematic scene of a camel caravan leaving a walled oasis at first light, dust in the air, silk bales on the camels, watercolour and ink with realistic light and historically accurate Tang-era dress.\n\nA thin ruled line separates map and scene. Museum-quality illustration, restrained palette of sepia, vermilion, indigo and parchment.",
+    "file": "research/images-2-5-community/runs/historical-illustrated-poster-silk-road/attempt-1.png",
+    "ms": 20663,
+    "usage": {
+      "input_tokens": 221,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 221
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 629
+    }
+  }
+]

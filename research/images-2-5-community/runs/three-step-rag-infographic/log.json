@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:05:07.402Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x864",
+    "refs": [],
+    "prompt": "Landscape 16:9 infographic on a white background, flat vector style, one accent colour (deep blue) plus grey, thin line icons.\n\nTitle, top left, medium weight sans: \"How retrieval-augmented generation works\". No subtitle.\n\nThree rounded modules in a horizontal row, connected by two arrows pointing right. Each module has a number, a bold label and one line of caption, in this exact wording:\n\nModule 1 — \"1  Retrieve\" — \"Find the passages most similar to the question.\"\nIcon: a magnifying glass over three stacked documents.\n\nModule 2 — \"2  Augment\" — \"Attach those passages to the prompt as context.\"\nIcon: a document with a paperclip.\n\nModule 3 — \"3  Generate\" — \"The model answers using the attached context.\"\nIcon: a speech bubble with a small sparkle.\n\nUnder the row, one grey line of text: \"Answers stay grounded in your own documents.\" Even spacing, generous margins, no gradients, no shadows, no other text.",
+    "file": "research/images-2-5-community/runs/three-step-rag-infographic/attempt-1.png",
+    "ms": 15232,
+    "usage": {
+      "input_tokens": 216,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 216
+      },
+      "output_tokens": 280,
+      "output_tokens_details": {
+        "image_tokens": 280,
+        "text_tokens": 0
+      },
+      "total_tokens": 496
+    }
+  }
+]

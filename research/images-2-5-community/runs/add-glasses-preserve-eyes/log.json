@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:05:46.207Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Head-and-shoulders studio portrait of a man in his thirties, short dark hair, light stubble, olive crew-neck sweater, looking at the camera with a slight smile, plain warm grey backdrop, soft key light from the left, 4:5.",
+    "file": "research/images-2-5-community/runs/add-glasses-preserve-eyes/setup.png",
+    "ms": 11341,
+    "usage": {
+      "input_tokens": 60,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 60
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 438
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:22.490Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/add-glasses-preserve-eyes/setup.png"
+    ],
+    "prompt": "Edit the attached photo. Add thin round metal eyeglasses with clear lenses; keep the eyes visible and undistorted.\n\nChange nothing else: face, expression, hair, clothing, background and lighting stay exactly as they are. No reflections that hide the eyes.",
+    "file": "research/images-2-5-community/runs/add-glasses-preserve-eyes/attempt-1.png",
+    "ms": 12627,
+    "usage": {
+      "input_tokens": 1349,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 69
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 1727
+    }
+  }
+]

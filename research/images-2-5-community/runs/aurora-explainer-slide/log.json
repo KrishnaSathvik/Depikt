@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-09T19:05:07.505Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x864",
+    "refs": [],
+    "prompt": "A single 16:9 presentation slide, dark navy background, with a photographic image of the aurora over a snowy ridge filling the right third and fading into the slide colour.\n\nTop left, small letter-spaced label: \"THE SUN'S ENERGY, SEEN FROM EARTH\". Below it, the title in a large serif on two lines: \"What Causes\" / \"the Northern Lights?\" with the second line in a pale green.\n\nBeneath the title, a short paragraph in a light sans: \"Charged particles from the Sun are steered by Earth's magnetic field toward the poles, where they collide with gases in the upper atmosphere and make them glow.\"\n\nAlong the bottom, four steps in a row, each with a thin-line circular icon, a numbered caption in small capitals and one sentence beneath:\n\"1. SOLAR WIND\" — \"The Sun streams charged particles into space.\"\n\"2. MAGNETIC FIELD\" — \"Earth's field bends them toward the poles.\"\n\"3. COLLISION\" — \"Particles strike oxygen and nitrogen high above the ground.\"\n\"4. GLOW\" — \"Oxygen glows green and red; nitrogen adds blue and violet.\"\n\nThin arrows between the steps. Footer left: \"small changes, a clearer sky\". Footer right: \"4\". No other text.",
+    "file": "research/images-2-5-community/runs/aurora-explainer-slide/attempt-1.png",
+    "ms": 17480,
+    "usage": {
+      "input_tokens": 273,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 273
+      },
+      "output_tokens": 280,
+      "output_tokens_details": {
+        "image_tokens": 280,
+        "text_tokens": 0
+      },
+      "total_tokens": 553
+    }
+  }
+]

@@ -1,0 +1,59 @@
+[
+  {
+    "at": "2026-09-09T19:08:11.004Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png",
+      "research/images-2-5-community/runs/_fixtures/style-reference.png"
+    ],
+    "prompt": "Use image 1 as the product reference: the product must stay exactly as shown, including shape, proportions, colours, materials and label text.\n\nUse image 2 as the style reference only: match its colour grading, light quality, grain, lens feel and casual framing. Do not copy its subject, product or background.\n\nProduce one vertical 4:5 photo that looks like a phone snapshot posted by a customer: a person in their twenties holding the product from image 1 at chest height in a bright kitchen, product label facing the camera and fully readable, natural smile, the look and grade of image 2. No added text or logos.",
+    "file": "research/images-2-5-community/runs/product-style-reference-ugc/attempt-1.png",
+    "ms": 18785,
+    "usage": {
+      "input_tokens": 2717,
+      "input_tokens_details": {
+        "image_tokens": 2560,
+        "text_tokens": 157
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 3095
+    }
+  },
+  {
+    "at": "2026-09-09T19:13:50.209Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png",
+      "research/images-2-5-community/runs/_fixtures/style-reference.png"
+    ],
+    "prompt": "Use image 1 as the product reference: the product must stay exactly as shown, including shape, proportions, colours, materials and label text.\n\nUse image 2 as the style reference only: match its colour grading, light quality, grain, lens feel and casual framing. Do not copy its subject, its background or any object in it; the room, window, shelves, plants and furniture in image 2 must not appear.\n\nProduce one vertical 4:5 photo that looks like a phone snapshot posted by a customer: a person in their twenties holding the product from image 1 at chest height, product label facing the camera and fully readable, natural smile, in a different, plain modern white kitchen with a marble counter and a window on the left, with the look and grade of image 2. No added text or logos.",
+    "file": "research/images-2-5-community/runs/product-style-reference-ugc/attempt-2.png",
+    "ms": 21405,
+    "usage": {
+      "input_tokens": 2755,
+      "input_tokens_details": {
+        "image_tokens": 2560,
+        "text_tokens": 195
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 3133
+    },
+    "label": "v2: forbid reusing image 2's room"
+  }
+]

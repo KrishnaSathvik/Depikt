@@ -1,0 +1,177 @@
+[
+  {
+    "at": "2026-09-09T19:06:15.441Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Studio packshot of a slim 330 ml aluminium drink can, matte pale yellow, with a simple label: the word \"KUMO\" large in dark navy sans, beneath it smaller \"sparkling yuzu\" and a small navy line drawing of a cloud. Can standing on a white surface, soft light, no other text.",
+    "file": "research/images-2-5-community/runs/_fixtures/product-packshot.png",
+    "ms": 10180,
+    "usage": {
+      "input_tokens": 74,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 74
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 452
+    },
+    "label": "product-packshot"
+  },
+  {
+    "at": "2026-09-09T19:06:15.526Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Product photograph of a cropped olive-green bomber jacket on a headless mannequin against white: ribbed collar, cuffs and hem in a darker olive, orange quilted lining visible at the open front, brass zip, a small zipped pocket on the left sleeve, matte nylon. Front view, even light, no text.",
+    "file": "research/images-2-5-community/runs/_fixtures/jacket-reference.png",
+    "ms": 10259,
+    "usage": {
+      "input_tokens": 69,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 69
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 447
+    },
+    "label": "jacket-reference"
+  },
+  {
+    "at": "2026-09-09T19:06:15.876Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Full-body photograph of a woman in her late twenties standing facing the camera on a plain light-grey studio backdrop: shoulder-length dark curly hair, warm brown skin, a small mole on her left cheek, slight smile, plain white crew-neck T-shirt, dark straight jeans, white sneakers, arms relaxed, soft even light, sharp focus on the face, 3:4.",
+    "file": "research/images-2-5-community/runs/_fixtures/portrait-full.png",
+    "ms": 10617,
+    "usage": {
+      "input_tokens": 81,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 81
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 489
+    },
+    "label": "portrait-full"
+  },
+  {
+    "at": "2026-09-09T19:06:27.278Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Photograph of an empty single-lane road through a misty pine forest at dawn, blue-grey fog, low sun barely breaking through on the right, wet asphalt, no people, no cars, 3:2.",
+    "file": "research/images-2-5-community/runs/_fixtures/environment-forest-road.png",
+    "ms": 11297,
+    "usage": {
+      "input_tokens": 51,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 51
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 394
+    },
+    "label": "environment-forest-road"
+  },
+  {
+    "at": "2026-09-09T19:06:28.614Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Candid phone photo of a man in his thirties laughing at a friend's kitchen table, warm afternoon light through a window, shallow depth of field, heavy film grain, faded warm colour grade with lifted blacks and slightly green shadows, casual off-centre framing, 4:5. No text.",
+    "file": "research/images-2-5-community/runs/_fixtures/style-reference.png",
+    "ms": 12634,
+    "usage": {
+      "input_tokens": 66,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 66
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 444
+    },
+    "label": "style-reference"
+  },
+  {
+    "at": "2026-09-09T19:06:29.672Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Photograph shot from ground level with a wide 24mm lens: a person in a long coat standing small in the left third of the frame on an open concrete plaza, huge empty sky filling the upper two thirds, strong diagonal shadow across the ground, 3:2.",
+    "file": "research/images-2-5-community/runs/_fixtures/composition-lowangle.png",
+    "ms": 13694,
+    "usage": {
+      "input_tokens": 62,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 62
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 405
+    },
+    "label": "composition-lowangle"
+  },
+  {
+    "at": "2026-09-09T19:06:40.940Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "A rough hand-drawn plan sketch in coloured marker on white paper, photographed flat from above, top-down garden layout: a blue kidney-shaped pool blob filling the right half; a small yellow rectangle with six tiny chair marks in the upper left labelled by nothing; three green scribbled circles in a column along the left edge; a brown curved line from the bottom edge to the pool; green hatching for lawn; a yellow border around the whole plan. Loose, imperfect marker strokes, no text.",
+    "file": "research/images-2-5-community/runs/_fixtures/garden-plan-sketch.png",
+    "ms": 11134,
+    "usage": {
+      "input_tokens": 106,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 106
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 449
+    },
+    "label": "garden-plan-sketch"
+  }
+]

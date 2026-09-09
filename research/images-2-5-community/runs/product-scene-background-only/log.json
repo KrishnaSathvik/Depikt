@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:05:54.587Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Studio product photograph: a matte blue water bottle with a black cap standing on a warm cream surface against a matching cream backdrop, soft side lighting from the left, gentle contact shadow, plenty of empty space above the bottle for a headline, 4:5.",
+    "file": "research/images-2-5-community/runs/product-scene-background-only/setup.png",
+    "ms": 9516,
+    "usage": {
+      "input_tokens": 58,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 58
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 436
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:34.727Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/product-scene-background-only/setup.png"
+    ],
+    "prompt": "Edit the attached product photo. Change only the backdrop and the tabletop to pale sage green, both matte, with the same soft side lighting.\n\nKeep the bottle exactly as it is: position, size, silhouette, matte blue finish, cap, label and any text on it. Keep the camera angle and the empty space above the bottle. The contact shadow under the bottle stays in place and takes on the new surface colour.",
+    "file": "research/images-2-5-community/runs/product-scene-background-only/attempt-1.png",
+    "ms": 10618,
+    "usage": {
+      "input_tokens": 1380,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 100
+      },
+      "output_tokens": 378,
+      "output_tokens_details": {
+        "image_tokens": 378,
+        "text_tokens": 0
+      },
+      "total_tokens": 1758
+    }
+  }
+]

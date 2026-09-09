@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:05:33.415Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Full-body studio photograph of a woman standing facing the camera on a light grey seamless backdrop, charcoal crew-neck long-sleeve top, dark straight trousers, white sneakers, neutral expression, soft even lighting, 3:4.",
+    "file": "research/images-2-5-community/runs/change-outfit-only/setup.png",
+    "ms": 13180,
+    "usage": {
+      "input_tokens": 52,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 52
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 460
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:09.694Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1152x1536",
+    "refs": [
+      "research/images-2-5-community/runs/change-outfit-only/setup.png"
+    ],
+    "prompt": "Edit the attached photo. Replace the clothing with a burgundy cable-knit sweater; make the knitted texture clearly visible.\n\nKeep the person's face, hair, skin, pose, hands, trousers and shoes, the background, the framing and the lighting exactly as they are. Add no accessories.",
+    "file": "research/images-2-5-community/runs/change-outfit-only/attempt-1.png",
+    "ms": 16362,
+    "usage": {
+      "input_tokens": 1525,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 73
+      },
+      "output_tokens": 408,
+      "output_tokens_details": {
+        "image_tokens": 408,
+        "text_tokens": 0
+      },
+      "total_tokens": 1933
+    }
+  }
+]

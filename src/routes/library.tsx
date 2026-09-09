@@ -38,6 +38,12 @@ import {
   shouldShowCollectionFilter,
   type TargetModel,
 } from "@/lib/target-model";
+import {
+  SOURCE_TYPE_LABELS,
+  STATUS_LABELS,
+  normalizeSourceType,
+  normalizeStatus,
+} from "@/lib/library-metadata";
 
 const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
@@ -682,6 +688,8 @@ function PromptDetailDialog({
           <p className="eyebrow">
             {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
             collection
+            {normalizeStatus(prompt.status) !== "approved" &&
+              ` · ${STATUS_LABELS[normalizeStatus(prompt.status)]}`}
           </p>
           <DialogTitle className="text-heading-lg text-[color:var(--text-primary)]">
             {prompt.title}
@@ -728,6 +736,27 @@ function PromptDetailDialog({
             <p className="eyebrow mb-2">Why it works</p>
             <p className="text-body-md text-[color:var(--text-secondary)]">{prompt.why_it_works}</p>
           </div>
+        )}
+
+        {/* Provenance line: only Images 2.5 rows carry a source type other than the default. */}
+        {normalizeTargetModel(prompt.target_model) === "gpt-image-2.5" && (
+          <p className="mt-4 text-[13px] text-[color:var(--text-tertiary)]">
+            {SOURCE_TYPE_LABELS[normalizeSourceType(prompt.source_type)]}
+            {prompt.source_creator ? ` · ${prompt.source_creator}` : ""}
+            {prompt.source_url ? (
+              <>
+                {" · "}
+                <a
+                  href={prompt.source_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline underline-offset-2"
+                >
+                  source
+                </a>
+              </>
+            ) : null}
+          </p>
         )}
       </DialogContent>
     </Dialog>

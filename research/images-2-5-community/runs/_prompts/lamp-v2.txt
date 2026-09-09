@@ -1,0 +1,3 @@
+Edit the attached photo. Move only the brass table lamp from the left side table to the empty right side table, keeping the lamp's size, shade and brass base identical. The potted plant and the coasters stay on the left side table exactly where they are; nothing else on either table changes.
+
+Recompute the light: the warm pool of light, the shadows on the wall and the reflections on the sofa and floor must now come from the lamp's new position on the right, and the left side of the room is lit only by ambient light. Change nothing else: the sofa, cushions, throw, tables, wall, framed print, rug, window, camera angle and framing stay exactly as they are.

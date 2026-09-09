@@ -1,0 +1,596 @@
+{
+  "source": "OpenAI, 'Introducing ChatGPT Images 2.5', Precision editing section, 'Full-body edits' reel (Vimeo 1224686197)",
+  "captured": "2026-09-09",
+  "note": "Both models receive the same full-body portrait for every independent edit. Original edits 075 and 080 are omitted in the reel; playback 1.2x at 50 fps. Left panel GPT Image 2, right panel GPT Image 2.5, quality high.",
+  "count": 98,
+  "edits": [
+    {
+      "edit": 1,
+      "category": "CLOTHING",
+      "title": "Ivory silk blouse",
+      "prompt": "Replace the current top with an ivory silk blouse with a modest collar and subtle natural fabric folds."
+    },
+    {
+      "edit": 2,
+      "category": "CLOTHING",
+      "title": "Navy tailored blazer",
+      "prompt": "Replace the clothing with a tailored navy blazer over a plain white crew-neck shirt."
+    },
+    {
+      "edit": 3,
+      "category": "CLOTHING",
+      "title": "Burgundy cable knit",
+      "prompt": "Replace the clothing with a burgundy cable-knit sweater; make the knitted texture clearly visible."
+    },
+    {
+      "edit": 4,
+      "category": "CLOTHING",
+      "title": "Indigo denim jacket",
+      "prompt": "Replace the clothing with a classic indigo denim jacket over a plain gray T-shirt, with realistic denim stitching."
+    },
+    {
+      "edit": 5,
+      "category": "CLOTHING",
+      "title": "Camel wool coat",
+      "prompt": "Replace the clothing with a camel-colored wool coat with a simple broad collar."
+    },
+    {
+      "edit": 6,
+      "category": "CLOTHING",
+      "title": "Olive utility jacket",
+      "prompt": "Replace the clothing with an olive utility jacket with two simple chest pockets and no insignia."
+    },
+    {
+      "edit": 7,
+      "category": "CLOTHING",
+      "title": "Cobalt turtleneck",
+      "prompt": "Replace the clothing with a fitted but non-revealing cobalt-blue turtleneck sweater."
+    },
+    {
+      "edit": 8,
+      "category": "CLOTHING",
+      "title": "Black velvet jacket",
+      "prompt": "Replace the clothing with a black velvet jacket over a simple black top; preserve the distinct velvet texture."
+    },
+    {
+      "edit": 9,
+      "category": "CLOTHING",
+      "title": "Cream linen shirt",
+      "prompt": "Replace the clothing with a cream linen shirt with a relaxed collar and natural linen creases."
+    },
+    {
+      "edit": 10,
+      "category": "CLOTHING",
+      "title": "Mustard rain jacket",
+      "prompt": "Replace the clothing with a mustard-yellow rain jacket, open at the front, with the hood down."
+    },
+    {
+      "edit": 11,
+      "category": "CLOTHING",
+      "title": "Forest-green cardigan",
+      "prompt": "Replace the clothing with a forest-green cardigan over an ivory crew-neck top."
+    },
+    {
+      "edit": 12,
+      "category": "CLOTHING",
+      "title": "Fine striped shirt",
+      "prompt": "Replace the clothing with a white shirt featuring fine evenly spaced navy vertical stripes."
+    },
+    {
+      "edit": 13,
+      "category": "CLOTHING",
+      "title": "Herringbone blazer",
+      "prompt": "Replace the clothing with a gray herringbone blazer over a black crew-neck shirt."
+    },
+    {
+      "edit": 14,
+      "category": "CLOTHING",
+      "title": "Terracotta cotton shirt",
+      "prompt": "Replace the clothing with a terracotta cotton shirt with clean tailoring and a simple collar."
+    },
+    {
+      "edit": 15,
+      "category": "CLOTHING",
+      "title": "Lavender satin blouse",
+      "prompt": "Replace the clothing with a lavender satin blouse with a modest neckline and restrained satin reflections."
+    },
+    {
+      "edit": 16,
+      "category": "CLOTHING",
+      "title": "Minimal white jacket",
+      "prompt": "Replace the clothing with a minimal white jacket over a white crew-neck top, with clear separation between the two fabrics."
+    },
+    {
+      "edit": 17,
+      "category": "CLOTHING",
+      "title": "Brown leather jacket",
+      "prompt": "Replace the clothing with a warm brown leather jacket over a plain cream shirt; no patches or logos."
+    },
+    {
+      "edit": 18,
+      "category": "CLOTHING",
+      "title": "Small floral print",
+      "prompt": "Replace the clothing with a navy blouse carrying a small, delicate cream floral print; avoid large flowers on the face or background."
+    },
+    {
+      "edit": 19,
+      "category": "CLOTHING",
+      "title": "Color-block sweater",
+      "prompt": "Replace the clothing with a sweater featuring three broad horizontal blocks of cream, muted blue and rust."
+    },
+    {
+      "edit": 20,
+      "category": "CLOTHING",
+      "title": "Cream boucle jacket",
+      "prompt": "Replace the clothing with a cream boucle jacket over a plain black crew-neck top, with visibly textured boucle fabric."
+    },
+    {
+      "edit": 21,
+      "category": "BACKGROUND",
+      "title": "Botanical conservatory",
+      "prompt": "Place the portrait in a sunlit botanical conservatory with softly blurred green foliage behind the person."
+    },
+    {
+      "edit": 22,
+      "category": "BACKGROUND",
+      "title": "Quiet bookshop",
+      "prompt": "Replace the background with a warm independent bookshop with softly blurred wooden bookshelves; no readable titles."
+    },
+    {
+      "edit": 23,
+      "category": "BACKGROUND",
+      "title": "Ceramics studio",
+      "prompt": "Replace the background with a tidy ceramics studio, shelves of neutral ceramic vessels and a softly lit workbench."
+    },
+    {
+      "edit": 24,
+      "category": "BACKGROUND",
+      "title": "Modern art gallery",
+      "prompt": "Replace the background with a minimal modern gallery containing softly blurred abstract artworks and no readable labels."
+    },
+    {
+      "edit": 25,
+      "category": "BACKGROUND",
+      "title": "Warm cafe",
+      "prompt": "Replace the background with a warm cafe interior with wood, soft window light and indistinct empty seating."
+    },
+    {
+      "edit": 26,
+      "category": "BACKGROUND",
+      "title": "Seaside promenade",
+      "prompt": "Replace the background with a quiet seaside promenade, a pale blue sea and a distant horizon."
+    },
+    {
+      "edit": 27,
+      "category": "BACKGROUND",
+      "title": "Autumn park",
+      "prompt": "Replace the background with an autumn park featuring softly blurred golden and rust-colored leaves."
+    },
+    {
+      "edit": 28,
+      "category": "BACKGROUND",
+      "title": "Snowy mountain view",
+      "prompt": "Replace the background with a distant snowy mountain landscape under a pale winter sky."
+    },
+    {
+      "edit": 29,
+      "category": "BACKGROUND",
+      "title": "Rainy city window",
+      "prompt": "Replace the background with a large window covered in rain droplets, with a softly blurred city beyond it."
+    },
+    {
+      "edit": 30,
+      "category": "BACKGROUND",
+      "title": "Nighttime neon street",
+      "prompt": "Replace the background with an empty nighttime street with soft cyan and magenta neon light, without readable signs."
+    },
+    {
+      "edit": 31,
+      "category": "BACKGROUND",
+      "title": "Minimal concrete interior",
+      "prompt": "Replace the background with a minimal concrete interior, soft geometric shadows and no furniture near the person."
+    },
+    {
+      "edit": 32,
+      "category": "BACKGROUND",
+      "title": "Terracotta courtyard",
+      "prompt": "Replace the background with a quiet terracotta courtyard with warm plaster walls and a distant arched opening."
+    },
+    {
+      "edit": 33,
+      "category": "BACKGROUND",
+      "title": "Bamboo garden",
+      "prompt": "Replace the background with a tranquil bamboo garden, with vertical bamboo stems softly blurred behind the person."
+    },
+    {
+      "edit": 34,
+      "category": "BACKGROUND",
+      "title": "Lavender field",
+      "prompt": "Replace the background with a lavender field extending toward a soft, distant horizon."
+    },
+    {
+      "edit": 35,
+      "category": "BACKGROUND",
+      "title": "Rooftop at dusk",
+      "prompt": "Replace the background with a city rooftop at dusk and softly glowing distant windows; no other people."
+    },
+    {
+      "edit": 36,
+      "category": "BACKGROUND",
+      "title": "Photography studio",
+      "prompt": "Replace the background with a simple photography studio with an out-of-focus light stand well away from the person."
+    },
+    {
+      "edit": 37,
+      "category": "BACKGROUND",
+      "title": "Deep blue seamless",
+      "prompt": "Replace the background with a clean deep-blue seamless studio backdrop, without texture or objects."
+    },
+    {
+      "edit": 38,
+      "category": "BACKGROUND",
+      "title": "Warm peach seamless",
+      "prompt": "Replace the background with a clean warm-peach seamless studio backdrop, without texture or objects."
+    },
+    {
+      "edit": 39,
+      "category": "BACKGROUND",
+      "title": "Painted botanical mural",
+      "prompt": "Replace the background with a restrained hand-painted botanical mural in sage and cream, clearly behind the person."
+    },
+    {
+      "edit": 40,
+      "category": "BACKGROUND",
+      "title": "Soft coral gradient",
+      "prompt": "Replace the background with a seamless soft coral-to-peach studio gradient, without objects or decorations."
+    },
+    {
+      "edit": 41,
+      "category": "ACCESSORIES",
+      "title": "Small gold hoops",
+      "prompt": "Add a pair of small simple gold hoop earrings."
+    },
+    {
+      "edit": 42,
+      "category": "ACCESSORIES",
+      "title": "Pearl stud earrings",
+      "prompt": "Add a pair of modest pearl stud earrings."
+    },
+    {
+      "edit": 43,
+      "category": "ACCESSORIES",
+      "title": "Silver pendant",
+      "prompt": "Add a fine silver necklace with one small oval pendant, visible over the clothing."
+    },
+    {
+      "edit": 44,
+      "category": "ACCESSORIES",
+      "title": "Blue silk scarf",
+      "prompt": "Add a loosely tied blue silk scarf around the neck, below the chin."
+    },
+    {
+      "edit": 45,
+      "category": "ACCESSORIES",
+      "title": "Round clear glasses",
+      "prompt": "Add thin round metal eyeglasses with clear lenses; keep the eyes visible and undistorted."
+    },
+    {
+      "edit": 46,
+      "category": "ACCESSORIES",
+      "title": "Rectangular clear glasses",
+      "prompt": "Add minimal dark rectangular eyeglasses with clear lenses and no distracting glare."
+    },
+    {
+      "edit": 47,
+      "category": "ACCESSORIES",
+      "title": "Silver hair clip",
+      "prompt": "Add one small silver hair clip above the person's right ear, without changing the haircut."
+    },
+    {
+      "edit": 48,
+      "category": "ACCESSORIES",
+      "title": "Cream headband",
+      "prompt": "Add a narrow cream fabric headband that does not cover the forehead or alter the hair length."
+    },
+    {
+      "edit": 49,
+      "category": "ACCESSORIES",
+      "title": "Navy beret",
+      "prompt": "Add a simple navy beret resting lightly on the hair; keep the face and eyebrows fully visible."
+    },
+    {
+      "edit": 50,
+      "category": "ACCESSORIES",
+      "title": "Natural straw hat",
+      "prompt": "Add a plain natural-straw sun hat with a modest brim that does not hide the face or eyes."
+    },
+    {
+      "edit": 51,
+      "category": "ACCESSORIES",
+      "title": "Red knitted beanie",
+      "prompt": "Add a simple red knitted beanie, keeping the eyebrows, eyes and main facial features visible."
+    },
+    {
+      "edit": 52,
+      "category": "ACCESSORIES",
+      "title": "Green enamel brooch",
+      "prompt": "Add one small green enamel leaf-shaped brooch on the upper left chest of the clothing."
+    },
+    {
+      "edit": 53,
+      "category": "ACCESSORIES",
+      "title": "Geometric silver brooch",
+      "prompt": "Add one small geometric silver brooch on the upper right chest of the clothing."
+    },
+    {
+      "edit": 54,
+      "category": "ACCESSORIES",
+      "title": "Cream fabric flower",
+      "prompt": "Add one small cream fabric flower pinned to the upper left chest, not in front of the face."
+    },
+    {
+      "edit": 55,
+      "category": "ACCESSORIES",
+      "title": "Patterned neck scarf",
+      "prompt": "Add a small rust-and-cream patterned neck scarf tied below the chin."
+    },
+    {
+      "edit": 56,
+      "category": "ACCESSORIES",
+      "title": "Simple headphones",
+      "prompt": "Add a pair of understated black over-ear headphones resting around the neck, not worn over the ears."
+    },
+    {
+      "edit": 57,
+      "category": "ACCESSORIES",
+      "title": "Fine layered necklaces",
+      "prompt": "Add two fine gold necklaces of slightly different lengths, with no large pendants."
+    },
+    {
+      "edit": 58,
+      "category": "ACCESSORIES",
+      "title": "Small turquoise studs",
+      "prompt": "Add a pair of small turquoise stud earrings."
+    },
+    {
+      "edit": 59,
+      "category": "ACCESSORIES",
+      "title": "Cream ribbon hair bow",
+      "prompt": "Add one small cream ribbon bow to the side of the hair, above the left ear, without changing the hairstyle."
+    },
+    {
+      "edit": 60,
+      "category": "ACCESSORIES",
+      "title": "Geometric black earrings",
+      "prompt": "Add a pair of small matte-black triangular earrings, keeping the face unobstructed."
+    },
+    {
+      "edit": 61,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Watercolor portrait",
+      "prompt": "Render the entire image as a delicate watercolor painting on lightly textured paper, with translucent color washes."
+    },
+    {
+      "edit": 62,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Ink and color wash",
+      "prompt": "Render the entire image in expressive black ink with restrained colored washes and confident hand-drawn contours."
+    },
+    {
+      "edit": 63,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Graphite drawing",
+      "prompt": "Render the entire image as a detailed graphite pencil drawing with natural shading and visible paper texture."
+    },
+    {
+      "edit": 64,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Charcoal portrait",
+      "prompt": "Render the entire image as a charcoal drawing with broad soft tonal masses and carefully defined facial features."
+    },
+    {
+      "edit": 65,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Gouache painting",
+      "prompt": "Render the entire image as an opaque gouache painting with clean color areas and subtle brush texture."
+    },
+    {
+      "edit": 66,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Traditional oil painting",
+      "prompt": "Render the entire image as a traditional oil painting with restrained visible brushstrokes and believable volume."
+    },
+    {
+      "edit": 67,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Acrylic painting",
+      "prompt": "Render the entire image as a contemporary acrylic painting with confident layered brushwork."
+    },
+    {
+      "edit": 68,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Soft pastel drawing",
+      "prompt": "Render the entire image as a soft pastel drawing with tactile pigment and gently blended colors."
+    },
+    {
+      "edit": 69,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Colored pencil",
+      "prompt": "Render the entire image as a detailed colored-pencil illustration with fine layered strokes."
+    },
+    {
+      "edit": 70,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Editorial digital painting",
+      "prompt": "Render the entire image as a polished editorial digital painting with natural proportions and carefully simplified detail."
+    },
+    {
+      "edit": 71,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Flat vector illustration",
+      "prompt": "Render the entire image as a flat vector-style illustration with a limited palette, clean shapes and recognizable facial features."
+    },
+    {
+      "edit": 72,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Layered cut paper",
+      "prompt": "Render the entire image as layered cut-paper artwork, using subtle paper shadows to define facial features and clothing."
+    },
+    {
+      "edit": 73,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Risograph print",
+      "prompt": "Render the entire image as a three-color risograph-style print with subtle registration offsets and visible print texture."
+    },
+    {
+      "edit": 74,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Woodblock print",
+      "prompt": "Render the entire image as a refined woodblock print with carved linework and a restrained color palette."
+    },
+    {
+      "edit": 76,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Clay figure portrait",
+      "prompt": "Render the person and setting as a carefully crafted clay sculpture portrait with believable soft studio lighting."
+    },
+    {
+      "edit": 77,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Stylized 3D portrait",
+      "prompt": "Render the entire image as a polished stylized 3D animated-film portrait while keeping adult proportions and the same recognizable face."
+    },
+    {
+      "edit": 78,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Low-poly portrait",
+      "prompt": "Render the entire image as a low-poly 3D portrait with flat geometric facets and coherent lighting."
+    },
+    {
+      "edit": 79,
+      "category": "ARTISTIC MEDIUM",
+      "title": "Black-and-white comic",
+      "prompt": "Render the entire image as a clean black-and-white comic illustration using expressive linework and restrained halftone shading."
+    },
+    {
+      "edit": 81,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Soft window light from right",
+      "prompt": "Move the dominant soft window light to camera right, with a gentle fill on the opposite side and natural skin color."
+    },
+    {
+      "edit": 82,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Low-key studio",
+      "prompt": "Use low-key studio lighting with a subdued background, deep but readable shadows and one soft key light."
+    },
+    {
+      "edit": 83,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "High-key studio",
+      "prompt": "Use bright high-key studio lighting with soft shadows and preserved skin and clothing detail; do not overexpose the face."
+    },
+    {
+      "edit": 84,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Hard afternoon light",
+      "prompt": "Use crisp directional afternoon sunlight, with clear natural shadows and believable skin texture."
+    },
+    {
+      "edit": 85,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Blue-hour light",
+      "prompt": "Use soft cool blue-hour illumination with a gentle warm fill on the face."
+    },
+    {
+      "edit": 86,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Golden-hour light",
+      "prompt": "Use warm golden-hour side lighting with soft amber highlights and natural skin tones."
+    },
+    {
+      "edit": 87,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Warm candlelit mood",
+      "prompt": "Use a warm candlelit lighting mood with soft amber falloff; do not add visible candles or new props."
+    },
+    {
+      "edit": 88,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Cyan and magenta lights",
+      "prompt": "Use restrained cyan and magenta studio lighting from opposite sides, while keeping the face readable."
+    },
+    {
+      "edit": 89,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Split portrait lighting",
+      "prompt": "Use classic split portrait lighting with one side of the face softly illuminated and the other in readable shadow."
+    },
+    {
+      "edit": 90,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Butterfly portrait light",
+      "prompt": "Use classic butterfly portrait lighting from slightly above the camera, with a small natural shadow below the nose."
+    },
+    {
+      "edit": 91,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Subtle rim light",
+      "prompt": "Add a subtle rim light around the hair and shoulders while retaining a soft neutral front key light."
+    },
+    {
+      "edit": 92,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Fine-grain analog film",
+      "prompt": "Give the image a natural fine-grain color-film finish with gentle highlight rolloff and restrained contrast."
+    },
+    {
+      "edit": 93,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Vintage color print",
+      "prompt": "Give the image the finish of a carefully preserved vintage color photograph, with slightly warm tones and subtle fading."
+    },
+    {
+      "edit": 94,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Monochrome portrait",
+      "prompt": "Convert the image to a rich black-and-white photograph with natural tonal separation and detailed skin texture."
+    },
+    {
+      "edit": 95,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Muted editorial color",
+      "prompt": "Restore natural color if needed, then apply a restrained editorial grade with muted colors and realistic skin tones."
+    },
+    {
+      "edit": 96,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Soft pastel grade",
+      "prompt": "Apply a soft pastel photographic color grade with gentle contrast, without changing the person's actual features or clothing design."
+    },
+    {
+      "edit": 97,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Vibrant cinematic color",
+      "prompt": "Apply a vibrant but believable cinematic color grade with clear color separation and preserved skin texture."
+    },
+    {
+      "edit": 98,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Warm tungsten lighting",
+      "prompt": "Use warm tungsten studio illumination with a neutral fill, avoiding an excessive orange cast on the skin."
+    },
+    {
+      "edit": 99,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Soft window backlight",
+      "prompt": "Use soft window-like backlighting with a gentle front fill, a fine hair rim and detailed facial features."
+    },
+    {
+      "edit": 100,
+      "category": "LIGHTING AND PHOTOGRAPHIC FINISH",
+      "title": "Direct-flash photograph",
+      "prompt": "Render the image as a crisp direct-flash portrait with realistic fine skin and hair detail, frontal flash illumination and a restrained hard shadow on the background. Preserve the natural face and proportions."
+    }
+  ]
+}

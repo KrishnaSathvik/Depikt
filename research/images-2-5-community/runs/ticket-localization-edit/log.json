@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-09T19:05:34.783Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [],
+    "prompt": "Photograph of a hand holding a vintage two-part travel ticket against a clear blue sky. The stub reads \"TOKYO\" in red condensed capitals with a round red postmark stamp beside it and a small barcode. The main panel shows a screen-print illustration of Tokyo at golden hour: Mount Fuji, the Skytree and a red pagoda with cherry blossom. Masthead across the panel: \"IDEAS TRAVEL FURTHER\". Perforated edge between stub and panel, cream paper with fine grain, soft daylight.",
+    "file": "research/images-2-5-community/runs/ticket-localization-edit/setup.png",
+    "ms": 14550,
+    "usage": {
+      "input_tokens": 112,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 112
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 455
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:09.765Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/ticket-localization-edit/setup.png"
+    ],
+    "prompt": "Edit the attached ticket image. Change only three things:\n\n1. The city name printed on the stub, currently \"TOKYO\", becomes \"LISBON\" in the same typeface, size, colour and position.\n2. The round postmark stamp beside it becomes a Lisbon stamp: the word \"LISBON\" around the ring and a small tram icon in the centre, in the same ink colour and size.\n3. The illustration panel changes from the Tokyo scene to the Alfama district with the 25 de Abril bridge in the background at golden hour, in the same vintage screen-print style, palette and framing.\n\nKeep exactly as they are: the hand, the ticket's shape and perforations, the barcode, the masthead text, the tagline, the sky, the lighting and the paper texture. No other text changes.",
+    "file": "research/images-2-5-community/runs/ticket-localization-edit/attempt-1.png",
+    "ms": 16434,
+    "usage": {
+      "input_tokens": 1721,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 185
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 2064
+    }
+  }
+]

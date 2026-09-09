@@ -1,0 +1,341 @@
+[
+  {
+    "at": "2026-09-09T19:05:35.816Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [],
+    "prompt": "Vertical 2:3 travel infographic for Porto, dense but tidy, flat vector style with photos. Top-left, very large white title on a photo of the Dom Luís I bridge at dusk: \"PORTO\". Beside the title, a red vertical badge reading \"1.5 DAY GUIDE\". Top-right, a white info box with three lines: \"Total time: 1.5 days (about 36 hours)\" / \"Best for: weekend trips\" / \"Start at the riverfront\". Left column, green header \"MUST-SEE SPOTS\" with three photo cards: Ribeira, Livraria Lello, Clérigos Tower. Right column, blue header \"SUGGESTED ITINERARY (1.5 DAYS)\" with a timeline of six timed stops. Bottom-left, orange header \"MUST-EAT\" with four small dishes. Bottom-right, a purple box \"BUDGET PER PERSON\" with four bullet lines and a total \"€120–180\". Clean sans typography, generous padding.",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/setup.png",
+    "ms": 15582,
+    "usage": {
+      "input_tokens": 217,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 217
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 560
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:10.781Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/setup.png"
+    ],
+    "prompt": "Change the big white title text at the top-left from \"PORTO\" to \"PORTO WEEKEND\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-1.png",
+    "ms": 17448,
+    "usage": {
+      "input_tokens": 1574,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 38
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 1917
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:28.873Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-1.png"
+    ],
+    "prompt": "Replace the red vertical badge text next to the title with \"2 DAYS, 1 NIGHT\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-2.png",
+    "ms": 18085,
+    "usage": {
+      "input_tokens": 1571,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 35
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 1914
+    }
+  },
+  {
+    "at": "2026-09-09T19:07:47.108Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 3,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-2.png"
+    ],
+    "prompt": "In the top-right white info box, change the first line text to \"Total time: 2 days, 1 night (about 36 hours)\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-3.png",
+    "ms": 18229,
+    "usage": {
+      "input_tokens": 1584,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 48
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 1927
+    }
+  },
+  {
+    "at": "2026-09-09T19:08:04.179Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 4,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-3.png"
+    ],
+    "prompt": "Change the blue section header on the right from \"SUGGESTED ITINERARY (1.5 DAYS)\" to \"SUGGESTED ITINERARY (2 DAYS)\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-4.png",
+    "ms": 17067,
+    "usage": {
+      "input_tokens": 1591,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 55
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 1934
+    }
+  },
+  {
+    "at": "2026-09-09T19:08:25.414Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 5,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-4.png"
+    ],
+    "prompt": "Remove the purple \"BUDGET PER PERSON\" box at the bottom-right, including its bullet list and total.",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-5.png",
+    "ms": 21232,
+    "usage": {
+      "input_tokens": 1575,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 39
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 1918
+    }
+  },
+  {
+    "at": "2026-09-09T19:08:25.423Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/setup.png"
+    ],
+    "prompt": "Run these five edits as five separate turns on the attached infographic, feeding each result into the next. One change per turn; everything not named stays exactly as it is.\n\nTurn 1: Change the big white title text at the top-left from \"PORTO\" to \"PORTO WEEKEND\".\nTurn 2: Replace the red vertical badge text next to the title with \"2 DAYS, 1 NIGHT\".\nTurn 3: In the top-right white info box, change the first line text to \"Total time: 2 days, 1 night (about 36 hours)\".\nTurn 4: Change the blue section header on the right from \"SUGGESTED ITINERARY (1.5 DAYS)\" to \"SUGGESTED ITINERARY (2 DAYS)\".\nTurn 5: Remove the purple \"BUDGET PER PERSON\" box at the bottom-right, including its bullet list and total.",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-1-turn-5.png",
+    "ms": 0,
+    "label": "chain of 5"
+  },
+  {
+    "at": "2026-09-09T19:10:31.526Z",
+    "kind": "turn",
+    "attempt": 2,
+    "turn": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/setup.png"
+    ],
+    "prompt": "Change the big white title text at the top-left from \"PORTO\" to \"PORTO WEEKEND\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-1.png",
+    "ms": 33736,
+    "usage": {
+      "input_tokens": 1574,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 38
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 2946
+    },
+    "label": "attempt 2 at high quality to limit chain degradation"
+  },
+  {
+    "at": "2026-09-09T19:11:02.745Z",
+    "kind": "turn",
+    "attempt": 2,
+    "turn": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-1.png"
+    ],
+    "prompt": "Replace the red vertical badge text next to the title with \"2 DAYS, 1 NIGHT\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-2.png",
+    "ms": 31212,
+    "usage": {
+      "input_tokens": 1571,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 35
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 2943
+    },
+    "label": "attempt 2 at high quality to limit chain degradation"
+  },
+  {
+    "at": "2026-09-09T19:11:33.077Z",
+    "kind": "turn",
+    "attempt": 2,
+    "turn": 3,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-2.png"
+    ],
+    "prompt": "In the top-right white info box, change the first line text to \"Total time: 2 days, 1 night (about 36 hours)\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-3.png",
+    "ms": 30320,
+    "usage": {
+      "input_tokens": 1584,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 48
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 2956
+    },
+    "label": "attempt 2 at high quality to limit chain degradation"
+  },
+  {
+    "at": "2026-09-09T19:12:04.370Z",
+    "kind": "turn",
+    "attempt": 2,
+    "turn": 4,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-3.png"
+    ],
+    "prompt": "Change the blue section header on the right from \"SUGGESTED ITINERARY (1.5 DAYS)\" to \"SUGGESTED ITINERARY (2 DAYS)\".",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-4.png",
+    "ms": 31287,
+    "usage": {
+      "input_tokens": 1591,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 55
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 2963
+    },
+    "label": "attempt 2 at high quality to limit chain degradation"
+  },
+  {
+    "at": "2026-09-09T19:12:37.048Z",
+    "kind": "turn",
+    "attempt": 2,
+    "turn": 5,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-4.png"
+    ],
+    "prompt": "Remove the purple \"BUDGET PER PERSON\" box at the bottom-right, including its bullet list and total.",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-5.png",
+    "ms": 32675,
+    "usage": {
+      "input_tokens": 1575,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 39
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 2947
+    },
+    "label": "attempt 2 at high quality to limit chain degradation"
+  },
+  {
+    "at": "2026-09-09T19:12:37.049Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1536",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-infographic-edits/setup.png"
+    ],
+    "prompt": "Run these five edits as five separate turns on the attached infographic, feeding each result into the next. One change per turn; everything not named stays exactly as it is.\n\nTurn 1: Change the big white title text at the top-left from \"PORTO\" to \"PORTO WEEKEND\".\nTurn 2: Replace the red vertical badge text next to the title with \"2 DAYS, 1 NIGHT\".\nTurn 3: In the top-right white info box, change the first line text to \"Total time: 2 days, 1 night (about 36 hours)\".\nTurn 4: Change the blue section header on the right from \"SUGGESTED ITINERARY (1.5 DAYS)\" to \"SUGGESTED ITINERARY (2 DAYS)\".\nTurn 5: Remove the purple \"BUDGET PER PERSON\" box at the bottom-right, including its bullet list and total.",
+    "file": "research/images-2-5-community/runs/multi-turn-infographic-edits/attempt-2-turn-5.png",
+    "ms": 0,
+    "label": "attempt 2 at high quality to limit chain degradation chain of 5"
+  }
+]
