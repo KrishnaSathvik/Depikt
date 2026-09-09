@@ -133,6 +133,7 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <Analytics />
         <Outlet />
         <Toaster
           theme="light"
