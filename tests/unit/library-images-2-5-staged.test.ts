@@ -28,6 +28,7 @@ import {
 import { availableCollections, shouldShowCollectionFilter } from "../../src/lib/target-model.ts";
 import { publicStagedPrompts, stagedImages25Prompts } from "../../src/data/images-2-5-staged.ts";
 import { curatedPrompts } from "../../src/data/curated-prompts.ts";
+import { IMAGES_25_LIBRARY_COUNT, LIBRARY_PROMPT_COUNT } from "../../src/lib/product.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
@@ -36,6 +37,22 @@ const LIBRARY_CATEGORIES = new Set(curatedPrompts.map((p) => p.category));
 // The generated legacy file has no target_model field; widen for the collection helpers.
 type ModelRow = { target_model?: unknown };
 const asRows = (xs: unknown[]) => xs as ModelRow[];
+
+/** Rows promoted to Supabase, parsed from the export SQL (the record of the promotion). */
+const promoted = [
+  ...read("supabase/insert-images-2-5-batch1-staged.sql").matchAll(
+    /\) VALUES \(\n {2}'([^']+)',\n {2}'([^']+)',[\s\S]*?\n {2}'(gpt-image-[0-9.]+)',\n {2}'([a-z_]+)',[\s\S]*?\n {2}'(draft|test_ready|tested|approved)',\n {2}(true|false),\n {2}(true|false),[\s\S]*?\n {2}(?:'([^']+)'|NULL),\n {2}'[^']+',\n {2}'[^']+'\n\) ON CONFLICT/g,
+  ),
+].map((m) => ({
+  id: m[1],
+  slug: m[2],
+  target_model: m[3],
+  source_type: m[4],
+  status: m[5],
+  generation_ready: m[6] === "true",
+  gallery_ready: m[7] === "true",
+  thumbnail_url: m[8],
+}));
 
 // ---------- vocabularies ----------
 
@@ -93,25 +110,24 @@ test("only approved prompts are public; legacy rows without status stay public",
   );
 });
 
-test("approved staged records are public; the collection filter now appears with correct counts", () => {
-  const pub = publicStagedPrompts();
-  assert.equal(pub.length, 23);
-  for (const p of pub) assert.equal(p.status, "approved");
-  const publicLibrary = asRows([...curatedPrompts, ...pub]);
+test("staging is work in progress only: no approved record is served from the repo", () => {
+  assert.equal(publicStagedPrompts().length, 0);
+  for (const p of stagedImages25Prompts) assert.notEqual(p.status, "approved", p.id);
+  // The promoted rows live in Supabase; the export SQL is the record of what was promoted.
+  assert.equal(promoted.length, IMAGES_25_LIBRARY_COUNT);
+  const publicLibrary = asRows([
+    ...curatedPrompts,
+    ...promoted.map((r) => ({ target_model: "gpt-image-2.5" })),
+  ]);
   assert.equal(shouldShowCollectionFilter(publicLibrary), true);
   assert.deepEqual(
     availableCollections(publicLibrary).map((c) => [c.value, c.count]),
     [
-      ["all", 523],
+      ["all", LIBRARY_PROMPT_COUNT],
       ["gpt-image-2", 500],
-      ["gpt-image-2.5", 23],
+      ["gpt-image-2.5", IMAGES_25_LIBRARY_COUNT],
     ],
   );
-  // The held record never reaches the public list.
-  const held = stagedImages25Prompts.filter((p) => p.status !== "approved");
-  assert.equal(held.length, 1);
-  assert.equal(held[0].slug, "multi-turn-infographic-edits");
-  assert.equal(filterPublic(held).length, 0);
 });
 
 test("mergeById: a database row wins over the staged copy with the same id", () => {
@@ -197,170 +213,75 @@ test("slugify", () => {
 
 // ---------- the 24 staged records ----------
 
-test("batch 1: exactly 24 records with unique ids and slugs, all gpt-image-2.5", () => {
-  assert.equal(stagedImages25Prompts.length, 24);
-  const ids = new Set(stagedImages25Prompts.map((p) => p.id));
-  const slugs = new Set(stagedImages25Prompts.map((p) => p.slug));
-  assert.equal(ids.size, 24);
-  assert.equal(slugs.size, 24);
+// ---------- batch 1: promoted rows (from the export SQL) and held rows (staged) ----------
+
+test("batch 1: 23 promoted + 1 held = 24 unique ids and slugs, none colliding with legacy", () => {
+  const all = [...promoted.map((r) => ({ id: r.id, slug: r.slug })), ...stagedImages25Prompts];
+  assert.equal(all.length, 24);
+  assert.equal(new Set(all.map((p) => p.id)).size, 24);
+  assert.equal(new Set(all.map((p) => p.slug)).size, 24);
   const legacyIds = new Set(curatedPrompts.map((p) => p.id));
-  for (const p of stagedImages25Prompts) {
+  for (const p of all) {
     assert.ok(p.id.startsWith("images25-"), p.id);
     assert.equal(legacyIds.has(p.id), false, `id collides with legacy: ${p.id}`);
-    assert.equal(p.target_model, "gpt-image-2.5");
-    assert.equal(p.source, "curated");
     assert.equal(p.slug, slugify(p.slug), `slug not normalized: ${p.slug}`);
   }
 });
 
-test("batch 1: every record is complete (prompt, why, category, tags, provenance, review)", () => {
-  for (const p of stagedImages25Prompts) {
-    assert.ok(p.title.length > 3, p.id);
-    assert.ok(p.prompt.length > 80, `${p.id} prompt too short`);
-    assert.ok((p.why_it_works ?? "").length > 40, `${p.id} why_it_works`);
-    assert.ok(LIBRARY_CATEGORIES.has(p.category), `${p.id} category ${p.category}`);
-    assert.ok(p.tags.length >= 3, `${p.id} tags`);
-    assert.ok(SOURCE_TYPES.includes(p.source_type), p.id);
-    assert.ok(PROMPT_STATUSES.includes(p.status), p.id);
-    assert.ok(REFERENCE_MODES.includes(p.reference_mode), p.id);
-    assert.ok(p.source_creator, `${p.id} source_creator`);
-    assert.ok((p.source_notes ?? "").length > 20, `${p.id} source_notes`);
-    assert.ok(p.review_notes.length > 20, `${p.id} review_notes`);
-    assert.ok(p.review.success && p.review.failure && p.review.check_first, p.id);
-    assert.ok(p.review.attempts >= 1, p.id);
-    assert.ok(MODEL_HINTS.includes(p.review.model_hint), p.id);
-    assert.equal(typeof p.created_at, "string");
-    assert.equal(typeof p.updated_at, "string");
+test("batch 1: promoted rows are approved, gpt-image-2.5, thumbnailed, and split 17/6 on gallery_ready", () => {
+  for (const r of promoted) {
+    assert.equal(r.status, "approved", r.id);
+    assert.equal(r.target_model, "gpt-image-2.5", r.id);
+    assert.equal(r.thumbnail_url, `/library/images-2-5/${r.slug}.webp`, r.id);
+    assert.ok(existsSync(resolve(ROOT, `public${r.thumbnail_url}`)), `${r.id} thumbnail missing`);
+    assert.ok(SOURCE_TYPES.includes(r.source_type as (typeof SOURCE_TYPES)[number]), r.id);
   }
+  assert.equal(promoted.filter((r) => r.gallery_ready).length, 17);
+  assert.equal(promoted.filter((r) => !r.gallery_ready).length, 6);
 });
 
-test("batch 1: every record was run; approved records carry a result, model, attempts and thumbnail", () => {
-  const counts: Record<string, number> = {};
-  for (const p of stagedImages25Prompts) {
-    counts[p.status] = (counts[p.status] ?? 0) + 1;
-    assert.ok(["tested", "approved"].includes(p.status), `${p.id} was not run`);
-    assert.equal(p.generation_ready, true, p.id);
-    assert.ok(p.model_used === "flare" || p.model_used === "sunburst", p.id);
-    assert.ok((p.attempts ?? 0) >= 1 && (p.attempts ?? 0) <= 3, `${p.id} attempts`);
-    assert.equal(p.result_count, p.attempts, p.id);
-    assert.ok((p.outcome_notes ?? "").length > 40, `${p.id} outcome_notes`);
-    if (p.status === "approved") {
-      assert.equal(p.thumbnail_url, `/library/images-2-5/${p.slug}.webp`, p.id);
-      assert.ok(existsSync(resolve(ROOT, `public${p.thumbnail_url}`)), `${p.id} thumbnail missing`);
-    } else {
-      assert.equal(p.gallery_ready, false, `${p.id} held records are never gallery_ready`);
-      assert.equal(p.thumbnail_url, undefined, p.id);
-    }
-    if (p.gallery_ready) assert.equal(p.status, "approved", p.id);
-    if (p.original_staged_prompt) {
-      assert.notEqual(
-        p.original_staged_prompt,
-        p.prompt,
-        `${p.id} revision recorded but identical`,
-      );
-      assert.match(
-        p.outcome_notes ?? "",
-        /revised|reworded/i,
-        `${p.id} revision must be explained`,
-      );
-    }
-    if (["multi_reference", "sketch", "identity"].includes(p.reference_mode)) {
-      assert.ok(p.fixtures_used?.length, `${p.id} fixture-based record must list fixtures`);
-      for (const f of p.fixtures_used ?? []) {
-        const fx = resolve(ROOT, `research/images-2-5-community/runs/_fixtures/${f}.png`);
-        assert.ok(existsSync(fx), f);
-      }
-    }
-  }
-  assert.deepEqual(counts, { approved: 23, tested: 1 });
-});
-
-test("batch 1: reference metadata is consistent", () => {
-  for (const p of stagedImages25Prompts) {
-    if (p.reference_mode === "none") {
-      assert.equal(p.needs_reference_images, false, p.id);
-      assert.equal(p.reference_inputs, undefined, p.id);
-    } else {
-      assert.equal(p.needs_reference_images, true, p.id);
-      assert.ok(p.reference_inputs?.length, `${p.id} reference_inputs`);
-    }
-    if (p.reference_mode === "multi_reference") {
-      assert.ok((p.reference_inputs?.length ?? 0) >= 2, p.id);
-      assert.match(p.prompt, /[Ii]mage 1/);
-      assert.match(p.prompt, /[Ii]mage 2/);
-    }
-    if (p.setup_prompt) assert.equal(p.needs_reference_images, true, p.id);
-  }
-  const byMode = new Map<string, number>();
-  for (const p of stagedImages25Prompts)
-    byMode.set(p.reference_mode, (byMode.get(p.reference_mode) ?? 0) + 1);
-  assert.equal(byMode.get("none"), 10);
-  assert.equal(byMode.get("edit_source"), 8);
-  assert.equal(byMode.get("multi_reference"), 3);
-  assert.equal(byMode.get("product"), 1);
-  assert.equal(byMode.get("sketch"), 1);
-  assert.equal(byMode.get("identity"), 1);
-});
-
-test("batch 1: provenance rules — official prompts cite OpenAI, official_inspired are not passed off as official", () => {
-  for (const p of stagedImages25Prompts) {
-    if (p.source_type === "official_prompt") {
-      assert.equal(p.source_creator, "OpenAI", p.id);
-      assert.match(p.source_notes ?? "", /verbatim|Adapted/, p.id);
-    }
-    if (p.source_type === "official_inspired") {
-      assert.equal(p.source_creator, "OpenAI", p.id);
-      assert.match(p.source_notes ?? "", /no prompt published|reconstruction/i, p.id);
-    }
-    if (p.source_type === "community_inspired") {
-      assert.ok(p.source_url, `${p.id} community record needs a source_url`);
-      assert.match(p.source_notes ?? "", /Depikt|rewrit/i, p.id);
-    }
-    if (p.source_type === "depikt_original") {
-      assert.equal(p.source_creator, "Depikt", p.id);
-    }
-  }
-  const counts = new Map<string, number>();
-  for (const p of stagedImages25Prompts)
-    counts.set(p.source_type, (counts.get(p.source_type) ?? 0) + 1);
-  assert.equal(counts.get("official_prompt"), 5);
-  assert.equal(counts.get("official_inspired"), 8);
-  assert.equal(counts.get("community_inspired"), 7);
-  assert.equal(counts.get("depikt_original"), 4);
-});
-
-test("batch 1: the three OpenAI edit lines are the published captions, verbatim", () => {
+test("batch 1: the three OpenAI edit lines were promoted with the published captions, verbatim", () => {
   const edits = JSON.parse(read("research/images-2-5-community/openai-100-edits.json"))
     .edits as Array<{
     edit: number;
     prompt: string;
   }>;
   const byNo = new Map(edits.map((e) => [e.edit, e.prompt]));
-  const pick = (id: string) => stagedImages25Prompts.find((p) => p.id === id)!;
-  assert.ok(pick("images25-change-outfit-only").prompt.includes(byNo.get(3)!));
-  assert.ok(pick("images25-change-background-only").prompt.includes(byNo.get(30)!));
-  assert.ok(pick("images25-add-glasses-preserve-eyes").prompt.includes(byNo.get(45)!));
-  assert.ok(
-    pick("images25-80s-portrait-identity-lock").prompt.startsWith(
-      "Show me what I would look like if I was in the '80s.",
-    ),
-  );
+  const sql = read("supabase/insert-images-2-5-batch1-staged.sql");
+  for (const n of [3, 30, 45]) assert.ok(sql.includes(byNo.get(n)!), `edit ${n} not verbatim`);
+  assert.ok(sql.includes("Show me what I would look like if I was in the '80s."));
 });
 
-test("batch 1: exact-text prompts quote their strings and forbid stray text", () => {
+test("held records: complete, run, not approved, not gallery_ready, no thumbnail", () => {
+  assert.ok(stagedImages25Prompts.length >= 1);
   for (const p of stagedImages25Prompts) {
-    if (p.tags.includes("exact-text")) {
-      assert.match(p.prompt, /"[^"]+"/, `${p.id} has no quoted string`);
-      assert.match(
-        p.prompt,
-        /[Nn]o other text|only text|only in these|Text appears only|the only text|[Nn]o other text changes|stays exactly as it is/,
-        p.id,
+    assert.equal(p.target_model, "gpt-image-2.5");
+    assert.ok(p.prompt.length > 80, p.id);
+    assert.ok((p.why_it_works ?? "").length > 40, p.id);
+    assert.ok(LIBRARY_CATEGORIES.has(p.category), `${p.id} category ${p.category}`);
+    assert.ok(p.tags.length >= 3, p.id);
+    assert.ok(SOURCE_TYPES.includes(p.source_type), p.id);
+    assert.ok(REFERENCE_MODES.includes(p.reference_mode), p.id);
+    assert.ok(p.source_creator, p.id);
+    assert.ok(p.review_notes.length > 20, p.id);
+    assert.ok(p.review.success && p.review.failure && p.review.check_first, p.id);
+    assert.ok(MODEL_HINTS.includes(p.review.model_hint), p.id);
+    assert.equal(p.gallery_ready, false, p.id);
+    assert.equal(p.thumbnail_url, undefined, p.id);
+    if (p.status === "tested") {
+      assert.ok(p.model_used, p.id);
+      assert.ok(
+        (p.outcome_notes ?? "").length > 40,
+        `${p.id} a held tested record must explain why`,
       );
     }
+    if (p.reference_mode === "none") assert.equal(p.needs_reference_images, false, p.id);
+    else assert.equal(p.needs_reference_images, true, p.id);
   }
+  const held = stagedImages25Prompts.find((p) => p.slug === "multi-turn-infographic-edits");
+  assert.ok(held);
+  assert.equal(held.status, "tested");
 });
-
-// ---------- legacy untouched ----------
 
 test("legacy GPT Image 2 data is untouched: 500 rows, no provenance fields, no images25 ids", () => {
   assert.equal(curatedPrompts.length, 500);
@@ -389,21 +310,13 @@ test("provenance migration adds the columns, defaults legacy rows to approved, a
   assert.match(sql, /UNIQUE \(slug\)/);
 });
 
-test("staged batch SQL exports only approved records, with thumbnails, as an idempotent upsert", () => {
+test("export SQL is an approved-only idempotent upsert that does not re-run the migration", () => {
   const sql = read("supabase/insert-images-2-5-batch1-staged.sql");
-  const approved = stagedImages25Prompts.filter((p) => p.status === "approved");
-  assert.equal((sql.match(/INSERT INTO public\.curated_prompts/g) ?? []).length, approved.length);
-  for (const p of approved) assert.ok(sql.includes(`'${p.id}'`), p.id);
-  for (const p of stagedImages25Prompts.filter((p) => p.status !== "approved")) {
+  assert.equal((sql.match(/INSERT INTO public\.curated_prompts/g) ?? []).length, promoted.length);
+  for (const p of stagedImages25Prompts) {
     assert.equal(sql.includes(`'${p.id}'`), false, `${p.id} must not be exported`);
   }
-  assert.equal((sql.match(/^ {2}'approved',$/gm) ?? []).length, approved.length);
-  assert.equal(
-    (sql.match(/'\/library\/images-2-5\/[a-z0-9-]+\.webp'/g) ?? []).length,
-    approved.length,
-  );
   assert.match(sql, /ON CONFLICT \(id\) DO UPDATE/);
-  assert.match(sql, /'gpt-image-2\.5'/);
   assert.doesNotMatch(sql, /Requires:.*migration/);
 });
 
@@ -421,5 +334,4 @@ test("library fetch layer filters to public rows, merges staged records by id, a
 test("staged records use only display categories that already exist in the library", () => {
   const used = new Set(stagedImages25Prompts.map((p) => p.category));
   for (const c of used) assert.ok(LIBRARY_CATEGORIES.has(c), c);
-  assert.ok(used.size >= 6, "batch 1 should span several categories");
 });
