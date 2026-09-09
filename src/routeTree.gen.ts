@@ -19,7 +19,6 @@ import { Route as CritiqueRouteImport } from './routes/critique'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as TemplatesSlugRouteImport } from './routes/templates.$slug'
 import { Route as IntegrationsMcpRouteImport } from './routes/integrations.mcp'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -77,11 +76,6 @@ const BlogIndexRoute = BlogIndexRouteImport.update({
   path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TemplatesSlugRoute = TemplatesSlugRouteImport.update({
-  id: '/templates/$slug',
-  path: '/templates/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IntegrationsMcpRoute = IntegrationsMcpRouteImport.update({
   id: '/integrations/mcp',
   path: '/integrations/mcp',
@@ -126,7 +120,6 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
-  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
@@ -145,7 +138,6 @@ export interface FileRoutesByTo {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
-  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
@@ -165,7 +157,6 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
-  '/templates/$slug': typeof TemplatesSlugRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
@@ -186,7 +177,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
-    | '/templates/$slug'
     | '/blog/'
     | '/templates/'
     | '/api/blog/rss.xml'
@@ -205,7 +195,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
-    | '/templates/$slug'
     | '/blog'
     | '/templates'
     | '/api/blog/rss.xml'
@@ -224,7 +213,6 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
-    | '/templates/$slug'
     | '/blog/'
     | '/templates/'
     | '/api/blog/rss.xml'
@@ -244,7 +232,6 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BlogSlugRoute: typeof BlogSlugRoute
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
-  TemplatesSlugRoute: typeof TemplatesSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
   ApiBlogRssDotxmlRoute: typeof ApiBlogRssDotxmlRoute
@@ -324,13 +311,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/templates/$slug': {
-      id: '/templates/$slug'
-      path: '/templates/$slug'
-      fullPath: '/templates/$slug'
-      preLoaderRoute: typeof TemplatesSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/integrations/mcp': {
       id: '/integrations/mcp'
       path: '/integrations/mcp'
@@ -389,7 +369,6 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BlogSlugRoute: BlogSlugRoute,
   IntegrationsMcpRoute: IntegrationsMcpRoute,
-  TemplatesSlugRoute: TemplatesSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
   ApiBlogRssDotxmlRoute: ApiBlogRssDotxmlRoute,

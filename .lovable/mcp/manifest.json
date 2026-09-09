@@ -8,7 +8,7 @@
   "mcp": {
     "server": {
       "name": "depikt",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "title": "Depikt"
     },
     "tools": [
@@ -70,8 +70,8 @@
       },
       {
         "name": "list_templates",
-        "title": "List prompt templates",
-        "description": "List Depikt's prompt templates — reusable prompt formulas, each answering one question with a copy-ready prompt and an explanation of why it works.",
+        "title": "List image templates",
+        "description": "List Depikt's model-neutral image templates — reusable structures for common image jobs (poster, product photo, infographic, UI concept, precise edit, reference composition, and more). Returns an overview; use `get_template` for one full structure.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -81,15 +81,46 @@
           "$schema": "https://json-schema.org/draft/2020-12/schema",
           "type": "object",
           "properties": {
-            "category": {
-              "description": "Optional category filter, e.g. Posters.",
-              "type": "string"
+            "group": {
+              "description": "Optional group filter.",
+              "type": "string",
+              "enum": [
+                "Create",
+                "Structure",
+                "Edit",
+                "References",
+                "Brand"
+              ]
             },
-            "slug": {
-              "description": "Return only the template with this slug.",
+            "query": {
+              "description": "Optional keyword filter over title and tags.",
               "type": "string"
             }
           }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_template",
+        "title": "Get one image template",
+        "description": "Return one Depikt image template in full: its fields, the model-neutral prompt structure with [PLACEHOLDER] slots, and a worked example. Fill the placeholders with the user's details to produce a starting prompt.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "Template id or slug, e.g. poster-flyer, product-photography, precise-image-edit."
+            }
+          },
+          "required": [
+            "id"
+          ]
         },
         "outputSchema": null
       },

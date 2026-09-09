@@ -14,7 +14,13 @@ export function Footer() {
             A workspace for better image prompts.
           </span>
         </div>
-        <div className="flex items-baseline gap-4">
+        <div className="flex flex-wrap items-baseline gap-4">
+          <a
+            href="/templates"
+            className="text-body-sm text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+          >
+            Templates
+          </a>
           <a
             href="/integrations/mcp"
             className="text-body-sm text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"

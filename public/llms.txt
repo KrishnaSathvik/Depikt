@@ -19,21 +19,12 @@ OpenAI released ChatGPT Images 2.5 on September 8, 2026. These guides separate o
 - [Posters, Infographics, and Slides with ChatGPT Images 2.5](https://depikt.app/blog/chatgpt-images-2-5-posters-infographics-slides): Exact text, hierarchy, data captions with sources, transparent backgrounds, and presentation slides.
 - [ChatGPT Images 2.5 Prompt Examples: 12 Recipes](https://depikt.app/blog/chatgpt-images-2-5-prompt-examples): Twelve complete prompts across posters, product photos, infographics, UI mockups, storyboards, edits, and reference images.
 
-## Prompt Templates — one question, one prompt (GPT Image 2 era)
+## Templates — reusable structures for common image jobs
 
-Each template answers one specific question with a single copy-paste prompt. Written for GPT Image 2; still useful as structure examples.
+Model-neutral structures, not prompt examples. Each one lists the details you provide and a prompt skeleton with placeholders; fill it in and continue in the Prompt Builder. They contain no model-specific syntax, so they work with ChatGPT Images, Midjourney, FLUX, Firefly, Ideogram, and others.
 
-- [Prompt Templates index](https://depikt.app/templates): Full list of one-question prompt templates.
-- [Prompt for a minimalist startup logo poster](https://depikt.app/templates/minimalist-startup-logo-poster)
-- [Prompt for a 3-panel vertical storyboard](https://depikt.app/templates/3-panel-storyboard-vertical)
-- [Prompt for an Instagram quote card](https://depikt.app/templates/instagram-quote-card)
-- [Prompt for a clean SaaS dashboard mockup](https://depikt.app/templates/saas-dashboard-mockup)
-- [Prompt for a cinematic golden-hour portrait](https://depikt.app/templates/cinematic-portrait-golden-hour)
-- [Prompt for a 3-step process infographic](https://depikt.app/templates/infographic-3-step-process)
-- [Prompt for a minimalist product packshot](https://depikt.app/templates/minimalist-product-packshot)
-- [Prompt for a mobile app onboarding screen](https://depikt.app/templates/mobile-onboarding-screen)
-- [Prompt for an editorial magazine cover](https://depikt.app/templates/editorial-magazine-cover)
-- [Prompt for an isometric tech illustration](https://depikt.app/templates/isometric-tech-illustration)
+- [Templates](https://depikt.app/templates): All 15 structures, grouped into Create (Portrait / Photography, Product Photography, Poster / Flyer, Social Creative / Ad, Architecture / Interior), Structure (Infographic / Explainer, Presentation Visual, UI / App Concept, Character Design Sheet, Storyboard / Multi-Panel), Edit (Precise Image Edit, Style Transfer / Restyle), References (Reference-Based Subject, Multi-Reference Composition), and Brand (Logo / Brand to Merch).
+- MCP-compatible assistants can read the same catalogue with `list_templates` and `get_template` at https://depikt.app/mcp.
 
 ## How-to guides (historical GPT Image 2 guides)
 

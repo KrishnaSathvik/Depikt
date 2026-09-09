@@ -21,7 +21,13 @@ test("MCP server route and explanation page are distinct routes", () => {
 });
 
 test("MCP copy: four read-only capabilities matching the server's tool names", () => {
-  const serverTools = ["search_prompts", "get_prompt", "list_templates", "get_guide"];
+  const serverTools = [
+    "search_prompts",
+    "get_prompt",
+    "list_templates",
+    "get_template",
+    "get_guide",
+  ];
   assert.deepEqual(
     MCP.capabilities.map((c) => c.tool),
     serverTools,

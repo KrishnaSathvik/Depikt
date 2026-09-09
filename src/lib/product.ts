@@ -53,6 +53,7 @@ export const ROUTES = {
   critic: "/critique",
   gallery: "/gallery",
   blog: "/blog",
+  templates: "/templates",
 } as const;
 
 export const NAV_ITEMS: ReadonlyArray<{
@@ -151,7 +152,7 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp",
+  "root" | "home" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp" | "templates",
   PageMeta
 > = {
   root: {
@@ -188,6 +189,11 @@ export const SEO: Record<
     title: "Depikt for AI Assistants: Connect the Prompt Library Through MCP | Depikt",
     description:
       "Connect Depikt through MCP and let ChatGPT, Claude, and other compatible assistants search the prompt library, open full prompts, browse templates, and read guides. Public and read-only.",
+  },
+  templates: {
+    title: "AI Image Prompt Templates | Depikt",
+    description:
+      "Start with reusable image prompt templates for posters, product photography, infographics, UI concepts, image edits, references, characters, and more.",
   },
 };
 
@@ -228,6 +234,11 @@ export const MCP = {
       tool: "list_templates",
       title: "Browse templates",
       body: "See the structures Depikt provides for different types of image work.",
+    },
+    {
+      tool: "get_template",
+      title: "Open a template",
+      body: "Read one structure in full and fill it in with your own details.",
     },
     {
       tool: "get_guide",

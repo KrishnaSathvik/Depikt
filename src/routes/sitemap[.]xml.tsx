@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { posts } from "@/data/posts";
-import { templates } from "@/data/templates";
 import { absoluteUrl } from "@/lib/site";
 import { MCP } from "@/lib/product";
 
@@ -66,11 +65,6 @@ export const Route = createFileRoute("/sitemap.xml")({
             loc: absoluteUrl(`/blog/${p.slug}`),
             lastmod: p.updated ?? p.published,
             priority: "0.8",
-          })),
-          ...templates.map((r) => ({
-            loc: absoluteUrl(`/templates/${r.slug}`),
-            lastmod: STATIC_LASTMOD,
-            priority: "0.7",
           })),
         ];
         const body = `<?xml version="1.0" encoding="UTF-8"?>
