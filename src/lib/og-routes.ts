@@ -17,4 +17,11 @@ export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
 };
 
 /** Cards that exist in public/og/. Add a key here after its PNG is committed. */
-export const OG_ROUTE_READY: ReadonlySet<OgRouteKey> = new Set<OgRouteKey>([]);
+export const OG_ROUTE_READY: ReadonlySet<OgRouteKey> = new Set<OgRouteKey>([
+  "home",
+  "library",
+  "builder",
+  "critic",
+  "gallery",
+  "blog",
+]);

@@ -4,7 +4,7 @@ Six route-level social cards for Depikt. All six belong to one family and are ge
 ChatGPT Images 2.5 (`gpt-image-2.5-sunburst`, quality `high`) using `public/logo.png` as the
 only reference image. Generation runs outside the product with
 `node scripts/og-images-run.ts [home|library|builder|critic|gallery|blog|all]` (needs
-`OPENAI_API_KEY` in `.env`). The model renders 1536×864 (16:9); the script center-crops to
+`OPENAI_API_KEY` in `.env.local`). The model renders 1536×864 (16:9); the script center-crops to
 1536×806 and resizes to 1200×630, so every prompt keeps a 5% top/bottom safe margin.
 
 Attempts, logs, and rejected takes live in `research/og-images/runs/`. Only the approved

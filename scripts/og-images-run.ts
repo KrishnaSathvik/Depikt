@@ -11,7 +11,7 @@
  *   node scripts/og-images-run.ts all
  *   node scripts/og-images-run.ts home|library|builder|critic|gallery|blog [--model sunburst] [--quality high] [--no-publish]
  *
- * Needs OPENAI_API_KEY in .env. Post-processing uses macOS `sips`.
+ * Needs OPENAI_API_KEY in .env.local (or .env). Post-processing uses macOS `sips`.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
@@ -27,26 +27,28 @@ const LOGO = resolve(ROOT, "public/logo.png");
 const GEN_SIZE = "1536x864"; // 16:9, multiples of 16
 const CROP_H = 806; // 1536 / 1.905 → same ratio as 1200×630
 
-// ---------- env ----------
-const envPath = resolve(ROOT, ".env");
-if (!existsSync(envPath)) throw new Error("OPENAI_API_KEY missing: no .env file");
-const env = Object.fromEntries(
-  readFileSync(envPath, "utf8")
-    .split("\n")
-    .filter((l) => l && !l.startsWith("#") && l.includes("="))
-    .map((l) => {
-      const eq = l.indexOf("=");
-      return [
-        l.slice(0, eq).trim(),
-        l
-          .slice(eq + 1)
-          .trim()
-          .replace(/^["']|["']$/g, ""),
-      ];
-    }),
-);
-const API_KEY = env.OPENAI_API_KEY;
-if (!API_KEY) throw new Error("OPENAI_API_KEY missing in .env");
+// ---------- env (.env.local wins over .env; both git-ignored) ----------
+function readEnvFile(path: string): Record<string, string> {
+  if (!existsSync(path)) return {};
+  return Object.fromEntries(
+    readFileSync(path, "utf8")
+      .split("\n")
+      .filter((l) => l && !l.startsWith("#") && l.includes("="))
+      .map((l) => {
+        const eq = l.indexOf("=");
+        return [
+          l.slice(0, eq).trim(),
+          l
+            .slice(eq + 1)
+            .trim()
+            .replace(/^["']|["']$/g, ""),
+        ];
+      }),
+  );
+}
+const env = { ...readEnvFile(resolve(ROOT, ".env")), ...readEnvFile(resolve(ROOT, ".env.local")) };
+const API_KEY = process.env.OPENAI_API_KEY ?? env.OPENAI_API_KEY;
+if (!API_KEY) throw new Error("OPENAI_API_KEY missing: add it to .env.local or .env");
 
 // ---------- args ----------
 const [, , target, ...rest] = process.argv;

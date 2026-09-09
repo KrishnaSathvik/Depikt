@@ -16,7 +16,7 @@
  *   node scripts/images-2-5-run.ts fixture <name> "<prompt>" [--size WxH] [--model flare] [--quality medium] [--refs ...]
  *       generate a reusable fixture → runs/_fixtures/<name>.png
  *
- * Needs OPENAI_API_KEY in .env.
+ * Needs OPENAI_API_KEY in .env.local (or .env).
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
@@ -27,24 +27,28 @@ import { stagedImages25Prompts, type StagedPrompt } from "../src/data/images-2-5
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RUNS = resolve(ROOT, "research/images-2-5-community/runs");
 
-// ---------- env ----------
-const env = Object.fromEntries(
-  readFileSync(resolve(ROOT, ".env"), "utf8")
-    .split("\n")
-    .filter((l) => l && !l.startsWith("#") && l.includes("="))
-    .map((l) => {
-      const eq = l.indexOf("=");
-      return [
-        l.slice(0, eq).trim(),
-        l
-          .slice(eq + 1)
-          .trim()
-          .replace(/^["']|["']$/g, ""),
-      ];
-    }),
-);
-const API_KEY = env.OPENAI_API_KEY;
-if (!API_KEY) throw new Error("OPENAI_API_KEY missing in .env");
+// ---------- env (.env.local wins over .env; both git-ignored) ----------
+function readEnvFile(path: string): Record<string, string> {
+  if (!existsSync(path)) return {};
+  return Object.fromEntries(
+    readFileSync(path, "utf8")
+      .split("\n")
+      .filter((l) => l && !l.startsWith("#") && l.includes("="))
+      .map((l) => {
+        const eq = l.indexOf("=");
+        return [
+          l.slice(0, eq).trim(),
+          l
+            .slice(eq + 1)
+            .trim()
+            .replace(/^["']|["']$/g, ""),
+        ];
+      }),
+  );
+}
+const env = { ...readEnvFile(resolve(ROOT, ".env")), ...readEnvFile(resolve(ROOT, ".env.local")) };
+const API_KEY = process.env.OPENAI_API_KEY ?? env.OPENAI_API_KEY;
+if (!API_KEY) throw new Error("OPENAI_API_KEY missing: add it to .env.local or .env");
 
 // ---------- args ----------
 const [, , command, target, ...rest] = process.argv;
