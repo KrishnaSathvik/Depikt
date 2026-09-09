@@ -169,8 +169,34 @@ function PostPage() {
         </Link>
 
         {/* Single grid wraps everything: header, content, and bottom blocks flow in the left column */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-20">
-          <div className="min-w-0 lg:max-w-[760px]">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16">
+          {/* Sidebar */}
+          <aside className="hidden lg:block">
+            <div className="sticky top-24 space-y-8">
+              {headings.length > 0 && (
+                <div>
+                  <p className="eyebrow">On this page</p>
+                  <ul className="mt-4 space-y-px border-l border-[color:var(--border-subtle)]">
+                    {headings.map((h) => (
+                      <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
+                        <a
+                          href={`#${h.id}`}
+                          className={`block border-l -ml-px py-1.5 pl-3 text-[13px] transition-colors ${
+                            activeId === h.id
+                              ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
+                              : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
+                          }`}
+                        >
+                          {h.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          </aside>
+          <div className="min-w-0 lg:max-w-[760px] lg:justify-self-start">
             {/* Post header */}
             <header>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--text-tertiary)]">
@@ -307,33 +333,6 @@ function PostPage() {
               </div>
             )}
           </div>
-
-          {/* Sidebar */}
-          <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-8">
-              {headings.length > 0 && (
-                <div>
-                  <p className="eyebrow">On this page</p>
-                  <ul className="mt-4 space-y-px border-l border-[color:var(--border-subtle)]">
-                    {headings.map((h) => (
-                      <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
-                        <a
-                          href={`#${h.id}`}
-                          className={`block border-l -ml-px py-1.5 pl-3 text-[13px] transition-colors ${
-                            activeId === h.id
-                              ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
-                              : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-                          }`}
-                        >
-                          {h.text}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </aside>
         </div>
       </article>
       <Footer />

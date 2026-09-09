@@ -14,7 +14,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { PromptSurface } from "@/components/PromptSurface";
-import { useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -120,6 +120,34 @@ const CAPABILITIES = [
   },
 ];
 
+/**
+ * Fades a section in the first time it scrolls into view. No-op (always
+ * visible) when the viewer prefers reduced motion; see .reveal-on-scroll.
+ */
+function Reveal({ children, className }: { children: ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          el.dataset.inview = "true";
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className={`reveal-on-scroll ${className ?? ""}`}>
+      {children}
+    </div>
+  );
+}
+
 function LandingPage() {
   return (
     <div className="min-h-screen bg-[color:var(--bg)]">
@@ -177,32 +205,34 @@ function Hero() {
 function FeatureGrid() {
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-        <p className="eyebrow">Learn · Build · Improve</p>
-        <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-          Three tools, one workflow.
-        </h2>
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+          <p className="eyebrow">Learn · Build · Improve</p>
+          <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
+            Three tools, one workflow.
+          </h2>
 
-        <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
-          {FEATURES.map((f) => (
-            <Link key={f.to} to={f.to} className="group flex flex-col">
-              <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
-                <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-                  {f.step}
+          <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
+            {FEATURES.map((f) => (
+              <Link key={f.to} to={f.to} className="group flex flex-col">
+                <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
+                  <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
+                    {f.step}
+                  </span>
+                  <ArrowUpRight className="h-4 w-4 text-[color:var(--text-quaternary)] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]" />
+                </div>
+                <h3 className="mt-6 text-heading-md text-[color:var(--text-primary)]">{f.title}</h3>
+                <p className="mt-3 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
+                  {f.body}
+                </p>
+                <span className="mt-8 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
+                  {f.cta}
                 </span>
-                <ArrowUpRight className="h-4 w-4 text-[color:var(--text-quaternary)] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]" />
-              </div>
-              <h3 className="mt-6 text-heading-md text-[color:var(--text-primary)]">{f.title}</h3>
-              <p className="mt-3 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-                {f.body}
-              </p>
-              <span className="mt-8 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
-                {f.cta}
-              </span>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -212,23 +242,29 @@ function FeatureGrid() {
 function Capabilities() {
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-        <p className="eyebrow">What changed</p>
-        <h2 className="mt-4 max-w-[22ch] text-display-md text-[color:var(--text-primary)]">
-          The new model rewards prompts that say what to change, what to keep, and where the text
-          goes.
-        </h2>
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+          <p className="eyebrow">What changed</p>
+          <h2 className="mt-4 max-w-[22ch] text-display-md text-[color:var(--text-primary)]">
+            The new model rewards prompts that say what to change, what to keep, and where the text
+            goes.
+          </h2>
 
-        <div className="mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-x-16 md:gap-y-20">
-          {CAPABILITIES.map((c) => (
-            <div key={c.label} className="max-w-[46ch]">
-              <p className="text-[13px] font-medium text-[color:var(--text-tertiary)]">{c.label}</p>
-              <h3 className="mt-4 text-heading-lg text-[color:var(--text-primary)]">{c.heading}</h3>
-              <p className="mt-4 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
-            </div>
-          ))}
+          <div className="mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-x-16 md:gap-y-20">
+            {CAPABILITIES.map((c) => (
+              <div key={c.label} className="max-w-[46ch]">
+                <p className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
+                  {c.label}
+                </p>
+                <h3 className="mt-4 text-heading-lg text-[color:var(--text-primary)]">
+                  {c.heading}
+                </h3>
+                <p className="mt-4 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -250,48 +286,52 @@ function BeforeAfter() {
 
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-        <p className="eyebrow">From rough idea to image-ready prompt</p>
-        <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-          One sentence in. A real prompt out.
-        </h2>
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+          <p className="eyebrow">From rough idea to image-ready prompt</p>
+          <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
+            One sentence in. A real prompt out.
+          </h2>
 
-        <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
-          <div className="flex flex-col">
-            <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-              You type
-            </span>
-            <p className="mt-5 text-heading-lg text-[color:var(--text-primary)]">“{ROUGH_INPUT}”</p>
-            <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-              The {TOOL.builder} works out the format, the reference use, the ratio, and the exact
-              text first, then writes the prompt.
-            </p>
-            <div className="mt-8">
-              <Button asChild variant="outline">
-                <Link to="/generate">
-                  Build one from your own idea <ArrowRight />
-                </Link>
-              </Button>
+          <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
+            <div className="flex flex-col">
+              <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
+                You type
+              </span>
+              <p className="mt-5 text-heading-lg text-[color:var(--text-primary)]">
+                “{ROUGH_INPUT}”
+              </p>
+              <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
+                The {TOOL.builder} works out the format, the reference use, the ratio, and the exact
+                text first, then writes the prompt.
+              </p>
+              <div className="mt-8">
+                <Button asChild variant="outline">
+                  <Link to="/generate">
+                    Build one from your own idea <ArrowRight />
+                  </Link>
+                </Button>
+              </div>
             </div>
-          </div>
 
-          <PromptSurface
-            label="Your prompt · Poster · 2:3"
-            actions={
-              <button
-                type="button"
-                onClick={onCopy}
-                className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
-              >
-                {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                {copied ? "Copied" : "Copy"}
-              </button>
-            }
-          >
-            {POLISHED_PROMPT}
-          </PromptSurface>
+            <PromptSurface
+              label="Your prompt · Poster · 2:3"
+              actions={
+                <button
+                  type="button"
+                  onClick={onCopy}
+                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
+                >
+                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  {copied ? "Copied" : "Copy"}
+                </button>
+              }
+            >
+              {POLISHED_PROMPT}
+            </PromptSurface>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -302,45 +342,47 @@ function LatestGuides() {
   const guides = getLatestGuides(3);
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-        <div className="flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="eyebrow">From the blog</p>
-            <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-              Latest guides.
-            </h2>
-          </div>
-          <Link
-            to="/blog"
-            className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 hover:underline"
-          >
-            All posts <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
-          {guides.map((p) => (
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="eyebrow">From the blog</p>
+              <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
+                Latest guides.
+              </h2>
+            </div>
             <Link
-              key={p.slug}
-              to="/blog/$slug"
-              params={{ slug: p.slug }}
-              className="group flex flex-col border-t border-[color:var(--border-subtle)] pt-5"
+              to="/blog"
+              className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 hover:underline"
             >
-              <div className="flex items-center gap-2 text-[13px] text-[color:var(--text-tertiary)]">
-                <span>{p.category}</span>
-                <span aria-hidden>·</span>
-                <span className="tabular-nums">{p.read_time}</span>
-              </div>
-              <h3 className="mt-5 text-heading-sm text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
-                {p.title}
-              </h3>
-              <p className="mt-3 line-clamp-3 text-body-sm text-[color:var(--text-secondary)]">
-                {p.excerpt}
-              </p>
+              All posts <ArrowRight className="h-4 w-4" />
             </Link>
-          ))}
+          </div>
+
+          <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
+            {guides.map((p) => (
+              <Link
+                key={p.slug}
+                to="/blog/$slug"
+                params={{ slug: p.slug }}
+                className="group flex flex-col border-t border-[color:var(--border-subtle)] pt-5"
+              >
+                <div className="flex items-center gap-2 text-[13px] text-[color:var(--text-tertiary)]">
+                  <span>{p.category}</span>
+                  <span aria-hidden>·</span>
+                  <span className="tabular-nums">{p.read_time}</span>
+                </div>
+                <h3 className="mt-5 text-heading-sm text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
+                  {p.title}
+                </h3>
+                <p className="mt-3 line-clamp-3 text-body-sm text-[color:var(--text-secondary)]">
+                  {p.excerpt}
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -350,21 +392,23 @@ function LatestGuides() {
 function FinalCTA() {
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
-      <div className="mx-auto max-w-[1400px] px-4 py-24 sm:px-6 md:py-40 lg:px-12">
-        <h2 className="max-w-[14ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
-          Your next image starts with a better prompt.
-        </h2>
-        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button asChild size="lg">
-            <Link to="/generate">
-              {CTA.buildHero} <ArrowRight />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/library">{CTA.browseShort}</Link>
-          </Button>
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-24 sm:px-6 md:py-40 lg:px-12">
+          <h2 className="max-w-[14ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
+            Your next image starts with a better prompt.
+          </h2>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg">
+              <Link to="/generate">
+                {CTA.buildHero} <ArrowRight />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link to="/library">{CTA.browseShort}</Link>
+            </Button>
+          </div>
         </div>
-      </div>
+      </Reveal>
     </section>
   );
 }

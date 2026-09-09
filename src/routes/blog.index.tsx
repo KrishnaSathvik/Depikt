@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
 import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
 import { TARGET_MODEL_NAME, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
@@ -166,8 +165,31 @@ function BlogIndex() {
           </p>
         </header>
 
-        <div className="mt-14 grid gap-12 lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-20">
-          <div>
+        <div className="mt-12 grid gap-10 lg:mt-16 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-16">
+          <aside aria-label="Categories" className="lg:sticky lg:top-24 lg:self-start">
+            <p className="eyebrow">Categories</p>
+            <ul className="no-scrollbar mt-4 flex gap-x-5 gap-y-2 overflow-x-auto lg:flex-col lg:gap-y-2.5">
+              {categoryCounts.map(([cat, count]) => (
+                <li
+                  key={cat}
+                  className="flex shrink-0 items-baseline gap-2 text-body-sm text-[color:var(--text-secondary)] lg:justify-between"
+                >
+                  <span
+                    className={
+                      cat === CURRENT_MODEL_CATEGORY ? "text-[color:var(--text-primary)]" : ""
+                    }
+                  >
+                    {cat}
+                  </span>
+                  <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
+                    {String(count).padStart(2, "0")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </aside>
+
+          <div className="min-w-0">
             {featured && <FeaturedPost post={featured} />}
 
             {rest.length > 0 && (
@@ -194,38 +216,6 @@ function BlogIndex() {
               </section>
             )}
           </div>
-
-          <aside className="space-y-10 lg:sticky lg:top-24 lg:self-start">
-            <div>
-              <p className="eyebrow">Try Depikt</p>
-              <h2 className="mt-3 text-heading-sm">
-                Build prompts that follow every rule we write about.
-              </h2>
-              <Button asChild size="sm" className="mt-5">
-                <Link to="/generate">
-                  Open {TOOL.builder}
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </Button>
-            </div>
-
-            <div>
-              <p className="eyebrow">Categories</p>
-              <ul className="mt-4 space-y-2">
-                {categoryCounts.map(([cat, count]) => (
-                  <li
-                    key={cat}
-                    className="flex items-baseline justify-between text-body-sm text-[color:var(--text-secondary)]"
-                  >
-                    <span>{cat}</span>
-                    <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
-                      {String(count).padStart(2, "0")}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
         </div>
       </main>
 

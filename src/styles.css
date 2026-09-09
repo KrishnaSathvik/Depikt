@@ -206,11 +206,15 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Visible focus rings on every interactive */
-  :where(a, button, [role="button"], input, textarea, select, summary):focus-visible {
+  /* Visible focus rings on controls. Text fields signal focus with their
+     border instead (see Input / Textarea), so they get no outer ring. */
+  :where(a, button, [role="button"], select, summary):focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
+  }
+  :where(input, textarea):focus-visible {
+    outline: none;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -393,6 +397,25 @@
   }
 
   /* Chip: quiet by default; .pill-solid is the selected state */
+
+  /* Scroll reveal — homepage sections only; toggled by data-inview */
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 600ms var(--ease-out),
+      transform 600ms var(--ease-out);
+  }
+  .reveal-on-scroll[data-inview="true"] {
+    opacity: 1;
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-on-scroll {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
   /* Reveal on load — hero only, staggered by inline delay */
   .reveal {

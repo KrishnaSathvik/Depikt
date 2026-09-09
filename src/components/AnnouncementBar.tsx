@@ -6,12 +6,10 @@ import { ANNOUNCEMENT, isAnnouncementLive } from "@/lib/product";
 const STORAGE_KEY = `depikt:announcement-dismissed:${ANNOUNCEMENT.id}`;
 
 /**
- * Single-line announcement strip rendered above the hero. Data-driven from
- * ANNOUNCEMENT in product.ts; dismissal is remembered per announcement id.
- * Renders nothing when the announcement is inactive, expired, or dismissed.
- *
- * Starts hidden during SSR and reveals after mount so a dismissed strip
- * never flashes on the server-rendered frame.
+ * Compact editorial launch block rendered under the header. Data-driven
+ * from ANNOUNCEMENT in product.ts; dismissal is remembered per announcement
+ * id. Renders nothing when the announcement is inactive, expired, or
+ * dismissed. Hidden during SSR so a dismissed block never flashes.
  */
 export function AnnouncementBar() {
   const [visible, setVisible] = useState(false);
@@ -22,7 +20,7 @@ export function AnnouncementBar() {
     try {
       dismissed = window.localStorage.getItem(STORAGE_KEY) === "1";
     } catch {
-      /* storage unavailable: show the strip */
+      /* storage unavailable: show the block */
     }
     if (!dismissed) setVisible(true);
   }, []);
@@ -39,42 +37,39 @@ export function AnnouncementBar() {
   };
 
   return (
-    <div
-      role="region"
+    <section
       aria-label="Announcement"
       className="border-b border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
     >
-      <div className="mx-auto flex h-10 max-w-[1400px] items-center gap-3 px-4 sm:px-6 lg:px-12">
+      <div className="relative mx-auto flex max-w-[1400px] flex-col gap-4 px-4 py-6 pr-12 sm:px-6 md:min-h-[120px] md:flex-row md:items-center md:justify-between md:gap-10 md:py-8 lg:px-12">
+        <div className="min-w-0">
+          <div className="flex items-center gap-3">
+            <span className="pill pill-solid !px-2.5 !py-1 !text-[12px]">{ANNOUNCEMENT.badge}</span>
+            <h2 className="text-heading-md text-[color:var(--text-primary)] md:text-heading-lg">
+              {ANNOUNCEMENT.title}
+            </h2>
+          </div>
+          <p className="mt-2 max-w-[60ch] text-body-md text-[color:var(--text-secondary)]">
+            {ANNOUNCEMENT.body}
+          </p>
+        </div>
         <Link
           to="/blog/$slug"
           params={{ slug: ANNOUNCEMENT.slug }}
-          className="group flex min-w-0 flex-1 items-center gap-3 text-[13px] text-[color:var(--text-primary)]"
+          className="group inline-flex shrink-0 items-center gap-1.5 text-body-md font-medium text-[color:var(--text-primary)] underline-offset-4 hover:underline"
         >
-          <span className="pill pill-solid shrink-0 !px-2 !py-[3px] !text-[11px]">
-            {ANNOUNCEMENT.badge}
-          </span>
-          <span className="truncate">
-            <span className="font-medium">{ANNOUNCEMENT.title}</span>
-            <span className="hidden text-[color:var(--text-secondary)] sm:inline">
-              {" "}
-              {ANNOUNCEMENT.body}
-            </span>
-          </span>
-          <span className="ml-auto hidden shrink-0 items-center gap-1 font-medium underline-offset-4 group-hover:underline sm:inline-flex">
-            {ANNOUNCEMENT.cta}
-            <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
-          </span>
-          <ArrowRight className="ml-auto h-3.5 w-3.5 shrink-0 sm:hidden" aria-hidden />
+          {ANNOUNCEMENT.cta}
+          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
         <button
           type="button"
           onClick={dismiss}
           aria-label="Dismiss announcement"
-          className="-mr-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)]"
+          className="absolute right-3 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] sm:right-5 md:top-1/2 md:-translate-y-1/2 lg:right-6"
         >
-          <X className="h-3.5 w-3.5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
-    </div>
+    </section>
   );
 }
