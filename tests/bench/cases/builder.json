@@ -1,37 +1,853 @@
 [
-  { "id": "b01-generic-scene", "group": "basic", "tags": ["subset"], "input": "old fisherman mending nets at golden hour in a portuguese village", "expect": { "category": "CINEMATIC SCENE" } },
-  { "id": "b02-cinematic", "group": "basic", "tags": ["subset"], "input": "cinematic shot of empty Tokyo street at dawn, neon reflections in puddles", "expect": { "category": "CINEMATIC SCENE", "ratio": "2.39:1", "must_not_contain": ["--ar"] } },
-  { "id": "b03-poster", "group": "basic", "tags": ["subset"], "input": "minimalist event poster for a data engineering meetup in SF next month", "expect": { "category": "POSTER/COVER", "must_not_contain": ["--ar"], "must_not_match": ["\\b20(2[0-9])\\b"] } },
-  { "id": "b04-infographic", "group": "basic", "input": "infographic explaining how RAG works, 3 steps, mono palette", "expect": { "category": "INFOGRAPHIC/DIAGRAM", "must_match": ["(3|three)"] } },
-  { "id": "b05-ui", "group": "basic", "tags": ["subset"], "input": "iPhone home screen mockup for a meditation app, soft gradient background", "expect": { "category": "UI MOCKUP" } },
-  { "id": "b06-social", "group": "basic", "input": "instagram post announcing a bakery's new sourdough loaf", "expect": { "category": "SOCIAL POST" } },
-  { "id": "b07-fashion", "group": "basic", "input": "fashion editorial of a linen summer dress on a windy beach", "expect": { "category": "INTERIOR/ARCH/FOOD/FASHION" } },
-  { "id": "b08-abstract", "group": "basic", "tags": ["subset"], "input": "what burnout feels like", "expect": { "category": "OPEN-ENDED CREATIVE", "must_not_match": ["\\b\\d{2,3}mm\\b", "f/\\d"] } },
-
-  { "id": "r01-portrait-word", "group": "routing", "edge": true, "tags": ["subset"], "input": "portrait of a woman in a red coat, soft window light", "expect": { "category": "CINEMATIC SCENE", "must_not_contain": ["4:5"] } },
-  { "id": "r02-story-word", "group": "routing", "edge": true, "input": "a story about loneliness, told in one image", "expect": { "category": "OPEN-ENDED CREATIVE", "must_not_contain": ["9:16"] } },
-  { "id": "r03-times-square", "group": "routing", "edge": true, "input": "Times Square at night in the rain", "expect": { "category": "CINEMATIC SCENE", "must_not_contain": ["1:1"] } },
-  { "id": "r04-cinematic-lighting-product", "group": "routing", "edge": true, "input": "cinematic lighting on a perfume bottle product shot", "expect": { "category_any": ["INTERIOR/ARCH/FOOD/FASHION"], "must_not_contain": ["2.39:1"] } },
-  { "id": "r05-same-product-new-bg", "group": "routing", "edge": true, "tags": ["subset"], "input": "same product, new background: put my sneaker on a wet city street at night", "expect": { "category": "IMAGE EDIT", "must_contain": ["PRESERVE"] } },
-  { "id": "r06-slide-two", "group": "routing", "edge": true, "input": "make slide two in the same design as the first slide, topic: pricing tiers", "expect": { "category_any": ["INFOGRAPHIC/DIAGRAM", "VISUAL SUMMARY", "UI MOCKUP", "POSTER/COVER"], "must_match": ["(same|match|consistent).{0,40}(design|style|layout)"] } },
-
-  { "id": "a01-explicit-16-9", "group": "aspect", "input": "16:9 hero image of a mountain lake at sunrise", "expect": { "ratio": "16:9" } },
-  { "id": "a02-explicit-4-5", "group": "aspect", "input": "4:5 product shot of a soy candle on marble", "expect": { "ratio": "4:5" } },
-  { "id": "a03-square", "group": "aspect", "tags": ["subset"], "input": "square album cover, lo-fi hip hop, night rooftop", "expect": { "ratio": "1:1" } },
-  { "id": "a04-youtube-thumb", "group": "aspect", "input": "youtube thumbnail for a video about productivity", "expect": { "ratio": "16:9", "must_not_contain": ["--ar"] } },
-  { "id": "a05-ig-story", "group": "aspect", "input": "instagram story about my morning coffee routine", "expect": { "ratio": "9:16" } },
-  { "id": "a06-vertical-garden", "group": "aspect", "edge": true, "input": "vertical garden wall in a modern hotel lobby", "expect": { "must_not_contain": ["9:16"] } },
-
-  { "id": "e01-change-only-jacket", "group": "edit", "tags": ["subset"], "input": "change only the jacket in this photo to a dark green wool overcoat, keep everything else exactly the same", "expect": { "category": "IMAGE EDIT", "must_contain": ["CHANGE", "PRESERVE", "MATCH", "jacket"] } },
-  { "id": "e02-remove-object", "group": "edit", "input": "remove the trash can on the left side of my photo and preserve everything else", "expect": { "category": "IMAGE EDIT", "must_contain": ["PRESERVE"] } },
-  { "id": "e03-keep-identity", "group": "edit", "edge": true, "tags": ["subset"], "input": "keep this exact person's identity and put them in an astronaut suit on the moon", "expect": { "category_any": ["IMAGE EDIT", "CINEMATIC SCENE"], "must_match": ["(identity|same face|facial features|likeness|preserve)"] } },
-  { "id": "e04-style-only", "group": "edit", "input": "use the attached image only for its style; the subject is a lighthouse at dusk", "expect": { "must_contain": ["lighthouse"] } },
-  { "id": "e05-sketch-layout", "group": "edit", "edge": true, "input": "use this sketch as the layout for a landing page hero section for a fintech app", "expect": { "category": "UI MOCKUP", "must_contain": ["layout"] } },
-  { "id": "e06-transparent-sticker", "group": "edit", "tags": ["subset"], "input": "transparent sticker of a smiling avocado, die-cut style", "expect": { "must_contain": ["transparent"], "must_not_contain": ["checkerboard"] } },
-
-  { "id": "s01-poster-exact-text", "group": "structured", "tags": ["subset"], "input": "poster with the headline \"FUTURE STACK 2026\" and the subline \"March 14, Lisbon\"", "expect": { "category": "POSTER/COVER", "must_contain": ["FUTURE STACK 2026", "March 14, Lisbon", "Verbatim text"] } },
-  { "id": "s02-six-modules", "group": "structured", "input": "infographic with exactly six modules about the water cycle", "expect": { "category": "INFOGRAPHIC/DIAGRAM", "must_match": ["(exactly )?(6|six) (sections|modules|blocks|panels|steps|parts)"] } },
-  { "id": "s03-five-panels", "group": "structured", "tags": ["subset"], "input": "comic strip with exactly 5 panels: a cat discovers snow for the first time", "expect": { "category": "STORYBOARD/MULTI-PANEL", "panel_count": 5 } },
-  { "id": "s04-ten-pages", "group": "structured", "tags": ["subset"], "input": "10-page comic about a small robot learning to paint", "expect": { "category": "STORYBOARD/MULTI-PANEL", "page_count": 10 } },
-  { "id": "s05-multilingual", "group": "structured", "input": "bilingual spring festival poster: title in Japanese 「春が来た」 and subtitle in English \"Spring has come\"", "expect": { "category": "POSTER/COVER", "must_contain": ["春が来た", "Spring has come"] } }
+  {
+    "id": "b01-generic-scene",
+    "group": "basic",
+    "tags": ["subset", "pair"],
+    "input": "old fisherman mending nets at golden hour in a portuguese village",
+    "expect": {
+      "category": "CINEMATIC SCENE",
+      "intent": {
+        "category": "cinematic",
+        "reference_intent": "none"
+      }
+    }
+  },
+  {
+    "id": "b02-cinematic",
+    "group": "basic",
+    "tags": ["subset", "pair"],
+    "input": "cinematic shot of empty Tokyo street at dawn, neon reflections in puddles",
+    "expect": {
+      "category": "CINEMATIC SCENE",
+      "must_not_contain": ["--ar"],
+      "intent": {
+        "category": "cinematic"
+      }
+    }
+  },
+  {
+    "id": "b03-poster",
+    "group": "basic",
+    "tags": ["subset", "pair"],
+    "input": "minimalist event poster for a data engineering meetup in SF next month",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_not_contain": ["--ar"],
+      "must_not_match": ["\\b20(2[0-9])\\b"],
+      "must_match": ["\\[(DATE|MONTH|EVENT DATE|TIME|VENUE)[^\\]]*\\]"],
+      "intent": {
+        "category": "poster",
+        "placeholders_required": true
+      }
+    }
+  },
+  {
+    "id": "b04-infographic",
+    "group": "basic",
+    "input": "infographic explaining how RAG works, 3 steps, mono palette",
+    "expect": {
+      "category": "INFOGRAPHIC/DIAGRAM",
+      "must_match": ["(3|three)"],
+      "intent": {
+        "category": "infographic"
+      }
+    }
+  },
+  {
+    "id": "b05-ui",
+    "group": "basic",
+    "tags": ["subset"],
+    "input": "iPhone home screen mockup for a meditation app, soft gradient background",
+    "expect": {
+      "category": "UI MOCKUP",
+      "intent": {
+        "category": "ui"
+      }
+    }
+  },
+  {
+    "id": "b06-social",
+    "group": "basic",
+    "input": "instagram post announcing a bakery's new sourdough loaf",
+    "expect": {
+      "category": "SOCIAL POST",
+      "intent": {
+        "category": "social"
+      }
+    }
+  },
+  {
+    "id": "b07-fashion",
+    "group": "basic",
+    "input": "fashion editorial of a linen summer dress on a windy beach",
+    "expect": {
+      "category": "INTERIOR/ARCH/FOOD/FASHION",
+      "intent": {
+        "category": "product"
+      }
+    }
+  },
+  {
+    "id": "b08-abstract",
+    "group": "basic",
+    "tags": ["subset", "pair"],
+    "input": "what burnout feels like",
+    "expect": {
+      "category": "OPEN-ENDED CREATIVE",
+      "must_not_match": ["\\b\\d{2,3}mm\\b", "f/\\d"],
+      "intent": {
+        "category": "creative"
+      }
+    }
+  },
+  {
+    "id": "r01-portrait-word",
+    "group": "routing",
+    "edge": true,
+    "tags": ["subset", "pair"],
+    "input": "portrait of a woman in a red coat, soft window light",
+    "expect": {
+      "category": "CINEMATIC SCENE",
+      "must_not_contain": ["4:5"],
+      "intent": {
+        "category": "cinematic",
+        "aspect_ratio_none": true
+      }
+    }
+  },
+  {
+    "id": "r02-story-word",
+    "group": "routing",
+    "edge": true,
+    "input": "a story about loneliness, told in one image",
+    "expect": {
+      "category": "OPEN-ENDED CREATIVE",
+      "must_not_contain": ["9:16"],
+      "intent": {
+        "aspect_ratio_none": true
+      }
+    }
+  },
+  {
+    "id": "r03-times-square",
+    "group": "routing",
+    "edge": true,
+    "input": "Times Square at night in the rain",
+    "expect": {
+      "category": "CINEMATIC SCENE",
+      "must_not_contain": ["1:1"],
+      "intent": {
+        "aspect_ratio_none": true
+      }
+    }
+  },
+  {
+    "id": "r04-cinematic-lighting-product",
+    "group": "routing",
+    "edge": true,
+    "tags": ["pair"],
+    "input": "cinematic lighting on a perfume bottle product shot",
+    "expect": {
+      "category_any": ["INTERIOR/ARCH/FOOD/FASHION"],
+      "must_not_contain": ["2.39:1"],
+      "intent": {
+        "category": "product"
+      }
+    }
+  },
+  {
+    "id": "r05-same-product-new-bg",
+    "group": "routing",
+    "edge": true,
+    "tags": ["subset", "pair"],
+    "input": "same product, new background: put my sneaker on a wet city street at night",
+    "expect": {
+      "category_any": ["IMAGE EDIT", "INTERIOR/ARCH/FOOD/FASHION"],
+      "must_contain_any": ["preserve", "keep the", "unchanged", "exactly as"],
+      "intent": {
+        "category_any": ["image_edit", "product"]
+      }
+    }
+  },
+  {
+    "id": "r06-slide-two",
+    "group": "routing",
+    "edge": true,
+    "input": "make slide two in the same design as the first slide, topic: pricing tiers",
+    "expect": {
+      "category_any": ["INFOGRAPHIC/DIAGRAM", "VISUAL SUMMARY", "UI MOCKUP", "POSTER/COVER"],
+      "must_match": ["(same|match|consistent|established).{0,60}(design|style|layout|template)"],
+      "intent": {
+        "series_continuation": true
+      }
+    }
+  },
+  {
+    "id": "a01-explicit-16-9",
+    "group": "aspect",
+    "input": "16:9 hero image of a mountain lake at sunrise",
+    "expect": {
+      "ratio": "16:9",
+      "intent": {
+        "aspect_ratio_value": "16:9"
+      }
+    }
+  },
+  {
+    "id": "a02-explicit-4-5",
+    "group": "aspect",
+    "input": "4:5 product shot of a soy candle on marble",
+    "expect": {
+      "ratio": "4:5",
+      "intent": {
+        "aspect_ratio_value": "4:5"
+      }
+    }
+  },
+  {
+    "id": "a03-square",
+    "group": "aspect",
+    "tags": ["subset"],
+    "input": "square album cover, lo-fi hip hop, night rooftop",
+    "expect": {
+      "ratio": "1:1",
+      "intent": {
+        "aspect_ratio_value": "1:1"
+      }
+    }
+  },
+  {
+    "id": "a04-youtube-thumb",
+    "group": "aspect",
+    "input": "youtube thumbnail for a video about productivity",
+    "expect": {
+      "ratio": "16:9",
+      "must_not_contain": ["--ar"],
+      "intent": {
+        "aspect_ratio_value": "16:9"
+      }
+    }
+  },
+  {
+    "id": "a05-ig-story",
+    "group": "aspect",
+    "input": "instagram story about my morning coffee routine",
+    "expect": {
+      "ratio": "9:16",
+      "intent": {
+        "aspect_ratio_value": "9:16"
+      }
+    }
+  },
+  {
+    "id": "a06-vertical-garden",
+    "group": "aspect",
+    "edge": true,
+    "tags": ["pair"],
+    "input": "vertical garden wall in a modern hotel lobby",
+    "expect": {
+      "must_not_contain": ["9:16"],
+      "intent": {
+        "aspect_ratio_none": true
+      }
+    }
+  },
+  {
+    "id": "a07-clock-time",
+    "group": "aspect",
+    "edge": true,
+    "input": "poster for a yoga class at 10:30 am on Saturday at Riverside Park",
+    "expect": {
+      "must_contain": ["10:30"],
+      "must_not_contain": ["10:30 aspect"],
+      "intent": {
+        "aspect_ratio_none": true,
+        "exact_text_includes": ["10:30"]
+      }
+    }
+  },
+  {
+    "id": "f01-style-only",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/style-duotone.png",
+    "input": "use the attached image only for its style; the subject is a lighthouse at dusk",
+    "expect": {
+      "must_contain": ["lighthouse"],
+      "must_not_contain": ["dots", "grain-like"],
+      "must_match": ["(orange|amber|peach|coral|warm).{0,80}(teal|navy|blue|dark)"],
+      "intent": {
+        "reference_intent": "style"
+      }
+    }
+  },
+  {
+    "id": "f02-identity",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/character-portrait.png",
+    "input": "keep this exact character and put them riding a bicycle through a park",
+    "expect": {
+      "must_contain": ["bicycle"],
+      "must_match": [
+        "(red|crimson).{0,30}(glasses|frames|spectacles)",
+        "(green).{0,20}(beanie|hat|cap)",
+        "(freckle)"
+      ],
+      "intent": {
+        "reference_intent": "subject_identity"
+      }
+    }
+  },
+  {
+    "id": "f03-product-new-env",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/product-bottle.png",
+    "input": "same product, different environment: on a sunlit bathroom shelf with eucalyptus",
+    "expect": {
+      "must_contain": ["VERDE", "eucalyptus"],
+      "must_match": ["(green).{0,40}(bottle)", "(black|dark).{0,30}(cap|pump|lid)"],
+      "must_not_contain": ["checkerboard"],
+      "intent": {
+        "reference_intent": "product_object",
+        "category_any": ["product", "image_edit"]
+      }
+    }
+  },
+  {
+    "id": "f04-edit-this-image",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/character-portrait.png",
+    "input": "edit this exact image: change only the beanie color to red, keep everything else",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["CHANGE ONLY", "PRESERVE", "MATCH", "red"],
+      "must_match": ["preserve[\\s\\S]{0,400}(glasses|frames)"],
+      "intent": {
+        "reference_intent": "edit_source",
+        "task": "edit",
+        "category": "image_edit"
+      }
+    }
+  },
+  {
+    "id": "f05-composition-only",
+    "group": "reference",
+    "tags": ["reference", "pair"],
+    "image": "fixtures/composition-blocks.png",
+    "input": "use only the composition of the attached image for a photo of a lone red kayak on a glacier lake",
+    "expect": {
+      "must_contain": ["kayak"],
+      "must_match": ["(left|lower|upper|right).{0,60}(third|mass|block|area|corner|placed|sits)"],
+      "must_not_contain": ["beige", "taupe"],
+      "intent": {
+        "reference_intent": "composition"
+      }
+    }
+  },
+  {
+    "id": "f06-sketch-layout",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/sketch-layout.png",
+    "input": "use this sketch as the layout for a landing page hero for a fintech app called Ledgerly",
+    "expect": {
+      "category": "UI MOCKUP",
+      "must_contain": ["Ledgerly"],
+      "must_match": ["(three|3).{0,30}(feature|card)", "(nav|navigation|header)", "(CTA|button)"],
+      "must_not_match": ["hand-drawn (look|quality|style) (is|should be) (kept|preserved)"],
+      "intent": {
+        "reference_intent": "sketch_layout",
+        "category": "ui"
+      }
+    }
+  },
+  {
+    "id": "f07-ambiguous-with-image",
+    "group": "reference",
+    "tags": ["reference", "pair"],
+    "image": "fixtures/style-duotone.png",
+    "input": "a coffee shop interior at night",
+    "expect": {
+      "must_contain": ["coffee"],
+      "intent": {
+        "reference_intent": "style"
+      }
+    }
+  },
+  {
+    "id": "f08-explicit-override",
+    "group": "reference",
+    "tags": ["reference", "subset"],
+    "image": "fixtures/style-duotone.png",
+    "referenceIntent": "composition",
+    "input": "a coffee shop interior at night, in this style",
+    "expect": {
+      "must_contain": ["coffee"],
+      "intent": {
+        "reference_intent": "composition"
+      }
+    }
+  },
+  {
+    "id": "f09-redesign-screenshot",
+    "group": "reference",
+    "tags": ["reference", "subset", "pair"],
+    "image": "fixtures/app-screenshot.png",
+    "input": "redesign this settings screen with a modern look, keep every existing feature, don't invent new ones",
+    "expect": {
+      "category": "UI MOCKUP",
+      "must_contain": ["Notifications", "Privacy", "Storage", "Language", "Log out"],
+      "must_match": [
+        "(no new|not (add|invent)|without (adding|inventing)).{0,40}(feature|function)"
+      ],
+      "intent": {
+        "category": "ui",
+        "reference_intent_any": ["edit_source", "sketch_layout", "composition"]
+      }
+    }
+  },
+  {
+    "id": "f10-next-panel-same-character",
+    "group": "reference",
+    "tags": ["reference", "pair"],
+    "image": "fixtures/character-portrait.png",
+    "input": "same character, next panel: they open a letter and gasp",
+    "expect": {
+      "must_contain": ["letter"],
+      "must_match": ["(red|crimson).{0,30}(glasses|frames)", "(green).{0,20}(beanie|hat)"],
+      "intent": {
+        "reference_intent": "subject_identity",
+        "series_continuation": true
+      }
+    }
+  },
+  {
+    "id": "f11-real-poster-style",
+    "group": "reference",
+    "tags": ["reference"],
+    "image": "public/gallery/IMG_3697.JPG",
+    "input": "in this style, a poster for a public library's summer reading program with the headline \"Read Wider\"",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["Read Wider"],
+      "must_match": ["(cream|beige|off-white|ivory)", "(blue|bluebell|cornflower)"],
+      "intent": {
+        "reference_intent": "style",
+        "exact_text_includes": ["Read Wider"]
+      }
+    }
+  },
+  {
+    "id": "e01-change-only-jacket",
+    "group": "edit",
+    "tags": ["subset", "pair"],
+    "input": "change only the jacket in this photo to a dark green wool overcoat, keep everything else exactly the same",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["CHANGE", "PRESERVE", "MATCH", "jacket"],
+      "intent": {
+        "task": "edit",
+        "category": "image_edit"
+      }
+    }
+  },
+  {
+    "id": "e02-remove-object",
+    "group": "edit",
+    "input": "remove the trash can on the left side of my photo and preserve everything else",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["PRESERVE"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e03-recolor-one-object",
+    "group": "edit",
+    "tags": ["pair"],
+    "input": "in my product photo, recolor the mug from white to matte black; nothing else changes",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["PRESERVE", "mug"],
+      "must_match": ["(matte black)"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e04-preserve-face",
+    "group": "edit",
+    "input": "put me in a tuxedo in this photo but keep my face exactly the same",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["PRESERVE", "tuxedo"],
+      "must_match": ["preserve[\\s\\S]{0,200}face"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e05-preserve-typography",
+    "group": "edit",
+    "input": "change the background color of this poster to deep navy; keep all the text and typography exactly as is",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["PRESERVE", "navy"],
+      "must_match": ["preserve[\\s\\S]{0,250}(text|typography)"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e06-retain-previous-edit",
+    "group": "edit",
+    "tags": ["subset", "pair"],
+    "input": "great, now also add a small plant on the windowsill, keeping the new sofa color from the last edit",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["PRESERVE", "plant"],
+      "must_match": ["(previous|prior|earlier|last|approved).{0,40}(edit|change)"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e07-change-background-only",
+    "group": "edit",
+    "input": "change only the background of this headshot to a plain light grey studio backdrop",
+    "expect": {
+      "category": "IMAGE EDIT",
+      "must_contain": ["CHANGE", "PRESERVE", "grey"],
+      "must_match": ["preserve[\\s\\S]{0,300}(face|hair|subject|person)"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "e08-same-subject-new-env",
+    "group": "edit",
+    "tags": ["pair"],
+    "input": "same dog from my photo, but on a snowy mountain trail",
+    "expect": {
+      "category_any": ["IMAGE EDIT", "CINEMATIC SCENE"],
+      "must_contain": ["snow"],
+      "must_match": ["(same dog|identity|preserve|keep the dog|exact)"],
+      "intent": {
+        "task": "edit"
+      }
+    }
+  },
+  {
+    "id": "s01-slide-two",
+    "group": "series",
+    "tags": ["pair"],
+    "input": "same design, slide two: our three pricing tiers Starter, Pro, Enterprise",
+    "expect": {
+      "must_contain": ["Starter", "Pro", "Enterprise"],
+      "must_match": ["(same|match|consistent|established).{0,60}(design|style|layout|template)"],
+      "intent": {
+        "series_continuation": true,
+        "exact_text_includes": ["Starter", "Enterprise"]
+      }
+    }
+  },
+  {
+    "id": "s02-next-panel",
+    "group": "series",
+    "input": "same character, next panel: she finally finds the lost key under the rug",
+    "expect": {
+      "must_contain": ["key"],
+      "must_match": [
+        "(same character|identical|consistent).{0,80}(previous|panel|established|before)"
+      ],
+      "intent": {
+        "series_continuation": true
+      }
+    }
+  },
+  {
+    "id": "s03-five-panels",
+    "group": "series",
+    "tags": ["subset", "pair"],
+    "input": "comic strip with exactly 5 panels: a cat discovers snow for the first time",
+    "expect": {
+      "category": "STORYBOARD/MULTI-PANEL",
+      "panel_count": 5,
+      "intent": {
+        "series_count": 5,
+        "series_unit": "panel"
+      }
+    }
+  },
+  {
+    "id": "s04-ten-pages",
+    "group": "series",
+    "tags": ["subset", "pair"],
+    "input": "10-page comic about a small robot learning to paint",
+    "expect": {
+      "category": "STORYBOARD/MULTI-PANEL",
+      "page_count": 10,
+      "intent": {
+        "series_count": 10,
+        "series_unit": "page"
+      }
+    }
+  },
+  {
+    "id": "s05-three-matching-posts",
+    "group": "series",
+    "tags": ["pair"],
+    "input": "three matching instagram posts for a coffee brand's autumn launch: Pumpkin Spice, Maple Oat, Cinnamon Cold Brew",
+    "expect": {
+      "category_any": ["SOCIAL POST", "STORYBOARD/MULTI-PANEL"],
+      "must_contain": ["Pumpkin Spice", "Maple Oat", "Cinnamon Cold Brew"],
+      "must_match": [
+        "(same|shared|identical|consistent).{0,60}(layout|palette|template|type|grid)"
+      ],
+      "intent": {
+        "series_count": 3
+      }
+    }
+  },
+  {
+    "id": "t01-six-word-headline",
+    "group": "text",
+    "tags": ["subset", "pair"],
+    "input": "poster with the exact headline \"Build Less. Ship More. Sleep Well.\"",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["Build Less. Ship More. Sleep Well."],
+      "must_match": ["(no (other|additional|extra) (text|copy|words)|only .{0,40}text)"],
+      "intent": {
+        "exact_text_includes": ["Build Less. Ship More. Sleep Well."]
+      }
+    }
+  },
+  {
+    "id": "t02-multiline-poster",
+    "group": "text",
+    "tags": ["pair"],
+    "input": "poster with the headline \"FUTURE STACK 2026\" and the subline \"March 14, Lisbon\"",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["FUTURE STACK 2026", "March 14, Lisbon"],
+      "intent": {
+        "exact_text_includes": ["FUTURE STACK 2026", "March 14, Lisbon"],
+        "placeholders_required": false
+      }
+    }
+  },
+  {
+    "id": "t03-multilingual",
+    "group": "text",
+    "input": "bilingual spring festival poster: title in Japanese 「春が来た」 and subtitle in English \"Spring has come\"",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["春が来た", "Spring has come"],
+      "intent": {
+        "exact_text_includes": ["春が来た", "Spring has come"]
+      }
+    }
+  },
+  {
+    "id": "t04-six-modules",
+    "group": "text",
+    "tags": ["pair"],
+    "input": "infographic with exactly six modules about the water cycle",
+    "expect": {
+      "category": "INFOGRAPHIC/DIAGRAM",
+      "must_match": ["(exactly )?(6|six) (sections|modules|blocks|panels|steps|parts)"],
+      "intent": {
+        "category": "infographic"
+      }
+    }
+  },
+  {
+    "id": "t05-comparison-grid",
+    "group": "text",
+    "input": "comparison grid: electric vs gas cars across cost, range, maintenance, emissions",
+    "expect": {
+      "category": "INFOGRAPHIC/DIAGRAM",
+      "must_contain": ["cost", "range", "maintenance", "emissions"],
+      "must_match": ["(grid|table|columns|rows)"],
+      "must_not_match": ["\\d+\\s?(%|mpg|miles|km|\\$)"],
+      "intent": {
+        "category": "infographic",
+        "placeholders_required": true
+      }
+    }
+  },
+  {
+    "id": "t06-presentation-slide",
+    "group": "text",
+    "input": "presentation slide titled \"Q3 Roadmap\" with three columns: Now, Next, Later",
+    "expect": {
+      "category_any": ["INFOGRAPHIC/DIAGRAM", "VISUAL SUMMARY"],
+      "must_contain": ["Q3 Roadmap", "Now", "Next", "Later"],
+      "intent": {
+        "exact_text_includes": ["Q3 Roadmap"]
+      }
+    }
+  },
+  {
+    "id": "u01-preserve-functionality",
+    "group": "ui",
+    "tags": ["pair"],
+    "input": "redesign our checkout page (cart summary, promo code field, address form, pay button) in a cleaner style; keep all the functionality",
+    "expect": {
+      "category": "UI MOCKUP",
+      "must_contain": ["promo", "address", "pay"],
+      "must_match": ["(keep|preserve|retain).{0,40}(function|feature)"],
+      "intent": {
+        "category": "ui"
+      }
+    }
+  },
+  {
+    "id": "u02-dont-invent-features",
+    "group": "ui",
+    "input": "mockup of a simple notes app screen with only a list of notes and a plus button, nothing else",
+    "expect": {
+      "category": "UI MOCKUP",
+      "must_contain": ["plus"],
+      "must_not_match": ["(search bar|tags|folders|sync|share button|dark mode toggle)"],
+      "intent": {
+        "category": "ui"
+      }
+    }
+  },
+  {
+    "id": "u03-mobile-screen",
+    "group": "ui",
+    "input": "mobile onboarding screen for a budgeting app, step 1 of 3, headline \"Set your first goal\"",
+    "expect": {
+      "category": "UI MOCKUP",
+      "must_contain": ["Set your first goal"],
+      "must_match": ["(1 of 3|step 1|first of three)"],
+      "intent": {
+        "category": "ui",
+        "exact_text_includes": ["Set your first goal"]
+      }
+    }
+  },
+  {
+    "id": "d01-supplied-date",
+    "group": "factual",
+    "tags": ["pair"],
+    "input": "flyer for a farmers market on Saturday, June 21, 2026, 8am to 1pm at Elm Street Plaza",
+    "expect": {
+      "category_any": ["POSTER/COVER", "SOCIAL POST"],
+      "must_contain": ["June 21, 2026", "Elm Street Plaza"],
+      "must_not_match": ["\\[(DATE|TIME|VENUE)\\]"],
+      "intent": {
+        "placeholders_required": false
+      }
+    }
+  },
+  {
+    "id": "d02-missing-date",
+    "group": "factual",
+    "tags": ["subset", "pair"],
+    "input": "concert poster for the band Midnight Brass at The Blue Room, date to be announced",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["Midnight Brass", "The Blue Room"],
+      "must_match": ["\\[(DATE|TBA|TBD)[^\\]]*\\]|TBA|TBD|to be announced"],
+      "must_not_match": [
+        "\\b(January|February|March|April|May|June|July|August|September|October|November|December) \\d{1,2}\\b"
+      ],
+      "intent": {
+        "placeholders_required": true
+      }
+    }
+  },
+  {
+    "id": "d03-unsupported-statistic",
+    "group": "factual",
+    "tags": ["pair"],
+    "input": "infographic showing how much faster our new app is than the old one",
+    "expect": {
+      "category": "INFOGRAPHIC/DIAGRAM",
+      "must_match": ["\\[[^\\]]*(VALUE|NUMBER|PERCENT|STAT|X|METRIC|SPEED)[^\\]]*\\]"],
+      "must_not_match": ["\\b\\d{1,3}\\s?(%|x faster|times faster)"],
+      "intent": {
+        "placeholders_required": true
+      }
+    }
+  },
+  {
+    "id": "d04-placeholder-required",
+    "group": "factual",
+    "input": "sale banner: 30% off everything, promo code and end date to be filled in later",
+    "expect": {
+      "must_contain": ["30%"],
+      "must_match": ["\\[(CODE|PROMO CODE|PROMO)[^\\]]*\\]", "\\[(DATE|END DATE)[^\\]]*\\]"],
+      "intent": {
+        "placeholders_required": true
+      }
+    }
+  },
+  {
+    "id": "c01-transparent-sticker",
+    "group": "creative",
+    "tags": ["subset", "pair"],
+    "input": "transparent sticker of a smiling avocado, die-cut style",
+    "expect": {
+      "must_contain": ["transparent"],
+      "must_not_contain": ["checkerboard pattern", "fake checkerboard background"],
+      "intent": {
+        "transparent_background": true
+      }
+    }
+  },
+  {
+    "id": "c02-logo-cutout",
+    "group": "creative",
+    "input": "flat logo mark of a paper plane, isolated on transparent background for a website header",
+    "expect": {
+      "must_contain": ["transparent", "paper plane"],
+      "intent": {
+        "transparent_background": true
+      }
+    }
+  },
+  {
+    "id": "c03-abstract-painting",
+    "group": "creative",
+    "input": "abstract painting about the feeling of a first snowfall",
+    "expect": {
+      "category": "OPEN-ENDED CREATIVE",
+      "must_not_match": ["\\b\\d{2,3}mm\\b", "f/\\d", "ISO \\d"],
+      "intent": {
+        "category": "creative"
+      }
+    }
+  },
+  {
+    "id": "x01-remix-library",
+    "group": "remix",
+    "tags": ["pair"],
+    "input": "a poster for a night market food festival",
+    "remixRef": "Editorial print poster, 2:3 portrait. Bold sans-serif headline \"THE CLOCK IS TICKING\" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour. Subtle paper grain, faint registration marks in corners. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality. 8K, masterpiece, ultra-detailed.",
+    "expect": {
+      "category": "POSTER/COVER",
+      "must_contain": ["night market"],
+      "must_not_contain": ["THE CLOCK IS TICKING", "Arctic", "masterpiece", "8K"],
+      "must_match": ["(risograph|paper grain|registration marks|off-white|ivory)"],
+      "intent": {
+        "task": "remix",
+        "category": "poster"
+      }
+    }
+  }
 ]

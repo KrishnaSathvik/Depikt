@@ -1,68 +1,104 @@
-// Named benchmark configurations. Every configuration runs the SAME v2.9
-// prompt engine behavior (system prompt, locks, examples, sanitizer); only the
-// transport/model/sampling settings differ.
+// Named benchmark configurations.
+//
+// engine "legacy" = frozen v2.9 prompt + v2.9 request construction (regex
+// locks, random curated examples, loose contracts). engine "v3" = the Images
+// 2.5 pipeline (intent analyzer → playbook → writer; separate critic).
+// Every config runs both pipelines' cases unless filtered with --pipeline.
 
 import type { ModelConfig } from "../../src/lib/openai/models.ts";
+import { MODEL_ROLES } from "../../src/lib/openai/models.ts";
 
 export interface BenchConfig {
   label: string;
-  /** "chat" = legacy Chat Completions + forced tool call (true baseline). */
-  api: "chat" | "responses";
+  engine: "legacy" | "v3";
+  /** Legacy only: "chat" replicates the pre-migration Chat Completions call. */
+  api?: "chat" | "responses";
+  /** Legacy: the single model. v3: the writer model. */
   model: ModelConfig;
-  /** Restrict to cases carrying this tag (e.g. "subset"). */
+  /** v3 only: intent analyzer model (defaults to MODEL_ROLES.INTENT). */
+  intentModel?: ModelConfig;
+  /** v3 only: critic model (defaults to MODEL_ROLES.CRITIC). Legacy critic uses `model`. */
+  criticModel?: ModelConfig;
   tag?: string;
+  pipeline?: "builder" | "critic";
   note?: string;
 }
 
 const T = 90_000;
+const LUNA_WRITER: ModelConfig = {
+  model: "gpt-5.6-luna",
+  reasoningEffort: "none",
+  temperature: 0.7,
+  timeoutMs: T,
+};
+const TERRA_MEDIUM: ModelConfig = {
+  model: "gpt-5.6-terra",
+  reasoningEffort: "medium",
+  timeoutMs: 180_000,
+};
 
 export const CONFIGS: Record<string, BenchConfig> = {
+  // ---- Phase 1 configs (kept reproducible) ----
   baseline: {
     label: "v2.9__gpt-5.4-mini__chat-completions__temp-0.7",
+    engine: "legacy",
     api: "chat",
     model: { model: "gpt-5.4-mini", temperature: 0.7, timeoutMs: T },
-    note: "TRUE BASELINE: exact pre-migration route behavior",
-  },
-  "mini-responses": {
-    label: "v2.9__gpt-5.4-mini__responses__temp-0.7",
-    api: "responses",
-    model: { model: "gpt-5.4-mini", temperature: 0.7, timeoutMs: T },
-    note: "Same model through the new abstraction (transport comparison)",
-  },
-  "luna-none": {
-    label: "v2.9__gpt-5.6-luna__responses__reasoning-none__no-temp",
-    api: "responses",
-    model: { model: "gpt-5.6-luna", reasoningEffort: "none", timeoutMs: T },
+    note: "Pre-migration route behavior (Chat Completions, loose tool)",
   },
   "luna-none-temp": {
     label: "v2.9__gpt-5.6-luna__responses__reasoning-none__temp-0.7",
+    engine: "legacy",
     api: "responses",
-    model: { model: "gpt-5.6-luna", reasoningEffort: "none", temperature: 0.7, timeoutMs: T },
-    note: "Parameter compatibility probe",
+    model: LUNA_WRITER,
+    note: "Phase 1 Luna candidate on the legacy engine",
   },
-  "terra-none": {
-    label: "v2.9__gpt-5.6-terra__responses__reasoning-none__no-temp",
+  // ---- Phase 2: old vs new, same model ----
+  "legacy-luna": {
+    label: "legacy-v2.9__builder-luna__critic-luna",
+    engine: "legacy",
     api: "responses",
-    model: { model: "gpt-5.6-terra", reasoningEffort: "none", timeoutMs: T },
+    model: LUNA_WRITER,
+    note: "LEGACY engine + Luna (streaming, TTFT measured)",
   },
-  "terra-none-temp": {
-    label: "v2.9__gpt-5.6-terra__responses__reasoning-none__temp-0.7",
-    api: "responses",
-    model: { model: "gpt-5.6-terra", reasoningEffort: "none", temperature: 0.7, timeoutMs: T },
-    note: "Parameter compatibility probe",
+  "v3-luna": {
+    label: "images-2.5-v3__intent-luna__builder-luna__critic-terra-medium",
+    engine: "v3",
+    model: LUNA_WRITER,
+    intentModel: MODEL_ROLES.INTENT,
+    criticModel: TERRA_MEDIUM,
+    note: "NEW engine, production routing",
   },
-  "terra-medium-subset": {
-    label: "v2.9__gpt-5.6-terra__responses__reasoning-medium__no-temp__subset",
+  "legacy-critic-terra": {
+    label: "legacy-v2.9__critic-terra-medium",
+    engine: "legacy",
     api: "responses",
-    model: { model: "gpt-5.6-terra", reasoningEffort: "medium", timeoutMs: 180_000 },
-    tag: "subset",
-    note: "Critic candidate probe on the representative subset",
+    model: TERRA_MEDIUM,
+    pipeline: "critic",
+    note: "LEGACY critic mode on Terra medium (critic cases only)",
   },
-  "astra-judge-smoke": {
-    label: "v2.9__gpt-6-astra__responses__reasoning-low__subset",
-    api: "responses",
-    model: { model: "gpt-6-astra", reasoningEffort: "low", timeoutMs: 300_000 },
-    tag: "subset",
-    note: "Integration smoke only. Not a production candidate.",
+  "v3-critic-terra": {
+    label: "images-2.5-v3__critic-terra-medium",
+    engine: "v3",
+    model: LUNA_WRITER,
+    criticModel: TERRA_MEDIUM,
+    pipeline: "critic",
+    note: "NEW critic on Terra medium (critic cases only)",
+  },
+  // ---- reference-heavy writer comparison ----
+  "v3-ref-luna": {
+    label: "images-2.5-v3__reference__writer-luna",
+    engine: "v3",
+    model: LUNA_WRITER,
+    tag: "reference",
+    pipeline: "builder",
+  },
+  "v3-ref-terra": {
+    label: "images-2.5-v3__reference__writer-terra-low",
+    engine: "v3",
+    model: MODEL_ROLES.BUILDER_REFERENCE_HEAVY,
+    tag: "reference",
+    pipeline: "builder",
+    note: "Candidate only; not routed in production",
   },
 };

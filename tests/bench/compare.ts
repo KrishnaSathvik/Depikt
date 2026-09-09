@@ -47,7 +47,10 @@ const rows: Run[] = [];
 if (existsSync(outDir)) {
   for (const d of readdirSync(outDir)) {
     const p = resolve(outDir, d, "latest.json");
-    if (existsSync(p)) rows.push(JSON.parse(readFileSync(p, "utf8")));
+    if (existsSync(p)) {
+      const parsed = JSON.parse(readFileSync(p, "utf8")) as Partial<Run>;
+      if (parsed.meta && parsed.summary && parsed.runs) rows.push(parsed as Run);
+    }
   }
 }
 rows.sort((a, b) => a.meta.label.localeCompare(b.meta.label));
@@ -55,17 +58,30 @@ rows.sort((a, b) => a.meta.label.localeCompare(b.meta.label));
 const cols = [
   ["configuration", (r: Run) => r.meta.label],
   ["cases", (r: Run) => `${r.meta.cases}×${r.meta.repeat}`],
+  ["intent (v3)", (r: Run) => `${r.summary.intentChecks ?? "n/a"}`],
+  ["reference (v3)", (r: Run) => `${r.summary.referenceIntentAccuracy ?? "n/a"}`],
+  ["edit", (r: Run) => `${r.summary.editChecks ?? "n/a"}`],
+  ["factual", (r: Run) => `${r.summary.factualChecks ?? "n/a"}`],
+  ["efficiency", (r: Run) => `${r.summary.efficiencyChecks ?? "n/a"}`],
+  ["words", (r: Run) => `${r.summary.builderOutputWordsMean ?? "n/a"}`],
+  ["intent ms", (r: Run) => `${r.summary.intentMeanMs ?? "n/a"}`],
+  [
+    "TTFT / perceived",
+    (r: Run) =>
+      `${r.summary.ttftMeanMs ?? "n/a"} / ${r.summary.perceivedFirstOutputMeanMs ?? "n/a"} ms`,
+  ],
   ["valid results", (r: Run) => `${r.summary.validRate}`],
   ["checks (all)", (r: Run) => `${r.summary.checkPassRate}`],
   ["checks (core)", (r: Run) => `${r.summary.coreCheckPassRate}`],
   ["checks (edge)", (r: Run) => `${r.summary.edgeCheckPassRate}`],
   ["category acc", (r: Run) => `${r.summary.categoryAccuracy}`],
-  ["ratio", (r: Run) => `${r.summary.ratioCompliance}`],
-  ["exact text", (r: Run) => `${r.summary.exactTextChecks}`],
+  ["ratio", (r: Run) => `${r.summary.ratioChecks ?? r.summary.ratioCompliance}`],
+  ["exact text", (r: Run) => `${r.summary.textChecks ?? r.summary.exactTextChecks}`],
   ["counts", (r: Run) => `${r.summary.countChecks}`],
   [
-    "critic range",
-    (r: Run) => `${r.summary.criticScoreRange} (μ ${r.summary.criticScoreMean ?? "n/a"})`,
+    "critic",
+    (r: Run) =>
+      `${r.summary.criticChecks ?? r.summary.criticScoreRange} (μ ${r.summary.criticScoreMean ?? "n/a"})`,
   ],
   [
     "latency mean/p50/p95",
