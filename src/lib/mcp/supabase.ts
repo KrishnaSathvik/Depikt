@@ -21,7 +21,7 @@ function configuredEnv(names: readonly string[]): string | undefined {
   return undefined;
 }
 
-function supabaseProjectUrl(): string {
+export function supabaseProjectUrl(): string {
   const url = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   if (!url) throw new Error("SUPABASE_URL (or VITE_SUPABASE_URL) is required");
   return url;
