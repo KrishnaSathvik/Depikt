@@ -113,8 +113,8 @@ export const ANNOUNCEMENT: Announcement = {
       span: "tall",
     },
     {
-      slug: "impressionist-san-francisco",
-      alt: "Impressionist painting of a San Francisco street toward the bay",
+      slug: "mosaic-earth-and-stars",
+      alt: "Tile mosaic of Earth under a starry sky",
       span: "wide",
     },
     {
