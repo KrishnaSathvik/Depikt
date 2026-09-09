@@ -139,7 +139,7 @@ function TemplateCard({ template }: { template: Template }) {
 
   const useTemplate = () => {
     const starter = buildTemplateStarter(template, values).slice(0, 4000);
-    navigate({ to: "/generate", search: { prefill: starter } });
+    navigate({ to: "/prompt", search: { mode: "build" as const, prefill: starter } });
   };
 
   return (

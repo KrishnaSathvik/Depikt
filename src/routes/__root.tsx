@@ -46,7 +46,7 @@ const STRUCTURED_DATA = [
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: JSONLD_NAMES.builder,
-    url: "https://depikt.app/generate",
+    url: "https://depikt.app/prompt",
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
     description: JSONLD_DESCRIPTIONS.app,

@@ -60,27 +60,36 @@ test("visible names: Generate → Prompt Builder, Critique → Prompt Critic; CT
   assert.equal(CTA.newPrompt, "New Prompt");
   assert.equal(CTA.building, "Building prompt…");
   assert.equal(CTA.remix, "Remix in Prompt Builder");
+  assert.equal(TOOL.prompt, "Prompt");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Library", "Prompt Builder", "Prompt Critic", "Gallery", "Blog"],
+    ["Library", "Prompt", "Gallery", "Blog"],
   );
 });
 
-test("routes are unchanged: /generate and /critique remain, no /prompt-builder or /prompt-critic", () => {
+test("/prompt is canonical; /generate and /critique still resolve via redirects", () => {
+  assert.equal(ROUTES.prompt, "/prompt");
   assert.equal(ROUTES.builder, "/generate");
   assert.equal(ROUTES.critic, "/critique");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/generate", "/critique", "/gallery", "/blog"],
+    ["/library", "/prompt", "/gallery", "/blog"],
   );
-  assert.match(read("src/routes/generate.tsx"), /createFileRoute\("\/generate"\)/);
-  assert.match(read("src/routes/critique.tsx"), /createFileRoute\("\/critique"\)/);
-  for (const f of [
-    "src/routes/generate.tsx",
-    "src/routes/critique.tsx",
-    "src/components/Header.tsx",
-  ])
-    assert.equal(/prompt-(builder|critic)/.test(read(f)), false, f);
+  assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
+  for (const [f, mode] of [
+    ["src/routes/generate.tsx", "build"],
+    ["src/routes/critique.tsx", "critique"],
+  ] as const) {
+    const s = read(f);
+    assert.match(s, /redirect\(\{/);
+    assert.match(s, /to: "\/prompt"/);
+    assert.match(s, new RegExp(`mode: "${mode}"`));
+    assert.match(s, /statusCode: 301/);
+  }
+  // the workspace mounts both modes so each keeps its own draft
+  assert.match(read("src/routes/prompt.tsx"), /<BuildMode/);
+  assert.match(read("src/routes/prompt.tsx"), /<CritiqueMode/);
+  assert.match(read("src/routes/prompt.tsx"), /role="tablist"/);
 });
 
 test("internal identifiers keep their historical names (documented in CLAUDE.md)", () => {
@@ -124,8 +133,9 @@ test("current product copy targets ChatGPT Images 2.5 and never claims to genera
 test("current product UI files carry no generator-era labels", () => {
   const files = [
     "src/routes/index.tsx",
-    "src/routes/generate.tsx",
-    "src/routes/critique.tsx",
+    "src/routes/prompt.tsx",
+    "src/components/prompt/BuildMode.tsx",
+    "src/components/prompt/CritiqueMode.tsx",
     "src/routes/library.tsx",
     "src/routes/gallery.tsx",
     "src/routes/__root.tsx",
@@ -171,10 +181,10 @@ test("Imago re-attach note: shown only when the prompt depends on a reference AN
   assert.match(REFERENCE_REATTACH_NOTE, /attach the same image in Imago/i);
   assert.match(REFERENCE_REATTACH_NOTE, /does not transfer automatically/);
   // Both pages render the shared note component
-  assert.match(read("src/routes/generate.tsx"), /ReferenceReattachNote/);
-  assert.match(read("src/routes/critique.tsx"), /ReferenceReattachNote/);
+  assert.match(read("src/components/prompt/BuildMode.tsx"), /ReferenceReattachNote/);
+  assert.match(read("src/components/prompt/CritiqueMode.tsx"), /ReferenceReattachNote/);
   assert.match(
-    read("src/routes/generate.tsx"),
+    read("src/components/prompt/BuildMode.tsx"),
     /needsReferenceReattach\(result\.intent\?\.reference_intent/,
   );
 });
@@ -208,7 +218,7 @@ test("intent-stage feedback uses real intent data and honest labels", () => {
   assert.equal(describeIntent({ category: "nonsense" }).length, 0);
   assert.equal(INTENT_STAGE_LABELS.understanding, "Understanding your request…");
   assert.equal(INTENT_STAGE_LABELS.building, "Building your prompt…");
-  const g = read("src/routes/generate.tsx");
+  const g = read("src/components/prompt/BuildMode.tsx");
   assert.equal(
     /\d+%/.test(g.slice(g.indexOf("function LoadingState"))),
     false,
@@ -397,7 +407,7 @@ test("Images 2.5 guides exist, cite OpenAI, and lead the homepage Latest guides"
   assert.ok(current.length >= 3, "at least three Images 2.5 guides");
   for (const p of current) {
     assert.match(p.content, /openai\.com\/index\/introducing-chatgpt-images-2-5/, p.slug);
-    assert.match(p.content, /\]\(\/generate\)/, `${p.slug} links to the Prompt Builder`);
+    assert.match(p.content, /\]\((\/generate|\/prompt)/, `${p.slug} links to the prompt workspace`);
     assert.equal(/generat(es|or) images/i.test(p.excerpt), false, p.slug);
     assert.ok(p.faq && p.faq.length > 0, `${p.slug} has FAQ`);
   }

@@ -1,0 +1,184 @@
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { absoluteUrl } from "@/lib/site";
+import { getOgImageForPath } from "@/lib/og-image";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
+import { BuildMode } from "@/components/prompt/BuildMode";
+import { CritiqueMode } from "@/components/prompt/CritiqueMode";
+import { trackEvent } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
+
+/**
+ * Unified Prompt workspace. Build and Critique are two modes over the same
+ * object of work (the prompt). Both stay mounted so each keeps its own draft,
+ * result, and reference image while the user switches modes.
+ * /generate and /critique redirect here; the APIs and history kinds are unchanged.
+ */
+const PROMPT_URL = absoluteUrl("/prompt");
+const PROMPT_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: JSONLD_NAMES.prompt,
+  url: PROMPT_URL,
+  applicationCategory: "DesignApplication",
+  operatingSystem: "Any",
+  description: JSONLD_DESCRIPTIONS.prompt,
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+};
+
+export type PromptMode = "build" | "critique";
+
+export interface PromptSearch {
+  mode?: PromptMode;
+  seed?: string;
+  prefill?: string;
+  remixRef?: string;
+  restore?: string;
+  ref?: string;
+}
+
+/** Anything that is not an explicit mode falls back to Build. */
+export function parsePromptMode(value: unknown): PromptMode {
+  return value === "critique" ? "critique" : "build";
+}
+
+export const Route = createFileRoute("/prompt")({
+  validateSearch: (search: Record<string, unknown>): PromptSearch => {
+    const { seed, prefill, restore, ref } = search;
+    return {
+      mode: parsePromptMode(search.mode),
+      seed: typeof seed === "string" && seed.length > 0 && seed.length <= 4000 ? seed : undefined,
+      prefill:
+        typeof prefill === "string" && prefill.length > 0 && prefill.length <= 4000
+          ? prefill
+          : undefined,
+      remixRef:
+        typeof search.remixRef === "string" &&
+        search.remixRef.length > 0 &&
+        search.remixRef.length <= 8000
+          ? search.remixRef
+          : undefined,
+      restore: typeof restore === "string" && restore.length > 0 ? restore : undefined,
+      ref: typeof ref === "string" && ref.startsWith("/gallery/") ? ref : undefined,
+    };
+  },
+  head: () => {
+    const PROMPT_OG_IMAGE = getOgImageForPath("prompt");
+    return {
+      meta: [
+        { title: SEO.prompt.title },
+        { name: "description", content: SEO.prompt.description },
+        { property: "og:title", content: SEO.prompt.title },
+        { property: "og:description", content: SEO.prompt.description },
+        { property: "og:type", content: "website" },
+        { property: "og:url", content: PROMPT_URL },
+        { property: "og:image", content: PROMPT_OG_IMAGE },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: SEO.prompt.title },
+        { name: "twitter:description", content: SEO.prompt.description },
+        { name: "twitter:image", content: PROMPT_OG_IMAGE },
+      ],
+      links: [{ rel: "canonical", href: PROMPT_URL }],
+      scripts: [{ type: "application/ld+json", children: JSON.stringify(PROMPT_JSONLD) }],
+    };
+  },
+  component: PromptWorkspace,
+});
+
+const MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
+  { id: "build", label: "Build", hint: "Write a new prompt from an idea or a reference" },
+  { id: "critique", label: "Critique", hint: "Score and rewrite a prompt you already have" },
+];
+
+function PromptWorkspace() {
+  const search = Route.useSearch();
+  const navigate = useNavigate();
+  const mode = parsePromptMode(search.mode);
+
+  /** Drop consumed params (restore, prefill, seed, ref) but stay in this mode. */
+  const clearSearch = (keep: PromptMode = mode) => {
+    navigate({ to: "/prompt", search: { mode: keep }, replace: true });
+  };
+
+  const switchMode = (next: PromptMode) => {
+    if (next === mode) return;
+    trackEvent("prompt_mode_switch", { mode: next });
+    navigate({ to: "/prompt", search: { mode: next }, replace: true });
+  };
+
+  return (
+    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+      <Header />
+      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
+        <p className="eyebrow">{TOOL.prompt}</p>
+
+        <div
+          role="tablist"
+          aria-label="Prompt workspace mode"
+          className="mt-5 inline-flex rounded-full border border-[color:var(--border)] p-1"
+        >
+          {MODES.map((m) => {
+            const selected = m.id === mode;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                id={`prompt-tab-${m.id}`}
+                aria-selected={selected}
+                aria-controls={`prompt-panel-${m.id}`}
+                title={m.hint}
+                data-analytics-id={`prompt-mode-${m.id}`}
+                onClick={() => switchMode(m.id)}
+                className={cn(
+                  "min-w-[104px] rounded-full px-5 py-2 text-body-sm transition-colors",
+                  selected
+                    ? "bg-[color:var(--accent)] text-white"
+                    : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+                )}
+              >
+                {m.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div
+          role="tabpanel"
+          id="prompt-panel-build"
+          aria-labelledby="prompt-tab-build"
+          hidden={mode !== "build"}
+          className="mt-8"
+        >
+          <BuildMode
+            active={mode === "build"}
+            search={{
+              seed: search.seed,
+              prefill: search.prefill,
+              remixRef: search.remixRef,
+              ref: search.ref,
+              restore: mode === "build" ? search.restore : undefined,
+            }}
+            clearSearch={() => clearSearch("build")}
+          />
+        </div>
+
+        <div
+          role="tabpanel"
+          id="prompt-panel-critique"
+          aria-labelledby="prompt-tab-critique"
+          hidden={mode !== "critique"}
+          className="mt-8"
+        >
+          <CritiqueMode
+            active={mode === "critique"}
+            search={{ restore: mode === "critique" ? search.restore : undefined }}
+            clearSearch={() => clearSearch("critique")}
+          />
+        </div>
+      </div>
+      <Footer />
+    </div>
+  );
+}

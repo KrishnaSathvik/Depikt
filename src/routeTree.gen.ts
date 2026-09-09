@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as PromptRouteImport } from './routes/prompt'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as GenerateRouteImport } from './routes/generate'
@@ -34,6 +35,11 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
   id: '/robots.txt',
   path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptRoute = PromptRouteImport.update({
+  id: '/prompt',
+  path: '/prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -115,6 +121,7 @@ export interface FileRoutesByFullPath {
   '/generate': typeof GenerateRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -133,6 +140,7 @@ export interface FileRoutesByTo {
   '/generate': typeof GenerateRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -152,6 +160,7 @@ export interface FileRoutesById {
   '/generate': typeof GenerateRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -172,6 +181,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/library'
     | '/mcp'
+    | '/prompt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/.well-known/oauth-protected-resource'
@@ -190,6 +200,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/library'
     | '/mcp'
+    | '/prompt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/.well-known/oauth-protected-resource'
@@ -208,6 +219,7 @@ export interface FileRouteTypes {
     | '/generate'
     | '/library'
     | '/mcp'
+    | '/prompt'
     | '/robots.txt'
     | '/sitemap.xml'
     | '/.well-known/oauth-protected-resource'
@@ -227,6 +239,7 @@ export interface RootRouteChildren {
   GenerateRoute: typeof GenerateRoute
   LibraryRoute: typeof LibraryRoute
   McpRoute: typeof McpRoute
+  PromptRoute: typeof PromptRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/robots.txt'
       fullPath: '/robots.txt'
       preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/prompt': {
+      id: '/prompt'
+      path: '/prompt'
+      fullPath: '/prompt'
+      preLoaderRoute: typeof PromptRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -363,6 +383,7 @@ const rootRouteChildren: RootRouteChildren = {
   GenerateRoute: GenerateRoute,
   LibraryRoute: LibraryRoute,
   McpRoute: McpRoute,
+  PromptRoute: PromptRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:

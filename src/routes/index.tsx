@@ -82,18 +82,11 @@ const FEATURES = [
     cta: "Browse the library",
   },
   {
-    to: "/generate" as const,
+    to: "/prompt" as const,
     step: "Build",
-    title: TOOL.builder,
-    body: "Turn a rough idea or a reference image into a precise prompt, with the intent, aspect ratio, exact text, and reference handling spelled out.",
-    cta: "Open the Prompt Builder",
-  },
-  {
-    to: "/critique" as const,
-    step: "Improve",
-    title: TOOL.critic,
-    body: "Paste an existing prompt and find the weak instructions, contradictions, and missing edit protection. Get a score, a breakdown, and a rewrite.",
-    cta: "Open the Prompt Critic",
+    title: TOOL.prompt,
+    body: "One workspace with two modes. Build turns a rough idea or a reference image into a precise prompt. Critique scores a prompt you already have and rewrites it.",
+    cta: "Open the prompt workspace",
   },
 ];
 
@@ -190,7 +183,7 @@ function Hero() {
           style={{ animationDelay: "120ms" }}
         >
           <Button asChild size="lg">
-            <Link to="/generate">
+            <Link to="/prompt" search={{ mode: "build" as const }}>
               {CTA.buildHero} <ArrowRight />
             </Link>
           </Button>
@@ -368,7 +361,7 @@ function BeforeAfter() {
               </p>
               <div className="mt-8">
                 <Button asChild variant="outline">
-                  <Link to="/generate">
+                  <Link to="/prompt" search={{ mode: "build" as const }}>
                     Build one from your own idea <ArrowRight />
                   </Link>
                 </Button>
@@ -460,7 +453,7 @@ function FinalCTA() {
           </h2>
           <div className="mt-10 flex flex-col gap-3 sm:flex-row">
             <Button asChild size="lg">
-              <Link to="/generate">
+              <Link to="/prompt" search={{ mode: "build" as const }}>
                 {CTA.buildHero} <ArrowRight />
               </Link>
             </Button>

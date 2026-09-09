@@ -14,8 +14,10 @@ test("every ready OG card exists under public/ and is a 1200x630 PNG path", () =
   }
 });
 
-test("OG route map covers the seven primary routes with distinct files", () => {
+test("OG route map covers every primary route; only /prompt reuses a card", () => {
   const files = Object.values(OG_ROUTE_IMAGES);
-  assert.equal(files.length, 7);
+  assert.equal(files.length, 8);
+  // /prompt reuses the Prompt Builder card until a dedicated one is generated.
   assert.equal(new Set(files).size, 7);
+  assert.equal(OG_ROUTE_IMAGES.prompt, OG_ROUTE_IMAGES.builder);
 });

@@ -349,7 +349,7 @@ function HomePage() {
               {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
             </p>
             <Button asChild size="sm" className="shrink-0">
-              <Link to="/generate">
+              <Link to="/prompt" search={{ mode: "build" as const }}>
                 <Wand2 className="h-3.5 w-3.5" />
                 Build your own
               </Link>
@@ -605,9 +605,9 @@ function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] 
 
   const handleRestore = (entry: import("@/lib/db").HistoryRecord) => {
     if (entry.kind === "critique") {
-      navigate({ to: "/critique", search: { restore: entry.id } });
+      navigate({ to: "/prompt", search: { mode: "critique" as const, restore: entry.id } });
     } else {
-      navigate({ to: "/generate", search: { restore: entry.id } });
+      navigate({ to: "/prompt", search: { mode: "build" as const, restore: entry.id } });
     }
   };
 
@@ -727,7 +727,7 @@ function PromptDetailDialog({
           <div className="mt-4 flex flex-wrap gap-2">
             <Button asChild size="sm">
               <Link
-                to="/generate"
+                to="/prompt"
                 search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
               >
                 <Wand2 className="h-3.5 w-3.5" />
