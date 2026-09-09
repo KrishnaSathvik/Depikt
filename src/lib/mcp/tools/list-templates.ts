@@ -33,7 +33,7 @@ export default defineTool({
 
     const payload = {
       count: results.length,
-      groups: TEMPLATE_GROUPS,
+      groups: [...TEMPLATE_GROUPS],
       templates: results
         .slice()
         .sort((a, b) => a.sort_order - b.sort_order)
