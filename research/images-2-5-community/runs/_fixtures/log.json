@@ -173,5 +173,57 @@
       "total_tokens": 449
     },
     "label": "garden-plan-sketch"
+  },
+  {
+    "at": "2026-09-09T20:21:16.482Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Product photograph, shot straight down, of a vintage two-part travel ticket lying flat and centred on a plain warm-cream paper surface, soft even daylight, no hands, no props. The stub on the left reads \"TOKYO\" in red condensed capitals with a round red postmark stamp beneath it and a small barcode. The main panel shows a screen-print illustration of Tokyo at golden hour: Mount Fuji, the Skytree and a red pagoda with cherry blossom. Masthead across the top of the panel: \"IDEAS TRAVEL FURTHER\". Perforated edge between stub and panel, cream card stock with fine grain, a slight soft shadow under the ticket. No other text.",
+    "file": "research/images-2-5-community/runs/_fixtures/ticket-flat-tokyo.png",
+    "ms": 13040,
+    "usage": {
+      "input_tokens": 147,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 147
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 490
+    },
+    "label": "ticket-flat-tokyo"
+  },
+  {
+    "at": "2026-09-09T20:21:43.593Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "medium",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/ticket-flat-tokyo.png"
+    ],
+    "prompt": "Edit the attached ticket image. Change only three things:\n\n1. The city name printed on the stub, currently \"TOKYO\", becomes \"LISBON\" in the same typeface, size, colour and position.\n2. The round postmark stamp beneath it becomes a Lisbon stamp: the word \"LISBON\" around the ring and a small tram icon in the centre, in the same ink colour and size.\n3. The illustration panel changes from the Tokyo scene to the Alfama district with the 25 de Abril bridge in the background at golden hour, in the same vintage screen-print style, palette and framing.\n\nKeep exactly as they are: the ticket's shape, position and perforations, the barcode, the masthead text, the cream surface, the lighting, the shadow and the paper texture. No other text changes.",
+    "file": "research/images-2-5-community/runs/_fixtures/ticket-flat-lisbon.png",
+    "ms": 16693,
+    "usage": {
+      "input_tokens": 1721,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 185
+      },
+      "output_tokens": 343,
+      "output_tokens_details": {
+        "image_tokens": 343,
+        "text_tokens": 0
+      },
+      "total_tokens": 2064
+    },
+    "label": "ticket-flat-lisbon"
   }
 ]

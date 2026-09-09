@@ -337,7 +337,7 @@
       "slug": "ticket-localization-edit",
       "status": "approved",
       "model_used": "sunburst",
-      "attempts": 1,
+      "attempts": 2,
       "quality": [
         "medium"
       ],
@@ -346,7 +346,8 @@
       ],
       "selected_result": null,
       "setup_image": true,
-      "total_ms": 30984
+      "total_ms": 30984,
+      "note": "Re-shot 2026-09-09 as a flat straight-down ticket (no hand); setup-v2 + attempt-2 are the published pair."
     },
     {
       "slug": "watercolor-ink-fashion-illustration",
