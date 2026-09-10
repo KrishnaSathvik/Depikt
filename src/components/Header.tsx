@@ -49,7 +49,7 @@ export function Header() {
         ariaLabel="Primary"
         activeKey={pathname}
         className="border-t border-[color:var(--border-subtle)] md:hidden"
-        innerClassName="px-2"
+        innerClassName="justify-center px-2"
       >
         {NAV_ITEMS.map(({ to, label, exact }) => (
           <Link
