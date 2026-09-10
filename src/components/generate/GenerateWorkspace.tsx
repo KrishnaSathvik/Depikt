@@ -60,6 +60,44 @@ const ERROR_COPY: Record<string, string> = {
   unknown: "Generation failed.",
 };
 
+// A generation job (especially Sunburst) can run well past a typical page
+// load; a refresh or accidental close must not lose track of it. The
+// active job id is the only thing that needs to survive — pollJob's first
+// tick re-fetches everything else (status, result, model) from the job
+// itself. Tab-scoped on purpose: resuming a job left running in a
+// different, still-open tab would race two pollers against one job.
+const ACTIVE_JOB_KEY = "depikt.generate.activeJobId";
+function saveActiveJob(jobId: string) {
+  try {
+    sessionStorage.setItem(ACTIVE_JOB_KEY, jobId);
+  } catch {
+    /* private-mode/storage-blocked: resume just won't work, generation itself still does */
+  }
+}
+function clearActiveJob() {
+  try {
+    sessionStorage.removeItem(ACTIVE_JOB_KEY);
+  } catch {
+    /* see saveActiveJob */
+  }
+}
+function readActiveJob(): string | null {
+  try {
+    return sessionStorage.getItem(ACTIVE_JOB_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}
+/** e.g. 1024x1280 -> "4:5". Used to label a resumed job's real dimensions. */
+function simplifyRatioLabel(width: number, height: number): string {
+  const d = gcd(width, height) || 1;
+  return `${width / d}:${height / d}`;
+}
+
 export function GenerateWorkspace() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -100,6 +138,15 @@ export function GenerateWorkspace() {
       trackEvent("generate_opened", { source: "direct" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Resume a job left running across a refresh/reopen — see ACTIVE_JOB_KEY.
+  // pollJob's own first tick fetches the job's current status (it may
+  // already be done) and clears the key once terminal, so this only ever
+  // fires the network request an in-flight job actually needs.
+  useEffect(() => {
+    const activeJobId = readActiveJob();
+    if (activeJobId) pollJob(activeJobId);
   }, []);
 
   async function measureDataUrl(
@@ -197,14 +244,33 @@ export function GenerateWorkspace() {
     [],
   );
 
-  const resolvedSize = resolveGenerationSize({
-    promptText: prompt,
-    structuredAspectRatio: structuredRatio,
-    referenceRatio:
-      references[0]?.local.meta?.width && references[0]?.local.meta?.height
-        ? { width: references[0].local.meta.width, height: references[0].local.meta.height }
-        : null,
-  });
+  // A resumed job (see ACTIVE_JOB_KEY) has no local `prompt` to resolve a
+  // ratio from — the page just loaded straight into "polling". Once the
+  // job itself has loaded, its real width/height are authoritative and
+  // replace the prompt-text guess, so the loading caption/box don't show
+  // a wrong "1:1 · square" fallback for a job that was never square.
+  const resolvedSize =
+    job?.width && job?.height
+      ? {
+          width: job.width,
+          height: job.height,
+          ratioLabel: simplifyRatioLabel(job.width, job.height),
+          orientation:
+            job.width === job.height
+              ? ("square" as const)
+              : job.width < job.height
+                ? ("portrait" as const)
+                : ("landscape" as const),
+          source: "structured" as const,
+        }
+      : resolveGenerationSize({
+          promptText: prompt,
+          structuredAspectRatio: structuredRatio,
+          referenceRatio:
+            references[0]?.local.meta?.width && references[0]?.local.meta?.height
+              ? { width: references[0].local.meta.width, height: references[0].local.meta.height }
+              : null,
+        });
 
   async function handleAddReference(file: File) {
     if (references.length >= MAX_REFERENCE_IMAGES_V1) {
@@ -228,12 +294,14 @@ export function GenerateWorkspace() {
   }
 
   function pollJob(jobId: string) {
+    saveActiveJob(jobId);
     pollStart.current = Date.now();
     const tick = async () => {
       try {
         const res = await getGenerationJob(jobId);
         setJob(res);
         if (isTerminalStatus(res.status)) {
+          clearActiveJob();
           if (res.status === "succeeded") {
             setPhase("result");
             setActiveVersionId(res.result?.versionId ?? null);

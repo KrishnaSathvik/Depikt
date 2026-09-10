@@ -113,6 +113,36 @@ export const Route = createFileRoute("/api/generation/jobs")({
         // download uses the same user-JWT-bound client as everything else
         // here, so it can only ever succeed for that user's own paths.
         const referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[] = [];
+
+        // An edit's source is the version being edited, not a
+        // user-attached reference — OpenAI's edits endpoint still needs it
+        // as an image[] entry, so fetch it here rather than relying on the
+        // caller to have also attached it via referenceAssetIds (it never
+        // does: the Edit composer only sends sourceVersionId). Without
+        // this, an edit request reaches OpenAI with zero images and is
+        // rejected outright.
+        if (req.operation === "edit" && req.sourceVersionId) {
+          const { data: sourceVersion, error: sourceError } = await supabase
+            .from("image_versions")
+            .select("storage_path")
+            .eq("id", req.sourceVersionId)
+            .single();
+          if (sourceError || !sourceVersion) {
+            return jsonError("Source image for this edit could not be found.", 400);
+          }
+          const { data: file, error: downloadError } = await authResult.auth.supabase.storage
+            .from(GENERATION_BUCKET)
+            .download(sourceVersion.storage_path);
+          if (downloadError || !file) {
+            return jsonError("Source image for this edit could not be used.", 400);
+          }
+          referenceImages.push({
+            bytes: new Uint8Array(await file.arrayBuffer()),
+            filename: sourceVersion.storage_path.split("/").pop() ?? "source.png",
+            mimeType: file.type || "image/png",
+          });
+        }
+
         for (const path of req.referenceAssetIds) {
           const { data: file, error: downloadError } = await authResult.auth.supabase.storage
             .from(GENERATION_BUCKET)
