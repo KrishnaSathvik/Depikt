@@ -205,10 +205,10 @@ function FeatureGrid() {
         <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
           <p className="eyebrow">Learn · Build · Improve</p>
           <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-            Three tools, one workflow.
+            One library. One workspace.
           </h2>
 
-          <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
+          <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-10">
             {FEATURES.map((f) => (
               <Link key={f.to} to={f.to} className="group flex flex-col">
                 <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
@@ -413,7 +413,7 @@ function LatestGuides() {
             </Link>
           </div>
 
-          <div className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
+          <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-10">
             {guides.map((p) => (
               <Link
                 key={p.slug}

@@ -92,10 +92,10 @@ When user sends new prompts, follow these steps in order:
 | `src/lib/library.ts` | Fetches library from Supabase; has module-level `_libraryCache` |
 | `src/routes/library.tsx` | Library page; TanStack Router loader with 5min staleTime |
 | `src/lib/depikt.ts` | Legacy category/mode constants still used for API allowlists |
-| `src/lib/prompt-engine/builder.ts` | Prompt Builder pipeline (intent → playbook → writer) and CORE_RULES |
-| `src/lib/prompt-engine/critic.ts` | Prompt Critic pipeline, rubric, essential-dimension cap |
-| `src/routes/api/public/generate-prompt.ts` | Prompt Builder API route (SSE) |
-| `src/routes/api/public/critique-prompt.ts` | Prompt Critic API route (SSE) |
+| `src/lib/prompt-engine/builder.ts` | Build-mode pipeline (internally still "builder") (intent → playbook → writer) and CORE_RULES |
+| `src/lib/prompt-engine/critic.ts` | Critique-mode pipeline (internally still "critic"), rubric, essential-dimension cap |
+| `src/routes/api/public/generate-prompt.ts` | Build-mode API route (SSE) |
+| `src/routes/api/public/critique-prompt.ts` | Critique-mode API route (SSE) |
 | `supabase/migrations/20260908120000_add_target_model_to_curated_prompts.sql` | Adds `target_model` (default/backfill `gpt-image-2`) |
 | `supabase/migrations/20260909120000_add_prompt_provenance_to_curated_prompts.sql` | Adds slug, source_type, status, reference_mode, generation/gallery flags, review_notes |
 | `src/data/images-2-5-staged.ts` | Staged Images 2.5 records (batch 1: 24) with review guidance and setup prompts |
@@ -132,7 +132,7 @@ When user sends new prompts, follow these steps in order:
 
 - Desktop: centered nav links in header
 - Mobile: scrollable tab row below header (no hamburger, no bottom bar)
-- Labels: Library · Prompt · Gallery · Blog (from `NAV_ITEMS` in `src/lib/product.ts`)
+- Labels: Library · Prompt · Gallery · Blog (from `NAV_ITEMS` in `src/lib/product.ts`). Templates and MCP live in the footer only.
 - Icons: LayoutGrid (Library), Wand2 (Prompt)
 
 ## UI Patterns
