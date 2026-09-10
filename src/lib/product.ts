@@ -22,14 +22,22 @@ export const LEGACY_LIBRARY_COUNT = 500;
 export const IMAGES_25_LIBRARY_COUNT = 23;
 export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COUNT;
 
-/** Visible tool names. */
+/**
+ * Visible tool names. The public product model is:
+ *   Prompt
+ *   ├── Build mode
+ *   └── Critique mode
+ * "Prompt Builder" and "Prompt Critic" are no longer current product names;
+ * they survive only in historical blog copy, internal APIs, and engine files.
+ */
 export const TOOL = {
   library: "Library",
   /** Unified workspace (navigation label). Build and Critique are its modes. */
   prompt: "Prompt",
-  builder: "Prompt Builder",
-  critic: "Prompt Critic",
+  buildMode: "Prompt — Build mode",
+  critiqueMode: "Prompt — Critique mode",
   gallery: "Gallery",
+  templates: "Templates",
   blog: "Blog",
 } as const;
 
@@ -44,17 +52,18 @@ export const CTA = {
   critiqueAnother: "Critique Another Prompt",
   browse: `Browse ${LIBRARY_PROMPT_COUNT} Prompts`,
   browseShort: "Browse Prompts",
-  remix: "Remix in Prompt Builder",
+  remix: "Remix in Prompt",
   openImago: "Open in Imago",
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
 export const ROUTES = {
   library: "/library",
-  /** Canonical unified workspace. /generate and /critique redirect here. */
+  /** Canonical unified workspace. /generate and /critique 301 here. */
   prompt: "/prompt",
-  builder: "/generate",
-  critic: "/critique",
+  /** Legacy URLs kept only as permanent redirects. Never link to these. */
+  legacyBuilder: "/generate",
+  legacyCritic: "/critique",
   gallery: "/gallery",
   blog: "/blog",
   templates: "/templates",
@@ -155,45 +164,38 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "prompt" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp" | "templates",
+  "root" | "home" | "prompt" | "library" | "gallery" | "blog" | "mcp" | "templates",
   PageMeta
 > = {
   root: {
-    title: `Depikt — Prompt Builder & Library for ${TARGET_MODEL_NAME}`,
-    description: `Turn rough ideas and reference images into image-ready prompts for ${TARGET_MODEL_NAME}. Browse ${LIBRARY_PROMPT_COUNT} curated prompts for ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}, build your own, and critique existing prompts. Free, no login.`,
+    title: "Depikt — AI Image Prompts, References & Templates",
+    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
   },
   home: {
-    title: `Depikt — AI Image Prompt Builder for ${TARGET_MODEL_NAME}`,
-    description: `Build better ChatGPT image prompts, explore ${LIBRARY_PROMPT_COUNT} real examples, and improve existing prompts with Depikt’s Prompt Builder and Prompt Critic.`,
+    title: "Depikt — AI Image Prompts, References & Templates",
+    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
   },
   prompt: {
-    title: `AI Image Prompt Workspace — Build and Critique | Depikt`,
-    description: `Write a new image prompt or improve an existing one in one workspace. Build turns an idea or reference into a structured prompt; Critique scores a prompt and rewrites it.`,
-  },
-  builder: {
-    title: `${TARGET_MODEL_NAME} Prompt Builder | Depikt`,
-    description: `Turn a rough idea or reference image into a clear, structured prompt for ${TARGET_MODEL_NAME}, from posters and edits to UI, infographics, and photography.`,
-  },
-  critic: {
-    title: `${TARGET_MODEL_NAME} Prompt Critic | Depikt`,
+    title: "AI Image Prompt Builder & Critic | Depikt",
     description:
-      "Review an image prompt for clarity, edits, reference handling, text, layout, and unnecessary complexity, then get concrete fixes and a stronger rewrite.",
+      "Build a structured image prompt from an idea or reference, or critique an existing prompt and get concrete improvements and a stronger rewrite.",
   },
   library: {
-    title: `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples for ChatGPT | Depikt`,
-    description: `Explore ${LIBRARY_PROMPT_COUNT} image prompts for posters, edits, references, infographics, UI concepts, photography, and more, including tested ${TARGET_MODEL_NAME} examples.`,
+    title: `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`,
+    description: `Explore ${LIBRARY_PROMPT_COUNT} curated image prompts for posters, edits, references, product photography, infographics, UI concepts, illustrations, and more.`,
   },
   gallery: {
-    title: "AI Image Prompt Reference Gallery | Depikt",
+    title: "AI Image Reference Gallery | Depikt",
     description:
-      "Explore visual references for posters, layouts, illustrations, UI, photography, infographics, and more, then use one as a starting point for your own prompt.",
+      "Browse hand-picked visual references for posters, layouts, illustrations, UI, photography, and infographics, then carry one straight into the Prompt workspace.",
   },
   blog: {
-    title: `AI Image Prompt Guides & ${TARGET_MODEL_NAME} Tips | Depikt`,
-    description: `Practical guides for writing better image prompts, editing with references, controlling text and layouts, and getting more from ${TARGET_MODEL_NAME}.`,
+    title: "AI Image Prompt Guides & Field Notes | Depikt",
+    description: `Practical guides on prompting, image editing, reference workflows, text and layout control, and what we learn from ${TARGET_MODEL_NAME}.`,
   },
+
   mcp: {
-    title: "Depikt for AI Assistants: Connect the Prompt Library Through MCP | Depikt",
+    title: "Depikt for AI Assistants: Prompt Library via MCP | Depikt",
     description:
       "Connect Depikt through MCP and let ChatGPT, Claude, and other compatible assistants search the prompt library, open full prompts, browse templates, and read guides. Public and read-only.",
   },
@@ -265,20 +267,17 @@ export const MCP = {
 export const JSONLD_NAMES = {
   site: "Depikt",
   prompt: "Depikt Prompt Workspace",
-  builder: "Depikt Prompt Builder",
-  critic: "Depikt Prompt Critic",
   library: "Depikt Prompt Library",
   gallery: "Depikt Reference Gallery",
+  templates: "Depikt Prompt Templates",
 } as const;
 
 export const JSONLD_DESCRIPTIONS = {
   prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite. Does not generate images.`,
-  app: `Prompt builder, prompt critic, and curated prompt library for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
-  builder: `Prompt builder for ${TARGET_MODEL_NAME}: turns a rough idea or reference image into a precise, image-ready prompt.`,
-  critic: `Prompt critic for ${TARGET_MODEL_NAME}: scores an image prompt across intent, clarity, reference and edit handling, text and layout, style, and efficiency, and returns a rewritten prompt.`,
+  app: `A prompt workspace with Build and Critique modes, a curated prompt library, a reference gallery, and reusable templates for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
   library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes with reviewed results.`,
   gallery:
-    "A gallery of reference images you can send to the Prompt Builder as a style, subject, or composition reference.",
+    "A gallery of reference images you can carry into the Prompt workspace in Build mode as a style, subject, or composition reference.",
 } as const;
 
 // ---------- library collection copy ----------

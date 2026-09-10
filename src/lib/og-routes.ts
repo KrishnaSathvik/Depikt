@@ -3,18 +3,19 @@
  * `OG_ROUTE_READY` lists the cards that have actually been generated and
  * committed; routes whose card is not ready keep the previous behavior.
  * Generation: node scripts/og-images-run.ts (prompts in research/og-images/).
+ *
+ * Build and Critique share one Prompt card: they are two modes of one page,
+ * and /generate and /critique only redirect there.
  */
 
-export type OgRouteKey = "prompt" | "home" | "library" | "builder" | "critic" | "gallery" | "blog" | "mcp";
+export type OgRouteKey = "home" | "library" | "prompt" | "gallery" | "templates" | "blog" | "mcp";
 
 export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
   home: "/og/home.png",
-  // The workspace reuses the Prompt Builder card until a dedicated one exists.
-  prompt: "/og/prompt-builder.png",
   library: "/og/library.png",
-  builder: "/og/prompt-builder.png",
-  critic: "/og/prompt-critic.png",
+  prompt: "/og/prompt.png",
   gallery: "/og/gallery.png",
+  templates: "/og/templates.png",
   blog: "/og/blog.png",
   mcp: "/og/mcp.png",
 };
@@ -22,11 +23,10 @@ export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
 /** Cards that exist in public/og/. Add a key here after its PNG is committed. */
 export const OG_ROUTE_READY: ReadonlySet<OgRouteKey> = new Set<OgRouteKey>([
   "home",
-  "prompt",
   "library",
-  "builder",
-  "critic",
+  "prompt",
   "gallery",
+  "templates",
   "blog",
   "mcp",
 ]);

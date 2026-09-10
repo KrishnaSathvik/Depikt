@@ -9,12 +9,12 @@
  * Rules for this file:
  * - Model-neutral. No `--ar`, no `--stylize`, no API quality flags, no model
  *   identifiers inside `template_prompt`. Those are model settings, not
- *   creative structure. Prompt Builder adapts the filled structure for the
+ *   creative structure. The Prompt workspace (Build mode) adapts the filled structure for the
  *   target model.
  * - ONE template per job. No "Poster for Images 2.5" / "Poster for Midjourney"
  *   duplicates.
  * - This file is the single source of truth: the /templates page, the
- *   Template → Prompt Builder flow, and the public MCP tools all read it.
+ *   Template → Prompt (Build mode) flow, and the public MCP tools all read it.
  */
 
 export type TemplateGroup = "Create" | "Structure" | "Edit" | "References" | "Brand";
@@ -812,7 +812,7 @@ export function getTemplatesByGroup(group: TemplateGroup): Template[] {
 
 /**
  * Fill the model-neutral skeleton with whatever the user typed. Unfilled
- * placeholders fall back to a readable bracketed label so Prompt Builder (and
+ * placeholders fall back to a readable bracketed label so Build mode (and
  * the user) can see what is still missing instead of a raw key.
  */
 export function buildTemplateStarter(

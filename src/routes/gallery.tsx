@@ -68,7 +68,7 @@ function GalleryPage() {
           Reference Gallery
         </h1>
         <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
-          Click any image to preview it, then send it to the {TOOL.builder} as a reference. You
+          Click any image to preview it, then send it to the {TOOL.prompt} workspace as a reference. You
           choose there how it is used: style, subject, composition, and so on.
         </p>
 
@@ -105,7 +105,7 @@ function GalleryPage() {
               />
               <Button type="button" onClick={() => handleUseAsReference(selected)}>
                 <Wand2 className="h-4 w-4" />
-                Use as reference in {TOOL.builder}
+                Use as reference in {TOOL.prompt}
               </Button>
             </div>
           )}

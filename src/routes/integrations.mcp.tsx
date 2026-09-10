@@ -270,7 +270,7 @@ function McpPage() {
               </Button>
               <Button asChild size="lg">
                 <Link to="/prompt" search={{ mode: "build" as const }}>
-                  {TOOL.builder} <ArrowRight />
+                  {TOOL.prompt} <ArrowRight />
                 </Link>
               </Button>
             </div>
