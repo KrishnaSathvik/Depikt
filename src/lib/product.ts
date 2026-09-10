@@ -268,21 +268,19 @@ export const MCP = {
 export const JSONLD_NAMES = {
   site: "Depikt",
   prompt: "Depikt Prompt Workspace",
-  builder: "Depikt Prompt Builder",
-  critic: "Depikt Prompt Critic",
   library: "Depikt Prompt Library",
   gallery: "Depikt Reference Gallery",
+  templates: "Depikt Prompt Templates",
 } as const;
 
 export const JSONLD_DESCRIPTIONS = {
   prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite. Does not generate images.`,
-  app: `Prompt builder, prompt critic, and curated prompt library for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
-  builder: `Prompt builder for ${TARGET_MODEL_NAME}: turns a rough idea or reference image into a precise, image-ready prompt.`,
-  critic: `Prompt critic for ${TARGET_MODEL_NAME}: scores an image prompt across intent, clarity, reference and edit handling, text and layout, style, and efficiency, and returns a rewritten prompt.`,
+  app: `A prompt workspace with Build and Critique modes, a curated prompt library, a reference gallery, and reusable templates for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
   library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes with reviewed results.`,
   gallery:
-    "A gallery of reference images you can send to the Prompt Builder as a style, subject, or composition reference.",
+    "A gallery of reference images you can carry into the Prompt workspace in Build mode as a style, subject, or composition reference.",
 } as const;
+
 
 // ---------- library collection copy ----------
 
