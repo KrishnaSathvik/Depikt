@@ -3,6 +3,7 @@ import { GA_INLINE_SCRIPT, GA_LOADER_SRC } from "@/lib/analytics";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { Analytics } from "@/components/Analytics";
+import { DevAuthBanner } from "@/components/DevAuthBanner";
 import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -140,6 +141,7 @@ function RootComponent() {
     <ThemeProvider>
       <AuthProvider>
         <Analytics />
+        <DevAuthBanner />
         <Outlet />
         <Toaster
           theme="light"
