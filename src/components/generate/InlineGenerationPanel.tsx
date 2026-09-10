@@ -52,7 +52,7 @@ export function InlineGenerationPanel({
 
   return (
     <div className="mt-8 border-t border-[color:var(--border-subtle)] pt-8">
-      <div className="grid gap-6 lg:grid-cols-2 lg:items-start lg:gap-8">
+      <div className="space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8 lg:space-y-0">
         <div className="space-y-3">
           <PromptSurface label={promptLabel}>{promptText}</PromptSurface>
           {gen.phase === "result" &&
@@ -101,11 +101,13 @@ export function InlineGenerationPanel({
           errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
           onRetry={() => gen.regenerate()}
           actions={
-            <GenerationActions
-              onDownload={gen.download}
-              onEdit={() => setEditing((e) => !e)}
-              onRegenerate={() => gen.regenerate()}
-            />
+            editing ? undefined : (
+              <GenerationActions
+                onDownload={gen.download}
+                onEdit={() => setEditing((e) => !e)}
+                onRegenerate={() => gen.regenerate()}
+              />
+            )
           }
         />
       </div>

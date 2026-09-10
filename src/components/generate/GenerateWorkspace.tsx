@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Sparkles, Plus, X, RefreshCw, ChevronRight, ChevronDown } from "lucide-react";
+import { Sparkles, Plus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
@@ -9,7 +9,11 @@ import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
 import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
-import { useGeneration, simplifyRatioLabel } from "@/lib/generation/use-generation";
+import {
+  useGeneration,
+  simplifyRatioLabel,
+  type ReferenceEntry,
+} from "@/lib/generation/use-generation";
 import type { RoutingHints } from "@/lib/generation/model-router";
 import type { SourceContextType } from "@/lib/generation/job-request";
 import type { SessionVersion } from "@/lib/generation/client";
@@ -18,12 +22,18 @@ import { GenerationActions } from "@/components/generate/GenerationActions";
 import { trackEvent } from "@/lib/analytics";
 
 /**
- * /generate — the direct creation workspace. Two panes at lg+ (composer
- * left, GenerationCanvas right); one column below that. Library/Gallery/
- * Prompt hand off a pre-filled composer via handoff.ts; Library additionally
- * auto-starts generation immediately (it already has a complete prompt —
- * see docs/plans/2026-09-10-inline-generation-workspace.md, "Library single-
- * click Generate").
+ * /generate — the direct creation workspace.
+ *
+ * Idle: one focused single-column composer — no generation visual of any
+ * kind is shown before the user has actually started something (see
+ * docs/plans/2026-09-10-inline-generation-workspace.md and its visual-QA
+ * follow-up: a static "ready" canvas read as a premature loading state, not
+ * an empty canvas, so it's gone).
+ *
+ * Once generation starts: a two-pane workspace at lg+ (prompt/context left,
+ * GenerationCanvas right); one column below that. Library additionally
+ * auto-starts generation immediately on handoff (it already has a complete
+ * prompt).
  */
 export function GenerateWorkspace() {
   const navigate = useNavigate();
@@ -39,7 +49,6 @@ export function GenerateWorkspace() {
   });
   const [editing, setEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
-  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const gen = useGeneration({ sourceContext });
 
@@ -112,74 +121,68 @@ export function GenerateWorkspace() {
     void navigate({ to: ROUTES.prompt, search: { mode: "build" } });
   }
 
+  // No generation visual before the user has actually started one — the
+  // idle composer is a plain creation entry point, not half of a workspace.
+  const isIdle = gen.phase === "idle" || (gen.phase === "error" && !gen.job);
+
+  if (isIdle) {
+    return (
+      <div className="mx-auto max-w-[800px] px-4 py-14 sm:px-6">
+        <p className="eyebrow mb-2 text-center">Generate</p>
+        <h1 className="text-heading-lg mb-8 text-center">Create an image.</h1>
+        {gen.errorMessage && (
+          <p className="mb-4 text-center text-body-sm text-red-600">{gen.errorMessage}</p>
+        )}
+        <div className="space-y-4">
+          <ComposerSurface
+            prompt={prompt}
+            onPromptChange={setPrompt}
+            references={gen.references}
+            onAddReference={gen.addReference}
+            onRemoveReference={gen.removeReference}
+            onRetryReference={gen.retryReferenceUpload}
+            ratioCaption={
+              resolvedSize.source !== "fallback"
+                ? `${resolvedSize.ratioLabel} · ${resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}`
+                : null
+            }
+          />
+          <p className="text-center text-body-sm text-[color:var(--text-secondary)]">
+            {gen.authLoading
+              ? null
+              : gen.user && gen.credits !== null
+                ? `${gen.credits} credits remaining`
+                : null}
+          </p>
+          <Button className="w-full" size="lg" onClick={submitComposer}>
+            <Sparkles className="mr-1.5 h-4 w-4" />
+            Generate image → · 1 credit
+          </Button>
+          <div className="text-center">
+            <Button variant="ghost" size="sm" onClick={improveInPrompt}>
+              {CTA.improveInPrompt} →
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------- generating / result / edit / error-with-job: two-pane workspace ----------
   const canvasState =
     gen.phase === "starting" || gen.phase === "polling"
       ? "generating"
       : gen.phase === "result"
         ? "result"
-        : gen.phase === "error"
-          ? "error"
-          : "ready";
-
-  const showComposer = gen.phase === "idle" || (gen.phase === "error" && !gen.job);
-  const showResultLeft = gen.phase === "result";
+        : "error";
 
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12">
-        {/* LEFT — composer / prompt details / edit */}
+      <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12 lg:space-y-0">
+        {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
         <div>
-          <p className="eyebrow mb-2">Generate</p>
-          <h1 className="text-heading-lg mb-6">Create an image.</h1>
-
-          {showComposer && (
-            <div className="space-y-4">
-              {gen.errorMessage && <p className="text-body-sm text-red-600">{gen.errorMessage}</p>}
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Describe what you want to create..."
-                rows={6}
-                aria-label="Image prompt"
-              />
-              <ReferenceRow
-                references={gen.references}
-                onAdd={gen.addReference}
-                onRemove={gen.removeReference}
-                onRetry={gen.retryReferenceUpload}
-              />
-              {resolvedSize.source !== "fallback" && (
-                <p className="text-body-sm text-[color:var(--text-secondary)]">
-                  {resolvedSize.ratioLabel} ·{" "}
-                  {resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}
-                </p>
-              )}
-              <div className="text-body-sm text-[color:var(--text-secondary)]">
-                {gen.authLoading
-                  ? null
-                  : gen.user && gen.credits !== null
-                    ? `${gen.credits} credits remaining`
-                    : null}
-              </div>
-              <Button className="w-full" size="lg" onClick={submitComposer}>
-                <Sparkles className="mr-1.5 h-4 w-4" />
-                Generate image → · 1 credit
-              </Button>
-              <div>
-                <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-                  {CTA.improveInPrompt} →
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {(gen.phase === "starting" || gen.phase === "polling") && (
-            <p className="text-body-sm text-[color:var(--text-secondary)]">
-              Working from your prompt — this stays visible while the image generates.
-            </p>
-          )}
-
-          {showResultLeft && editing ? (
+          <p className="eyebrow mb-2">Prompt</p>
+          {editing ? (
             <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
               <p className="text-body-sm font-medium">EDIT IMAGE</p>
               <p className="text-body-sm text-[color:var(--text-secondary)]">What should change?</p>
@@ -205,45 +208,45 @@ export function GenerateWorkspace() {
                 </Button>
               </div>
             </div>
-          ) : showResultLeft ? (
-            <details
-              open={detailsOpen}
-              onToggle={(e) => setDetailsOpen((e.target as HTMLDetailsElement).open)}
-            >
-              <summary className="flex cursor-pointer items-center gap-1 text-body-sm text-[color:var(--text-secondary)]">
-                {detailsOpen ? (
-                  <ChevronDown className="h-3.5 w-3.5" />
-                ) : (
-                  <ChevronRight className="h-3.5 w-3.5" />
-                )}
-                Prompt & details
-              </summary>
-              <PromptSurface label="Prompt" className="mt-2">
-                {gen.job?.errorMessage ?? prompt}
-              </PromptSurface>
-              <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
+          ) : (
+            <div className="space-y-3">
+              <PromptSurface label="Prompt">{gen.job?.errorMessage ?? prompt}</PromptSurface>
+              {gen.references.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {gen.references.map((r, i) => (
+                    <div
+                      key={i}
+                      className="h-10 w-10 overflow-hidden rounded border border-[color:var(--border-subtle)]"
+                    >
+                      <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-body-sm text-[color:var(--text-secondary)]">
                 {gen.displayModel && `${MODEL_COPY[gen.displayModel].title} · `}
                 {resolvedSize.ratioLabel} · {resolvedSize.orientation}
               </p>
-              {gen.versions.length > 1 && (
-                <div className="mt-4">
-                  <VersionStrip
-                    versions={gen.versions}
-                    activeId={gen.activeVersionId}
-                    onSelect={gen.setActiveVersionId}
-                  />
-                </div>
+
+              {gen.phase === "result" && (
+                <>
+                  {gen.versions.length > 1 && (
+                    <VersionStrip
+                      versions={gen.versions}
+                      activeId={gen.activeVersionId}
+                      onSelect={gen.setActiveVersionId}
+                    />
+                  )}
+                  <Button variant="ghost" size="sm" onClick={improveInPrompt}>
+                    {CTA.improveInPrompt} →
+                  </Button>
+                </>
               )}
-              <div className="mt-4">
-                <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-                  {CTA.improveInPrompt} →
-                </Button>
-              </div>
-            </details>
-          ) : null}
+            </div>
+          )}
         </div>
 
-        {/* RIGHT — the one generation canvas: ready / generating / result / error */}
+        {/* RIGHT — the generation canvas: generating / result / error */}
         <GenerationCanvas
           state={canvasState}
           aspectRatio={resolvedSize.ratioLabel}
@@ -252,11 +255,13 @@ export function GenerateWorkspace() {
           errorMessage={gen.errorMessage}
           onRetry={gen.reset}
           actions={
-            <GenerationActions
-              onDownload={gen.download}
-              onEdit={() => setEditing((e) => !e)}
-              onRegenerate={gen.regenerate}
-            />
+            editing ? undefined : (
+              <GenerationActions
+                onDownload={gen.download}
+                onEdit={() => setEditing((e) => !e)}
+                onRegenerate={gen.regenerate}
+              />
+            )
           }
         />
       </div>
@@ -264,66 +269,87 @@ export function GenerateWorkspace() {
   );
 }
 
-function ReferenceRow({
+function ComposerSurface({
+  prompt,
+  onPromptChange,
   references,
-  onAdd,
-  onRemove,
-  onRetry,
+  onAddReference,
+  onRemoveReference,
+  onRetryReference,
+  ratioCaption,
 }: {
-  references: ReturnType<typeof useGeneration>["references"];
-  onAdd: (file: File) => void;
-  onRemove: (index: number) => void;
-  onRetry: (index: number) => void;
+  prompt: string;
+  onPromptChange: (v: string) => void;
+  references: ReferenceEntry[];
+  onAddReference: (file: File) => void;
+  onRemoveReference: (index: number) => void;
+  onRetryReference: (index: number) => void;
+  ratioCaption: string | null;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {references.map((r, i) => (
-        <div
-          key={i}
-          className="relative h-16 w-16 overflow-hidden rounded border border-[color:var(--border-subtle)]"
-        >
-          <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
-          <button
-            type="button"
-            aria-label="Remove reference"
-            onClick={() => onRemove(i)}
-            className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
-          >
-            <X className="h-3 w-3" />
-          </button>
-          {r.uploading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[10px]">
-              …
-            </div>
-          )}
-          {r.error && (
-            <button
-              type="button"
-              onClick={() => onRetry(i)}
-              aria-label="Retry attaching reference"
-              className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-white/85 text-[9px] font-medium text-[color:var(--text-secondary)]"
+    <div className="rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)]">
+      <Textarea
+        value={prompt}
+        onChange={(e) => onPromptChange(e.target.value)}
+        placeholder="Describe what you want to create..."
+        rows={6}
+        aria-label="Image prompt"
+        className="rounded-none rounded-t-md border-0 shadow-none focus-visible:outline-none"
+      />
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--border-subtle)] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {references.map((r, i) => (
+            <div
+              key={i}
+              className="relative h-10 w-10 overflow-hidden rounded border border-[color:var(--border-subtle)]"
             >
-              <RefreshCw className="h-3 w-3" />
-              Retry
-            </button>
+              <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                aria-label="Remove reference"
+                onClick={() => onRemoveReference(i)}
+                className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/60 text-white"
+              >
+                <X className="h-2.5 w-2.5" />
+              </button>
+              {r.uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[9px]">
+                  …
+                </div>
+              )}
+              {r.error && (
+                <button
+                  type="button"
+                  onClick={() => onRetryReference(i)}
+                  aria-label="Retry attaching reference"
+                  className="absolute inset-0 flex items-center justify-center bg-white/85"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+          ))}
+          {references.length < MAX_REFERENCE_IMAGES_V1 && (
+            <label className="inline-flex cursor-pointer items-center gap-1.5 text-body-sm text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]">
+              <Plus className="h-3.5 w-3.5" />
+              Add reference
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) onAddReference(f);
+                  e.target.value = "";
+                }}
+              />
+            </label>
           )}
         </div>
-      ))}
-      {references.length < MAX_REFERENCE_IMAGES_V1 && (
-        <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded border border-dashed border-[color:var(--border-subtle)] text-[color:var(--text-secondary)]">
-          <Plus className="h-4 w-4" />
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) onAdd(f);
-              e.target.value = "";
-            }}
-          />
-        </label>
-      )}
+        {ratioCaption && (
+          <span className="text-body-sm text-[color:var(--text-secondary)]">{ratioCaption}</span>
+        )}
+      </div>
     </div>
   );
 }

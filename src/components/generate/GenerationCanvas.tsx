@@ -2,11 +2,16 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThinkingField } from "@/components/processing/ThinkingField";
 
-export type GenerationCanvasState = "ready" | "generating" | "result" | "error";
+// No "ready" state: ThinkingField (and this canvas generally) is mounted
+// only once an image operation is actually running. /generate's idle
+// composer, and Build/Critique before "Generate image"/"Generate rewrite"
+// is pressed, render no generation visual at all — see GenerateWorkspace.tsx
+// and InlineGenerationPanel.tsx.
+export type GenerationCanvasState = "generating" | "result" | "error";
 
 export interface GenerationCanvasProps {
   state: GenerationCanvasState;
-  /** e.g. "4:5" — shapes the frame; also fed to ThinkingField as "4 / 5". */
+  /** e.g. "4:5" — shapes the frame. */
   aspectRatio: string;
   orientation?: "portrait" | "landscape" | "square";
   imageUrl?: string | null;
@@ -18,12 +23,34 @@ export interface GenerationCanvasProps {
   className?: string;
 }
 
+/** Resolves a concrete pixel box for `ratioLabel` against the orientation-based
+ * max-width and a shared max-height, picking whichever constraint binds first.
+ * Done in JS rather than CSS `aspect-ratio` + max-width/max-height together —
+ * a block box's width resolves to "fill available" before aspect-ratio and
+ * max-height interact, so a portrait ratio that hits the height cap ends up
+ * with the wrong (unclamped) width if left to the browser. */
+function resolveFrameBox(
+  ratioLabel: string,
+  orientation?: "portrait" | "landscape" | "square",
+): { width: number; height: number } {
+  const maxWidth = orientation === "landscape" ? 720 : 480;
+  const maxHeight = 560;
+  const [w, h] = ratioLabel.split(":").map(Number);
+  const ratio = w && h ? w / h : 1;
+  let width = maxWidth;
+  let height = Math.round(width / ratio);
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = Math.round(height * ratio);
+  }
+  return { width, height };
+}
+
 /**
- * The one visual state machine for a generation result region — ready
- * (static dot field before any job exists), generating (ThinkingField),
- * result (the image), error. Reused by /generate, Prompt Build inline, and
- * Prompt Critique inline so no surface invents its own loading/result
- * markup.
+ * The one visual state machine for an in-progress or finished generation —
+ * generating (ThinkingField), result (the image), error. Reused by
+ * /generate, Prompt Build inline, and Prompt Critique inline so no surface
+ * invents its own loading/result markup.
  */
 export function GenerationCanvas({
   state,
@@ -36,15 +63,7 @@ export function GenerationCanvas({
   actions,
   className,
 }: GenerationCanvasProps) {
-  const cssRatio = aspectRatio.includes("/") ? aspectRatio : aspectRatio.replace(":", " / ");
-  // Extreme portrait ratios (2:3, 9:16, …) shouldn't force the whole desktop
-  // page to an absurd height — cap how tall the frame is allowed to grow.
-  const frameStyle: React.CSSProperties = {
-    aspectRatio: cssRatio,
-    maxWidth: orientation === "landscape" ? 720 : 480,
-    maxHeight: 560,
-    transition: "max-width 200ms ease, aspect-ratio 200ms ease",
-  };
+  const box = resolveFrameBox(aspectRatio, orientation);
 
   if (state === "error") {
     return (
@@ -59,46 +78,36 @@ export function GenerationCanvas({
     return (
       <div className={`space-y-4 ${className ?? ""}`}>
         <div
-          className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
-          style={frameStyle}
+          className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] transition-[width,aspect-ratio] duration-200 ease-out"
+          style={{
+            width: box.width,
+            maxWidth: "100%",
+            aspectRatio: `${box.width} / ${box.height}`,
+          }}
         >
           <img src={imageUrl} alt={imageAlt} className="h-full w-full object-contain" />
         </div>
-        {actions && <div className="flex justify-center">{actions}</div>}
+        {actions && (
+          <div className="mx-auto w-full" style={{ maxWidth: box.width }}>
+            {actions}
+          </div>
+        )}
       </div>
     );
   }
 
-  if (state === "generating") {
-    return (
-      <div className={`space-y-3 text-center ${className ?? ""}`}>
-        <div className="mx-auto" style={frameStyle}>
-          <ThinkingField
-            variant="generate"
-            status="Creating your image"
-            aspectRatio={cssRatio}
-            className="h-full w-full [&>div]:h-full [&>div]:max-w-none"
-          />
-        </div>
-        <p className="text-body-md">Creating your image</p>
-        <ElapsedCaption ratioLabel={aspectRatio} orientation={orientation} />
-      </div>
-    );
-  }
-
-  // ready
+  // generating
   return (
     <div className={`space-y-3 text-center ${className ?? ""}`}>
-      <div className="mx-auto" style={frameStyle}>
-        <ThinkingField
-          variant="generate"
-          status="Your image will appear here"
-          aspectRatio={cssRatio}
-          animated={false}
-          className="h-full w-full [&>div]:h-full [&>div]:max-w-none"
-        />
-      </div>
-      <p className="text-body-sm text-[color:var(--text-secondary)]">Your image will appear here</p>
+      <ThinkingField
+        variant="generate"
+        status="Creating your image"
+        width={box.width}
+        height={box.height}
+        className="[&>div]:transition-[width,aspect-ratio] [&>div]:duration-200 [&>div]:ease-out"
+      />
+      <p className="text-body-md">Creating your image</p>
+      <ElapsedCaption ratioLabel={aspectRatio} orientation={orientation} />
     </div>
   );
 }

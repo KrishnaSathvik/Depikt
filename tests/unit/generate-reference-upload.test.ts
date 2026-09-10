@@ -40,7 +40,7 @@ test("a failed reference upload is flagged for retry, never filtered out of stat
   // wire here.
   assert.match(
     read("src/components/generate/GenerateWorkspace.tsx"),
-    /onRetry=\{gen\.retryReferenceUpload\}/,
+    /onRetryReference=\{gen\.retryReferenceUpload\}/,
   );
 
   // Failed uploads auto-retry once a session exists, so a Library/Gallery

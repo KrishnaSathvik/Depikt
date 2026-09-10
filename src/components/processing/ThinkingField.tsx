@@ -36,26 +36,23 @@ export interface ThinkingFieldProps {
   variant: ThinkingVariant;
   /** Rendered in a polite live region beneath the canvas. */
   status: string;
-  /** e.g. "4 / 5" — sizes the field to the resolved generation ratio. Omit for a fixed box. */
-  aspectRatio?: string;
+  /** Explicit box size in CSS px — the caller (GenerationCanvas) has already
+   * resolved the requested aspect ratio against its own max-width/max-height,
+   * so this component just renders that box rather than re-deriving it from
+   * a CSS aspect-ratio (which can't correctly satisfy two independent max
+   * constraints on a block box at once). Omit both for a fixed 320x180 box. */
+  width?: number;
+  height?: number;
   className?: string;
-  /** false renders one frozen frame (same math as prefers-reduced-motion) instead of
-   * animating — the Generate workspace's "ready" canvas, before a job exists. Default true. */
-  animated?: boolean;
 }
 
 /**
  * Shared processing visual: a fixed dot lattice whose size/opacity swell
- * through the field per `variant`. Canvas is decorative (aria-hidden);
- * `status` is the only thing assistive tech hears.
+ * through the field per variant. Canvas is decorative (aria-hidden);
+ * status is the only thing assistive tech hears. Mounted only while an
+ * image operation is actually running -- never as an idle/"ready" placeholder.
  */
-export function ThinkingField({
-  variant,
-  status,
-  aspectRatio,
-  className,
-  animated = true,
-}: ThinkingFieldProps) {
+export function ThinkingField({ variant, status, width, height, className }: ThinkingFieldProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dotsRef = useRef<FieldPoint[]>([]);
@@ -97,7 +94,7 @@ export function ThinkingField({
     function drawFrame() {
       const [r, g, b] = colorRef.current;
       ctx!.clearRect(0, 0, cssWidth, cssHeight);
-      const reduced = !animated || reducedMotionQuery.matches;
+      const reduced = reducedMotionQuery.matches;
       const t = (performance.now() - startRef.current) / 1000;
       for (const dot of dotsRef.current) {
         const style = reduced ? computeStaticDotStyle(dot) : computeDotStyle(variant, dot, t);
@@ -115,7 +112,7 @@ export function ThinkingField({
 
     function startLoop() {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      if (!animated || reducedMotionQuery.matches) {
+      if (reducedMotionQuery.matches) {
         drawFrame();
         rafRef.current = null;
       } else {
@@ -141,14 +138,23 @@ export function ThinkingField({
       resizeObserver.disconnect();
       reducedMotionQuery.removeEventListener("change", handleMotionPreferenceChange);
     };
-  }, [variant, animated]);
+  }, [variant]);
 
   return (
     <div className={className}>
       <div
         ref={containerRef}
-        className="mx-auto w-full overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
-        style={aspectRatio ? { maxWidth: 400, aspectRatio } : { height: 180 }}
+        className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
+        // `width` is the intrinsic/preferred size resolved by the caller (it
+        // already accounts for both a max-width and a max-height there, see
+        // GenerationCanvas.resolveFrameBox); `maxWidth: 100%` + `aspectRatio`
+        // (rather than a fixed `height`) let that same box shrink to fit a
+        // narrow viewport without either overflowing or distorting.
+        style={
+          width && height
+            ? { width, maxWidth: "100%", aspectRatio: `${width} / ${height}` }
+            : { width: 320, maxWidth: "100%", aspectRatio: "320 / 180" }
+        }
       >
         <canvas ref={canvasRef} aria-hidden="true" className="block h-full w-full" />
       </div>

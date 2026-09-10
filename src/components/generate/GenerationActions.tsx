@@ -22,14 +22,29 @@ export function GenerationActions({
   className,
 }: GenerationActionsProps) {
   return (
-    <div className={`flex flex-wrap items-center gap-2 ${className ?? ""}`}>
-      <Button variant="outline" onClick={onDownload} disabled={disabled}>
+    <div className={`flex flex-wrap items-center justify-center gap-2 ${className ?? ""}`}>
+      <Button
+        variant="outline"
+        onClick={onDownload}
+        disabled={disabled}
+        className="flex-1 basis-[calc(50%-4px)] sm:flex-none sm:basis-auto"
+      >
         <Download className="mr-1.5 h-4 w-4" /> Download
       </Button>
-      <Button variant="outline" onClick={onEdit} disabled={disabled}>
+      <Button
+        variant="outline"
+        onClick={onEdit}
+        disabled={disabled}
+        className="flex-1 basis-[calc(50%-4px)] sm:flex-none sm:basis-auto"
+      >
         <Wand2 className="mr-1.5 h-4 w-4" /> Edit
       </Button>
-      <Button variant="outline" onClick={onRegenerate} disabled={disabled}>
+      <Button
+        variant="outline"
+        onClick={onRegenerate}
+        disabled={disabled}
+        className="flex-1 basis-full sm:flex-none sm:basis-auto"
+      >
         <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate · 1 credit
       </Button>
     </div>
