@@ -36,6 +36,8 @@ export const TOOL = {
   prompt: "Prompt",
   buildMode: "Prompt — Build mode",
   critiqueMode: "Prompt — Critique mode",
+  /** Behind the native-generation feature flag (see lib/generation/feature-flag.ts). Not in NAV_ITEMS/ROUTES — added conditionally by Header, not frozen product nav. */
+  generate: "Generate",
   gallery: "Gallery",
   templates: "Templates",
   blog: "Blog",
@@ -54,6 +56,10 @@ export const CTA = {
   browseShort: "Browse Prompts",
   remix: "Remix in Prompt",
   openImago: "Open in Imago",
+  /** Behind the native-generation feature flag. */
+  generateImage: "Generate image",
+  generateRewrite: "Generate rewrite",
+  improveInPrompt: "Improve in Prompt",
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */

@@ -36,6 +36,9 @@ import {
   needsReferenceReattach,
 } from "@/lib/product";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { useNavigate } from "@tanstack/react-router";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
 import { TemplateSetup } from "@/components/TemplateSetup";
 import { getTemplateBySlug, type Template } from "@/data/templates";
@@ -107,6 +110,18 @@ const EXAMPLE_CHIPS = [
 
 export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildModeProps) {
   const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
+  const navigate = useNavigate();
+  const handleGenerateImage = (result: PromptResult, reference: ReferenceImageState | null) => {
+    if (!result.prompt) return;
+    trackEvent("generate_submitted_from_prompt_build", {});
+    saveGenerationHandoff({
+      prompt: result.prompt,
+      references: reference?.dataUrl ? [{ dataUrl: reference.dataUrl }] : [],
+      structuredAspectRatio: result.aspect_ratio ?? null,
+      sourceType: "prompt_build",
+    });
+    void navigate({ to: "/generate" });
+  };
   const [input, setInput] = useState("");
   // Structured template context from /templates. It is intent the engine
   // receives as user input; it never replaces the Builder pipeline.
@@ -635,6 +650,11 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                 onRegenerate={() => generate(savedRoughIdea)}
                 onMoreVariations={fetchMoreVariations}
                 onNewPrompt={handleNewPrompt}
+                onGenerate={
+                  isNativeGenerationEnabled()
+                    ? () => handleGenerateImage(result, reference)
+                    : undefined
+                }
               />
             )}
           </div>
@@ -806,6 +826,8 @@ interface ResultViewProps {
   onRegenerate: () => void;
   onMoreVariations: () => void;
   onNewPrompt: () => void;
+  /** Only set when the native-generation feature flag is on. */
+  onGenerate?: () => void;
 }
 
 function ResultView({
@@ -815,6 +837,7 @@ function ResultView({
   moreLoading,
   referenceThumb = null,
   onRegenerate,
+  onGenerate,
   onMoreVariations,
   onNewPrompt,
 }: ResultViewProps) {
@@ -894,6 +917,7 @@ function ResultView({
           promptText={result.prompt}
           onRegenerate={onRegenerate}
           referenceThumb={referenceThumb}
+          onGenerate={onGenerate}
         />
       )}
 
@@ -989,12 +1013,15 @@ function ActionRow({
   onRegenerate,
   referenceThumb = null,
   compact = false,
+  onGenerate,
 }: {
   promptText?: string;
   onRegenerate: () => void;
   /** When set, the prompt depends on this reference image and Imago needs it re-attached. */
   referenceThumb?: string | null;
   compact?: boolean;
+  /** Only set when the native-generation feature flag is on; becomes the primary action. */
+  onGenerate?: () => void;
 }) {
   const [copied, setCopied] = useState(false);
   const handleOpenInImago = async () => {
@@ -1017,8 +1044,19 @@ function ActionRow({
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
+        {promptText && onGenerate && (
+          <Button onClick={onGenerate} size={compact ? "sm" : "default"} className="gap-2">
+            <Sparkles className="h-3.5 w-3.5" />
+            {CTA.generateImage} → · 1 credit
+          </Button>
+        )}
         {promptText && (
-          <Button onClick={handleOpenInImago} size={compact ? "sm" : "default"} className="gap-2">
+          <Button
+            onClick={handleOpenInImago}
+            size={compact ? "sm" : "default"}
+            variant={onGenerate ? "outline" : "default"}
+            className="gap-2"
+          >
             <ExternalLink className="h-3.5 w-3.5" />
             {CTA.openImago}
           </Button>

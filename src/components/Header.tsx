@@ -1,19 +1,28 @@
 import { Link } from "@tanstack/react-router";
 import logo from "@/assets/logo.png";
-import { NAV_ITEMS } from "@/lib/product";
+import { NAV_ITEMS, ROUTES, TOOL } from "@/lib/product";
 import { ScrollRow } from "@/components/ScrollRow";
 import { useRouterState } from "@tanstack/react-router";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 
 // Visible labels come from product.ts (Library · Prompt · Gallery · Blog).
 // Build and Critique are modes inside /prompt, not separate nav items;
-// Templates lives in the footer.
-
+// Templates lives in the footer. Generate is inserted after Prompt only
+// when the native-generation feature flag is on — never part of the frozen
+// NAV_ITEMS export itself, so it can't leak into production before launch.
 //
 // White, translucent, hairline bottom border. The active route is marked
 // with a 1px ink underline rather than a pill or background.
 
 export function Header() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const items = isNativeGenerationEnabled()
+    ? [
+        ...NAV_ITEMS.slice(0, 2),
+        { to: ROUTES.legacyBuilder, label: TOOL.generate },
+        ...NAV_ITEMS.slice(2),
+      ]
+    : NAV_ITEMS;
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-12">
@@ -29,7 +38,7 @@ export function Header() {
           aria-label="Primary"
           className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 whitespace-nowrap md:flex"
         >
-          {NAV_ITEMS.map(({ to, label, exact }) => (
+          {items.map(({ to, label, exact }) => (
             <Link
               key={to}
               to={to}
@@ -51,7 +60,7 @@ export function Header() {
         className="border-t border-[color:var(--border-subtle)] md:hidden"
         innerClassName="justify-center px-2"
       >
-        {NAV_ITEMS.map(({ to, label, exact }) => (
+        {items.map(({ to, label, exact }) => (
           <Link
             key={to}
             to={to}

@@ -3,6 +3,7 @@ import { corsHeaders, jsonError } from "@/lib/api/public-route";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asGenerationClient } from "@/lib/generation/db-types";
+import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 
 /**
  * GET /api/generation/jobs/:id — poll a job's status.
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         let signedUrl: string | null = null;
         if (version) {
           const { data: signed } = await supabase.storage
-            .from("generation-assets")
+            .from(GENERATION_BUCKET)
             .createSignedUrl(version.storage_path, 600); // 10 minutes; re-signed on each poll/reload, never persisted
           signedUrl = signed?.signedUrl ?? null;
         }

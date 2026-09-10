@@ -5,8 +5,13 @@ import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateGenerationRequest } from "@/lib/generation/job-request";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
-import { createWaitUntilExecutor, type WaitUntilContext } from "@/lib/generation/job-executor";
+import {
+  createWaitUntilExecutor,
+  createInlineExecutor,
+  type WaitUntilContext,
+} from "@/lib/generation/job-executor";
 import { asGenerationClient } from "@/lib/generation/db-types";
+import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 
 /**
  * POST /api/generation/jobs — create a generation job.
@@ -89,39 +94,57 @@ export const Route = createFileRoute("/api/generation/jobs")({
         const apiKey = process.env.OPENAI_API_KEY;
         if (!apiKey) return jsonError("Generation is temporarily unavailable.", 503);
 
-        // Reference bytes would be fetched from GENERATION_BUCKET here for
-        // an edit; omitted in this slice (see report — reference-asset
-        // upload endpoint is not yet built).
+        // The client sends the storage `path` it got back from
+        // POST /api/generation/references (not a bare asset id), so a
+        // reference resolves directly against private storage. Ownership is
+        // enforced by RLS (20260910140000_add_generation_storage.sql) — this
+        // download uses the same user-JWT-bound client as everything else
+        // here, so it can only ever succeed for that user's own paths.
+        const referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[] = [];
+        for (const path of req.referenceAssetIds) {
+          const { data: file, error: downloadError } = await authResult.auth.supabase.storage
+            .from(GENERATION_BUCKET)
+            .download(path);
+          if (downloadError || !file) return jsonError("Reference image could not be used.", 400);
+          referenceImages.push({
+            bytes: new Uint8Array(await file.arrayBuffer()),
+            filename: path.split("/").pop() ?? "reference.png",
+            mimeType: file.type || "image/png",
+          });
+        }
+
         const waitUntilCtx = (request as unknown as { cloudflare?: { ctx?: WaitUntilContext } })
           .cloudflare?.ctx;
-        if (waitUntilCtx) {
-          const executor = createWaitUntilExecutor(waitUntilCtx);
-          executor.schedule(() =>
-            runGenerationJob(
-              {
-                id: row.job_id,
-                userId,
-                sessionId: session.id,
-                operation: req.operation,
-                model: req.model,
-                prompt: req.prompt,
-                width: req.size.width,
-                height: req.size.height,
-                idempotencyKey: req.idempotencyKey,
-                referenceImages: [],
-              },
-              req.sourceVersionId,
-              {
-                data: createSupabaseDataAccess(authResult.auth.supabase),
-                apiKey,
-                decodeBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
-              },
-            ).then(() => undefined),
-          );
-        }
-        // If waitUntilCtx is unavailable (e.g. local dev without the
-        // Cloudflare adapter), the job stays queued until a reconciler or a
-        // manual run picks it up — see "Stale job safety" in the report.
+        const executor = waitUntilCtx
+          ? createWaitUntilExecutor(waitUntilCtx)
+          : // Local dev (vite dev) has no Cloudflare ExecutionContext. Falling
+            // back to the inline executor means the job actually runs during
+            // local QA instead of sitting queued forever — real production
+            // behavior still requires waitUntilCtx (or Queues/Workflows) and
+            // must not silently rely on this path once deployed.
+            createInlineExecutor();
+        executor.schedule(() =>
+          runGenerationJob(
+            {
+              id: row.job_id,
+              userId,
+              sessionId: session.id,
+              operation: req.operation,
+              model: req.model,
+              prompt: req.prompt,
+              width: req.size.width,
+              height: req.size.height,
+              idempotencyKey: req.idempotencyKey,
+              referenceImages,
+            },
+            req.sourceVersionId,
+            {
+              data: createSupabaseDataAccess(authResult.auth.supabase),
+              apiKey,
+              decodeBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+            },
+          ).then(() => undefined),
+        );
 
         return new Response(
           JSON.stringify({ jobId: row.job_id, sessionId: session.id, status: "queued" }),
