@@ -225,5 +225,471 @@
       "total_tokens": 2064
     },
     "label": "ticket-flat-lisbon"
+  },
+  {
+    "at": "2026-09-10T14:31:18.378Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "editorial travel poster, exact title 'LISBON', bold sans serif, warm sunset palette, 1950s tourism style",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-flare-1.png",
+    "ms": 55242,
+    "usage": {
+      "input_tokens": 32,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 32
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7056
+    },
+    "label": "bench-gen-flare-1"
+  },
+  {
+    "at": "2026-09-10T14:33:19.225Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "editorial travel poster, exact title 'LISBON', bold sans serif, warm sunset palette, 1950s tourism style",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-sunburst-1.png",
+    "ms": 120692,
+    "usage": {
+      "input_tokens": 32,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 32
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7056
+    },
+    "label": "bench-gen-sunburst-1"
+  },
+  {
+    "at": "2026-09-10T14:34:16.860Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "isometric infographic explaining a three-step onboarding flow, clean labels, soft pastel palette",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-flare-2.png",
+    "ms": 57307,
+    "usage": {
+      "input_tokens": 22,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 22
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7046
+    },
+    "label": "bench-gen-flare-2"
+  },
+  {
+    "at": "2026-09-10T14:35:55.146Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "isometric infographic explaining a three-step onboarding flow, clean labels, soft pastel palette",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-sunburst-2.png",
+    "ms": 98200,
+    "usage": {
+      "input_tokens": 22,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 22
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7046
+    },
+    "label": "bench-gen-sunburst-2"
+  },
+  {
+    "at": "2026-09-10T14:36:44.295Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "studio product shot of a matte ceramic mug on a marble surface, soft key light, subtle shadow",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-flare-3.png",
+    "ms": 49064,
+    "usage": {
+      "input_tokens": 25,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 25
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7049
+    },
+    "label": "bench-gen-flare-3"
+  },
+  {
+    "at": "2026-09-10T14:38:29.904Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "studio product shot of a matte ceramic mug on a marble surface, soft key light, subtle shadow",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-sunburst-3.png",
+    "ms": 105533,
+    "usage": {
+      "input_tokens": 25,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 25
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7049
+    },
+    "label": "bench-gen-sunburst-3"
+  },
+  {
+    "at": "2026-09-10T14:39:20.330Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "cinematic wide shot of a lone figure walking a foggy pine forest road at dawn",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-flare-4.png",
+    "ms": 50346,
+    "usage": {
+      "input_tokens": 23,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 23
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7047
+    },
+    "label": "bench-gen-flare-4"
+  },
+  {
+    "at": "2026-09-10T14:41:39.390Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "cinematic wide shot of a lone figure walking a foggy pine forest road at dawn",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-sunburst-4.png",
+    "ms": 138978,
+    "usage": {
+      "input_tokens": 23,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 23
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 7047
+    },
+    "label": "bench-gen-sunburst-4"
+  },
+  {
+    "at": "2026-09-10T14:42:52.589Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/jacket-reference.png"
+    ],
+    "prompt": "change the jacket color to deep forest green, preserve the wearer's face, pose, and background exactly",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-flare-1.png",
+    "ms": 62391,
+    "usage": {
+      "input_tokens": 1316,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 36
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8340
+    },
+    "label": "bench-edit-flare-1"
+  },
+  {
+    "at": "2026-09-10T14:44:31.948Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/jacket-reference.png"
+    ],
+    "prompt": "change the jacket color to deep forest green, preserve the wearer's face, pose, and background exactly",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-sunburst-1.png",
+    "ms": 99278,
+    "usage": {
+      "input_tokens": 1316,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 36
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8340
+    },
+    "label": "bench-edit-sunburst-1"
+  },
+  {
+    "at": "2026-09-10T14:45:22.173Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png"
+    ],
+    "prompt": "change the background to a soft gradient from pale blue to white, keep the product identical",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-flare-2.png",
+    "ms": 50151,
+    "usage": {
+      "input_tokens": 1313,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 33
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8337
+    },
+    "label": "bench-edit-flare-2"
+  },
+  {
+    "at": "2026-09-10T14:46:52.598Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png"
+    ],
+    "prompt": "change the background to a soft gradient from pale blue to white, keep the product identical",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-sunburst-2.png",
+    "ms": 90346,
+    "usage": {
+      "input_tokens": 1313,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 33
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8337
+    },
+    "label": "bench-edit-sunburst-2"
+  },
+  {
+    "at": "2026-09-10T14:47:45.109Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "add round wire-frame glasses, preserve the eyes, expression, and lighting exactly",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-flare-3.png",
+    "ms": 52433,
+    "usage": {
+      "input_tokens": 1483,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 31
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8507
+    },
+    "label": "bench-edit-flare-3"
+  },
+  {
+    "at": "2026-09-10T14:49:19.670Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "add round wire-frame glasses, preserve the eyes, expression, and lighting exactly",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-sunburst-3.png",
+    "ms": 94480,
+    "usage": {
+      "input_tokens": 1483,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 31
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8507
+    },
+    "label": "bench-edit-sunburst-3"
+  },
+  {
+    "at": "2026-09-10T14:50:14.320Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/environment-forest-road.png"
+    ],
+    "prompt": "change the season to winter with light snow on the ground and bare trees, preserve the composition and camera angle",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-flare-4.png",
+    "ms": 54564,
+    "usage": {
+      "input_tokens": 1573,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 37
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8597
+    },
+    "label": "bench-edit-flare-4"
+  },
+  {
+    "at": "2026-09-10T14:52:23.259Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/environment-forest-road.png"
+    ],
+    "prompt": "change the season to winter with light snow on the ground and bare trees, preserve the composition and camera angle",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-edit-sunburst-4.png",
+    "ms": 128855,
+    "usage": {
+      "input_tokens": 1573,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 37
+      },
+      "output_tokens": 7024,
+      "output_tokens_details": {
+        "image_tokens": 7024,
+        "text_tokens": 0
+      },
+      "total_tokens": 8597
+    },
+    "label": "bench-edit-sunburst-4"
+  },
+  {
+    "at": "2026-09-10T14:53:47.013Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-flare",
+    "quality": "max",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "editorial poster layout, bold headline, generous negative space",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-flare-wide.png",
+    "ms": 33342,
+    "usage": {
+      "input_tokens": 17,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 17
+      },
+      "output_tokens": 5488,
+      "output_tokens_details": {
+        "image_tokens": 5488,
+        "text_tokens": 0
+      },
+      "total_tokens": 5505
+    },
+    "label": "bench-gen-flare-wide"
+  },
+  {
+    "at": "2026-09-10T14:54:54.070Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "max",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "editorial poster layout, bold headline, generous negative space",
+    "file": "research/images-2-5-community/runs/_fixtures/bench-gen-sunburst-wide.png",
+    "ms": 66976,
+    "usage": {
+      "input_tokens": 17,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 17
+      },
+      "output_tokens": 5488,
+      "output_tokens_details": {
+        "image_tokens": 5488,
+        "text_tokens": 0
+      },
+      "total_tokens": 5505
+    },
+    "label": "bench-gen-sunburst-wide"
   }
 ]
