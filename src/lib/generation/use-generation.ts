@@ -9,7 +9,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
-import { lovable } from "@/integrations/lovable";
+import type { AuthProviderId } from "@/lib/auth/providers";
 import { trackEvent } from "@/lib/analytics";
 import {
   fileToReferenceState,
@@ -107,7 +107,9 @@ export interface UseGenerationOptions {
 }
 
 export function useGeneration({ sourceContext }: UseGenerationOptions) {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, signInWithProvider } = useAuth();
+  // Signed-out submit: the provider chooser (GenerationAuthDialog) is open.
+  const [authPrompt, setAuthPrompt] = useState(false);
 
   const [references, setReferences] = useState<ReferenceEntry[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
@@ -304,15 +306,11 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         sourceVersionId: input.sourceVersionId ?? null,
         idempotencyKey: input.idempotencyKey ?? crypto.randomUUID(),
       });
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: typeof window !== "undefined" ? window.location.href : undefined,
-      });
-      if (result.error) {
-        clearPendingGeneration();
-        toast.error("Sign-in failed");
-      }
+      // Open the shared provider chooser; chooseAuthProvider() starts OAuth
+      // and the pending-generation effect above resumes on return.
+      setAuthPrompt(true);
       trackEvent("generate_auth_requested", {});
-      return; // OAuth may hard-navigate; the pending-generation effect above resumes on return.
+      return;
     }
 
     setPhase("starting");
@@ -398,6 +396,29 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setErrorMessage(null);
   }
 
+  /** Provider picked in GenerationAuthDialog: start OAuth, keeping the persisted submission. */
+  async function chooseAuthProvider(provider: AuthProviderId) {
+    const result = await signInWithProvider(
+      provider,
+      typeof window !== "undefined" ? window.location.href : undefined,
+    );
+    if (!result.ok) {
+      clearPendingGeneration();
+      setAuthPrompt(false);
+      toast.error("Sign-in failed");
+      return;
+    }
+    // In the iframe/popup path the session arrives without a navigation;
+    // the resume effect fires on `user` and the dialog closes here.
+    if (!result.redirected) setAuthPrompt(false);
+  }
+
+  /** User closed the chooser without signing in: forget the pending submission. */
+  function dismissAuthPrompt() {
+    clearPendingGeneration();
+    setAuthPrompt(false);
+  }
+
   const activeVersion = versions.find((v) => v.id === activeVersionId);
   const resultUrl = job?.result?.url ?? activeVersion?.url ?? null;
   const displayModel = activeVersion?.model ?? job?.model ?? null;
@@ -424,5 +445,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     reset,
     resultUrl,
     displayModel,
+    authPrompt,
+    chooseAuthProvider,
+    dismissAuthPrompt,
   };
 }

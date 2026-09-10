@@ -48,7 +48,9 @@ test("submit() persists pending generation before starting OAuth, not just a ref
   );
   assert.match(submitFn, /if \(!user\)/);
   assert.match(submitFn, /savePendingGeneration\(\{/);
-  assert.match(submitFn, /signInWithOAuth/);
+  // The provider chooser opens only AFTER the submission is persisted.
+  assert.match(submitFn, /setAuthPrompt\(true\)/);
+  assert.ok(submitFn.indexOf("savePendingGeneration(") < submitFn.indexOf("setAuthPrompt(true)"));
 });
 
 test("a resume effect fires once signed in, matched to this hook instance's sourceContext", () => {

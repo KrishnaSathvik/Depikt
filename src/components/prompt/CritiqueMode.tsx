@@ -30,6 +30,7 @@ import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
+import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
 
 /**
  * Critique mode of the unified Prompt workspace (/prompt?mode=critique).
@@ -246,6 +247,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
 
   return (
     <div>
+      <GenerationAuthDialog gen={gen} />
       <div>
         {collapsed && savedInput ? (
           <CollapsedInput

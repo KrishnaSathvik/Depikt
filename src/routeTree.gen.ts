@@ -9,14 +9,21 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as PromptRouteImport } from './routes/prompt'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as GalleryRouteImport } from './routes/gallery'
 import { Route as CritiqueRouteImport } from './routes/critique'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
@@ -32,9 +39,24 @@ import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xm
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -47,6 +69,16 @@ const PromptRoute = PromptRouteImport.update({
   path: '/prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
@@ -55,6 +87,11 @@ const McpRoute = McpRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GenerateRoute = GenerateRouteImport.update({
@@ -70,6 +107,11 @@ const GalleryRoute = GalleryRouteImport.update({
 const CritiqueRoute = CritiqueRouteImport.update({
   id: '/critique',
   path: '/critique',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -146,14 +188,21 @@ const ApiGenerationJobsIdRoute = ApiGenerationJobsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
+  '/help': typeof HelpRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
@@ -170,14 +219,21 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
+  '/help': typeof HelpRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
@@ -195,14 +251,21 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
+  '/help': typeof HelpRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
+  '/pricing': typeof PricingRoute
+  '/privacy': typeof PrivacyRoute
   '/prompt': typeof PromptRoute
   '/robots.txt': typeof RobotsDottxtRoute
+  '/sign-in': typeof SignInRoute
+  '/sign-up': typeof SignUpRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/integrations/mcp': typeof IntegrationsMcpRoute
@@ -221,14 +284,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/critique'
     | '/gallery'
     | '/generate'
+    | '/help'
     | '/library'
     | '/mcp'
+    | '/pricing'
+    | '/privacy'
     | '/prompt'
     | '/robots.txt'
+    | '/sign-in'
+    | '/sign-up'
     | '/sitemap.xml'
+    | '/terms'
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
@@ -245,14 +315,21 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/critique'
     | '/gallery'
     | '/generate'
+    | '/help'
     | '/library'
     | '/mcp'
+    | '/pricing'
+    | '/privacy'
     | '/prompt'
     | '/robots.txt'
+    | '/sign-in'
+    | '/sign-up'
     | '/sitemap.xml'
+    | '/terms'
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
@@ -269,14 +346,21 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/critique'
     | '/gallery'
     | '/generate'
+    | '/help'
     | '/library'
     | '/mcp'
+    | '/pricing'
+    | '/privacy'
     | '/prompt'
     | '/robots.txt'
+    | '/sign-in'
+    | '/sign-up'
     | '/sitemap.xml'
+    | '/terms'
     | '/.well-known/oauth-protected-resource'
     | '/blog/$slug'
     | '/integrations/mcp'
@@ -294,14 +378,21 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   CritiqueRoute: typeof CritiqueRoute
   GalleryRoute: typeof GalleryRoute
   GenerateRoute: typeof GenerateRoute
+  HelpRoute: typeof HelpRoute
   LibraryRoute: typeof LibraryRoute
   McpRoute: typeof McpRoute
+  PricingRoute: typeof PricingRoute
+  PrivacyRoute: typeof PrivacyRoute
   PromptRoute: typeof PromptRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SignInRoute: typeof SignInRoute
+  SignUpRoute: typeof SignUpRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   BlogSlugRoute: typeof BlogSlugRoute
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
@@ -318,11 +409,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -339,6 +451,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PromptRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
@@ -351,6 +477,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/generate': {
@@ -372,6 +505,13 @@ declare module '@tanstack/react-router' {
       path: '/critique'
       fullPath: '/critique'
       preLoaderRoute: typeof CritiqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -488,14 +628,21 @@ const ApiGenerationJobsRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   CritiqueRoute: CritiqueRoute,
   GalleryRoute: GalleryRoute,
   GenerateRoute: GenerateRoute,
+  HelpRoute: HelpRoute,
   LibraryRoute: LibraryRoute,
   McpRoute: McpRoute,
+  PricingRoute: PricingRoute,
+  PrivacyRoute: PrivacyRoute,
   PromptRoute: PromptRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   BlogSlugRoute: BlogSlugRoute,
@@ -513,12 +660,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

@@ -4,6 +4,8 @@ import { NAV_ITEMS, ROUTES, TOOL } from "@/lib/product";
 import { ScrollRow } from "@/components/ScrollRow";
 import { useRouterState } from "@tanstack/react-router";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { useAuth } from "@/lib/auth-context";
+import { AccountMenu } from "@/components/auth/AccountMenu";
 
 // Visible labels come from product.ts (Library · Prompt · Gallery · Blog).
 // Build and Critique are modes inside /prompt, not separate nav items;
@@ -16,6 +18,7 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 
 export function Header() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { user, loading } = useAuth();
   const items = isNativeGenerationEnabled()
     ? [
         ...NAV_ITEMS.slice(0, 2),
@@ -50,6 +53,20 @@ export function Header() {
             </Link>
           ))}
         </nav>
+
+        {/* Right: exactly one auth control. Signed out → "Sign in"; signed in → avatar menu. */}
+        <div className="flex h-7 min-w-[56px] items-center justify-end">
+          {loading ? null : user ? (
+            <AccountMenu user={user} />
+          ) : (
+            <Link
+              to={ROUTES.signIn}
+              className="px-2 py-1 text-[14px] font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Mobile: scrollable nav row with an overflow cue; the active route scrolls into view. */}

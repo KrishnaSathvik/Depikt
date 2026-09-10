@@ -84,6 +84,14 @@ export const ROUTES = {
   gallery: "/gallery",
   blog: "/blog",
   templates: "/templates",
+  // Commercial launch (Phase 6). Auth and account are noindex; the rest are public.
+  signIn: "/sign-in",
+  signUp: "/sign-up",
+  account: "/account",
+  pricing: "/pricing",
+  help: "/help",
+  privacy: "/privacy",
+  terms: "/terms",
 } as const;
 
 export const NAV_ITEMS: ReadonlyArray<{
@@ -181,7 +189,22 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "prompt" | "library" | "gallery" | "blog" | "mcp" | "templates" | "generate",
+  | "root"
+  | "home"
+  | "prompt"
+  | "library"
+  | "gallery"
+  | "blog"
+  | "mcp"
+  | "templates"
+  | "generate"
+  | "pricing"
+  | "help"
+  | "privacy"
+  | "terms"
+  | "signIn"
+  | "signUp"
+  | "account",
   PageMeta
 > = {
   root: {
@@ -230,7 +253,54 @@ export const SEO: Record<
     description:
       "Create and edit images from prompts and references with Depikt, with automatic format handling and intelligent GPT Image 2.5 model routing.",
   },
+  pricing: {
+    title: "Pricing | Depikt",
+    description:
+      "Start free with 5 image credits. Pro and Max include monthly image credits, with extra credit packs available anytime.",
+  },
+  help: {
+    title: "Help | Depikt",
+    description:
+      "Learn how image credits, generation, references, billing, and your Depikt account work.",
+  },
+  privacy: {
+    title: "Privacy Policy | Depikt",
+    description:
+      "How Depikt handles account data, prompts, reference images, generated images, billing, and analytics.",
+  },
+  terms: {
+    title: "Terms of Service | Depikt",
+    description: "Terms for using Depikt, subscriptions, image credits, and generated images.",
+  },
+  /** noindex */
+  signIn: {
+    title: "Sign in | Depikt",
+    description: "Sign in to Depikt to generate and edit images.",
+  },
+  /** noindex */
+  signUp: {
+    title: "Create account | Depikt",
+    description: "Create a free Depikt account and get 5 image credits.",
+  },
+  /** noindex, nofollow */
+  account: { title: "Account | Depikt", description: "Your Depikt plan, credits, and usage." },
 };
+
+// ---------- auth surface copy ----------
+
+export const AUTH_COPY = {
+  signInTitle: "Sign in to Depikt",
+  signUpTitle: "Create your Depikt account",
+  generateTitle: "Sign in to generate",
+  generateBody:
+    "Your image will start as soon as you're signed in. New accounts get 5 image credits.",
+  newToDepikt: "New to Depikt?",
+  createAccount: "Create an account",
+  haveAccount: "Already have an account?",
+  signIn: "Sign in",
+  legalPrefix: "By continuing, you agree to the",
+  signOut: "Sign out",
+} as const;
 
 // ---------- MCP integration (public, read-only) ----------
 
