@@ -31,7 +31,7 @@ const GROUP_BLURB: Record<(typeof TEMPLATE_GROUPS)[number], string> = {
 
 export const Route = createFileRoute("/templates/")({
   head: () => {
-    const ogImage = getOgImageForPath();
+    const ogImage = getOgImageForPath("templates");
     const collectionJsonLd = {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
@@ -78,7 +78,7 @@ function TemplatesIndex() {
           </h1>
           <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">
             Reusable frameworks for common image tasks. Choose one, add your details, and continue
-            in {TOOL.builder}. Every structure is written to work with any modern image model — no
+            in the {TOOL.prompt} workspace. Every structure is written to work with any modern image model — no
             model-specific switches or flags.
           </p>
         </header>
@@ -225,7 +225,7 @@ function TemplateCard({ template }: { template: Template }) {
           <PromptSurface label="Structure">{buildTemplateStarter(template, values)}</PromptSurface>
 
           <Button onClick={useTemplate} className="min-h-11 w-full sm:w-auto">
-            Continue in {TOOL.builder} <ArrowRight />
+            Continue in {TOOL.prompt} <ArrowRight />
           </Button>
         </div>
       )}

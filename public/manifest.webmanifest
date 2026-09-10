@@ -1,7 +1,7 @@
 {
   "name": "Depikt",
   "short_name": "Depikt",
-  "description": "Prompt Builder, Prompt Critic, and curated prompt library for ChatGPT Images 2.5.",
+  "description": "Prompt workspace with Build and Critique modes, plus a curated prompt library, references, and templates for ChatGPT Images 2.5.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

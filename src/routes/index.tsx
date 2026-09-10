@@ -356,7 +356,7 @@ function BeforeAfter() {
                 “{ROUGH_INPUT}”
               </p>
               <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-                The {TOOL.builder} works out the format, the reference use, the ratio, and the exact
+                Build mode works out the format, the reference use, the ratio, and the exact
                 text first, then writes the prompt.
               </p>
               <div className="mt-8">
