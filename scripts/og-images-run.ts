@@ -66,8 +66,8 @@ const PUBLISH = flags["no-publish"] !== "true";
 const SECTION_TITLES: Record<OgRouteKey, string> = {
   home: "## 1. Home",
   library: "## 2. Library",
-  builder: "## 3. Prompt Builder",
-  critic: "## 4. Prompt Critic",
+  prompt: "## 3. Prompt",
+  templates: "## 4. Templates",
   gallery: "## 5. Gallery",
   blog: "## 6. Blog",
   mcp: "## 7. MCP",

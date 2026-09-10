@@ -93,46 +93,43 @@ TEXT — EXACT
 "523 prompt examples"
 ```
 
-## 3. Prompt Builder (`public/og/prompt-builder.png`)
+## 3. Prompt (`public/og/prompt.png`)
 
 ```text
 LAYOUT
 Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Prompt Builder"
-Below it, smaller neutral-gray text: "From idea to prompt".
+"Prompt Workspace"
+Below it, smaller neutral-gray text: "Build it or improve it".
 
-Right 50%: a light editorial transformation in two stages joined by a single thin
-hairline arrow. Stage one, upper-left of the right half: a small torn-notebook scrap with a
-loose pencil scribble and a tiny rough thumbnail sketch, suggesting a rough idea. Stage two,
-lower-right: a clean white card with a hairline border containing neat rows of short
-abstract text bars in three lengths, structured like a well-written prompt, with a small
-finished image tile clipped to its corner (a warm-light photograph of a simple object). The
-prompt card is light and paper-like, never a dark code block or terminal. No readable text
-in either stage.
+Right 50%: a light editorial transformation in two stages joined by a single thin hairline
+arrow. Stage one: a small torn-notebook scrap with a loose pencil scribble and a tiny rough
+thumbnail sketch. Stage two: a clean white card with a hairline border containing neat rows
+of short abstract text bars, three of them carrying restrained proofreading markup (one thin
+near-black underline, one small circled region, one hairline leader to an abstract margin
+note), with a small elegant ring gauge at the card's upper-right, roughly three-quarters
+filled in near-black. Light and paper-like, never a dark code block. No readable text.
 
 TEXT — EXACT
-"Prompt Builder"
-"From idea to prompt"
+"Prompt Workspace"
+"Build it or improve it"
 ```
 
-## 4. Prompt Critic (`public/og/prompt-critic.png`)
+## 4. Templates (`public/og/templates.png`)
 
 ```text
 LAYOUT
 Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Prompt Critic"
-Below it, smaller neutral-gray text: "Find what's weakening it".
+"Templates"
+Below it, smaller neutral-gray text: "Start from a structure".
 
-Right 50%: a single light card with a hairline border holding rows of abstract text bars
-that stand in for a prompt. Three of the rows carry restrained editorial markup: one thin
-near-black underline, one small circled region, one short hairline leader running to a tiny
-neutral-gray margin note rendered as abstract marks. A small, elegant ring gauge sits at the
-card's upper-right, roughly three-quarters filled in near-black. Analytical and calm, like a
-proofread manuscript; no red error styling, no dashboard, no charts.
+Right 50%: three light cards with hairline borders, slightly overlapped and fanned like
+stacked stationery. Each card holds neat rows of short abstract text bars, with a few rows
+rendered as empty hairline-outlined slots to suggest fields waiting to be filled. Calm,
+editorial, paper-like; no dark panels, no UI chrome, no readable text.
 
 TEXT — EXACT
-"Prompt Critic"
-"Find what's weakening it"
+"Templates"
+"Start from a structure"
 ```
 
 ## 5. Gallery (`public/og/gallery.png`)
