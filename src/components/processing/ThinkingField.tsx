@@ -39,6 +39,9 @@ export interface ThinkingFieldProps {
   /** e.g. "4 / 5" — sizes the field to the resolved generation ratio. Omit for a fixed box. */
   aspectRatio?: string;
   className?: string;
+  /** false renders one frozen frame (same math as prefers-reduced-motion) instead of
+   * animating — the Generate workspace's "ready" canvas, before a job exists. Default true. */
+  animated?: boolean;
 }
 
 /**
@@ -46,7 +49,13 @@ export interface ThinkingFieldProps {
  * through the field per `variant`. Canvas is decorative (aria-hidden);
  * `status` is the only thing assistive tech hears.
  */
-export function ThinkingField({ variant, status, aspectRatio, className }: ThinkingFieldProps) {
+export function ThinkingField({
+  variant,
+  status,
+  aspectRatio,
+  className,
+  animated = true,
+}: ThinkingFieldProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dotsRef = useRef<FieldPoint[]>([]);
@@ -88,7 +97,7 @@ export function ThinkingField({ variant, status, aspectRatio, className }: Think
     function drawFrame() {
       const [r, g, b] = colorRef.current;
       ctx!.clearRect(0, 0, cssWidth, cssHeight);
-      const reduced = reducedMotionQuery.matches;
+      const reduced = !animated || reducedMotionQuery.matches;
       const t = (performance.now() - startRef.current) / 1000;
       for (const dot of dotsRef.current) {
         const style = reduced ? computeStaticDotStyle(dot) : computeDotStyle(variant, dot, t);
@@ -106,7 +115,7 @@ export function ThinkingField({ variant, status, aspectRatio, className }: Think
 
     function startLoop() {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
-      if (reducedMotionQuery.matches) {
+      if (!animated || reducedMotionQuery.matches) {
         drawFrame();
         rafRef.current = null;
       } else {
@@ -132,7 +141,7 @@ export function ThinkingField({ variant, status, aspectRatio, className }: Think
       resizeObserver.disconnect();
       reducedMotionQuery.removeEventListener("change", handleMotionPreferenceChange);
     };
-  }, [variant]);
+  }, [variant, animated]);
 
   return (
     <div className={className}>

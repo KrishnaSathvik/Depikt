@@ -37,8 +37,8 @@ import {
 } from "@/lib/product";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
-import { saveGenerationHandoff } from "@/lib/generation/handoff";
-import { useNavigate } from "@tanstack/react-router";
+import { useGeneration } from "@/lib/generation/use-generation";
+import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
 import { TemplateSetup } from "@/components/TemplateSetup";
 import { getTemplateBySlug, type Template } from "@/data/templates";
@@ -110,8 +110,14 @@ const EXAMPLE_CHIPS = [
 
 export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildModeProps) {
   const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
-  const navigate = useNavigate();
-  const handleGenerateImage = (result: PromptResult, reference: ReferenceImageState | null) => {
+  // One shared generation execution path — see docs/plans/2026-09-10-inline-
+  // generation-workspace.md. "Generate image" starts the job inline, right
+  // here on /prompt; it never navigates to /generate.
+  const gen = useGeneration({ sourceContext: { type: "prompt_build" } });
+  const handleGenerateImage = async (
+    result: PromptResult,
+    reference: ReferenceImageState | null,
+  ) => {
     if (!result.prompt) return;
     trackEvent("generate_submitted_from_prompt_build", {});
     // Feed Depikt's Image Model Router the structured intent Prompt already
@@ -119,9 +125,11 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     // decides Flare vs Sunburst on its own.
     const intent = result.intent as Record<string, unknown> | undefined;
     const exactText = intent?.exact_text;
-    saveGenerationHandoff({
+    if (reference?.dataUrl && gen.references.length === 0) {
+      await gen.addReferenceFromDataUrl(reference.dataUrl);
+    }
+    await gen.submit({
       prompt: result.prompt,
-      references: reference?.dataUrl ? [{ dataUrl: reference.dataUrl }] : [],
       structuredAspectRatio: result.aspect_ratio ?? null,
       routingHints: {
         category: typeof intent?.category === "string" ? intent.category : undefined,
@@ -129,9 +137,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         referenceIntent:
           typeof intent?.reference_intent === "string" ? intent.reference_intent : undefined,
       },
-      sourceType: "prompt_build",
     });
-    void navigate({ to: "/generate" });
   };
   const [input, setInput] = useState("");
   // Structured template context from /templates. It is intent the engine
@@ -663,9 +669,17 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                 onNewPrompt={handleNewPrompt}
                 onGenerate={
                   isNativeGenerationEnabled()
-                    ? () => handleGenerateImage(result, reference)
+                    ? () => void handleGenerateImage(result, reference)
                     : undefined
                 }
+              />
+            )}
+            {result?.prompt && isNativeGenerationEnabled() && (
+              <InlineGenerationPanel
+                promptLabel="Your prompt"
+                promptText={result.prompt}
+                structuredAspectRatio={result.aspect_ratio ?? null}
+                gen={gen}
               />
             )}
           </div>

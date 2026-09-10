@@ -1,130 +1,49 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import {
-  Sparkles,
-  Download,
-  RefreshCw,
-  Wand2,
-  Plus,
-  X,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { Sparkles, Plus, X, RefreshCw, ChevronRight, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { ThinkingField } from "@/components/processing/ThinkingField";
-import { toast } from "sonner";
-import { useAuth } from "@/lib/auth-context";
-import { lovable } from "@/integrations/lovable";
-import { trackEvent } from "@/lib/analytics";
 import { CTA, ROUTES } from "@/lib/product";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
-import {
-  fileToReferenceState,
-  MAX_UPLOAD_BYTES,
-  type ReferenceImageState,
-} from "@/lib/reference-image";
-import {
-  createGenerationJob,
-  getGenerationJob,
-  getGenerationSession,
-  getCreditBalance,
-  uploadReferenceImage,
-  nextPollDelayMs,
-  isTerminalStatus,
-  GenerationApiError,
-  type JobStatusResponse,
-  type SessionVersion,
-} from "@/lib/generation/client";
-import type { RoutingHints } from "@/lib/generation/model-router";
 import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
+import { useGeneration, simplifyRatioLabel } from "@/lib/generation/use-generation";
+import type { RoutingHints } from "@/lib/generation/model-router";
+import type { SourceContextType } from "@/lib/generation/job-request";
+import type { SessionVersion } from "@/lib/generation/client";
+import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
+import { GenerationActions } from "@/components/generate/GenerationActions";
+import { trackEvent } from "@/lib/analytics";
 
-type Phase = "idle" | "starting" | "polling" | "result" | "error";
-
-interface ReferenceEntry {
-  local: ReferenceImageState;
-  uploadedPath: string | null;
-  uploading: boolean;
-  /** Upload failed (commonly: not signed in yet). Kept visible, not silently dropped — see retryReferenceUpload. */
-  error?: boolean;
-}
-
-const ERROR_COPY: Record<string, string> = {
-  insufficient_credit: "You don't have enough credits for this.",
-  auth: "Sign in to generate images.",
-  rejected: "The image request was rejected.",
-  rate_limited: "Generation is temporarily unavailable. Try again in a moment.",
-  unknown: "Generation failed.",
-};
-
-// A generation job (especially Sunburst) can run well past a typical page
-// load; a refresh or accidental close must not lose track of it. The
-// active job id is the only thing that needs to survive — pollJob's first
-// tick re-fetches everything else (status, result, model) from the job
-// itself. Tab-scoped on purpose: resuming a job left running in a
-// different, still-open tab would race two pollers against one job.
-const ACTIVE_JOB_KEY = "depikt.generate.activeJobId";
-function saveActiveJob(jobId: string) {
-  try {
-    sessionStorage.setItem(ACTIVE_JOB_KEY, jobId);
-  } catch {
-    /* private-mode/storage-blocked: resume just won't work, generation itself still does */
-  }
-}
-function clearActiveJob() {
-  try {
-    sessionStorage.removeItem(ACTIVE_JOB_KEY);
-  } catch {
-    /* see saveActiveJob */
-  }
-}
-function readActiveJob(): string | null {
-  try {
-    return sessionStorage.getItem(ACTIVE_JOB_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function gcd(a: number, b: number): number {
-  return b === 0 ? a : gcd(b, a % b);
-}
-/** e.g. 1024x1280 -> "4:5". Used to label a resumed job's real dimensions. */
-function simplifyRatioLabel(width: number, height: number): string {
-  const d = gcd(width, height) || 1;
-  return `${width / d}:${height / d}`;
-}
-
+/**
+ * /generate — the direct creation workspace. Two panes at lg+ (composer
+ * left, GenerationCanvas right); one column below that. Library/Gallery/
+ * Prompt hand off a pre-filled composer via handoff.ts; Library additionally
+ * auto-starts generation immediately (it already has a complete prompt —
+ * see docs/plans/2026-09-10-inline-generation-workspace.md, "Library single-
+ * click Generate").
+ */
 export function GenerateWorkspace() {
-  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const [prompt, setPrompt] = useState("");
-  const [references, setReferences] = useState<ReferenceEntry[]>([]);
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
-  const [sourceContext, setSourceContext] = useState<{ type: string; id?: string | null }>({
+  const [sourceContext, setSourceContext] = useState<{
+    type: SourceContextType;
+    id?: string | null;
+  }>({
     type: "direct",
   });
-
-  const [credits, setCredits] = useState<number | null>(null);
-  const [phase, setPhase] = useState<Phase>("idle");
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [job, setJob] = useState<JobStatusResponse | null>(null);
-  const [versions, setVersions] = useState<SessionVersion[]>([]);
-  const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const pollStart = useRef<number>(0);
-  const pendingSubmit = useRef(false);
+  const gen = useGeneration({ sourceContext });
 
-  // One-shot: pick up a handoff from Library/Gallery/Prompt, then restore auth-return state the same way.
+  // One-shot: pick up a handoff from Library/Gallery/Prompt.
   useEffect(() => {
     const handoff = consumeGenerationHandoff();
     if (handoff) {
@@ -133,132 +52,35 @@ export function GenerateWorkspace() {
       if (handoff.structuredAspectRatio) setStructuredRatio(handoff.structuredAspectRatio);
       setSourceContext({ type: handoff.sourceType, id: handoff.sourceId ?? null });
       trackEvent("generate_opened", { source: handoff.sourceType });
-      for (const ref of handoff.references) void restoreReference(ref.dataUrl);
+      for (const ref of handoff.references) void gen.addReferenceFromDataUrl(ref.dataUrl);
+      // Library already contains a complete, ready-to-submit prompt — a
+      // button labeled "Generate" there must start generation, not just
+      // arrive at a pre-filled composer requiring a second click.
+      if (handoff.sourceType === "library" && handoff.prompt.trim()) {
+        void gen.submit({
+          prompt: handoff.prompt,
+          structuredAspectRatio: handoff.structuredAspectRatio ?? null,
+          routingHints: handoff.routingHints ?? null,
+        });
+      }
     } else {
       trackEvent("generate_opened", { source: "direct" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Resume a job left running across a refresh/reopen — see ACTIVE_JOB_KEY.
-  // pollJob's own first tick fetches the job's current status (it may
-  // already be done) and clears the key once terminal, so this only ever
-  // fires the network request an in-flight job actually needs.
-  useEffect(() => {
-    const activeJobId = readActiveJob();
-    if (activeJobId) pollJob(activeJobId);
-  }, []);
-
-  async function measureDataUrl(
-    dataUrl: string,
-  ): Promise<{ width: number; height: number } | null> {
-    return new Promise((resolve) => {
-      const img = new Image();
-      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-      img.onerror = () => resolve(null);
-      img.src = dataUrl;
-    });
-  }
-
-  // Upload one reference's data URL and patch its entry in place. On
-  // failure (most commonly: not signed in yet — a Library/Gallery handoff
-  // can land here before the user has a session) the entry stays visible
-  // with its local preview and is flagged for retry rather than silently
-  // dropped, so the reference doesn't appear to just vanish.
-  async function uploadReference(entry: ReferenceEntry) {
-    try {
-      const { path } = await uploadReferenceImage(entry.local.dataUrl);
-      setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
-      );
-      return true;
-    } catch {
-      setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploading: false, error: true } : r)),
-      );
-      return false;
-    }
-  }
-
-  function retryReferenceUpload(index: number) {
-    setReferences((prev) => {
-      const entry = prev[index];
-      if (!entry || !entry.error) return prev;
-      const next = prev.map((r, i) => (i === index ? { ...r, uploading: true, error: false } : r));
-      void uploadReference(next[index]);
-      return next;
-    });
-  }
-
-  // Shared by the file picker (handleAddReference) and a Library/Gallery/
-  // Prompt handoff (already-processed data URLs, no File object to re-derive).
-  async function restoreReference(dataUrl: string) {
-    if (references.length >= MAX_REFERENCE_IMAGES_V1) return;
-    const meta = await measureDataUrl(dataUrl);
-    const local: ReferenceImageState = {
-      dataUrl,
-      file: null,
-      intent: "auto",
-      meta: meta
-        ? { mime: "image/png", width: meta.width, height: meta.height, hasAlpha: false }
-        : undefined,
-    };
-    const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
-    setReferences((prev) => [...prev, entry]);
-    await uploadReference(entry);
-  }
-
-  // Load the authoritative balance once signed in.
-  useEffect(() => {
-    if (!user) return;
-    getCreditBalance()
-      .then((r) => setCredits(r.availableCredits))
-      .catch(() => setCredits(null));
-  }, [user, phase]);
-
-  // If sign-in just completed and a submission was waiting on it, resume automatically.
-  useEffect(() => {
-    if (user && pendingSubmit.current) {
-      pendingSubmit.current = false;
-      void submit();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  // A reference attached before sign-in (e.g. a Library/Gallery handoff
-  // arriving while signed out) fails to upload with a 401 and is left
-  // flagged `error` rather than dropped — retry it automatically once a
-  // session exists, so it doesn't just sit there needing a manual tap.
-  useEffect(() => {
-    if (!user) return;
-    references.forEach((r, i) => {
-      if (r.error) retryReferenceUpload(i);
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
-
-  useEffect(
-    () => () => {
-      if (pollTimer.current) clearTimeout(pollTimer.current);
-    },
-    [],
-  );
-
-  // A resumed job (see ACTIVE_JOB_KEY) has no local `prompt` to resolve a
-  // ratio from — the page just loaded straight into "polling". Once the
-  // job itself has loaded, its real width/height are authoritative and
-  // replace the prompt-text guess, so the loading caption/box don't show
-  // a wrong "1:1 · square" fallback for a job that was never square.
+  // A resumed/in-flight job has no local `prompt` to resolve a ratio from —
+  // its own real width/height are authoritative once loaded.
   const resolvedSize =
-    job?.width && job?.height
+    gen.job?.width && gen.job?.height
       ? {
-          width: job.width,
-          height: job.height,
-          ratioLabel: simplifyRatioLabel(job.width, job.height),
+          width: gen.job.width,
+          height: gen.job.height,
+          ratioLabel: simplifyRatioLabel(gen.job.width, gen.job.height),
           orientation:
-            job.width === job.height
+            gen.job.width === gen.job.height
               ? ("square" as const)
-              : job.width < job.height
+              : gen.job.width < gen.job.height
                 ? ("portrait" as const)
                 : ("landscape" as const),
           source: "structured" as const,
@@ -267,138 +89,22 @@ export function GenerateWorkspace() {
           promptText: prompt,
           structuredAspectRatio: structuredRatio,
           referenceRatio:
-            references[0]?.local.meta?.width && references[0]?.local.meta?.height
-              ? { width: references[0].local.meta.width, height: references[0].local.meta.height }
+            gen.references[0]?.local.meta?.width && gen.references[0]?.local.meta?.height
+              ? {
+                  width: gen.references[0].local.meta.width,
+                  height: gen.references[0].local.meta.height,
+                }
               : null,
         });
 
-  async function handleAddReference(file: File) {
-    if (references.length >= MAX_REFERENCE_IMAGES_V1) {
-      toast.error(`Up to ${MAX_REFERENCE_IMAGES_V1} reference images`);
-      return;
-    }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error("Image too large (max 10MB)");
-      return;
-    }
-    const local = await fileToReferenceState(file, "auto");
-    const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
-    setReferences((prev) => [...prev, entry]);
-    const ok = await uploadReference(entry);
-    if (ok) trackEvent("reference_added", {});
-    else toast.error("Couldn't attach the reference image — tap it to retry.");
-  }
-
-  function removeReference(index: number) {
-    setReferences((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function pollJob(jobId: string) {
-    saveActiveJob(jobId);
-    pollStart.current = Date.now();
-    const tick = async () => {
-      try {
-        const res = await getGenerationJob(jobId);
-        setJob(res);
-        if (isTerminalStatus(res.status)) {
-          clearActiveJob();
-          if (res.status === "succeeded") {
-            setPhase("result");
-            setActiveVersionId(res.result?.versionId ?? null);
-            void getGenerationSession(res.sessionId).then((s) => setVersions(s.versions));
-            trackEvent("generation_succeeded", { model: res.model, operation: res.operation });
-          } else {
-            setPhase("error");
-            setErrorMessage(res.errorMessage ?? "Generation failed. Your credit was returned.");
-            trackEvent("generation_failed", { model: res.model });
-          }
-          return;
-        }
-        pollTimer.current = setTimeout(tick, nextPollDelayMs(Date.now() - pollStart.current));
-      } catch {
-        pollTimer.current = setTimeout(tick, nextPollDelayMs(Date.now() - pollStart.current));
-      }
-    };
-    setPhase("polling");
-    void tick();
-  }
-
-  async function submit(overridePrompt?: string, sourceVersionId?: string) {
-    const effectivePrompt = overridePrompt ?? prompt;
-    if (!effectivePrompt.trim()) {
-      toast.error("Describe what you want to create");
-      return;
-    }
-    if (!user) {
-      pendingSubmit.current = true;
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: typeof window !== "undefined" ? window.location.href : undefined,
-      });
-      if (result.error) {
-        pendingSubmit.current = false;
-        toast.error("Sign-in failed");
-      }
-      trackEvent("generate_auth_requested", {});
-      return; // OAuth redirects; on return, the effect above resumes the submission.
-    }
-
-    setPhase("starting");
-    setErrorMessage(null);
-    trackEvent("generate_submitted", { source: sourceContext.type });
-    try {
-      const idempotencyKey = crypto.randomUUID();
-      const res = await createGenerationJob({
-        operation: sourceVersionId ? "edit" : "generate",
-        prompt: effectivePrompt,
-        referenceAssetIds: references.map((r) => r.uploadedPath).filter((p): p is string => !!p),
-        sourceVersionId: sourceVersionId ?? null,
-        sourceContext,
-        idempotencyKey,
-        structuredAspectRatio: structuredRatio,
-        routingHints: routingHints ?? undefined,
-      });
-      pollJob(res.jobId);
-    } catch (err) {
-      setPhase("error");
-      if (err instanceof GenerationApiError && err.status === 402) {
-        setErrorMessage(ERROR_COPY.insufficient_credit);
-      } else if (err instanceof GenerationApiError && err.status === 401) {
-        setErrorMessage(ERROR_COPY.auth);
-      } else {
-        setErrorMessage("Generation is temporarily unavailable.");
-      }
-    }
-  }
-
-  function regenerate() {
-    trackEvent("regenerate_submitted", {});
-    void submit();
-  }
-
-  function applyEdit() {
-    if (!editPrompt.trim() || !activeVersionId) return;
-    trackEvent("edit_submitted", {});
-    setEditing(false);
-    void submit(editPrompt, activeVersionId);
-    setEditPrompt("");
-  }
-
-  function download() {
-    const url = job?.result?.url ?? versions.find((v) => v.id === activeVersionId)?.url;
-    if (!url) return;
-    trackEvent("image_downloaded", {});
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `depikt-${new Date().toISOString().slice(0, 10)}-${(activeVersionId ?? "").slice(0, 8)}.png`;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.click();
+  function submitComposer() {
+    void gen.submit({ prompt, structuredAspectRatio: structuredRatio, routingHints });
   }
 
   function improveInPrompt() {
     saveGenerationHandoff({
       prompt,
-      references: references.map((r) => ({ dataUrl: r.local.dataUrl })),
+      references: gen.references.map((r) => ({ dataUrl: r.local.dataUrl })),
       structuredAspectRatio: structuredRatio,
       routingHints,
       sourceType: "direct",
@@ -406,72 +112,101 @@ export function GenerateWorkspace() {
     void navigate({ to: ROUTES.prompt, search: { mode: "build" } });
   }
 
-  const activeVersion = versions.find((v) => v.id === activeVersionId);
-  const resultUrl = job?.result?.url ?? activeVersion?.url ?? null;
-  const displayModel = activeVersion?.model ?? job?.model ?? null;
+  const canvasState =
+    gen.phase === "starting" || gen.phase === "polling"
+      ? "generating"
+      : gen.phase === "result"
+        ? "result"
+        : gen.phase === "error"
+          ? "error"
+          : "ready";
 
-  // ---------- result / loading state ----------
-  if (
-    phase === "starting" ||
-    phase === "polling" ||
-    phase === "result" ||
-    (phase === "error" && job)
-  ) {
-    return (
-      <div className="mx-auto max-w-[900px] px-4 py-10 sm:px-6">
-        {(phase === "starting" || phase === "polling") && (
-          <GenerationLoadingState
-            ratioLabel={resolvedSize.ratioLabel}
-            orientation={resolvedSize.orientation}
-            phase={phase}
-          />
-        )}
+  const showComposer = gen.phase === "idle" || (gen.phase === "error" && !gen.job);
+  const showResultLeft = gen.phase === "result";
 
-        {phase === "result" && resultUrl && (
-          <div className="space-y-6">
-            <div
-              className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
-              style={{
-                maxWidth: 640,
-                aspectRatio: `${resolvedSize.width} / ${resolvedSize.height}`,
-              }}
-            >
-              <img
-                src={resultUrl}
-                alt="Generated result"
-                className="h-full w-full object-contain"
+  return (
+    <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12">
+        {/* LEFT — composer / prompt details / edit */}
+        <div>
+          <p className="eyebrow mb-2">Generate</p>
+          <h1 className="text-heading-lg mb-6">Create an image.</h1>
+
+          {showComposer && (
+            <div className="space-y-4">
+              {gen.errorMessage && <p className="text-body-sm text-red-600">{gen.errorMessage}</p>}
+              <Textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                placeholder="Describe what you want to create..."
+                rows={6}
+                aria-label="Image prompt"
               />
-            </div>
-
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              <Button variant="outline" onClick={download}>
-                <Download className="mr-1.5 h-4 w-4" /> Download
+              <ReferenceRow
+                references={gen.references}
+                onAdd={gen.addReference}
+                onRemove={gen.removeReference}
+                onRetry={gen.retryReferenceUpload}
+              />
+              {resolvedSize.source !== "fallback" && (
+                <p className="text-body-sm text-[color:var(--text-secondary)]">
+                  {resolvedSize.ratioLabel} ·{" "}
+                  {resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}
+                </p>
+              )}
+              <div className="text-body-sm text-[color:var(--text-secondary)]">
+                {gen.authLoading
+                  ? null
+                  : gen.user && gen.credits !== null
+                    ? `${gen.credits} credits remaining`
+                    : null}
+              </div>
+              <Button className="w-full" size="lg" onClick={submitComposer}>
+                <Sparkles className="mr-1.5 h-4 w-4" />
+                Generate image → · 1 credit
               </Button>
-              <Button variant="outline" onClick={() => setEditing((e) => !e)}>
-                <Wand2 className="mr-1.5 h-4 w-4" /> Edit
-              </Button>
-              <Button variant="outline" onClick={regenerate}>
-                <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate · 1 credit
-              </Button>
-            </div>
-
-            {editing && (
-              <div className="mx-auto max-w-[560px] space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
-                <p className="text-body-sm font-medium">What do you want to change?</p>
-                <Textarea
-                  value={editPrompt}
-                  onChange={(e) => setEditPrompt(e.target.value)}
-                  placeholder="Make the jacket dark blue and keep everything else unchanged."
-                  rows={3}
-                />
-                <Button onClick={applyEdit} disabled={!editPrompt.trim()}>
-                  Apply edit → · 1 credit
+              <div>
+                <Button variant="ghost" size="sm" onClick={improveInPrompt}>
+                  {CTA.improveInPrompt} →
                 </Button>
               </div>
-            )}
+            </div>
+          )}
 
+          {(gen.phase === "starting" || gen.phase === "polling") && (
+            <p className="text-body-sm text-[color:var(--text-secondary)]">
+              Working from your prompt — this stays visible while the image generates.
+            </p>
+          )}
+
+          {showResultLeft && editing ? (
+            <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
+              <p className="text-body-sm font-medium">EDIT IMAGE</p>
+              <p className="text-body-sm text-[color:var(--text-secondary)]">What should change?</p>
+              <Textarea
+                value={editPrompt}
+                onChange={(e) => setEditPrompt(e.target.value)}
+                placeholder="Make the jacket dark blue and keep everything else unchanged."
+                rows={4}
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => {
+                    gen.applyEdit(editPrompt);
+                    setEditing(false);
+                    setEditPrompt("");
+                  }}
+                  disabled={!editPrompt.trim()}
+                >
+                  Apply edit → · 1 credit
+                </Button>
+                <Button variant="ghost" onClick={() => setEditing(false)}>
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : showResultLeft ? (
             <details
-              className="mx-auto max-w-[640px]"
               open={detailsOpen}
               onToggle={(e) => setDetailsOpen((e.target as HTMLDetailsElement).open)}
             >
@@ -484,162 +219,111 @@ export function GenerateWorkspace() {
                 Prompt & details
               </summary>
               <PromptSurface label="Prompt" className="mt-2">
-                {job?.errorMessage ?? prompt}
+                {gen.job?.errorMessage ?? prompt}
               </PromptSurface>
               <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
-                {displayModel && `${MODEL_COPY[displayModel].title} · `}
+                {gen.displayModel && `${MODEL_COPY[gen.displayModel].title} · `}
                 {resolvedSize.ratioLabel} · {resolvedSize.orientation}
               </p>
-            </details>
-
-            {versions.length > 1 && (
-              <VersionStrip
-                versions={versions}
-                activeId={activeVersionId}
-                onSelect={setActiveVersionId}
-              />
-            )}
-
-            <div className="text-center">
-              <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-                {CTA.improveInPrompt} →
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {phase === "error" && (
-          <div className="mx-auto max-w-[480px] space-y-4 text-center">
-            <p className="text-body-md">{errorMessage}</p>
-            <Button onClick={() => setPhase("idle")}>Try again</Button>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // ---------- empty / composer state ----------
-  return (
-    <div className="mx-auto max-w-[640px] px-4 py-10 sm:px-6">
-      <p className="eyebrow mb-2 text-center">Generate</p>
-      <h1 className="text-heading-lg mb-6 text-center">Create an image.</h1>
-
-      {phase === "error" && errorMessage && (
-        <p className="mb-4 text-center text-body-sm text-red-600">{errorMessage}</p>
-      )}
-
-      <div className="space-y-4">
-        <Textarea
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Describe what you want to create..."
-          rows={5}
-          aria-label="Image prompt"
-        />
-
-        <div className="flex flex-wrap items-center gap-2">
-          {references.map((r, i) => (
-            <div
-              key={i}
-              className="relative h-16 w-16 overflow-hidden rounded border border-[color:var(--border-subtle)]"
-            >
-              <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
-              <button
-                type="button"
-                aria-label="Remove reference"
-                onClick={() => removeReference(i)}
-                className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
-              >
-                <X className="h-3 w-3" />
-              </button>
-              {r.uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[10px]">
-                  …
+              {gen.versions.length > 1 && (
+                <div className="mt-4">
+                  <VersionStrip
+                    versions={gen.versions}
+                    activeId={gen.activeVersionId}
+                    onSelect={gen.setActiveVersionId}
+                  />
                 </div>
               )}
-              {r.error && (
-                <button
-                  type="button"
-                  onClick={() => retryReferenceUpload(i)}
-                  aria-label="Retry attaching reference"
-                  className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-white/85 text-[9px] font-medium text-[color:var(--text-secondary)]"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                  Retry
-                </button>
-              )}
-            </div>
-          ))}
-          {references.length < MAX_REFERENCE_IMAGES_V1 && (
-            <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded border border-dashed border-[color:var(--border-subtle)] text-[color:var(--text-secondary)]">
-              <Plus className="h-4 w-4" />
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void handleAddReference(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          )}
+              <div className="mt-4">
+                <Button variant="ghost" size="sm" onClick={improveInPrompt}>
+                  {CTA.improveInPrompt} →
+                </Button>
+              </div>
+            </details>
+          ) : null}
         </div>
 
-        {resolvedSize.source !== "fallback" && (
-          <p className="text-center text-body-sm text-[color:var(--text-secondary)]">
-            {resolvedSize.ratioLabel} ·{" "}
-            {resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}
-          </p>
-        )}
-
-        <div className="text-center text-body-sm text-[color:var(--text-secondary)]">
-          {authLoading ? null : user && credits !== null ? `${credits} credits remaining` : null}
-        </div>
-
-        <Button className="w-full" size="lg" onClick={() => submit()}>
-          <Sparkles className="mr-1.5 h-4 w-4" />
-          Generate image → · 1 credit
-        </Button>
-
-        <div className="text-center">
-          <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-            {CTA.improveInPrompt} →
-          </Button>
-        </div>
+        {/* RIGHT — the one generation canvas: ready / generating / result / error */}
+        <GenerationCanvas
+          state={canvasState}
+          aspectRatio={resolvedSize.ratioLabel}
+          orientation={resolvedSize.orientation}
+          imageUrl={gen.resultUrl}
+          errorMessage={gen.errorMessage}
+          onRetry={gen.reset}
+          actions={
+            <GenerationActions
+              onDownload={gen.download}
+              onEdit={() => setEditing((e) => !e)}
+              onRegenerate={gen.regenerate}
+            />
+          }
+        />
       </div>
     </div>
   );
 }
 
-function GenerationLoadingState({
-  ratioLabel,
-  orientation,
-  phase,
+function ReferenceRow({
+  references,
+  onAdd,
+  onRemove,
+  onRetry,
 }: {
-  ratioLabel: string;
-  orientation: string;
-  phase: Phase;
+  references: ReturnType<typeof useGeneration>["references"];
+  onAdd: (file: File) => void;
+  onRemove: (index: number) => void;
+  onRetry: (index: number) => void;
 }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const start = Date.now();
-    const id = setInterval(() => setElapsed(Math.round((Date.now() - start) / 1000)), 1000);
-    return () => clearInterval(id);
-  }, []);
-  const statusText = phase === "starting" ? "Starting…" : "Generating image…";
   return (
-    <div className="mx-auto max-w-[480px] space-y-4 text-center">
-      <ThinkingField
-        variant="generate"
-        status={statusText}
-        aspectRatio={ratioLabel.replace(":", " / ")}
-      />
-      <p className="text-body-md">{statusText}</p>
-      <p className="text-body-sm text-[color:var(--text-secondary)]">
-        {ratioLabel} · {orientation} {elapsed > 0 ? `· ${elapsed}s` : ""}
-      </p>
+    <div className="flex flex-wrap items-center gap-2">
+      {references.map((r, i) => (
+        <div
+          key={i}
+          className="relative h-16 w-16 overflow-hidden rounded border border-[color:var(--border-subtle)]"
+        >
+          <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+          <button
+            type="button"
+            aria-label="Remove reference"
+            onClick={() => onRemove(i)}
+            className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white"
+          >
+            <X className="h-3 w-3" />
+          </button>
+          {r.uploading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[10px]">
+              …
+            </div>
+          )}
+          {r.error && (
+            <button
+              type="button"
+              onClick={() => onRetry(i)}
+              aria-label="Retry attaching reference"
+              className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-white/85 text-[9px] font-medium text-[color:var(--text-secondary)]"
+            >
+              <RefreshCw className="h-3 w-3" />
+              Retry
+            </button>
+          )}
+        </div>
+      ))}
+      {references.length < MAX_REFERENCE_IMAGES_V1 && (
+        <label className="flex h-16 w-16 cursor-pointer items-center justify-center rounded border border-dashed border-[color:var(--border-subtle)] text-[color:var(--text-secondary)]">
+          <Plus className="h-4 w-4" />
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) onAdd(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+      )}
     </div>
   );
 }

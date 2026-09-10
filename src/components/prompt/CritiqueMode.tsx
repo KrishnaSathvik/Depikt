@@ -27,9 +27,9 @@ import {
 import { CTA, IMAGO_URL } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
-import { useNavigate } from "@tanstack/react-router";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
-import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { useGeneration } from "@/lib/generation/use-generation";
+import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 
 /**
  * Critique mode of the unified Prompt workspace (/prompt?mode=critique).
@@ -86,18 +86,24 @@ const DIMENSION_LABELS: Record<string, string> = {
 
 export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps) {
   const { restore } = search;
-  const navigate = useNavigate();
-  const handleGenerateRewrite = (result: CritiqueResult, reference: ReferenceImageState | null) => {
+  // One shared generation execution path — see docs/plans/2026-09-10-inline-
+  // generation-workspace.md. "Generate rewrite" starts the job inline, right
+  // here on /prompt; it never navigates to /generate.
+  const gen = useGeneration({ sourceContext: { type: "prompt_critique" } });
+  const handleGenerateRewrite = async (
+    result: CritiqueResult,
+    reference: ReferenceImageState | null,
+  ) => {
     if (!result.rewritten_prompt) return;
     trackEvent("generate_submitted_from_prompt_critique", {});
-    saveGenerationHandoff({
+    if (reference?.dataUrl && gen.references.length === 0) {
+      await gen.addReferenceFromDataUrl(reference.dataUrl);
+    }
+    await gen.submit({
       prompt: result.rewritten_prompt,
-      references: reference?.dataUrl ? [{ dataUrl: reference.dataUrl }] : [],
       structuredAspectRatio: null,
-      routingHints: result.category ? { category: result.category } : undefined,
-      sourceType: "prompt_critique",
+      routingHints: result.category ? { category: result.category } : null,
     });
-    void navigate({ to: "/generate" });
   };
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -356,9 +362,17 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                 onNew={handleNewCritique}
                 onGenerate={
                   isNativeGenerationEnabled()
-                    ? () => handleGenerateRewrite(result, reference)
+                    ? () => void handleGenerateRewrite(result, reference)
                     : undefined
                 }
+              />
+            )}
+            {result?.rewritten_prompt && isNativeGenerationEnabled() && (
+              <InlineGenerationPanel
+                promptLabel="Rewritten prompt"
+                promptText={result.rewritten_prompt}
+                structuredAspectRatio={null}
+                gen={gen}
               />
             )}
           </div>
