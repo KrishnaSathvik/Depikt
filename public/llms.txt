@@ -1,6 +1,6 @@
 # Depikt
 
-> Depikt is a prompt workspace and reference library for AI image creation. Explore proven prompt examples, turn rough ideas and reference images into structured prompts with Prompt Builder, improve existing prompts with Prompt Critic, browse visual references, and learn from practical prompting guides.
+> Depikt is a prompt workspace and reference library for AI image creation. Explore proven prompt examples, build and improve image prompts in one Prompt workspace with Build and Critique modes, browse visual references, and learn from practical prompting guides.
 
 Depikt's Library currently includes **523 curated prompts**: 500 original GPT Image 2 examples and 23 tested ChatGPT Images 2.5 recipes.
 
@@ -14,13 +14,13 @@ Build and Critique are two modes of one workspace at https://depikt.app/prompt. 
 
 - [Prompt workspace — Critique mode](https://depikt.app/prompt?mode=critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
 
-- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked visual references across different styles and formats. Open an image to inspect it or send it into Prompt Builder as a reference.
+- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked visual references across different styles and formats. Open an image to inspect it or send it straight into the Prompt workspace in Build mode as a reference.
 
-- [Templates](https://depikt.app/templates): Reusable prompt starters for common image tasks. Templates provide a useful structure for getting started before refining the idea in Prompt Builder.
+- [Templates](https://depikt.app/templates): Reusable prompt starters for common image tasks. Templates provide a useful structure for getting started before refining the idea in the Prompt workspace (Build mode).
 
 ## ChatGPT Images 2.5
 
-OpenAI released ChatGPT Images 2.5 on September 8, 2026. Depikt's Prompt Builder and Prompt Critic have been updated around the newer model's stronger reference handling, precise edits, structured visuals, text-heavy layouts, and multi-turn workflows.
+OpenAI released ChatGPT Images 2.5 on September 8, 2026. Depikt's Prompt workspace (Build and Critique modes) has been updated around the newer model's stronger reference handling, precise edits, structured visuals, text-heavy layouts, and multi-turn workflows.
 
 The Library contains **23 generated and reviewed ChatGPT Images 2.5 recipes** alongside the original GPT Image 2 collection.
 
@@ -102,6 +102,6 @@ Depikt also keeps the original GPT Image 2 guides as historical references. Many
 
 Depikt is built for designers, marketers, founders, developers, and anyone who wants a better starting point for image creation.
 
-The Library and Gallery help with discovery and inspiration. Templates provide reusable structures. Prompt Builder turns an idea into a stronger prompt. Prompt Critic helps identify what is missing or weakening an existing prompt.
+The Library and Gallery help with discovery and inspiration. Templates provide reusable structures. The Prompt workspace does the rest: Build mode turns an idea into a stronger prompt, and Critique mode identifies what is missing or weakening an existing prompt.
 
 Depikt currently prepares and evaluates prompts rather than generating the final image inside the product.
