@@ -48,6 +48,8 @@ interface ReferenceEntry {
   local: ReferenceImageState;
   uploadedPath: string | null;
   uploading: boolean;
+  /** Upload failed (commonly: not signed in yet). Kept visible, not silently dropped — see retryReferenceUpload. */
+  error?: boolean;
 }
 
 const ERROR_COPY: Record<string, string> = {
@@ -111,6 +113,36 @@ export function GenerateWorkspace() {
     });
   }
 
+  // Upload one reference's data URL and patch its entry in place. On
+  // failure (most commonly: not signed in yet — a Library/Gallery handoff
+  // can land here before the user has a session) the entry stays visible
+  // with its local preview and is flagged for retry rather than silently
+  // dropped, so the reference doesn't appear to just vanish.
+  async function uploadReference(entry: ReferenceEntry) {
+    try {
+      const { path } = await uploadReferenceImage(entry.local.dataUrl);
+      setReferences((prev) =>
+        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
+      );
+      return true;
+    } catch {
+      setReferences((prev) =>
+        prev.map((r) => (r === entry ? { ...r, uploading: false, error: true } : r)),
+      );
+      return false;
+    }
+  }
+
+  function retryReferenceUpload(index: number) {
+    setReferences((prev) => {
+      const entry = prev[index];
+      if (!entry || !entry.error) return prev;
+      const next = prev.map((r, i) => (i === index ? { ...r, uploading: true, error: false } : r));
+      void uploadReference(next[index]);
+      return next;
+    });
+  }
+
   // Shared by the file picker (handleAddReference) and a Library/Gallery/
   // Prompt handoff (already-processed data URLs, no File object to re-derive).
   async function restoreReference(dataUrl: string) {
@@ -126,15 +158,7 @@ export function GenerateWorkspace() {
     };
     const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
     setReferences((prev) => [...prev, entry]);
-    try {
-      const { path } = await uploadReferenceImage(dataUrl);
-      setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
-      );
-    } catch {
-      toast.error("Could not attach the reference image");
-      setReferences((prev) => prev.filter((r) => r !== entry));
-    }
+    await uploadReference(entry);
   }
 
   // Load the authoritative balance once signed in.
@@ -151,6 +175,18 @@ export function GenerateWorkspace() {
       pendingSubmit.current = false;
       void submit();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // A reference attached before sign-in (e.g. a Library/Gallery handoff
+  // arriving while signed out) fails to upload with a 401 and is left
+  // flagged `error` rather than dropped — retry it automatically once a
+  // session exists, so it doesn't just sit there needing a manual tap.
+  useEffect(() => {
+    if (!user) return;
+    references.forEach((r, i) => {
+      if (r.error) retryReferenceUpload(i);
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -182,16 +218,9 @@ export function GenerateWorkspace() {
     const local = await fileToReferenceState(file, "auto");
     const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
     setReferences((prev) => [...prev, entry]);
-    try {
-      const { path } = await uploadReferenceImage(local.dataUrl);
-      setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
-      );
-      trackEvent("reference_added", {});
-    } catch {
-      toast.error("Could not upload reference image");
-      setReferences((prev) => prev.filter((r) => r !== entry));
-    }
+    const ok = await uploadReference(entry);
+    if (ok) trackEvent("reference_added", {});
+    else toast.error("Couldn't attach the reference image — tap it to retry.");
   }
 
   function removeReference(index: number) {
@@ -459,6 +488,17 @@ export function GenerateWorkspace() {
                 <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[10px]">
                   …
                 </div>
+              )}
+              {r.error && (
+                <button
+                  type="button"
+                  onClick={() => retryReferenceUpload(i)}
+                  aria-label="Retry attaching reference"
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-white/85 text-[9px] font-medium text-[color:var(--text-secondary)]"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                  Retry
+                </button>
               )}
             </div>
           ))}
