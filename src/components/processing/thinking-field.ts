@@ -38,7 +38,20 @@ function distance(ax: number, ay: number, bx: number, by: number): number {
   return Math.sqrt(dx * dx + dy * dy);
 }
 
-/** Two organic influence points wandering a slow lissajous-ish path, plus a subtle wave. */
+/**
+ * Deterministic 2D pseudo-random hash, 0..1. Unlike hashing a linear grid
+ * index (adjacent dots differ by exactly 1), this varies independently in
+ * both directions so per-dot noise doesn't alias into a smooth gradient.
+ */
+function hash2(nx: number, ny: number): number {
+  const s = Math.sin(nx * 127.1 + ny * 311.7) * 43758.5453;
+  return s - Math.floor(s);
+}
+
+/**
+ * Two organic influence points wandering a slow lissajous-ish path, plus a
+ * subtle wave. The busiest and densest of the three — creation in progress.
+ */
 function generateField(nx: number, ny: number, t: number): number {
   const ax = 0.5 + Math.sin(t * 0.18) * 0.34;
   const ay = 0.5 + Math.cos(t * 0.13) * 0.3;
@@ -52,43 +65,46 @@ function generateField(nx: number, ny: number, t: number): number {
   return a * 0.75 + b * 0.65 + wave;
 }
 
-/** Scattered field crossfading into horizontal structured bands over a ~6s cycle. */
-function buildField(nx: number, ny: number, t: number, seed: number): number {
+/**
+ * True per-dot scatter (no influence points, no blob) crossfading into
+ * crisp horizontal bands over a ~6s cycle — messy idea resolving into
+ * structure, visually unrelated to generate's wandering blobs.
+ */
+function buildField(nx: number, ny: number, t: number): number {
   const cycle = (Math.sin((t / 6) * Math.PI * 2) + 1) / 2; // 0..1, ~6s period
   const organization = cycle; // how "organized" the field looks right now
 
-  // Deterministic pseudo-random scatter per-dot, stable across frames.
-  const scatter = (Math.sin(seed * 12.9898) * 43758.5453) % 1;
-  const organicStrength =
-    0.35 + 0.5 * Math.abs(Math.sin(seed * 7.13 + t * 0.6)) * (scatter > 0 ? 1 : 0.6);
+  // Scattered: independent per-dot noise, gently flickering so it reads as
+  // alive rather than static.
+  const n = hash2(nx, ny);
+  const flicker = 0.5 + 0.5 * Math.sin(n * 23 + t * 0.9);
+  const organicStrength = 0.1 + 0.55 * n * flicker;
 
-  // Structured field: horizontal bands, every third row active.
-  const bandIndex = Math.round(ny * 9);
+  // Structured: sharp on/off horizontal bands, every third row.
+  const bandIndex = Math.floor(ny * 9);
   const inBand = bandIndex % 3 === 0;
-  const bandStrength = inBand ? 0.75 + 0.2 * Math.sin(nx * 10 + t) : 0.08;
+  const bandStrength = inBand ? 0.9 + 0.1 * Math.sin(nx * 14 + t * 1.2) : 0.03;
 
   return organicStrength * (1 - organization) + bandStrength * organization;
 }
 
-/** A broad, soft region sweeping vertically through a calmer, sparser field. */
+/**
+ * A narrow, soft region sweeping vertically through a mostly-quiet field —
+ * inspection, not creation. Deliberately sparser/calmer than generate or
+ * build: low ambient noise, no smooth traveling wave.
+ */
 function critiqueField(nx: number, ny: number, t: number): number {
   const scanY = (Math.sin(t * 0.22) + 1) / 2; // 0..1, slow vertical sweep
-  const band = gaussian(Math.abs(ny - scanY), 0.22);
-  const drift = 0.15 + 0.1 * Math.sin(nx * 4 + t * 0.3);
-  return band * 0.8 + drift * 0.2;
+  const band = gaussian(Math.abs(ny - scanY), 0.14);
+  const ambient = 0.04 + 0.05 * hash2(nx, ny);
+  return band * 0.85 + ambient;
 }
 
 /**
  * Compute the style for one dot at logical time `t` (seconds), for the
- * given variant. `seed` is a stable per-dot value (e.g. based on its grid
- * index) used by variants that need per-dot variation without moving dots.
+ * given variant.
  */
-export function computeDotStyle(
-  variant: ThinkingVariant,
-  point: FieldPoint,
-  t: number,
-  seed: number,
-): DotStyle {
+export function computeDotStyle(variant: ThinkingVariant, point: FieldPoint, t: number): DotStyle {
   const { nx, ny } = point;
   let strength: number;
   switch (variant) {
@@ -96,7 +112,7 @@ export function computeDotStyle(
       strength = generateField(nx, ny, t);
       break;
     case "build":
-      strength = buildField(nx, ny, t, seed);
+      strength = buildField(nx, ny, t);
       break;
     case "critique":
       strength = critiqueField(nx, ny, t);
@@ -106,9 +122,9 @@ export function computeDotStyle(
 }
 
 /** Static (reduced-motion) style: gentle fixed variation, no animation. */
-export function computeStaticDotStyle(point: FieldPoint, seed: number): DotStyle {
+export function computeStaticDotStyle(point: FieldPoint): DotStyle {
   const { nx, ny } = point;
-  const strength = 0.25 + 0.2 * gaussian(distance(nx, ny, 0.5, 0.5), 0.35) + 0.05 * Math.sin(seed);
+  const strength = 0.25 + 0.2 * gaussian(distance(nx, ny, 0.5, 0.5), 0.35) + 0.05 * hash2(nx, ny);
   return styleFromStrength(strength);
 }
 

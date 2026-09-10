@@ -7,18 +7,14 @@ import {
   type ThinkingVariant,
 } from "./thinking-field";
 
-interface Dot extends FieldPoint {
-  seed: number;
-}
-
-function buildDots(cols: number, rows: number): Dot[] {
-  const dots: Dot[] = [];
+function buildDots(cols: number, rows: number): FieldPoint[] {
+  const dots: FieldPoint[] = [];
   for (let row = 0; row < rows; row++) {
     for (let col = 0; col < cols; col++) {
       // Inset slightly so edge dots aren't clipped by their own radius.
       const nx = cols === 1 ? 0.5 : (col + 0.5) / cols;
       const ny = rows === 1 ? 0.5 : (row + 0.5) / rows;
-      dots.push({ nx, ny, seed: row * cols + col });
+      dots.push({ nx, ny });
     }
   }
   return dots;
@@ -53,7 +49,7 @@ export interface ThinkingFieldProps {
 export function ThinkingField({ variant, status, aspectRatio, className }: ThinkingFieldProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const dotsRef = useRef<Dot[]>([]);
+  const dotsRef = useRef<FieldPoint[]>([]);
   const colorRef = useRef<[number, number, number]>([59, 91, 219]);
   const rafRef = useRef<number | null>(null);
   const startRef = useRef<number>(performance.now());
@@ -95,9 +91,7 @@ export function ThinkingField({ variant, status, aspectRatio, className }: Think
       const reduced = reducedMotionQuery.matches;
       const t = (performance.now() - startRef.current) / 1000;
       for (const dot of dotsRef.current) {
-        const style = reduced
-          ? computeStaticDotStyle(dot, dot.seed)
-          : computeDotStyle(variant, dot, t, dot.seed);
+        const style = reduced ? computeStaticDotStyle(dot) : computeDotStyle(variant, dot, t);
         ctx!.beginPath();
         ctx!.fillStyle = `rgba(${r}, ${g}, ${b}, ${style.opacity})`;
         ctx!.arc(dot.nx * cssWidth, dot.ny * cssHeight, style.radius, 0, Math.PI * 2);
