@@ -134,7 +134,7 @@ Then ask it something like:
 
 > "Search Depikt for a prompt that would work for an editorial poster with exact text."
 
-From there, the assistant can retrieve an actual prompt and help you adapt it to what you are making. If you want to refine it further, the [Prompt Builder](/generate) and [Prompt Critic](/critique) are still one click away.
+From there, the assistant can retrieve an actual prompt and help you adapt it to what you are making. If you want to refine it further, the [Prompt workspace](/prompt?mode=build) and [Critique mode](/prompt?mode=critique) are still one click away.
 `,
   },
   // ---- ChatGPT Images 2.5 guides (September 2026) ----
@@ -171,7 +171,7 @@ From there, the assistant can retrieve an actual prompt and help you adapt it to
       {
         question: "Does Depikt generate images with Images 2.5?",
         answer:
-          "No. Depikt writes and reviews prompts. The Prompt Builder and Prompt Critic are tuned for ChatGPT Images 2.5; you paste the result into ChatGPT to make the image.",
+          "No. Depikt writes and reviews prompts. The Prompt workspace (Build and Critique modes) is tuned for ChatGPT Images 2.5; you paste the result into ChatGPT to make the image.",
       },
     ],
     content: `
@@ -259,7 +259,7 @@ The second prompt is not longer for its own sake. Every clause is a decision the
 Reference image: use as SUBJECT IDENTITY only. Keep the face, hair, and build recognizable. Do not copy the reference's clothing, background, or lighting.
 \`\`\`
 
-The [Prompt Builder](/generate) asks for this explicitly (style, subject identity, edit source, product, composition, or sketch layout) and writes the corresponding clause into the prompt.
+The [Prompt workspace](/prompt?mode=build) asks for this explicitly (style, subject identity, edit source, product, composition, or sketch layout) and writes the corresponding clause into the prompt.
 
 ### Put text and layout in their own sentences
 
@@ -277,7 +277,7 @@ Better consistency across turns does not mean the model remembers your constrain
 
 ### What did not change
 
-The [aspect ratio](/blog/ai-image-aspect-ratios-guide-gpt-image-2) still needs to be stated. Vague quality adjectives still do nothing that a concrete constraint would not do better. And a prompt that contradicts itself ("minimal, with lots of detail") still produces a coin-flip. The [Prompt Critic](/critique) scores exactly these things: intent fidelity, contradictions, reference handling, edit preservation, text and layout, and efficiency.
+The [aspect ratio](/blog/ai-image-aspect-ratios-guide-gpt-image-2) still needs to be stated. Vague quality adjectives still do nothing that a concrete constraint would not do better. And a prompt that contradicts itself ("minimal, with lots of detail") still produces a coin-flip. The [Critique mode](/prompt?mode=critique) scores exactly these things: intent fidelity, contradictions, reference handling, edit preservation, text and layout, and efficiency.
 
 ## What Depikt changed
 
@@ -341,7 +341,7 @@ ChatGPT Images 2.5 is better at doing precisely what you say and, importantly, a
 
 For prompting, that moves the effort. In earlier models you spent words fighting drift. Now the words that pay are the ones that remove a decision from the model: what the image is for, what the text says, what the reference is, what must not change.
 
-This guide is the structure we use in the [Prompt Builder](/generate). It works typed by hand too.
+This guide is the structure we use in the [Prompt workspace](/prompt?mode=build). It works typed by hand too.
 
 ## The six-part structure
 
@@ -426,7 +426,7 @@ Edit the attached photo. CHANGE: the sky only, to a late-sunset sky with warm or
 - **Describing the end state only.** "A photo of Sam in Tokyo" tells the model nothing about which parts of the attached photo of Sam matter. Say what the reference is for.
 - **Adjective stacking.** "Stunning, cinematic, ultra-detailed, 8K" adds nothing a lens, a light, and a medium would not add better. The 2.0-era list of [prompt mistakes](/blog/ai-image-prompt-mistakes) still applies.
 - **Unquoted text.** If the words are not in quotes, the model treats them as a description and may paraphrase.
-- **Contradictions.** "Minimal" and "richly detailed" in the same prompt. The [Prompt Critic](/critique) flags these first because they cap the score of everything else.
+- **Contradictions.** "Minimal" and "richly detailed" in the same prompt. The [Critique mode](/prompt?mode=critique) flags these first because they cap the score of everything else.
 - **No ratio.** You get a square. You wanted a poster.
 - **Forgetting PRESERVE on turn four.** Multi-turn consistency improved; it did not become memory. Restate what stays on every edit.
 
@@ -436,8 +436,8 @@ You may see advice that Images 2.5 prefers short prompts. OpenAI has not said th
 
 ## Use the tools
 
-- Paste a rough idea into the [Prompt Builder](/generate) and it will produce a prompt in this structure, with the intent stage shown so you can see what it inferred.
-- Paste an existing prompt into the [Prompt Critic](/critique) for a score across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency.
+- Paste a rough idea into the [Prompt workspace](/prompt?mode=build) and it will produce a prompt in this structure, with the intent stage shown so you can see what it inferred.
+- Paste an existing prompt into the [Critique mode](/prompt?mode=critique) for a score across intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency.
 - Browse the [Library](/library) for 500 worked examples from the GPT Image 2 era, each with a note on why it works, and remix any of them for 2.5.
 
 ## Sources
@@ -493,7 +493,7 @@ Everything below the official claims is Depikt's method, built from the [CHANGE 
 
 ## Part 1: say what the reference is for
 
-We use five reference intents in the [Prompt Builder](/generate), plus a sketch mode. Each one produces a different clause.
+We use five reference intents in the [Prompt workspace](/prompt?mode=build), plus a sketch mode. Each one produces a different clause.
 
 ### Subject identity
 
@@ -586,7 +586,7 @@ If you build the prompt in Depikt and open it in Imago (our ChatGPT handoff), th
 - **The product's label is wrong.** Product references need the label text quoted in the prompt; the reference alone is not enough for text.
 - **Edits keep getting worse.** You are five turns past a drift. Go back to the last good frame or restart from the original.
 
-Paste any edit prompt into the [Prompt Critic](/critique); it scores reference handling and edit preservation as essential dimensions and caps the overall score when either one fails. For finished prompts that use these clauses, browse the [Prompt Library](/library), or start from the [12 Images 2.5 recipes](/blog/chatgpt-images-2-5-prompt-examples).
+Paste any edit prompt into the [Critique mode](/prompt?mode=critique); it scores reference handling and edit preservation as essential dimensions and caps the overall score when either one fails. For finished prompts that use these clauses, browse the [Prompt Library](/library), or start from the [12 Images 2.5 recipes](/blog/chatgpt-images-2-5-prompt-examples).
 
 ## Sources
 
@@ -710,7 +710,7 @@ Isolated illustration of a single paper coffee cup with a plain white sleeve, th
 
 ## Check it before you generate
 
-Paste the prompt into the [Prompt Critic](/critique). Text and layout is one of the rubric's essential dimensions; an unquoted string or a missing ratio caps the overall score, which is the point. Or start from a rough idea in the [Prompt Builder](/generate), which asks for the exact text and ratio before it writes anything. The [Library](/library) has dozens of poster and infographic prompts from the GPT Image 2 era to study; remix any of them for 2.5.
+Paste the prompt into the [Critique mode](/prompt?mode=critique). Text and layout is one of the rubric's essential dimensions; an unquoted string or a missing ratio caps the overall score, which is the point. Or start from a rough idea in the [Prompt workspace](/prompt?mode=build), which asks for the exact text and ratio before it writes anything. The [Library](/library) has dozens of poster and infographic prompts from the GPT Image 2 era to study; remix any of them for 2.5.
 
 ## Sources
 
@@ -754,7 +754,7 @@ Paste the prompt into the [Prompt Critic](/critique). Text and layout is one of 
 
 Each recipe has three parts: the one-line idea a person would actually type, the full prompt for ChatGPT Images 2.5, and the clause that does the work. Copy the prompt, replace the specifics, keep the structure. The structure is explained in [how to prompt Images 2.5](/blog/how-to-prompt-chatgpt-images-2-5).
 
-These are Depikt's examples, produced with the [Prompt Builder](/generate). They are not OpenAI's. Where a recipe uses an attached image, attach one; the prompt says how it will be used.
+These are Depikt's examples, produced with the [Prompt workspace](/prompt?mode=build). They are not OpenAI's. Where a recipe uses an attached image, attach one; the prompt says how it will be used.
 
 ## 1. Event poster
 
@@ -878,7 +878,7 @@ Presentation slide, 16:9, white background. Layout: title top-left; three equal 
 
 ## Adapting a recipe
 
-Change the specifics, keep the skeleton: intent, subject, composition and ratio, quoted text with positions, medium, and an avoid list. If you attach an image, keep the reference clause and change only the description after it. Then paste the result into the [Prompt Critic](/critique); it will tell you if a change introduced a contradiction or dropped the ratio.
+Change the specifics, keep the skeleton: intent, subject, composition and ratio, quoted text with positions, medium, and an avoid list. If you attach an image, keep the reference clause and change only the description after it. Then paste the result into the [Critique mode](/prompt?mode=critique); it will tell you if a change introduced a contradiction or dropped the ratio.
 
 For 500 more worked examples from the GPT Image 2 era, each with a note on why it works, browse the [Library](/library) and remix any of them for 2.5.
 
@@ -980,7 +980,7 @@ This is the constraint block that kills the AI-mush look:
 
 ## Skip the rewrite
 
-[Depikt's Prompt Builder](/generate) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt templates index](/templates).
+[Depikt's Prompt workspace](/prompt?mode=build) detects logo intent and applies this four-block structure automatically. Browse the [library](/library) for logo prompt examples you can copy directly, or grab a ready-made recipe from the [prompt templates index](/templates).
 `,
   },
   {
@@ -1067,7 +1067,7 @@ This is what separates "AI infographic" from "designed object":
 
 ## Skip the rewrite
 
-[Depikt's Prompt Builder](/generate) detects infographic intent and applies this five-block structure automatically. The [library](/library) has dozens of infographic prompts you can copy directly.
+[Depikt's Prompt workspace](/prompt?mode=build) detects infographic intent and applies this five-block structure automatically. The [library](/library) has dozens of infographic prompts you can copy directly.
 `,
   },
   {
@@ -1162,7 +1162,7 @@ What separates "AI screenshot" from "designed screen":
 
 ## Skip the rewrite
 
-[Depikt](/generate) detects UI intent and applies this structure automatically. Browse [UI mockup prompts in the library](/library) for proven starting points.
+[Depikt](/prompt?mode=build) detects UI intent and applies this structure automatically. Browse [UI mockup prompts in the library](/library) for proven starting points.
 `,
   },
   {
@@ -1245,7 +1245,7 @@ The single line that makes the storyboard feel like one piece, not four images g
 
 ## Skip the rewrite
 
-[Depikt's Prompt Builder](/generate) recognizes storyboard intent and applies this structure automatically — including the character anchor and shared-style line.
+[Depikt's Prompt workspace](/prompt?mode=build) recognizes storyboard intent and applies this structure automatically — including the character anchor and shared-style line.
 `,
   },
   {
@@ -1345,7 +1345,7 @@ One imperfection. That's what separates rendered from photographed.
 
 ## Skip the rewrite
 
-[Depikt's Prompt Builder](/generate) detects product-shot intent and applies this structure automatically, including the grounding-detail line that most prompts skip.
+[Depikt's Prompt workspace](/prompt?mode=build) detects product-shot intent and applies this structure automatically, including the grounding-detail line that most prompts skip.
 `,
   },
   {
@@ -1428,7 +1428,7 @@ GPT Image 2 doesn't crop your image after rendering — it **composes** for the 
 
 ## Skip the lookup
 
-[Depikt's Prompt Builder](/generate) infers the right aspect ratio from your idea automatically — "a movie poster" gets 2:3, "an Instagram ad" gets 4:5, "a desktop hero" gets 16:9. You don't have to remember the table.
+[Depikt's Prompt workspace](/prompt?mode=build) infers the right aspect ratio from your idea automatically — "a movie poster" gets 2:3, "an Instagram ad" gets 4:5, "a desktop hero" gets 16:9. You don't have to remember the table.
 `,
   },
   {
@@ -1498,8 +1498,8 @@ PromptBase has breadth — Midjourney, Stable Diffusion, DALL·E, Flux, Sora, al
 ## Try it
 
 - Browse the [500-prompt library](/library)
-- Open the [Prompt Builder](/generate) and turn one sentence into a structured prompt
-- Paste any prompt into [critique](/critique) for a score and a rewrite
+- Open the [Prompt workspace](/prompt?mode=build) and turn one sentence into a structured prompt
+- Paste any prompt into [Critique mode](/prompt?mode=critique) for a score and a rewrite
 
 All free, no account required.
 `,
@@ -1538,7 +1538,7 @@ All free, no account required.
     content: `
 ## The short answer
 
-If you're prompting **GPT Image 2** — the image model inside ChatGPT and the OpenAI API — the best free generator in 2026 is **[Depikt](/generate)**. It turns one rough sentence into a structured prompt with composition, lighting, type, palette, and aspect ratio all spelled out. No login.
+If you're prompting **GPT Image 2** — the image model inside ChatGPT and the OpenAI API — the best free generator in 2026 is **[Depikt](/prompt?mode=build)**. It turns one rough sentence into a structured prompt with composition, lighting, type, palette, and aspect ratio all spelled out. No login.
 
 ## What "good" actually means
 
@@ -1566,7 +1566,7 @@ Most free generators do one of two things wrong:
 
 ## Try it
 
-[Open the Prompt Builder](/generate). Type one sentence. Compare what comes back to whatever your current tool produces. The structural difference is usually obvious within one image.
+[Open the Prompt workspace](/prompt?mode=build). Type one sentence. Compare what comes back to whatever your current tool produces. The structural difference is usually obvious within one image.
 `,
   },
   {
@@ -1660,7 +1660,7 @@ Small captions, data marks, a thin brand strip — these take output from "AI ar
 
 ## Skip the rewrite
 
-[Depikt's Prompt Builder](/generate) applies this exact structure automatically. Type "a poster about climate change" and get back a six-part structured prompt ready to paste into ChatGPT. The [library](/library) has 50+ poster prompts you can copy directly.
+[Depikt's Prompt workspace](/prompt?mode=build) applies this exact structure automatically. Type "a poster about climate change" and get back a six-part structured prompt ready to paste into ChatGPT. The [library](/library) has 50+ poster prompts you can copy directly.
 `,
   },
   {
@@ -1730,7 +1730,7 @@ Both are free. Both are useful. The difference is **focus**:
 
 If your job is exploring the wider AI image space, PromptHero is the bigger sandbox. If your job is shipping images with GPT Image 2 today, Depikt is the faster path — smaller library, but every prompt works, plus you can generate new ones in seconds.
 
-[Browse the Depikt library](/library) or [try the Prompt Builder](/generate).
+[Browse the Depikt library](/library) or [try the Prompt workspace](/prompt?mode=build).
 `,
   },
   {
@@ -1867,7 +1867,7 @@ The second prompt is shorter and produces a far more consistent image — becaus
 
 ## Use it without the lookup
 
-[Depikt](/generate) bakes this vocabulary into every prompt it writes — type a rough idea and you get the structured output with camera, lighting, composition, and medium already specified. Or [browse the library](/library) for 500 prompts that demonstrate the patterns in context.
+[Depikt](/prompt?mode=build) bakes this vocabulary into every prompt it writes — type a rough idea and you get the structured output with camera, lighting, composition, and medium already specified. Or [browse the library](/library) for 500 prompts that demonstrate the patterns in context.
 `,
   },
   {
@@ -1995,7 +1995,7 @@ If any answer is "the model will figure it out" — it won't. Pin it down.
 
 ## Skip the structure work entirely
 
-Writing structured prompts gets faster with practice, but the structure itself is mechanical. [Depikt](/generate) turns any rough idea into a production-grade structured prompt in seconds — built specifically around the patterns above for GPT Image 2.
+Writing structured prompts gets faster with practice, but the structure itself is mechanical. [Depikt](/prompt?mode=build) turns any rough idea into a production-grade structured prompt in seconds — built specifically around the patterns above for GPT Image 2.
 
 Or [browse the library](/library) of 500 ready-to-paste prompts across posters, infographics, UI mockups, cinematic scenes, storyboards, and more.
 `,
@@ -2152,7 +2152,7 @@ MATCH: Original lighting direction and intensity on subject (rim from camera-rig
 
 Don't just copy them verbatim. Use them as templates: find the example closest to your use case, swap out the subject specifics for your own, keep the structural skeleton (camera specs, lighting language, aspect ratio), and iterate by changing one variable at a time.
 
-Or paste your rough idea into [Depikt](/generate) and let it generate the structured prompt for you.
+Or paste your rough idea into [Depikt](/prompt?mode=build) and let it generate the structured prompt for you.
 `,
   },
   {
@@ -2267,7 +2267,7 @@ When iterating, keep everything constant except one element — light direction,
 
 ## The faster path
 
-If running through this checklist on every prompt sounds like work, [Depikt](/generate) automates these techniques. Paste a rough idea, get back a structured prompt that has already applied each technique.
+If running through this checklist on every prompt sounds like work, [Depikt](/prompt?mode=build) automates these techniques. Paste a rough idea, get back a structured prompt that has already applied each technique.
 `,
   },
   {
@@ -2392,7 +2392,7 @@ For everything else — photoreal, cinematic, character art, interiors, food, fa
 
 ## Use the framework or use Depikt
 
-You can apply this manually on every prompt. Or you can paste your rough idea into [Depikt](/generate) and get a structured 6-layer prompt back in seconds. Same framework, automated.
+You can apply this manually on every prompt. Or you can paste your rough idea into [Depikt](/prompt?mode=build) and get a structured 6-layer prompt back in seconds. Same framework, automated.
 `,
   },
   {
@@ -2478,7 +2478,7 @@ Three text elements, each with its own font weight, color, and placement. Hex co
 
 ## The shortcut
 
-Manually applying this protocol on every prompt is tedious. [Depikt](/generate) bakes the entire text-rendering protocol into every poster, social graphic, and typography-heavy prompt it generates. Paste your rough idea, get back a prompt with quotes, placements, weights, and the verbatim trigger already in place.
+Manually applying this protocol on every prompt is tedious. [Depikt](/prompt?mode=build) bakes the entire text-rendering protocol into every poster, social graphic, and typography-heavy prompt it generates. Paste your rough idea, get back a prompt with quotes, placements, weights, and the verbatim trigger already in place.
 `,
   },
   {
@@ -2625,7 +2625,7 @@ If you're picking just one in April 2026:
 - **Use Midjourney V8** when aesthetic quality is the entire point and you're not constrained by text rendering needs
 - **Use Nano Banana Pro** when you need character consistency across a series or precise edits
 
-[Depikt](/generate) generates prompts optimized specifically for GPT Image 2's reasoning style. If you're using GPT Image 2 as your primary model — which is the right default for most production teams in April 2026 — that's the leverage point.
+[Depikt](/prompt?mode=build) generates prompts optimized specifically for GPT Image 2's reasoning style. If you're using GPT Image 2 as your primary model — which is the right default for most production teams in April 2026 — that's the leverage point.
 
 ## Sources
 
@@ -2773,7 +2773,7 @@ Regenerating with a refined prompt is often faster than fixing a broken edit cha
 
 ## The shortcut
 
-Writing CHANGE / PRESERVE / MATCH blocks manually is tedious, especially the exhaustive PRESERVE list. [Depikt's critique tool](/critique) can analyze your edit prompts and flag missing PRESERVE elements before you waste a generation on drift.
+Writing CHANGE / PRESERVE / MATCH blocks manually is tedious, especially the exhaustive PRESERVE list. [Depikt's Critique mode](/prompt?mode=critique) can analyze your edit prompts and flag missing PRESERVE elements before you waste a generation on drift.
 `,
   },
   {
@@ -2892,7 +2892,7 @@ AI image models produce better output when they're satisfying specific, concrete
 
 ## Skip the mistakes
 
-[Depikt](/generate) applies these fixes automatically. Paste a rough idea — even one that makes every mistake on this list — and get back a structured prompt that avoids all seven. It's the fastest way to stop wasting generations.
+[Depikt](/prompt?mode=build) applies these fixes automatically. Paste a rough idea — even one that makes every mistake on this list — and get back a structured prompt that avoids all seven. It's the fastest way to stop wasting generations.
 `,
   },
 ];
