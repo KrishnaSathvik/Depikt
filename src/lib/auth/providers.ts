@@ -38,9 +38,18 @@ export const AUTH_PROVIDERS: ReadonlyArray<AuthProviderDef> = [
 
 type EnvLike = Record<string, string | boolean | undefined>;
 
+// Vite's SSR module runner proxies `import.meta.env` and rejects dynamic
+// (bracket, non-literal) property access on it with "Dynamic access of
+// import.meta.env is not supported" — even when the access happens through a
+// variable that merely holds a reference to that proxy. So each key is read
+// with its own static `import.meta.env.VITE_...` expression here, once, and
+// copied into a plain object that enabledAuthProviders can index freely.
 function readViteEnv(): EnvLike {
-  const meta = import.meta as ImportMeta & { env?: EnvLike };
-  return meta.env ?? {};
+  return {
+    VITE_AUTH_GOOGLE_ENABLED: import.meta.env.VITE_AUTH_GOOGLE_ENABLED,
+    VITE_AUTH_APPLE_ENABLED: import.meta.env.VITE_AUTH_APPLE_ENABLED,
+    VITE_AUTH_MICROSOFT_ENABLED: import.meta.env.VITE_AUTH_MICROSOFT_ENABLED,
+  };
 }
 
 export function enabledAuthProviders(env: EnvLike = readViteEnv()): AuthProviderId[] {
