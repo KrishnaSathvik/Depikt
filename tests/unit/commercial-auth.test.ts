@@ -158,6 +158,6 @@ test("header shows one Sign in link when signed out and an avatar menu when sign
   const menu = read("src/components/auth/AccountMenu.tsx");
   assert.match(menu, /DropdownMenu/);
   assert.match(menu, /ROUTES\.account/);
-  assert.match(menu, /Sign out/);
+  assert.match(menu, /AUTH_COPY\.signOut|Sign out/);
   assert.match(menu, /credits/);
 });
