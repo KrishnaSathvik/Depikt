@@ -165,43 +165,36 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "prompt" | "builder" | "critic" | "library" | "gallery" | "blog" | "mcp" | "templates",
+  "root" | "home" | "prompt" | "library" | "gallery" | "blog" | "mcp" | "templates",
   PageMeta
 > = {
   root: {
-    title: `Depikt — Prompt Builder & Library for ${TARGET_MODEL_NAME}`,
-    description: `Turn rough ideas and reference images into image-ready prompts for ${TARGET_MODEL_NAME}. Browse ${LIBRARY_PROMPT_COUNT} curated prompts for ${LEGACY_MODEL_NAME} and ${TARGET_MODEL_NAME}, build your own, and critique existing prompts. Free, no login.`,
+    title: "Depikt — AI Image Prompts, References & Templates",
+    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
   },
   home: {
-    title: `Depikt — AI Image Prompt Builder for ${TARGET_MODEL_NAME}`,
-    description: `Build better ChatGPT image prompts, explore ${LIBRARY_PROMPT_COUNT} real examples, and improve existing prompts with Depikt’s Prompt Builder and Prompt Critic.`,
+    title: "Depikt — AI Image Prompts, References & Templates",
+    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
   },
   prompt: {
-    title: `AI Image Prompt Workspace — Build and Critique | Depikt`,
-    description: `Write a new image prompt or improve an existing one in one workspace. Build turns an idea or reference into a structured prompt; Critique scores a prompt and rewrites it.`,
-  },
-  builder: {
-    title: `${TARGET_MODEL_NAME} Prompt Builder | Depikt`,
-    description: `Turn a rough idea or reference image into a clear, structured prompt for ${TARGET_MODEL_NAME}, from posters and edits to UI, infographics, and photography.`,
-  },
-  critic: {
-    title: `${TARGET_MODEL_NAME} Prompt Critic | Depikt`,
+    title: "AI Image Prompt Builder & Critic | Depikt",
     description:
-      "Review an image prompt for clarity, edits, reference handling, text, layout, and unnecessary complexity, then get concrete fixes and a stronger rewrite.",
+      "Build a structured image prompt from an idea or reference, or critique an existing prompt and get concrete improvements and a stronger rewrite.",
   },
   library: {
-    title: `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples for ChatGPT | Depikt`,
-    description: `Explore ${LIBRARY_PROMPT_COUNT} image prompts for posters, edits, references, infographics, UI concepts, photography, and more, including tested ${TARGET_MODEL_NAME} examples.`,
+    title: `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`,
+    description: `Explore ${LIBRARY_PROMPT_COUNT} curated image prompts for posters, edits, references, product photography, infographics, UI concepts, illustrations, and more.`,
   },
   gallery: {
-    title: "AI Image Prompt Reference Gallery | Depikt",
+    title: "AI Image Reference Gallery | Depikt",
     description:
-      "Explore visual references for posters, layouts, illustrations, UI, photography, infographics, and more, then use one as a starting point for your own prompt.",
+      "Browse hand-picked visual references for posters, layouts, illustrations, UI, photography, and infographics, then carry one straight into the Prompt workspace.",
   },
   blog: {
-    title: `AI Image Prompt Guides & ${TARGET_MODEL_NAME} Tips | Depikt`,
-    description: `Practical guides for writing better image prompts, editing with references, controlling text and layouts, and getting more from ${TARGET_MODEL_NAME}.`,
+    title: "AI Image Prompt Guides & Field Notes | Depikt",
+    description: `Practical guides on prompting, image editing, reference workflows, text and layout control, and what we learn from ${TARGET_MODEL_NAME}.`,
   },
+
   mcp: {
     title: "Depikt for AI Assistants: Connect the Prompt Library Through MCP | Depikt",
     description:
