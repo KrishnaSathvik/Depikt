@@ -114,6 +114,33 @@ test("structured hint: layout-heavy category routes to sunburst even with plain 
   assert.equal(m, "sunburst");
 });
 
+test("structured hint: the Library's own category vocabulary routes correctly, not just Prompt's engine ids", () => {
+  // src/data/curated-prompts.ts uses "Posters", "Infographics", "UI Mockups"
+  // (plural, capitalized) — a different vocabulary than Prompt's Intent
+  // Analyzer ("poster", "infographic", "ui"). Both must route the same way.
+  for (const category of ["Posters", "Infographics", "UI Mockups"]) {
+    const m = resolveGenerationModel({
+      operation: "generate",
+      promptText: "a nice piece",
+      referenceCount: 0,
+      hints: { category },
+    });
+    assert.equal(m, "sunburst", `expected sunburst for Library category "${category}"`);
+  }
+});
+
+test("structured hint: an unrelated Library category does not false-positive", () => {
+  for (const category of ["Cinematic", "Open-Ended Creative", "Social Posts"]) {
+    const m = resolveGenerationModel({
+      operation: "generate",
+      promptText: "a nice piece",
+      referenceCount: 0,
+      hints: { category },
+    });
+    assert.equal(m, "flare", `expected flare for Library category "${category}"`);
+  }
+});
+
 test("structured hint: a non-layout category with zero exact text stays on flare", () => {
   const m = resolveGenerationModel({
     operation: "generate",

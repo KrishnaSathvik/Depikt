@@ -10,6 +10,7 @@ import {
   Loader2,
   Plus,
   ScanSearch,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +27,9 @@ import {
 import { CTA, IMAGO_URL } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
+import { useNavigate } from "@tanstack/react-router";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
 
 /**
  * Critique mode of the unified Prompt workspace (/prompt?mode=critique).
@@ -82,6 +86,19 @@ const DIMENSION_LABELS: Record<string, string> = {
 
 export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps) {
   const { restore } = search;
+  const navigate = useNavigate();
+  const handleGenerateRewrite = (result: CritiqueResult, reference: ReferenceImageState | null) => {
+    if (!result.rewritten_prompt) return;
+    trackEvent("generate_submitted_from_prompt_critique", {});
+    saveGenerationHandoff({
+      prompt: result.rewritten_prompt,
+      references: reference?.dataUrl ? [{ dataUrl: reference.dataUrl }] : [],
+      structuredAspectRatio: null,
+      routingHints: result.category ? { category: result.category } : undefined,
+      sourceType: "prompt_critique",
+    });
+    void navigate({ to: "/generate" });
+  };
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CritiqueResult | null>(null);
@@ -337,6 +354,11 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                 result={result}
                 referenceThumb={reference?.dataUrl ?? null}
                 onNew={handleNewCritique}
+                onGenerate={
+                  isNativeGenerationEnabled()
+                    ? () => handleGenerateRewrite(result, reference)
+                    : undefined
+                }
               />
             )}
           </div>
@@ -377,11 +399,14 @@ function CritiqueView({
   result,
   referenceThumb,
   onNew,
+  onGenerate,
 }: {
   result: CritiqueResult;
   /** The attached source/reference image, when the critique used one. */
   referenceThumb: string | null;
   onNew: () => void;
+  /** Only set when the native-generation feature flag is on. */
+  onGenerate?: () => void;
 }) {
   const [view, setView] = useState<"text" | "json">("text");
   const [rewrittenCopied, setRewrittenCopied] = useState(false);
@@ -616,10 +641,23 @@ function CritiqueView({
             </PromptSurface>
           </div>
           <div className="mt-4 space-y-2">
-            <Button onClick={handleOpenInImago} size="sm" className="gap-2">
-              <ExternalLink className="h-3.5 w-3.5" />
-              {CTA.openImago}
-            </Button>
+            <div className="flex flex-wrap items-center gap-2">
+              {onGenerate && (
+                <Button onClick={onGenerate} size="sm" className="gap-2">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  {CTA.generateRewrite} → · 1 credit
+                </Button>
+              )}
+              <Button
+                onClick={handleOpenInImago}
+                size="sm"
+                variant={onGenerate ? "outline" : "default"}
+                className="gap-2"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                {CTA.openImago}
+              </Button>
+            </div>
             {referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
             <p className="text-[13px] text-[color:var(--text-tertiary)]">
               Opens Imago with your prompt copied. Paste with{" "}

@@ -1,6 +1,16 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Copy, ExternalLink, Search, ArrowRight, Star, Clock, Trash2, Wand2 } from "lucide-react";
+import {
+  Copy,
+  ExternalLink,
+  Search,
+  ArrowRight,
+  Star,
+  Clock,
+  Trash2,
+  Wand2,
+  Sparkles,
+} from "lucide-react";
 
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -11,6 +21,8 @@ import { Button } from "@/components/ui/button";
 import { PromptSurface } from "@/components/PromptSurface";
 import { SampleImage } from "@/components/SampleImage";
 import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import {
@@ -19,6 +31,7 @@ import {
   JSONLD_NAMES,
   LIBRARY_COPY,
   MCP,
+  ROUTES,
   SEO,
   TOOL,
   historyKindLabel,
@@ -591,7 +604,20 @@ function PromptDetailDialog({
   prompt: LibraryPrompt | null;
   onClose: () => void;
 }) {
+  const navigate = useNavigate();
   if (!prompt) return null;
+
+  const handleGenerate = () => {
+    saveGenerationHandoff({
+      prompt: prompt.prompt,
+      references: [],
+      structuredAspectRatio: null,
+      routingHints: prompt.category ? { category: prompt.category } : undefined,
+      sourceType: "library",
+      sourceId: prompt.id,
+    });
+    void navigate({ to: ROUTES.legacyBuilder });
+  };
 
   return (
     <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
@@ -623,7 +649,13 @@ function PromptDetailDialog({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <Button asChild size="sm">
+            {isNativeGenerationEnabled() && (
+              <Button size="sm" onClick={handleGenerate}>
+                <Sparkles className="h-3.5 w-3.5" />
+                Generate · 1 credit
+              </Button>
+            )}
+            <Button asChild size="sm" variant={isNativeGenerationEnabled() ? "outline" : "default"}>
               <Link
                 to="/prompt"
                 search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}

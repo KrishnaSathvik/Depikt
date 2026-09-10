@@ -83,7 +83,7 @@ export function GenerateWorkspace() {
   const pollStart = useRef<number>(0);
   const pendingSubmit = useRef(false);
 
-  // One-shot: pick up a handoff from Prompt Build, then restore auth-return state the same way.
+  // One-shot: pick up a handoff from Library/Gallery/Prompt, then restore auth-return state the same way.
   useEffect(() => {
     const handoff = consumeGenerationHandoff();
     if (handoff) {
@@ -92,10 +92,49 @@ export function GenerateWorkspace() {
       if (handoff.structuredAspectRatio) setStructuredRatio(handoff.structuredAspectRatio);
       setSourceContext({ type: handoff.sourceType, id: handoff.sourceId ?? null });
       trackEvent("generate_opened", { source: handoff.sourceType });
+      for (const ref of handoff.references) void restoreReference(ref.dataUrl);
     } else {
       trackEvent("generate_opened", { source: "direct" });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function measureDataUrl(
+    dataUrl: string,
+  ): Promise<{ width: number; height: number } | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+  }
+
+  // Shared by the file picker (handleAddReference) and a Library/Gallery/
+  // Prompt handoff (already-processed data URLs, no File object to re-derive).
+  async function restoreReference(dataUrl: string) {
+    if (references.length >= MAX_REFERENCE_IMAGES_V1) return;
+    const meta = await measureDataUrl(dataUrl);
+    const local: ReferenceImageState = {
+      dataUrl,
+      file: null,
+      intent: "auto",
+      meta: meta
+        ? { mime: "image/png", width: meta.width, height: meta.height, hasAlpha: false }
+        : undefined,
+    };
+    const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
+    setReferences((prev) => [...prev, entry]);
+    try {
+      const { path } = await uploadReferenceImage(dataUrl);
+      setReferences((prev) =>
+        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
+      );
+    } catch {
+      toast.error("Could not attach the reference image");
+      setReferences((prev) => prev.filter((r) => r !== entry));
+    }
+  }
 
   // Load the authoritative balance once signed in.
   useEffect(() => {

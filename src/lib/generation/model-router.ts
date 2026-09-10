@@ -32,12 +32,24 @@ export interface ModelRouterInput {
   hints?: RoutingHints;
 }
 
-// Categories from src/lib/prompt-engine/categories.ts whose typical output
-// leans on structured layout/typography precision.
-const LAYOUT_HEAVY_CATEGORIES = new Set(["poster", "infographic", "ui"]);
+// Substrings whose presence in a category label means the typical output
+// leans on structured layout/typography precision. Matched case-insensitive
+// and as a substring, not an exact id: category comes from two different
+// vocabularies depending on the caller — Prompt's Intent Analyzer uses
+// lowercase singular ids (src/lib/prompt-engine/categories.ts: "poster",
+// "infographic", "ui"), but the Library's own category field uses
+// human-facing labels ("Posters", plural, capitalized — confirmed against
+// src/data/curated-prompts.ts). Exact-set matching silently missed every
+// Library category before this was caught.
+const LAYOUT_HEAVY_CATEGORY_SUBSTRINGS = ["poster", "infographic", "ui", "slide", "presentation"];
 // reference_intent values (src/lib/prompt-engine/intent.ts) that mean the
 // output must preserve something specific, not just take style cues.
 const FIDELITY_REFERENCE_INTENTS = new Set(["subject_identity", "product_object", "edit_source"]);
+
+function categoryImpliesLayoutHeavy(category: string): boolean {
+  const normalized = category.toLowerCase();
+  return LAYOUT_HEAVY_CATEGORY_SUBSTRINGS.some((kw) => normalized.includes(kw));
+}
 
 const EXACT_TEXT_RE = /["“][^"”]{3,}["”]|'[^']{3,}'/;
 const EXACT_TEXT_PHRASE_RE =
@@ -55,7 +67,7 @@ export function resolveGenerationModel(input: ModelRouterInput): ModelAlias {
   // 1. Structured signal from Prompt, when available — trust it over
   // re-deriving from prose, same principle as the aspect-ratio resolver.
   if (hints?.exactTextCount && hints.exactTextCount > 0) return "sunburst";
-  if (hints?.category && LAYOUT_HEAVY_CATEGORIES.has(hints.category)) return "sunburst";
+  if (hints?.category && categoryImpliesLayoutHeavy(hints.category)) return "sunburst";
   if (hints?.referenceIntent && FIDELITY_REFERENCE_INTENTS.has(hints.referenceIntent))
     return "sunburst";
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Wand2 } from "lucide-react";
+import { Wand2, Sparkles, Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Pagination } from "@/components/Pagination";
@@ -12,7 +12,11 @@ import { SampleImage } from "@/components/SampleImage";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { urlToProcessedImage } from "@/lib/image-utils";
+import { toast } from "sonner";
 
 const GALLERY_URL = absoluteUrl("/gallery");
 
@@ -79,11 +83,32 @@ function GalleryPage() {
     }
   };
 
+  const [generatingRef, setGeneratingRef] = useState(false);
+
   const handleUseAsReference = (filename: string) => {
     navigate({
       to: "/prompt",
       search: { mode: "build" as const, ref: `/gallery/${filename}` },
     });
+  };
+
+  const handleGenerateWithReference = async (filename: string) => {
+    setGeneratingRef(true);
+    try {
+      const processed = await urlToProcessedImage(`/gallery/${filename}`);
+      saveGenerationHandoff({
+        prompt: "",
+        references: [{ dataUrl: processed.dataUrl }],
+        structuredAspectRatio: null,
+        sourceType: "gallery",
+        sourceId: filename,
+      });
+      void navigate({ to: ROUTES.legacyBuilder });
+    } catch {
+      toast.error("Could not use this image as a reference");
+    } finally {
+      setGeneratingRef(false);
+    }
   };
 
   return (
@@ -134,10 +159,30 @@ function GalleryPage() {
                 maxHeightClass="max-h-[70vh]"
                 className="rounded-md"
               />
-              <Button type="button" onClick={() => handleUseAsReference(selected)}>
-                <Wand2 className="h-4 w-4" />
-                Use as reference in {TOOL.prompt}
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {isNativeGenerationEnabled() && (
+                  <Button
+                    type="button"
+                    onClick={() => handleGenerateWithReference(selected)}
+                    disabled={generatingRef}
+                  >
+                    {generatingRef ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                    Generate with reference
+                  </Button>
+                )}
+                <Button
+                  type="button"
+                  variant={isNativeGenerationEnabled() ? "outline" : "default"}
+                  onClick={() => handleUseAsReference(selected)}
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Use in {TOOL.prompt}
+                </Button>
+              </div>
             </div>
           )}
         </DialogContent>
