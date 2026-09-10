@@ -22,14 +22,22 @@ export const LEGACY_LIBRARY_COUNT = 500;
 export const IMAGES_25_LIBRARY_COUNT = 23;
 export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COUNT;
 
-/** Visible tool names. */
+/**
+ * Visible tool names. The public product model is:
+ *   Prompt
+ *   ├── Build mode
+ *   └── Critique mode
+ * "Prompt Builder" and "Prompt Critic" are no longer current product names;
+ * they survive only in historical blog copy, internal APIs, and engine files.
+ */
 export const TOOL = {
   library: "Library",
   /** Unified workspace (navigation label). Build and Critique are its modes. */
   prompt: "Prompt",
-  builder: "Prompt Builder",
-  critic: "Prompt Critic",
+  buildMode: "Prompt — Build mode",
+  critiqueMode: "Prompt — Critique mode",
   gallery: "Gallery",
+  templates: "Templates",
   blog: "Blog",
 } as const;
 
@@ -44,21 +52,23 @@ export const CTA = {
   critiqueAnother: "Critique Another Prompt",
   browse: `Browse ${LIBRARY_PROMPT_COUNT} Prompts`,
   browseShort: "Browse Prompts",
-  remix: "Remix in Prompt Builder",
+  remix: "Remix in Prompt",
   openImago: "Open in Imago",
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
 export const ROUTES = {
   library: "/library",
-  /** Canonical unified workspace. /generate and /critique redirect here. */
+  /** Canonical unified workspace. /generate and /critique 301 here. */
   prompt: "/prompt",
-  builder: "/generate",
-  critic: "/critique",
+  /** Legacy URLs kept only as permanent redirects. Never link to these. */
+  legacyBuilder: "/generate",
+  legacyCritic: "/critique",
   gallery: "/gallery",
   blog: "/blog",
   templates: "/templates",
 } as const;
+
 
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
