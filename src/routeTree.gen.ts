@@ -36,6 +36,11 @@ import { Route as ApiGenerationReferencesRouteImport } from './routes/api/genera
 import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
 import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
 import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
+import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
+import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
+import { Route as ApiBillingConfirmRouteImport } from './routes/api/billing/confirm'
+import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
+import { Route as ApiBillingAccountRouteImport } from './routes/api/billing/account'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 
@@ -175,6 +180,31 @@ const ApiBlogRssDotxmlRoute = ApiBlogRssDotxmlRouteImport.update({
   path: '/api/blog/rss.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
+  id: '/api/billing/webhook',
+  path: '/api/billing/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingPortalRoute = ApiBillingPortalRouteImport.update({
+  id: '/api/billing/portal',
+  path: '/api/billing/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingConfirmRoute = ApiBillingConfirmRouteImport.update({
+  id: '/api/billing/confirm',
+  path: '/api/billing/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
+  id: '/api/billing/checkout',
+  path: '/api/billing/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingAccountRoute = ApiBillingAccountRouteImport.update({
+  id: '/api/billing/account',
+  path: '/api/billing/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
   id: '/api/generation/sessions/$id',
   path: '/api/generation/sessions/$id',
@@ -208,6 +238,11 @@ export interface FileRoutesByFullPath {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/billing/account': typeof ApiBillingAccountRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/confirm': typeof ApiBillingConfirmRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
@@ -239,6 +274,11 @@ export interface FileRoutesByTo {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
+  '/api/billing/account': typeof ApiBillingAccountRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/confirm': typeof ApiBillingConfirmRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
@@ -271,6 +311,11 @@ export interface FileRoutesById {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/billing/account': typeof ApiBillingAccountRoute
+  '/api/billing/checkout': typeof ApiBillingCheckoutRoute
+  '/api/billing/confirm': typeof ApiBillingConfirmRoute
+  '/api/billing/portal': typeof ApiBillingPortalRoute
+  '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
@@ -304,6 +349,11 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/billing/account'
+    | '/api/billing/checkout'
+    | '/api/billing/confirm'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
@@ -335,6 +385,11 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog'
     | '/templates'
+    | '/api/billing/account'
+    | '/api/billing/checkout'
+    | '/api/billing/confirm'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
@@ -366,6 +421,11 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/billing/account'
+    | '/api/billing/checkout'
+    | '/api/billing/confirm'
+    | '/api/billing/portal'
+    | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
@@ -398,6 +458,11 @@ export interface RootRouteChildren {
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  ApiBillingAccountRoute: typeof ApiBillingAccountRoute
+  ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
+  ApiBillingConfirmRoute: typeof ApiBillingConfirmRoute
+  ApiBillingPortalRoute: typeof ApiBillingPortalRoute
+  ApiBillingWebhookRoute: typeof ApiBillingWebhookRoute
   ApiBlogRssDotxmlRoute: typeof ApiBlogRssDotxmlRoute
   ApiGenerationCreditsRoute: typeof ApiGenerationCreditsRoute
   ApiGenerationJobsRoute: typeof ApiGenerationJobsRouteWithChildren
@@ -598,6 +663,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlogRssDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/billing/webhook': {
+      id: '/api/billing/webhook'
+      path: '/api/billing/webhook'
+      fullPath: '/api/billing/webhook'
+      preLoaderRoute: typeof ApiBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/portal': {
+      id: '/api/billing/portal'
+      path: '/api/billing/portal'
+      fullPath: '/api/billing/portal'
+      preLoaderRoute: typeof ApiBillingPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/confirm': {
+      id: '/api/billing/confirm'
+      path: '/api/billing/confirm'
+      fullPath: '/api/billing/confirm'
+      preLoaderRoute: typeof ApiBillingConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/checkout': {
+      id: '/api/billing/checkout'
+      path: '/api/billing/checkout'
+      fullPath: '/api/billing/checkout'
+      preLoaderRoute: typeof ApiBillingCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/account': {
+      id: '/api/billing/account'
+      path: '/api/billing/account'
+      fullPath: '/api/billing/account'
+      preLoaderRoute: typeof ApiBillingAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/sessions/$id': {
       id: '/api/generation/sessions/$id'
       path: '/api/generation/sessions/$id'
@@ -649,6 +749,11 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationsMcpRoute: IntegrationsMcpRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  ApiBillingAccountRoute: ApiBillingAccountRoute,
+  ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
+  ApiBillingConfirmRoute: ApiBillingConfirmRoute,
+  ApiBillingPortalRoute: ApiBillingPortalRoute,
+  ApiBillingWebhookRoute: ApiBillingWebhookRoute,
   ApiBlogRssDotxmlRoute: ApiBlogRssDotxmlRoute,
   ApiGenerationCreditsRoute: ApiGenerationCreditsRoute,
   ApiGenerationJobsRoute: ApiGenerationJobsRouteWithChildren,

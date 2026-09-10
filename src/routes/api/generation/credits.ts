@@ -17,15 +17,36 @@ export const Route = createFileRoute("/api/generation/credits")({
         const { userId } = authResult.auth;
         const supabase = asGenerationClient(authResult.auth.supabase);
 
-        const { data, error } = await supabase
-          .from("credit_accounts")
-          .select("available_credits")
-          .eq("user_id", userId)
-          .maybeSingle();
+        // Annual subscribers receive credits monthly: settle anything due
+        // before reading. Never fatal (RPC missing → balance still returned).
+        await supabase.rpc("grant_due_subscription_credits").then(
+          () => undefined,
+          () => undefined,
+        );
+
+        const [{ data, error }, { data: billing }] = await Promise.all([
+          supabase
+            .from("credit_accounts")
+            .select("available_credits, plan_credits, extra_credits")
+            .eq("user_id", userId)
+            .maybeSingle(),
+          supabase
+            .from("billing_accounts")
+            .select("plan_key, stripe_customer_id")
+            .eq("user_id", userId)
+            .maybeSingle(),
+        ]);
 
         if (error) return jsonError("Could not load credit balance", 500);
 
-        return new Response(JSON.stringify({ availableCredits: data?.available_credits ?? 0 }), {
+        const body = {
+          availableCredits: data?.available_credits ?? 0,
+          planCredits: data?.plan_credits ?? 0,
+          extraCredits: data?.extra_credits ?? 0,
+          plan: billing?.plan_key ?? "free",
+          hasStripeCustomer: Boolean(billing?.stripe_customer_id),
+        };
+        return new Response(JSON.stringify(body), {
           status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },
         });

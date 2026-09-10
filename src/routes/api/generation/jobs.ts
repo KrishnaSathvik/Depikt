@@ -70,6 +70,13 @@ export const Route = createFileRoute("/api/generation/jobs")({
           hints: req.routingHints ?? undefined,
         });
 
+        // Annual subscribers receive credits monthly: settle anything due
+        // before reserving. Never fatal.
+        await supabase.rpc("grant_due_subscription_credits").then(
+          () => undefined,
+          () => undefined,
+        );
+
         // A session id is required by the schema; direct /generate without
         // one yet creates a new session per submission for now (one
         // creative thread per job) — see "Next slice" in the conversation

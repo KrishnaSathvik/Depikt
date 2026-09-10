@@ -96,11 +96,15 @@ test("/sign-in and /sign-up routes exist, are noindex, and share AuthSurface", (
 
 test("AuthSurface has both modes, no email/password fields, and the sign-up legal line", () => {
   const src = read("src/components/auth/AuthSurface.tsx");
-  assert.match(src, /Sign in to Depikt/);
-  assert.match(src, /Create your Depikt account/);
-  assert.match(src, /New to Depikt\?/);
-  assert.match(src, /Already have an account\?/);
-  assert.match(src, /By continuing, you agree to the/);
+  const copy = read("src/lib/product.ts");
+  assert.match(copy, /Sign in to Depikt/);
+  assert.match(copy, /Create your Depikt account/);
+  assert.match(copy, /New to Depikt\?/);
+  assert.match(copy, /Already have an account\?/);
+  assert.match(copy, /By continuing, you agree to the/);
+  assert.match(src, /AUTH_COPY\.signInTitle/);
+  assert.match(src, /AUTH_COPY\.signUpTitle/);
+  assert.match(src, /AUTH_COPY\.legalPrefix/);
   assert.match(src, /ROUTES\.terms/);
   assert.match(src, /ROUTES\.privacy/);
   assert.doesNotMatch(src, /type="password"/);

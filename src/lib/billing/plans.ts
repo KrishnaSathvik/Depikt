@@ -176,5 +176,5 @@ export function monthlyEquivalent(yearlyCents: number): string {
 export function yearlySavingsLabel(plan: PaidPlanKey): string {
   const monthly = planProduct(plan, "month").priceCents * 12;
   const yearly = planProduct(plan, "year").priceCents;
-  return `Save $${Math.round((monthly - yearly) / 100)} a year`;
+  return `Save $${Math.floor((monthly - yearly) / 100)} a year`;
 }
