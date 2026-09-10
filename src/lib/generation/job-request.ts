@@ -3,10 +3,15 @@
 // The client may submit only these fields. Everything security-sensitive
 // (real OpenAI model id, quality, credit cost, storage path, user id) is
 // derived server-side and is never accepted from the request body — see
-// models.ts and aspect-ratio.ts.
+// models.ts and aspect-ratio.ts. As of the Image Model Router, `model` is
+// no longer a client-submitted field at all: the client never asks the
+// user to choose Flare or Sunburst, so there's nothing to validate or
+// trust there — see model-router.ts, called separately by the route
+// handler with this validated request's operation/prompt/reference count.
 
-import { isModelAlias, type ModelAlias, MAX_REFERENCE_IMAGES_V1 } from "./models.ts";
+import { MAX_REFERENCE_IMAGES_V1 } from "./models.ts";
 import { resolveGenerationSize, type ResolvedSize } from "./aspect-ratio.ts";
+import type { RoutingHints } from "./model-router.ts";
 
 export type SourceContextType =
   | "direct"
@@ -29,7 +34,6 @@ export const MAX_PROMPT_CHARS = 4000;
 
 export interface ValidatedGenerationRequest {
   operation: "generate" | "edit";
-  model: ModelAlias;
   prompt: string;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
@@ -37,6 +41,8 @@ export interface ValidatedGenerationRequest {
   sourceContextId: string | null;
   idempotencyKey: string;
   size: ResolvedSize;
+  /** Optional structured signal from Prompt's Intent Analyzer, fed to the model router. Never used to pick a raw model id directly. */
+  routingHints: RoutingHints | null;
 }
 
 export type ValidationResult =
@@ -47,11 +53,21 @@ function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0;
 }
 
+function parseRoutingHints(value: unknown): RoutingHints | null {
+  if (typeof value !== "object" || value === null) return null;
+  const v = value as Record<string, unknown>;
+  const hints: RoutingHints = {};
+  if (isNonEmptyString(v.category)) hints.category = v.category;
+  if (typeof v.exactTextCount === "number" && v.exactTextCount >= 0)
+    hints.exactTextCount = v.exactTextCount;
+  if (isNonEmptyString(v.referenceIntent)) hints.referenceIntent = v.referenceIntent;
+  return Object.keys(hints).length > 0 ? hints : null;
+}
+
 /**
  * Validates a raw, untrusted request body for POST /api/generation/jobs.
- * Never trusts model id, quality, or credit cost from the client — only an
- * alias is accepted, and the caller (route handler) is responsible for
- * mapping it via models.ts and injecting quality/cost server-side.
+ * Never trusts quality or credit cost from the client. Model choice is not
+ * a request field at all — see model-router.ts.
  */
 export function validateGenerationRequest(body: unknown): ValidationResult {
   if (typeof body !== "object" || body === null)
@@ -61,10 +77,6 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
   const operation = b.operation;
   if (operation !== "generate" && operation !== "edit") {
     return { ok: false, error: "operation must be 'generate' or 'edit'" };
-  }
-
-  if (!isModelAlias(b.model)) {
-    return { ok: false, error: "model must be 'flare' or 'sunburst'" };
   }
 
   if (!isNonEmptyString(b.prompt)) {
@@ -146,7 +158,6 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
     ok: true,
     request: {
       operation,
-      model: b.model,
       prompt: b.prompt,
       referenceAssetIds,
       sourceVersionId,
@@ -154,6 +165,7 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
       sourceContextId,
       idempotencyKey: b.idempotencyKey,
       size,
+      routingHints: parseRoutingHints(b.routingHints),
     },
   };
 }

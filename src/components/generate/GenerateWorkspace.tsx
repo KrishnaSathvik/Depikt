@@ -18,7 +18,7 @@ import { useAuth } from "@/lib/auth-context";
 import { lovable } from "@/integrations/lovable";
 import { trackEvent } from "@/lib/analytics";
 import { CTA, ROUTES } from "@/lib/product";
-import { MODEL_COPY, MODEL_ALIASES, type ModelAlias } from "@/lib/generation/models";
+import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
 import {
@@ -38,6 +38,7 @@ import {
   type JobStatusResponse,
   type SessionVersion,
 } from "@/lib/generation/client";
+import type { RoutingHints } from "@/lib/generation/model-router";
 import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
 
 type Phase = "idle" | "starting" | "polling" | "result" | "error";
@@ -61,9 +62,9 @@ export function GenerateWorkspace() {
   const navigate = useNavigate();
 
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState<ModelAlias>("flare");
   const [references, setReferences] = useState<ReferenceEntry[]>([]);
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
+  const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
   const [sourceContext, setSourceContext] = useState<{ type: string; id?: string | null }>({
     type: "direct",
   });
@@ -87,7 +88,7 @@ export function GenerateWorkspace() {
     const handoff = consumeGenerationHandoff();
     if (handoff) {
       setPrompt(handoff.prompt);
-      if (handoff.model) setModel(handoff.model);
+      if (handoff.routingHints) setRoutingHints(handoff.routingHints);
       if (handoff.structuredAspectRatio) setStructuredRatio(handoff.structuredAspectRatio);
       setSourceContext({ type: handoff.sourceType, id: handoff.sourceId ?? null });
       trackEvent("generate_opened", { source: handoff.sourceType });
@@ -206,18 +207,18 @@ export function GenerateWorkspace() {
 
     setPhase("starting");
     setErrorMessage(null);
-    trackEvent("generate_submitted", { model, source: sourceContext.type });
+    trackEvent("generate_submitted", { source: sourceContext.type });
     try {
       const idempotencyKey = crypto.randomUUID();
       const res = await createGenerationJob({
         operation: sourceVersionId ? "edit" : "generate",
-        model,
         prompt: effectivePrompt,
         referenceAssetIds: references.map((r) => r.uploadedPath).filter((p): p is string => !!p),
         sourceVersionId: sourceVersionId ?? null,
         sourceContext,
         idempotencyKey,
         structuredAspectRatio: structuredRatio,
+        routingHints: routingHints ?? undefined,
       });
       pollJob(res.jobId);
     } catch (err) {
@@ -233,13 +234,13 @@ export function GenerateWorkspace() {
   }
 
   function regenerate() {
-    trackEvent("regenerate_submitted", { model });
+    trackEvent("regenerate_submitted", {});
     void submit();
   }
 
   function applyEdit() {
     if (!editPrompt.trim() || !activeVersionId) return;
-    trackEvent("edit_submitted", { model });
+    trackEvent("edit_submitted", {});
     setEditing(false);
     void submit(editPrompt, activeVersionId);
     setEditPrompt("");
@@ -262,7 +263,7 @@ export function GenerateWorkspace() {
       prompt,
       references: references.map((r) => ({ dataUrl: r.local.dataUrl })),
       structuredAspectRatio: structuredRatio,
-      model,
+      routingHints,
       sourceType: "direct",
     });
     void navigate({ to: ROUTES.prompt, search: { mode: "build" } });
@@ -270,6 +271,7 @@ export function GenerateWorkspace() {
 
   const activeVersion = versions.find((v) => v.id === activeVersionId);
   const resultUrl = job?.result?.url ?? activeVersion?.url ?? null;
+  const displayModel = activeVersion?.model ?? job?.model ?? null;
 
   // ---------- result / loading state ----------
   if (
@@ -325,7 +327,6 @@ export function GenerateWorkspace() {
                   placeholder="Make the jacket dark blue and keep everything else unchanged."
                   rows={3}
                 />
-                <ModelSelector value={model} onChange={setModel} />
                 <Button onClick={applyEdit} disabled={!editPrompt.trim()}>
                   Apply edit → · 1 credit
                 </Button>
@@ -349,7 +350,8 @@ export function GenerateWorkspace() {
                 {job?.errorMessage ?? prompt}
               </PromptSurface>
               <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
-                {MODEL_COPY[model].title} · {resolvedSize.ratioLabel} · {resolvedSize.orientation}
+                {displayModel && `${MODEL_COPY[displayModel].title} · `}
+                {resolvedSize.ratioLabel} · {resolvedSize.orientation}
               </p>
             </details>
 
@@ -444,8 +446,6 @@ export function GenerateWorkspace() {
           </p>
         )}
 
-        <ModelSelector value={model} onChange={setModel} />
-
         <div className="text-center text-body-sm text-[color:var(--text-secondary)]">
           {authLoading ? null : user && credits !== null ? `${credits} credits remaining` : null}
         </div>
@@ -461,42 +461,6 @@ export function GenerateWorkspace() {
           </Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ModelSelector({
-  value,
-  onChange,
-}: {
-  value: ModelAlias;
-  onChange: (m: ModelAlias) => void;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Model">
-      {MODEL_ALIASES.map((alias) => {
-        const active = value === alias;
-        return (
-          <button
-            key={alias}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(alias)}
-            className={`rounded-md border px-4 py-3 text-left transition-colors ${
-              active
-                ? "border-[color:var(--text-primary)] bg-[color:var(--bg-subtle)]"
-                : "border-[color:var(--border-subtle)] hover:border-[color:var(--text-secondary)]"
-            }`}
-          >
-            <div className="text-body-md font-medium">{MODEL_COPY[alias].title}</div>
-            <div className="text-body-sm text-[color:var(--text-secondary)]">
-              {MODEL_COPY[alias].tagline}
-            </div>
-            <div className="mt-1 text-body-sm">1 credit</div>
-          </button>
-        );
-      })}
     </div>
   );
 }

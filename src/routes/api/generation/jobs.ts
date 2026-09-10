@@ -3,6 +3,7 @@ import { corsHeaders, getClientIp, jsonError, rateLimitExceeded } from "@/lib/ap
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateGenerationRequest } from "@/lib/generation/job-request";
+import { resolveGenerationModel } from "@/lib/generation/model-router";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import {
@@ -58,6 +59,17 @@ export const Route = createFileRoute("/api/generation/jobs")({
         if (!validation.ok) return jsonError(validation.error, 400);
         const req = validation.request;
 
+        // The client never chooses Flare vs Sunburst — Depikt decides. See
+        // model-router.ts: deterministic-first, using Prompt's structured
+        // intent when available (req.routingHints) and falling back to
+        // prompt-text heuristics for direct /generate submissions.
+        const model = resolveGenerationModel({
+          operation: req.operation,
+          promptText: req.prompt,
+          referenceCount: req.referenceAssetIds.length,
+          hints: req.routingHints ?? undefined,
+        });
+
         // A session id is required by the schema; direct /generate without
         // one yet creates a new session per submission for now (one
         // creative thread per job) — see "Next slice" in the conversation
@@ -77,7 +89,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
           p_user_id: userId,
           p_session_id: session.id,
           p_operation: req.operation,
-          p_model: req.model,
+          p_model: model,
           p_prompt: req.prompt,
           p_width: req.size.width,
           p_height: req.size.height,
@@ -130,7 +142,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
               userId,
               sessionId: session.id,
               operation: req.operation,
-              model: req.model,
+              model,
               prompt: req.prompt,
               width: req.size.width,
               height: req.size.height,

@@ -42,13 +42,16 @@ async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
 
 export interface CreateJobRequest {
   operation: "generate" | "edit";
-  model: "flare" | "sunburst";
+  // No `model` field: Depikt's Image Model Router decides Flare vs
+  // Sunburst server-side (see model-router.ts). The client can optionally
+  // pass routingHints from Prompt's structured intent to inform it.
   prompt: string;
   referenceAssetIds?: string[];
   sourceVersionId?: string | null;
   sourceContext?: { type: string; id?: string | null };
   idempotencyKey: string;
   structuredAspectRatio?: string | null;
+  routingHints?: { category?: string; exactTextCount?: number; referenceIntent?: string };
 }
 
 export interface CreateJobResponse {

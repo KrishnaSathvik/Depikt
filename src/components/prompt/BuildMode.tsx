@@ -114,10 +114,21 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
   const handleGenerateImage = (result: PromptResult, reference: ReferenceImageState | null) => {
     if (!result.prompt) return;
     trackEvent("generate_submitted_from_prompt_build", {});
+    // Feed Depikt's Image Model Router the structured intent Prompt already
+    // computed — there's no user model choice to carry through, Generate
+    // decides Flare vs Sunburst on its own.
+    const intent = result.intent as Record<string, unknown> | undefined;
+    const exactText = intent?.exact_text;
     saveGenerationHandoff({
       prompt: result.prompt,
       references: reference?.dataUrl ? [{ dataUrl: reference.dataUrl }] : [],
       structuredAspectRatio: result.aspect_ratio ?? null,
+      routingHints: {
+        category: typeof intent?.category === "string" ? intent.category : undefined,
+        exactTextCount: Array.isArray(exactText) ? exactText.length : undefined,
+        referenceIntent:
+          typeof intent?.reference_intent === "string" ? intent.reference_intent : undefined,
+      },
       sourceType: "prompt_build",
     });
     void navigate({ to: "/generate" });
