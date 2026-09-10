@@ -16,11 +16,12 @@ test("every ready OG card exists under public/ and is a 1200x630 PNG path", () =
 
 test("OG route map: one card per primary route, one shared Prompt card", () => {
   const files = Object.values(OG_ROUTE_IMAGES);
-  assert.equal(files.length, 7);
-  assert.equal(new Set(files).size, 7);
+  assert.equal(files.length, 8);
+  assert.equal(new Set(files).size, 8);
   assert.deepEqual(Object.keys(OG_ROUTE_IMAGES).sort(), [
     "blog",
     "gallery",
+    "generate",
     "home",
     "library",
     "mcp",

@@ -6,8 +6,12 @@
 // mode "CRITIQUE"). Only what the user reads changes; it all comes from here
 // so the UI and the regression tests agree.
 //
-// Depikt V1 does not generate images: it is a reference library and prompt
-// workspace for ChatGPT Images. Never describe it as an image generator.
+// Depikt is a reference library and prompt workspace for ChatGPT Images that
+// also generates and edits images natively (behind the native-generation
+// feature flag — see lib/generation/feature-flag.ts). Never describe it as
+// a generic "AI image generator"; the differentiator is the connected
+// workflow (prompts, references, structure, generation, editing), not
+// generation alone.
 
 import type { TargetModel } from "./target-model";
 
@@ -36,7 +40,7 @@ export const TOOL = {
   prompt: "Prompt",
   buildMode: "Prompt — Build mode",
   critiqueMode: "Prompt — Critique mode",
-  /** Behind the native-generation feature flag (see lib/generation/feature-flag.ts). Not in NAV_ITEMS/ROUTES — added conditionally by Header, not frozen product nav. */
+  /** Locked header label once native generation is live. Header inserts it after Prompt only when the native-generation feature flag is on (see lib/generation/feature-flag.ts). */
   generate: "Generate",
   gallery: "Gallery",
   templates: "Templates",
@@ -67,8 +71,15 @@ export const ROUTES = {
   library: "/library",
   /** Canonical unified workspace. /generate and /critique 301 here. */
   prompt: "/prompt",
-  /** Legacy URLs kept only as permanent redirects. Never link to these. */
+  /**
+   * The canonical Generate route once the native-generation feature flag is
+   * on (see lib/generation/feature-flag.ts) — kept as "legacyBuilder" for
+   * historical reasons (it 301-redirected to /prompt before Generate
+   * shipped) and because it's already threaded through Library/Gallery/
+   * Prompt as the "Generate" handoff target.
+   */
   legacyBuilder: "/generate",
+  /** Permanent redirect to /prompt?mode=critique. Never link to this. */
   legacyCritic: "/critique",
   gallery: "/gallery",
   blog: "/blog",
@@ -156,10 +167,10 @@ export function isAnnouncementLive(a: Announcement, now: Date = new Date()): boo
 
 export const POSITIONING = {
   eyebrow: `Built for ${TARGET_MODEL_NAME}`,
-  headline: "Turn rough ideas into image-ready prompts.",
-  tagline: "Learn what works. Build what you want.",
-  body: `Browse ${LEGACY_MODEL_NAME} prompt examples, build a prompt from your idea or reference image, and critique existing prompts for ${TARGET_MODEL_NAME}. Then open the result in ChatGPT to make the image.`,
-  concept: "A reference library and prompt workspace for ChatGPT Images.",
+  headline: "Better prompts. Better images.",
+  tagline: "Learn what works. Build what you want. Make it.",
+  body: `Browse ${LEGACY_MODEL_NAME} prompt examples, build a prompt from your idea or reference image, critique existing prompts for ${TARGET_MODEL_NAME}, and generate or edit the image directly in Depikt.`,
+  concept: "A prompt workspace and image generator for ChatGPT Images.",
 } as const;
 
 // ---------- SEO / metadata for current product pages ----------
@@ -170,45 +181,54 @@ export interface PageMeta {
 }
 
 export const SEO: Record<
-  "root" | "home" | "prompt" | "library" | "gallery" | "blog" | "mcp" | "templates",
+  "root" | "home" | "prompt" | "library" | "gallery" | "blog" | "mcp" | "templates" | "generate",
   PageMeta
 > = {
   root: {
-    title: "Depikt — AI Image Prompts, References & Templates",
-    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
+    title: "Depikt — Better Prompts, Better Images",
+    description:
+      "Explore image prompts, build and improve your own, find visual references, and generate or edit images directly with Depikt.",
   },
   home: {
-    title: "Depikt — AI Image Prompts, References & Templates",
-    description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
+    title: "Depikt — Better Prompts, Better Images",
+    description:
+      "Explore image prompts, build and improve your own, find visual references, and generate or edit images directly with Depikt.",
   },
   prompt: {
-    title: "Prompt Workspace: Build & Critique AI Image Prompts | Depikt",
+    title: "AI Image Prompt Builder & Critic | Depikt",
     description:
-      "Build a structured image prompt from an idea or reference, or critique an existing prompt and get concrete improvements and a stronger rewrite.",
+      "Build better image prompts from an idea or reference, or critique and improve an existing prompt with Depikt.",
   },
   library: {
-    title: `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`,
-    description: `Explore ${LIBRARY_PROMPT_COUNT} curated image prompts for posters, edits, references, product photography, infographics, UI concepts, illustrations, and more.`,
+    title: `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,
+    description: `Explore ${LIBRARY_PROMPT_COUNT} curated image prompts for posters, photography, edits, infographics, UI concepts, products, illustrations, and more.`,
   },
   gallery: {
     title: "AI Image Reference Gallery | Depikt",
     description:
-      "Browse hand-picked visual references for posters, layouts, illustrations, UI, photography, and infographics, then carry one straight into the Prompt workspace.",
+      "Explore visual references for image generation, then use them directly in Generate or bring them into Prompt to build a more precise instruction.",
   },
   blog: {
-    title: "AI Image Prompt Guides & Field Notes | Depikt",
-    description: `Practical guides on prompting, image editing, reference workflows, text and layout control, and what we learn from ${TARGET_MODEL_NAME}.`,
+    title: "AI Image Prompting & Generation Guides | Depikt",
+    description:
+      "Field notes on image prompting, references, editing, generation, experiments, and practical workflows that actually work.",
   },
 
   mcp: {
-    title: "Depikt for AI Assistants: Prompt Library via MCP | Depikt",
+    title: "Depikt MCP — Prompt Library for AI Assistants",
     description:
-      "Connect Depikt through MCP and let ChatGPT, Claude, and other compatible assistants search the prompt library, open full prompts, browse templates, and read guides. Public and read-only.",
+      "Connect MCP-compatible assistants to Depikt's public prompts, templates, and image-generation guides through a read-only MCP server.",
   },
   templates: {
     title: "AI Image Prompt Templates | Depikt",
     description:
-      "Start with reusable image prompt templates for posters, product photography, infographics, UI concepts, image edits, references, characters, and more.",
+      "Start with a structured template for portraits, products, posters, infographics, edits, references, branding, and other image tasks.",
+  },
+  /** Behind the native-generation feature flag; live once GENERATION_ENABLED is on. */
+  generate: {
+    title: "AI Image Generator & Editor | Depikt",
+    description:
+      "Create and edit images from prompts and references with Depikt, with automatic format handling and intelligent GPT Image 2.5 model routing.",
   },
 };
 
@@ -281,14 +301,19 @@ export const JSONLD_NAMES = {
   library: "Depikt Prompt Library",
   gallery: "Depikt Reference Gallery",
   templates: "Depikt Prompt Templates",
+  /** Behind the native-generation feature flag. */
+  generate: "Depikt Generate",
 } as const;
 
 export const JSONLD_DESCRIPTIONS = {
-  prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite. Does not generate images.`,
-  app: `A prompt workspace with Build and Critique modes, a curated prompt library, a reference gallery, and reusable templates for ${TARGET_MODEL_NAME}. Turns rough ideas and reference images into image-ready prompts; does not generate images.`,
+  prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite.`,
+  app: `Depikt connects image prompt discovery, prompt building and critique, a visual reference gallery, reusable templates, and native image generation and editing for ${TARGET_MODEL_NAME}. Generation is routed internally between GPT Image 2.5 models; users describe what they want rather than choosing a model.`,
   library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes with reviewed results.`,
   gallery:
-    "A gallery of reference images you can carry into the Prompt workspace in Build mode as a style, subject, or composition reference.",
+    "A gallery of reference images you can carry into the Prompt workspace in Build mode, or generate with directly, as a style, subject, or composition reference.",
+  /** Behind the native-generation feature flag. */
+  generate:
+    "Generate and edit images from a prompt and optional reference images. Depikt resolves the requested format automatically and routes generation between GPT Image 2.5 Flare and Sunburst internally; there is no model or quality selector. Supports editing, regeneration, and version history.",
 } as const;
 
 // ---------- library collection copy ----------

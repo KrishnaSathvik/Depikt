@@ -1,10 +1,10 @@
 # Depikt
 
-> Depikt is a prompt workspace and reference library for AI image creation. Explore proven prompt examples, build and improve image prompts in one Prompt workspace with Build and Critique modes, browse visual references, and learn from practical prompting guides.
+> Depikt is a visual creation workflow for discovering prompts and references, building or improving image prompts, and generating or editing images. Explore proven prompt examples, build and improve image prompts in one Prompt workspace with Build and Critique modes, browse visual references, generate or edit images directly, and learn from practical prompting guides.
 
 Depikt's Library currently includes **543 curated prompts**: 500 original GPT Image 2 examples and 43 tested ChatGPT Images 2.5 recipes.
 
-Build and Critique are two modes of one workspace at https://depikt.app/prompt. Depikt writes and reviews prompts; it does not generate images. The older URLs https://depikt.app/generate and https://depikt.app/critique redirect to the matching mode.
+Build and Critique are two modes of one workspace at https://depikt.app/prompt (not separate products). Generate, at https://depikt.app/generate, creates and edits images from a prompt and optional references. The older URL https://depikt.app/critique redirects to the matching Prompt mode.
 
 ## Core tools
 
@@ -14,7 +14,9 @@ Build and Critique are two modes of one workspace at https://depikt.app/prompt. 
   - [Prompt workspace — Build mode](https://depikt.app/prompt?mode=build): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
   - [Prompt workspace — Critique mode](https://depikt.app/prompt?mode=critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
 
-- [Reference Gallery](https://depikt.app/gallery): Visual-first discovery. Browse hand-picked visual references across different styles and formats, then send one straight into the Prompt workspace in Build mode as a reference.
+- [Generate](https://depikt.app/generate): Create images from a prompt and optional reference images, then edit results, regenerate, and keep every version. Depikt resolves the requested format/aspect ratio automatically and routes generation between GPT Image 2.5 Flare and Sunburst internally — there is no model, quality, or size selector for the user to configure.
+
+- [Reference Gallery](https://depikt.app/gallery): Visual-first discovery. Browse hand-picked visual references across different styles and formats, then send one straight into the Prompt workspace in Build mode as a reference, or generate with it directly.
 
 - [Templates](https://depikt.app/templates): Reusable, model-neutral structures for common image tasks (subject, composition, text, references, lighting, style, constraints, preserve/change, format). Choose a task, fill in the structure, and finish it in the Prompt workspace (Build mode).
 
@@ -53,7 +55,7 @@ Assistants can use Depikt to:
 - search published Depikt guides by topic or category
 - read a guide in full
 
-The MCP integration exposes only information that is already publicly available on depikt.app. It does not provide access to private user information, unpublished content, account data, or write actions.
+The MCP integration exposes only information that is already publicly available on depikt.app. It does not provide access to private user information, unpublished content, account data, or write actions, and it does not include image generation — MCP stays read-only even though the depikt.app web product itself can generate and edit images.
 
 This allows workflows such as:
 
@@ -108,6 +110,4 @@ Depikt also keeps the original GPT Image 2 guides as historical references. Many
 
 Depikt is built for designers, marketers, founders, developers, and anyone who wants a better starting point for image creation.
 
-The Library and Gallery help with discovery and inspiration. Templates provide reusable structures. The Prompt workspace does the rest: Build mode turns an idea into a stronger prompt, and Critique mode identifies what is missing or weakening an existing prompt.
-
-Depikt currently prepares and evaluates prompts rather than generating the final image inside the product.
+The Library and Gallery help with discovery and inspiration. Templates provide reusable structures. The Prompt workspace turns an idea into a stronger prompt (Build) or identifies what is missing or weakening an existing one (Critique). Generate then creates and edits the image itself, without leaving Depikt.

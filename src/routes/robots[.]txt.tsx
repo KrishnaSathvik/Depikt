@@ -7,6 +7,7 @@ export const Route = createFileRoute("/robots.txt")({
       GET: async () => {
         const body = `User-agent: *
 Allow: /
+Disallow: /api/
 
 Sitemap: ${absoluteUrl("/sitemap.xml")}
 `;

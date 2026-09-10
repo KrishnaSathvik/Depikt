@@ -106,30 +106,52 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
 
 // ---------- positioning / SEO ----------
 
-test("current product SEO is unified and never claims to generate images", () => {
+test("current product SEO is unified, unique per route, and never markets Depikt as a generic AI image generator", () => {
   for (const [key, m] of Object.entries(SEO)) {
-    assert.equal(/generator/i.test(m.title), false, `${key} title`);
-    assert.equal(/image generator/i.test(m.description), false, `${key} description`);
+    // "generator"/"image generator" as a generic marketing label is banned;
+    // Generate's own title ("AI Image Generator & Editor") is the one
+    // accurate, specific exception — it names what that page literally is.
+    if (key !== "generate") {
+      assert.equal(/generator/i.test(m.title), false, `${key} title`);
+      assert.equal(/image generator/i.test(m.description), false, `${key} description`);
+    }
   }
   assert.equal("builder" in SEO, false);
   assert.equal("critic" in SEO, false);
-  assert.equal(SEO.home.title, "Depikt — AI Image Prompts, References & Templates");
+  assert.equal(SEO.home.title, "Depikt — Better Prompts, Better Images");
   assert.equal(SEO.root.title, SEO.home.title);
-  assert.equal(SEO.prompt.title, "Prompt Workspace: Build & Critique AI Image Prompts | Depikt");
-  assert.equal(SEO.library.title, `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`);
+  assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
+  assert.equal(
+    SEO.library.title,
+    `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,
+  );
   assert.equal(SEO.gallery.title, "AI Image Reference Gallery | Depikt");
   assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
-  assert.equal(SEO.blog.title, "AI Image Prompt Guides & Field Notes | Depikt");
+  assert.equal(SEO.blog.title, "AI Image Prompting & Generation Guides | Depikt");
+  assert.equal(SEO.generate.title, "AI Image Generator & Editor | Depikt");
+  // Every route's title is unique (no duplicate <title>s across the site).
+  // "root" intentionally mirrors "home" (the error-boundary/fallback shell
+  // uses the same title as the real homepage), so it's excluded here.
+  const titles = Object.entries(SEO)
+    .filter(([key]) => key !== "root")
+    .map(([, m]) => m.title);
+  assert.equal(new Set(titles).size, titles.length, "duplicate SEO title across routes");
   for (const m of Object.values(SEO)) assert.ok(m.title.length <= 70, m.title);
   assert.equal(JSONLD_NAMES.prompt, "Depikt Prompt Workspace");
+  assert.equal(JSONLD_NAMES.generate, "Depikt Generate");
   assert.equal("builder" in JSONLD_NAMES, false);
   assert.equal("critic" in JSONLD_NAMES, false);
-  for (const d of Object.values(JSONLD_DESCRIPTIONS))
-    assert.equal(/generat(es|or) images/i.test(d), false, d);
-  assert.match(JSONLD_DESCRIPTIONS.app, /does not generate images/);
+  // No route claims outsourced generation ("...generates images for you"
+  // via a third party) or that Depikt is a bare image generator; Generate's
+  // own description is allowed to say what it does.
+  assert.equal(/does not generate images/i.test(JSONLD_DESCRIPTIONS.app), false);
+  assert.match(JSONLD_DESCRIPTIONS.generate, /generate/i);
+  // Model routing is described as automatic, never as a user choice.
+  assert.equal(/choose (flare|sunburst)/i.test(JSONLD_DESCRIPTIONS.generate), false);
   assert.equal(POSITIONING.eyebrow, "Built for ChatGPT Images 2.5");
-  assert.equal(POSITIONING.headline, "Turn rough ideas into image-ready prompts.");
+  assert.equal(POSITIONING.headline, "Better prompts. Better images.");
   assert.equal(CTA.buildHero, "Build a Prompt");
+  assert.equal(CTA.generateImage, "Generate image");
   assert.equal(CTA.browse, "Browse 543 Prompts");
 });
 
@@ -149,23 +171,33 @@ test("no current-product surface still calls Build and Critique separate tools",
   for (const f of files) {
     const s = read(f);
     assert.equal(/Prompt Builder|Prompt Critic/.test(s), false, `${f} uses a retired tool name`);
-    assert.equal(/\(\/generate\)|"\/generate"|\(\/critique\)|"\/critique"/.test(s), false, f);
+    // /critique is a pure legacy redirect and should never be linked to
+    // directly; /generate is now the real, canonical Generate route (linked
+    // via ROUTES.legacyBuilder in these files, never as a literal string).
+    assert.equal(/\(\/critique\)|"\/critique"/.test(s), false, f);
   }
   // MCP tells assistants the current product model
   const mcp = read("src/lib/mcp/index.ts");
   assert.match(mcp, /Build mode/);
   assert.match(mcp, /Critique mode/);
-  // llms.txt describes one workspace with two modes
+  assert.match(mcp, /Generate \(https:\/\/depikt\.app\/generate\)/);
+  // llms.txt describes one workspace with two modes, plus Generate
   const llms = read("public/llms.txt");
   assert.match(llms, /Prompt workspace — Build mode/);
   assert.match(llms, /Prompt workspace — Critique mode/);
-  // sitemap: canonical /prompt only, no legacy tool URLs
+  assert.match(llms, /\[Generate\]\(https:\/\/depikt\.app\/generate\)/);
+  // sitemap: canonical /prompt and /generate, no legacy /critique URL
   const sitemap = read("src/routes/sitemap[.]xml.tsx");
   assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
-  assert.equal(/absoluteUrl\("\/(generate|critique)"\)/.test(sitemap), false);
+  assert.match(sitemap, /absoluteUrl\("\/generate"\)/);
+  assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
   // footer keeps Templates; header does not
   assert.match(read("src/components/Footer.tsx"), /\/templates/);
   assert.equal(/templates/.test(read("src/components/Header.tsx")), false);
+  // header inserts Generate (behind the feature flag), never Templates/MCP
+  const header = read("src/components/Header.tsx");
+  assert.match(header, /TOOL\.generate/);
+  assert.equal(/\bmcp\b/i.test(header), false);
 });
 
 test("current product UI files carry no generator-era labels", () => {
@@ -198,8 +230,14 @@ test("current product UI files carry no generator-era labels", () => {
     const s = read(f);
     for (const re of banned) assert.equal(re.test(s), false, `${f} still contains ${re}`);
   }
-  assert.match(read("src/routes/index.tsx"), /Discover · Build · Learn/);
-  assert.match(read("public/llms.txt"), /does not generate images/);
+  assert.match(read("src/routes/index.tsx"), /Discover · Build · Create/);
+  // llms.txt now describes native generation; it must not claim otherwise.
+  assert.equal(
+    /Depikt (writes and reviews prompts; it )?does not generate images/i.test(
+      read("public/llms.txt"),
+    ),
+    false,
+  );
   assert.match(read("public/llms.txt"), /GPT Image 2 collection/);
 });
 

@@ -6,12 +6,14 @@ import {
   JSONLD_NAMES,
   LEGACY_MODEL_NAME,
   POSITIONING,
+  ROUTES,
   SEO,
   TARGET_MODEL_NAME,
   TOOL,
   LIBRARY_PROMPT_COUNT,
   MCP,
 } from "@/lib/product";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LaunchModule } from "@/components/LaunchModule";
@@ -88,6 +90,15 @@ const FEATURES = [
     title: TOOL.prompt,
     body: "One workspace with two modes. Build turns a rough idea or a reference image into a precise prompt. Critique scores a prompt you already have and rewrites it.",
     cta: "Open the prompt workspace",
+  },
+  {
+    to: ROUTES.legacyBuilder,
+    step: "Make it.",
+    title: TOOL.generate,
+    body: "Generate an image from a prompt and optional references, then edit, regenerate, and keep every version. Depikt handles the format and the model routing.",
+    cta: "Generate an image",
+    /** Only shown once native generation is live — see isNativeGenerationEnabled(). */
+    flagged: true as const,
   },
   {
     to: "/gallery" as const,
@@ -193,6 +204,8 @@ function LandingPage() {
 /* ============================================================ */
 
 function Hero() {
+  const generationLive = isNativeGenerationEnabled();
+  const features = FEATURES.filter((f) => !("flagged" in f && f.flagged) || generationLive);
   return (
     <section>
       <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-20 sm:px-6 md:pb-32 md:pt-36 lg:px-12">
@@ -203,28 +216,46 @@ function Hero() {
           className="reveal mt-8 max-w-[44ch] text-body-lg text-[color:var(--text-secondary)]"
           style={{ animationDelay: "60ms" }}
         >
-          Describe what you want, or add a reference. Depikt helps turn it into a clear, precise
-          prompt.
+          {generationLive
+            ? "Describe what you want, or add a reference. Depikt builds the prompt and makes the image."
+            : "Describe what you want, or add a reference. Depikt helps turn it into a clear, precise prompt."}
         </p>
         <div
           className="reveal mt-10 flex flex-col gap-3 sm:flex-row"
           style={{ animationDelay: "120ms" }}
         >
-          <Button asChild size="lg">
-            <Link to="/prompt" search={{ mode: "build" as const }}>
-              {CTA.buildHero} <ArrowRight />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/library">{CTA.browseShort}</Link>
-          </Button>
+          {generationLive ? (
+            <>
+              <Button asChild size="lg">
+                <Link to={ROUTES.legacyBuilder}>
+                  {CTA.generateImage} <ArrowRight />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/prompt" search={{ mode: "build" as const }}>
+                  {CTA.buildHero}
+                </Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button asChild size="lg">
+                <Link to="/prompt" search={{ mode: "build" as const }}>
+                  {CTA.buildHero} <ArrowRight />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link to="/library">{CTA.browseShort}</Link>
+              </Button>
+            </>
+          )}
         </div>
 
-        {/* The six surfaces, one loop: part of the opening statement, not a second section. */}
+        {/* The surfaces, one loop: part of the opening statement, not a second section. */}
         <Reveal className="mt-24 md:mt-32">
-          <p className="eyebrow">Discover · Build · Learn</p>
+          <p className="eyebrow">Discover · Build · Create</p>
           <div className="mt-10 grid gap-12 md:grid-cols-2 md:gap-10 lg:grid-cols-3">
-            {FEATURES.map((f) => (
+            {features.map((f) => (
               <Link key={f.to} to={f.to} className="group flex flex-col">
                 <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
                   <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">

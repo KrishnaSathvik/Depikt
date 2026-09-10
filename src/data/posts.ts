@@ -28,6 +28,98 @@ export interface Post {
 export const posts: Post[] = [
   // ---- Product updates ----
   {
+    slug: "depikt-image-generation",
+    title: "Depikt Can Now Generate Images",
+    subtitle:
+      "Depikt now connects prompts, references, generation, and editing in one workflow, with automatic GPT Image 2.5 model routing behind the scenes.",
+    category: "Product",
+    author: "Krishna",
+    read_time: "8 min",
+    published: "2026-09-10",
+    excerpt:
+      "Prompt Build and Critique made it easier to write a good instruction. The step that was still missing was making the image. Generate closes that gap: create, edit, and regenerate images from a prompt and optional references, without leaving Depikt.",
+    seo_title: "Depikt Image Generation: Create & Edit with GPT Image 2.5",
+    seo_description:
+      "Depikt now connects prompts, references, generation, and editing in one workflow, with automatic GPT Image 2.5 model routing behind the scenes.",
+    cover_image: "/og/depikt-image-generation.png",
+    cover_alt: "Depikt Can Now Generate Images — a dot field resolving toward an image forming",
+    faq: [
+      {
+        question: "Do I choose between GPT Image 2.5 Flare and Sunburst?",
+        answer:
+          "No. Depikt looks at the task — things like exact text, layout complexity, reference fidelity, and whether it's an edit — and routes to Flare or Sunburst internally. There's no model picker in the product.",
+      },
+      {
+        question: "Can I still just write a prompt and take it somewhere else?",
+        answer:
+          "Yes. Prompt Build and Critique work exactly as before, and the result is still a plain prompt you can copy into Imago or anywhere else. Generate is an additional step, not a replacement for the workspace.",
+      },
+      {
+        question: "What happens to a reference image I attach?",
+        answer:
+          "It's used both to write the prompt (in Build mode) and, if you carry it through, to inform the generated image. Depikt does not blindly force a square output — it resolves the aspect ratio the prompt actually calls for.",
+      },
+      {
+        question: "Can I edit a generated image afterward?",
+        answer:
+          "Yes. Describe the change you want, and Depikt generates a new version while keeping the previous ones available, so you can compare or go back.",
+      },
+    ],
+    content: `
+Depikt started as a place to find better image prompts and understand why they worked. Then Prompt made it possible to build and critique them. The missing step was obvious: after getting the prompt right, users still had to leave Depikt to make the image.
+
+That step is now inside Depikt.
+
+## From prompt to image without leaving the workflow
+
+The individual pieces of Depikt were never really separate products, even when the last one still lived outside the app. [Library](/library) was for finding a prompt that already worked. [Gallery](/gallery) was for finding a visual direction when you didn't have a prompt yet. [Templates](/templates) was for starting a common image job from a known-good structure. [Prompt](/prompt?mode=build) was for turning any of that into an actual instruction, or for tightening one you already had. What came after — opening ChatGPT, pasting the prompt, attaching the reference again by hand — was the one part that happened somewhere else.
+
+Now each of those entry points continues one step further. Open a prompt in the Library and there's a Generate action next to Remix and Imago. Send a Gallery image into Prompt as before, or generate with it directly as a reference. Finish a template and it hands off to Build the same way it always has, and Build now has its own Generate button once the prompt is ready. Critique still scores what you already have and rewrites it — and the rewrite carries the same Generate option, so acting on the feedback doesn't mean starting over somewhere else.
+
+None of that changes what Build and Critique actually do. They still write and evaluate prompts the same way. Generate is what happens after, when you're ready to see the image instead of just the instruction.
+
+## You don't have to choose an image model
+
+ChatGPT Images 2.5 ships as two models with different tradeoffs. OpenAI describes GPT-Image-2.5 Flare as the default choice for most applications — fast, high-quality output for everyday generation. Sunburst is the more capable option, particularly useful for detailed creative and editing work, at the cost of longer generation times.
+
+Depikt doesn't ask which one you want. It routes internally, using signals already present in the task: whether the prompt calls for exact text, how complex the layout is, how much the result needs to match a reference, whether this is an edit that has to preserve most of the existing image, and how many references are involved. A quick product shot on a plain background is a different job than a multi-panel poster with precise typography and a reference face to preserve, and the routing reflects that difference without you having to name it.
+
+This isn't a claim that routing always produces the better of the two outcomes — sometimes a task genuinely sits in between, and reasonable people would route it differently. It's a bet that most people writing a prompt don't actually want to learn the tradeoffs between two model variants before they can make an image, and that Depikt is in a better position to make that call than a dropdown is.
+
+We ran a small internal test of our own before deciding this was the right default — a handful of prompts across posters, edits, and reference-heavy tasks, generated at max quality and reviewed by hand. It's not a benchmark anyone else should treat as universal, and we're not publishing it as one. It just told us the routing logic was pointed in a reasonable direction before we shipped it as the only path through the product.
+
+## Aspect ratio is part of the prompt
+
+If a prompt describes a poster, it should come out as a poster, not a square crop of one. Depikt reads the requested format the same way it reads everything else — from the words you used, from an explicit ratio if you gave one, from a reference image's own proportions if you attached one — and resolves an actual canvas from that, rather than defaulting to square and leaving you to fix it after the fact.
+
+This happens the same way it already does in Prompt's intent analysis, just carried through to generation. You don't set width and height, and there's no pixel-dimension field to fill in. You describe what you're making, and if that description implies a shape, Depikt uses it.
+
+## References stay part of the workflow
+
+A reference image usually means one of a few things: match this style, keep this person recognizable, treat this as the thing being edited, or use this layout as a starting composition. Prompt already asks what role a reference is playing before it writes the instruction, and that same handling continues into Generate — the reference isn't just attached, it's used the way the prompt said it should be used.
+
+The Gallery connection follows the same idea. A reference found there can go two directions: into Prompt, to be described and built into a full instruction first, or straight into Generate, when the image alone is enough to start from and you'd rather write the rest as you go.
+
+## Generate, edit, regenerate
+
+A first image from a prompt is rarely the last word on it. Generate treats that as normal rather than as a failure case. Describe what should change — the background, the pose, the lighting, a piece of text — and Depikt produces a new version while keeping the ones before it. Nothing you generate overwrites what came before it; you can compare versions, go back to an earlier one, or keep iterating forward from wherever you landed.
+
+Regeneration works the same way when the result is close but you just want another pass at the same instruction. Each attempt becomes another version, not a replacement.
+
+## Why the interface stays simple
+
+It would be easy to expose everything the underlying models can do — a quality tier, a model chooser, a seed field, whatever other parameters happen to be available. Depikt deliberately doesn't. The reasoning is the same one that shaped Prompt from the start: most of that complexity isn't something people actually want to manage, it's overhead they'd tolerate because a tool made it visible.
+
+What you provide is a prompt, and a reference when one is relevant. Depikt runs generation internally at the quality level it's already decided is appropriate, and handles the rest — format, model routing, version tracking — without asking you to make those calls first. If that turns out to be wrong for a particular case, the fix is to make the routing and defaults better, not to hand the decision back to the user by default.
+
+## What's next
+
+The routing between Flare and Sunburst will keep improving as we see more of how people actually use it — there are almost certainly edge cases it doesn't yet handle as well as it should. History and version workflows are still fairly basic and could do more to help you get back to a specific earlier attempt. And the connections between Library, Gallery, and Generate are new enough that we expect to keep adjusting which handoffs are useful and which just add a button nobody uses.
+
+None of that changes what shipped today: the prompt and the image are now part of the same workflow, in the same place.
+`,
+  },
+  {
     slug: "your-ai-assistant-can-now-use-depikt",
     title: "Your AI Assistant Can Now Use Depikt",
     subtitle:
@@ -173,7 +265,7 @@ From there, the assistant can retrieve an actual prompt and help you adapt it to
       {
         question: "Does Depikt generate images with Images 2.5?",
         answer:
-          "No. Depikt writes and reviews prompts. The Prompt workspace (Build and Critique modes) is tuned for ChatGPT Images 2.5; you paste the result into ChatGPT to make the image.",
+          "Yes — Depikt's Generate page creates and edits images with ChatGPT Images 2.5 directly. The Prompt workspace (Build and Critique modes) writes and reviews the prompt itself; Generate is the separate step that turns it into an image, without leaving Depikt.",
       },
     ],
     content: `
@@ -183,7 +275,7 @@ On September 8, 2026, OpenAI announced ChatGPT Images 2.5 and described it as it
 
 If you only read one paragraph: the model got noticeably better at three things that used to eat generations, namely keeping the person in your reference photo recognizable, changing only the thing you asked it to change, and not degrading an image across a long editing conversation. Everything else in the launch is either a ChatGPT product feature or an API model name.
 
-This article sorts the announcement into those three buckets, then covers what each change means for the prompt you write. Depikt does not generate images; it writes and reviews prompts, so the second half is our interpretation, and it is labelled as such.
+This article sorts the announcement into those three buckets, then covers what each change means for the prompt you write. Depikt's Prompt workspace writes and reviews prompts rather than generating the image itself, so the second half is our interpretation, and it is labelled as such.
 
 ## What changed in the model
 
