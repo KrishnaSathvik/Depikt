@@ -1,4 +1,5 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
+import { GA_INLINE_SCRIPT, GA_LOADER_SRC } from "@/lib/analytics";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { Analytics } from "@/components/Analytics";
@@ -104,10 +105,15 @@ export const Route = createRootRoute({
           href: "https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap",
         },
       ],
-      scripts: STRUCTURED_DATA.map((d) => ({
-        type: "application/ld+json",
-        children: JSON.stringify(d),
-      })),
+      scripts: [
+        // Google tag (gtag.js) — one per page, immediately in <head>.
+        { src: GA_LOADER_SRC, async: true },
+        { children: GA_INLINE_SCRIPT },
+        ...STRUCTURED_DATA.map((d) => ({
+          type: "application/ld+json",
+          children: JSON.stringify(d),
+        })),
+      ],
     };
   },
   shellComponent: RootShell,

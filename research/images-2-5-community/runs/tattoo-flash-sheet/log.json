@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:26:44.015Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1152x1536",
+    "refs": [],
+    "prompt": "Design an American-traditional tattoo flash sheet on aged cream paper.\n\nNine designs arranged in a loose 3 x 3 layout with hand-placed spacing, each a self-contained tattoo: a swallow in flight, a dagger through a rose, a lighthouse with waves, a panther head, a ship's anchor with rope, a lit candle, a snake coiled around a heart, a compass rose, a single peony.\n\nStyle rules: bold black outlines of even weight, limited palette of red, golden yellow, forest green and black, solid fills with minimal shading, whip-shading only inside the black. Slight ink bleed and paper texture so it reads as a hand-painted sheet, not a vector file.\n\nNo banners with words, no lettering, no signature. Portrait orientation.",
+    "file": "research/images-2-5-community/runs/tattoo-flash-sheet/attempt-1.png",
+    "ms": 34948,
+    "usage": {
+      "input_tokens": 163,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 163
+      },
+      "output_tokens": 1629,
+      "output_tokens_details": {
+        "image_tokens": 1629,
+        "text_tokens": 0
+      },
+      "total_tokens": 1792
+    }
+  }
+]

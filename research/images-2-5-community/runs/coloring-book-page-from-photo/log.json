@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-10T03:24:00.679Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1152x1536",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "Turn the attached photo into a coloring-book page.\n\nKeep: the person's pose, proportions, hairstyle, facial features and clothing exactly as photographed, so the page is recognisably them.\n\nChange: render everything as clean black line art on pure white. Uniform medium-weight outlines, no shading, no hatching, no grey fills, no gradients. Simplify small details (fabric folds, hair strands) into closed shapes that are easy to colour with a pencil. Add a simple background of a few large closed shapes: a doorway arch behind the figure and two potted plants at the sides, drawn in the same line weight.\n\nComposition: full body centred, generous white margin all round, portrait orientation. No text, no watermark, no signature.",
+    "file": "research/images-2-5-community/runs/coloring-book-page-from-photo/attempt-1.png",
+    "ms": 31897,
+    "usage": {
+      "input_tokens": 1617,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 165
+      },
+      "output_tokens": 1629,
+      "output_tokens_details": {
+        "image_tokens": 1629,
+        "text_tokens": 0
+      },
+      "total_tokens": 3246
+    }
+  }
+]

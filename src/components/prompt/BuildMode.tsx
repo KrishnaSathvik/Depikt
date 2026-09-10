@@ -36,6 +36,16 @@ import {
   needsReferenceReattach,
 } from "@/lib/product";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
+import { TemplateBrief } from "@/components/prompt/TemplateBrief";
+import { TemplateSetup } from "@/components/TemplateSetup";
+import { getTemplateBySlug, type Template } from "@/data/templates";
+import {
+  clearTemplateValues,
+  composeTemplateBrief,
+  loadTemplateValues,
+  saveTemplateValues,
+  type TemplateValues,
+} from "@/lib/template-context";
 
 /**
  * Build mode of the unified Prompt workspace (/prompt?mode=build).
@@ -46,6 +56,8 @@ export interface BuildModeProps {
   search: BuildSearch;
   /** Strip consumed query params without leaving the workspace. */
   clearSearch: () => void;
+  /** Drop the template slug from the URL (the user removed the template). */
+  clearTemplate: () => void;
   /** False while the workspace is showing the other mode (kept mounted for drafts). */
   active: boolean;
 }
@@ -56,8 +68,14 @@ export interface BuildSearch {
   remixRef?: string;
   restore?: string;
   ref?: string;
+  /** Active template slug; the answered values come from session storage. */
+  template?: string;
 }
 
+interface TemplateContext {
+  template: Template;
+  values: TemplateValues;
+}
 
 interface PromptResult {
   prompt?: string;
@@ -87,9 +105,14 @@ const EXAMPLE_CHIPS = [
   },
 ];
 
-export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
-  const { seed, prefill, remixRef, restore, ref } = search;
+export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildModeProps) {
+  const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
   const [input, setInput] = useState("");
+  // Structured template context from /templates. It is intent the engine
+  // receives as user input; it never replaces the Builder pipeline.
+  const [templateCtx, setTemplateCtx] = useState<TemplateContext | null>(null);
+  const [editingTemplate, setEditingTemplate] = useState(false);
+  const [editTrigger, setEditTrigger] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const [result, setResult] = useState<PromptResult | null>(null);
@@ -120,6 +143,37 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
     } finally {
       setImageLoading(false);
     }
+  };
+
+  // Template context: slug from the URL, answered values from session storage.
+  useEffect(() => {
+    if (!templateSlug) {
+      setTemplateCtx(null);
+      return;
+    }
+    const template = getTemplateBySlug(templateSlug);
+    if (!template || !template.active) {
+      clearTemplate();
+      return;
+    }
+    setTemplateCtx({ template, values: loadTemplateValues(template.slug) });
+    setInputCollapsed(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [templateSlug]);
+
+  const updateTemplateValues = (values: TemplateValues) => {
+    if (!templateCtx) return;
+    saveTemplateValues(templateCtx.template.slug, values);
+    setTemplateCtx({ template: templateCtx.template, values });
+    setEditingTemplate(false);
+  };
+
+  const removeTemplate = () => {
+    clearTemplateValues();
+    setTemplateCtx(null);
+    setEditingTemplate(false);
+    clearTemplate();
+    setTimeout(() => textareaRef.current?.focus(), 0);
   };
 
   // Restore from history (does not re-generate)
@@ -254,12 +308,22 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
   };
 
   const generate = async (overrideInput?: string) => {
-    const userInput = (overrideInput ?? input).trim();
+    // With a template, the engine receives the structured brief (template name,
+    // answered fields, extra direction). Regenerate passes the saved brief back in.
+    const userInput =
+      overrideInput !== undefined
+        ? overrideInput.trim()
+        : templateCtx
+          ? composeTemplateBrief(templateCtx.template, templateCtx.values, input)
+          : input.trim();
     if (!userInput) {
       toast.error("Describe what you want to make first");
       return;
     }
-    trackEvent("build_submitted", { has_reference: Boolean(reference?.dataUrl) });
+    trackEvent("build_submitted", {
+      has_reference: Boolean(reference?.dataUrl),
+      template: templateCtx?.template.slug,
+    });
     setLoading(true);
     setStreaming(false);
     setResult(null);
@@ -369,6 +433,11 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
   };
 
   const handleNewPrompt = () => {
+    if (templateCtx) {
+      clearTemplateValues();
+      setTemplateCtx(null);
+      clearTemplate();
+    }
     setInput("");
     setResult(null);
     setMoreVariants(null);
@@ -409,12 +478,35 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
               What do you want to create?
             </h2>
             <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[56ch]">
-              Describe the image you have in mind. Add a reference if you have one.
+              {templateCtx
+                ? "Your template answers are below. Add anything else, then build the prompt."
+                : "Describe the image you have in mind. Add a reference if you have one."}
             </p>
 
-            <div className="mt-8">
-              <label htmlFor="rough-idea" className="sr-only">
-                Describe what you want to make
+            {templateCtx && (
+              <div className="mt-8">
+                <TemplateBrief
+                  template={templateCtx.template}
+                  values={templateCtx.values}
+                  onEdit={(from) => {
+                    setEditTrigger(from);
+                    setEditingTemplate(true);
+                  }}
+                  onRemove={removeTemplate}
+                />
+              </div>
+            )}
+
+            <div className={templateCtx ? "mt-6" : "mt-8"}>
+              <label
+                htmlFor="rough-idea"
+                className={
+                  templateCtx
+                    ? "mb-2 block text-body-sm font-medium text-[color:var(--text-secondary)]"
+                    : "sr-only"
+                }
+              >
+                {templateCtx ? "Anything else?" : "Describe what you want to make"}
               </label>
               <div
                 onDragOver={(e) => {
@@ -441,8 +533,14 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
                       handleImageFile(file);
                     }
                   }}
-                  placeholder="Describe the image you want to create..."
-                  className="min-h-[220px] resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px]"
+                  placeholder={
+                    templateCtx
+                      ? "Add any extra direction, details, or constraints..."
+                      : "Describe the image you want to create..."
+                  }
+                  className={`resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px] ${
+                    templateCtx ? "min-h-[140px]" : "min-h-[220px]"
+                  }`}
                 />
               </div>
 
@@ -458,7 +556,7 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
                 )}
               </div>
 
-              <div className="mt-3 flex flex-wrap items-center gap-2">
+              <div className="mt-3 flex flex-wrap items-center gap-2" hidden={Boolean(templateCtx)}>
                 <span className="text-mono-sm text-[color:var(--text-tertiary)] mr-1">Try:</span>
                 {EXAMPLE_CHIPS.map((chip) => (
                   <button
@@ -505,6 +603,18 @@ export function BuildMode({ search, clearSearch, active }: BuildModeProps) {
               </div>
             </div>
           </div>
+        )}
+
+        {templateCtx && (
+          <TemplateSetup
+            template={templateCtx.template}
+            open={editingTemplate}
+            onOpenChange={setEditingTemplate}
+            initialValues={templateCtx.values}
+            onContinue={updateTemplateValues}
+            continueLabel="Save and continue"
+            returnFocusTo={editTrigger}
+          />
         )}
 
         {/* OUTPUT */}

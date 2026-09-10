@@ -1,0 +1,57 @@
+[
+  {
+    "at": "2026-09-10T03:25:38.889Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png"
+    ],
+    "prompt": "Isolate the product in the attached photo on a fully transparent background.\n\nKeep the product itself pixel-faithful: shape, label text, colours, highlights and the subtle reflections on the metal rim. Do not redraw, restyle, straighten or recolour it.\n\nRemove everything else: the backdrop, the surface it stands on and the contact shadow. The alpha edge must be clean and slightly soft at the silhouette, with no white halo, no dark fringe and no leftover background pixels in the gap under the rim.\n\nOutput a PNG with real transparency, product centred, small even margin on all sides.",
+    "file": "research/images-2-5-community/runs/transparent-product-cutout/attempt-1.png",
+    "ms": 32065,
+    "usage": {
+      "input_tokens": 1416,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 136
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2926
+    }
+  },
+  {
+    "at": "2026-09-10T03:26:40.942Z",
+    "kind": "run",
+    "attempt": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png"
+    ],
+    "prompt": "Isolate the product in the attached photo on a fully transparent background.\n\nKeep the product itself pixel-faithful: shape, label text, colours, highlights and the subtle reflections on the metal rim. Do not redraw, restyle, straighten or recolour it.\n\nRemove everything else: the backdrop, the surface it stands on and the contact shadow. Nothing may surround the product: no glow, no outer shadow, no soft halo, no coloured haze outside the silhouette. The product must be 100% opaque everywhere inside its outline; only the outermost one-pixel edge may be anti-aliased. Leave no white halo, no dark fringe and no leftover background pixels in the gap under the rim.\n\nOutput a PNG with real transparency, product centred, small even margin on all sides.",
+    "file": "research/images-2-5-community/runs/transparent-product-cutout/attempt-2.png",
+    "ms": 26737,
+    "usage": {
+      "input_tokens": 1455,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 175
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2965
+    },
+    "label": "v2 no-glow opaque"
+  }
+]

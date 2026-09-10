@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-10T03:28:48.013Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "From the attached casual photo, produce a professional studio headshot of the same person.\n\nIdentity is locked: same face, hair, skin tone, eye colour, eyebrows, smile and ears. Do not slim, smooth or age them.\n\nChange: crop to head-and-shoulders with the eyes on the upper third; replace the outfit with a plain navy crew-neck knit; replace the background with a soft mid-grey seamless with a gentle vignette; light with a large soft key from the front-left, subtle fill and a faint hair light so the hair separates from the background. Slight shallow depth of field, 85mm look, natural colour.\n\nStraight-on pose, relaxed shoulders, direct eye contact. No text, no logo.",
+    "file": "research/images-2-5-community/runs/casual-photo-to-studio-headshot/attempt-1.png",
+    "ms": 27067,
+    "usage": {
+      "input_tokens": 1615,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 163
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 3125
+    }
+  }
+]

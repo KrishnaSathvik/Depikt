@@ -4,7 +4,7 @@
  * Usage: node scripts/sync-curated-prompts.mjs
  */
 
-import { readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createClient } from "@supabase/supabase-js";
@@ -13,21 +13,36 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const OUT_FILE = resolve(ROOT, "src/data/curated-prompts.ts");
 
-// Load .env
-const envFile = readFileSync(resolve(ROOT, ".env"), "utf8");
-const env = Object.fromEntries(
-  envFile
-    .split("\n")
-    .filter((l) => l && !l.startsWith("#"))
-    .map((l) => {
-      const eq = l.indexOf("=");
-      return [l.slice(0, eq), l.slice(eq + 1).replace(/^["']|["']$/g, "")];
-    })
-);
+// Load .env then .env.local (both git-ignored; .env.local wins), like the other scripts.
+function readEnvFile(path) {
+  if (!existsSync(path)) return {};
+  return Object.fromEntries(
+    readFileSync(path, "utf8")
+      .split("\n")
+      .filter((l) => l && !l.startsWith("#") && l.includes("="))
+      .map((l) => {
+        const eq = l.indexOf("=");
+        return [
+          l.slice(0, eq).trim(),
+          l
+            .slice(eq + 1)
+            .trim()
+            .replace(/^["']|["']$/g, ""),
+        ];
+      }),
+  );
+}
+const env = {
+  ...readEnvFile(resolve(ROOT, ".env")),
+  ...readEnvFile(resolve(ROOT, ".env.local")),
+  ...process.env,
+};
 
 const supabase = createClient(
   env.SUPABASE_URL || env.VITE_SUPABASE_URL,
-  env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
+  env.SUPABASE_SERVICE_ROLE_KEY ||
+    env.SUPABASE_PUBLISHABLE_KEY ||
+    env.VITE_SUPABASE_PUBLISHABLE_KEY,
 );
 
 // Fetch all curated prompts. Try the Phase 4 provenance columns first and
@@ -43,7 +58,9 @@ let { data, error } = await supabase
   .order("category", { ascending: true })
   .order("created_at", { ascending: true });
 if (error && /source_type|status|reference_mode|slug/.test(error.message)) {
-  console.warn("Provenance columns missing; falling back. Apply supabase/migrations/20260909120000_add_prompt_provenance_to_curated_prompts.sql.");
+  console.warn(
+    "Provenance columns missing; falling back. Apply supabase/migrations/20260909120000_add_prompt_provenance_to_curated_prompts.sql.",
+  );
   ({ data, error } = await supabase
     .from("curated_prompts")
     .select(BASE_COLUMNS)
@@ -55,7 +72,7 @@ if (error) {
   console.error("Failed to fetch:", error.message);
   if (/target_model/.test(error.message)) {
     console.error(
-      "The target_model column is missing. Apply supabase/migrations/20260908120000_add_target_model_to_curated_prompts.sql first."
+      "The target_model column is missing. Apply supabase/migrations/20260908120000_add_target_model_to_curated_prompts.sql first.",
     );
   }
   process.exit(1);
@@ -67,6 +84,15 @@ const TARGET_MODELS = new Set(["gpt-image-2", "gpt-image-2.5"]);
 const targetModelOf = (p) => (TARGET_MODELS.has(p.target_model) ? p.target_model : "gpt-image-2");
 const byModel = new Map();
 for (const p of data) byModel.set(targetModelOf(p), (byModel.get(targetModelOf(p)) || 0) + 1);
+
+// The TS file is the legacy GPT Image 2 collection only, kept byte-for-byte
+// (tests/unit/library-images-2-5-staged.test.ts guards this). Images 2.5 rows
+// are served from Supabase; their staged/promotion record is
+// src/data/images-2-5-staged.ts plus supabase/insert-images-2-5-batch*-staged.sql.
+const skipped = data.filter((p) => targetModelOf(p) !== "gpt-image-2").length;
+data = data.filter((p) => targetModelOf(p) === "gpt-image-2");
+if (skipped)
+  console.log(`Skipped ${skipped} Images 2.5 rows (served from Supabase, not the TS file).`);
 
 // Group by category for organized output
 const byCategory = new Map();

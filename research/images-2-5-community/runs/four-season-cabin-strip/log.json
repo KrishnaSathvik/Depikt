@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T03:24:15.787Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Photorealistic photo of a small timber cabin with a covered porch, two front windows and a stone chimney, seen straight on from a gravel path, a large maple tree to the left and a low wooden fence, clear summer noon light, square 1:1 framing. No people, no text.",
+    "file": "research/images-2-5-community/runs/four-season-cabin-strip/setup.png",
+    "ms": 21550,
+    "usage": {
+      "input_tokens": 68,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 68
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1824
+    }
+  },
+  {
+    "at": "2026-09-10T03:27:03.272Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "2048x1024",
+    "refs": [
+      "research/images-2-5-community/runs/four-season-cabin-strip/setup.png"
+    ],
+    "prompt": "Using the attached photo as the master, produce one wide image containing four equal square panels side by side, left to right: summer, autumn, winter, spring.\n\nEvery panel keeps the exact same cabin, camera position, lens, framing, porch, windows, path and tree positions as the master. Only these change per panel: foliage colour and density, ground cover (grass, fallen leaves, snow, wildflowers), sky and light (summer noon, autumn golden hour, winter overcast with snowfall, spring soft morning), and small seasonal props (a garden chair in summer, a pumpkin by the door in autumn, smoke from the chimney in winter, a bicycle in spring).\n\nThin white gutters between panels, no borders otherwise, no labels, no text.",
+    "file": "research/images-2-5-community/runs/four-season-cabin-strip/attempt-1.png",
+    "ms": 29337,
+    "usage": {
+      "input_tokens": 1193,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 169
+      },
+      "output_tokens": 1180,
+      "output_tokens_details": {
+        "image_tokens": 1180,
+        "text_tokens": 0
+      },
+      "total_tokens": 2373
+    }
+  }
+]

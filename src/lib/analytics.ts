@@ -1,8 +1,13 @@
 /**
- * Google Analytics (GA4) via gtag.js — browser only.
+ * Google Analytics (GA4) via gtag.js.
  *
- * Measurement ID comes from the Lovable Google Analytics connector:
- * VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY
+ * The gtag loader and base config are rendered into the document head by
+ * src/routes/__root.tsx (so the tag is present in server HTML and detected by
+ * Google), while page views and events are sent from the browser here so SPA
+ * navigation is tracked correctly.
+ *
+ * Measurement ID: the Depikt GA4 property (G-9TN685P8FF). The Lovable Google
+ * Analytics connector variable overrides it when set.
  */
 
 declare global {
@@ -11,9 +16,21 @@ declare global {
   }
 }
 
-const MEASUREMENT_ID = import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY as
-  | string
-  | undefined;
+export const GA_MEASUREMENT_ID: string =
+  (import.meta.env.VITE_LOVABLE_CONNECTOR_GOOGLE_ANALYTICS_API_KEY as string | undefined) ||
+  "G-9TN685P8FF";
+
+const MEASUREMENT_ID: string | undefined = GA_MEASUREMENT_ID;
+
+export const GA_LOADER_SRC = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+
+/** Inline bootstrap rendered in <head>; route changes are sent manually. */
+export const GA_INLINE_SCRIPT = [
+  "window.dataLayer = window.dataLayer || [];",
+  "function gtag(){dataLayer.push(arguments);}",
+  "gtag('js', new Date());",
+  `gtag('config', '${GA_MEASUREMENT_ID}', { send_page_view: false });`,
+].join("\n");
 
 let initialized = false;
 
@@ -31,9 +48,13 @@ export function initAnalytics() {
   if (initialized || !isAnalyticsEnabled()) return;
   initialized = true;
 
+  // The root route renders the loader and config in <head>; only fall back to
+  // injecting them here if that markup is missing (e.g. a custom shell).
+  if (document.querySelector(`script[src="${GA_LOADER_SRC}"]`)) return;
+
   const script = document.createElement("script");
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}`;
+  script.src = GA_LOADER_SRC;
   document.head.appendChild(script);
 
   gtag("js", new Date());

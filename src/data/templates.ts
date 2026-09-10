@@ -27,6 +27,23 @@ export const TEMPLATE_GROUPS: readonly TemplateGroup[] = [
   "Brand",
 ];
 
+/** Website category labels. Internal group names stay stable for MCP and tests. */
+export const TEMPLATE_GROUP_LABEL: Record<TemplateGroup, string> = {
+  Create: "Create",
+  Structure: "Design & explain",
+  Edit: "Edit",
+  References: "References",
+  Brand: "Brand",
+};
+
+export const TEMPLATE_GROUP_BLURB: Record<TemplateGroup, string> = {
+  Create: "Make a new image from an idea.",
+  Structure: "Turn information, interfaces or sequences into structured visuals.",
+  Edit: "Change an image you already have.",
+  References: "Use existing images to guide identity, style or composition.",
+  Brand: "Create or apply a visual identity.",
+};
+
 /**
  * What the template needs from the image model. Not a model name — a capability.
  * - general: works with any modern image generator.
@@ -50,6 +67,10 @@ export interface TemplateField {
   hint?: string;
   /** Multi-line input on the page. */
   long?: boolean;
+  /** Must be answered before the template can continue into Prompt. One or two per template. */
+  required?: boolean;
+  /** Plain-language input placeholder; falls back to "e.g." + example_input. */
+  placeholder?: string;
 }
 
 export interface Template {
@@ -83,11 +104,16 @@ export const templates: Template[] = [
     short_title: "Portrait",
     group: "Create",
     description:
-      "Portraits, editorial photography and lifestyle scenes, built from subject, light and framing rather than adjectives.",
+      "Create portraits, editorial photos and lifestyle scenes with control over the subject, setting, framing and light.",
     best_for: "Editorial portraits, lifestyle scenes, people-first photography",
     compatibility: "general",
     fields: [
-      { key: "SUBJECT", label: "Subject", hint: "Who is in the frame, described concretely" },
+      {
+        key: "SUBJECT",
+        label: "Subject",
+        required: true,
+        hint: "Who is in the frame, described concretely",
+      },
       { key: "ACTION", label: "Pose or action" },
       { key: "ENVIRONMENT", label: "Environment" },
       { key: "FRAMING", label: "Framing", hint: "Close-up, head-and-shoulders, full body, angle" },
@@ -128,11 +154,11 @@ Keep the subject clearly the focus, with a believable depth of field and natural
     short_title: "Product",
     group: "Create",
     description:
-      "Packshots, ecommerce shots and campaign images where the product has to stay accurate.",
+      "Show a product accurately for a shop page, launch or campaign, with the surface, angle and lighting you choose.",
     best_for: "Ecommerce packshots, launch imagery, campaign product shots",
     compatibility: "general",
     fields: [
-      { key: "PRODUCT", label: "Product" },
+      { key: "PRODUCT", label: "Product", required: true },
       {
         key: "ACCURATE_DETAILS",
         label: "Details that must stay accurate",
@@ -179,11 +205,11 @@ The product stays sharp and correctly proportioned. No invented logos or label t
     short_title: "Poster",
     group: "Create",
     description:
-      "Event posters, editorial artwork and promotional flyers where the text has to read exactly as written.",
+      "Make an event poster, flyer or editorial artwork where the headline and details read exactly as written.",
     best_for: "Events, editorial posters, promotional artwork",
     compatibility: "general",
     fields: [
-      { key: "PURPOSE", label: "What the poster is for" },
+      { key: "PURPOSE", label: "What the poster is for", required: true },
       { key: "HEADLINE", label: "Exact headline" },
       { key: "SUPPORTING_TEXT", label: "Supporting text", long: true },
       { key: "SUBJECT", label: "Main visual" },
@@ -235,12 +261,12 @@ Keep the headline clearly dominant, spell all text exactly as written, and prese
     short_title: "Social",
     group: "Create",
     description:
-      "Social posts, launch graphics and ad creative with one message and one readable headline.",
+      "Make a social post, launch graphic or ad with one clear message and one readable headline.",
     best_for: "Instagram and X posts, launch graphics, paid social",
     compatibility: "general",
     fields: [
       { key: "PLATFORM", label: "Platform or use" },
-      { key: "MESSAGE", label: "The one message" },
+      { key: "MESSAGE", label: "The one message", required: true },
       { key: "SUBJECT", label: "Product or subject" },
       { key: "HEADLINE", label: "Exact headline" },
       { key: "CTA", label: "CTA text", hint: "Optional" },
@@ -284,11 +310,12 @@ Keep the headline legible at thumbnail size and leave safe margins around every 
     title: "Architecture / Interior",
     short_title: "Architecture",
     group: "Create",
-    description: "Rooms, buildings and spatial concepts described by geometry, material and light.",
+    description:
+      "Picture a room, building or space by describing its layout, materials, viewpoint and light.",
     best_for: "Interior concepts, building exteriors, spatial studies",
     compatibility: "general",
     fields: [
-      { key: "SPACE", label: "Space or building" },
+      { key: "SPACE", label: "Space or building", required: true },
       { key: "GEOMETRY", label: "Geometry and layout" },
       { key: "MATERIALS", label: "Materials" },
       { key: "VIEWPOINT", label: "Viewpoint" },
@@ -333,11 +360,11 @@ Keep proportions, sightlines and structural logic believable.`,
     short_title: "Infographic",
     group: "Structure",
     description:
-      "Structured visual explanations where the number of sections and the exact labels matter more than the illustration.",
+      "Explain a process or comparison as a clear graphic with exactly the steps and labels you need.",
     best_for: "Process explainers, comparison graphics, teaching visuals",
     compatibility: "general",
     fields: [
-      { key: "TOPIC", label: "Topic" },
+      { key: "TOPIC", label: "Topic", required: true },
       { key: "TITLE", label: "Exact title" },
       { key: "SECTION_COUNT", label: "Number of sections or steps" },
       { key: "SECTION_LABELS", label: "Section labels, in order", long: true },
@@ -386,11 +413,12 @@ Use only the labels and facts given. Do not invent extra sections, numbers or so
     title: "Presentation Visual",
     short_title: "Slide visual",
     group: "Structure",
-    description: "Slide-ready diagrams, hero visuals and metaphors that carry one point.",
+    description:
+      "Make a slide visual or simple diagram that carries one point, with the title and labels you specify.",
     best_for: "Deck hero images, concept diagrams, slide illustrations",
     compatibility: "general",
     fields: [
-      { key: "MESSAGE", label: "The slide's message" },
+      { key: "MESSAGE", label: "The slide's message", required: true },
       { key: "TITLE", label: "Exact title" },
       { key: "STRUCTURE", label: "Structure" },
       { key: "LABELS", label: "Labels, in order", long: true },
@@ -431,12 +459,12 @@ Keep it readable when projected: few elements, large type, high contrast, genero
     short_title: "UI concept",
     group: "Structure",
     description:
-      "Interface concepts and product screens described region by region, with real labels.",
+      "Mock up an app screen or web page by describing what it shows, what the user does, and how it looks.",
     best_for: "Product screens, app concepts, dashboard mockups",
     compatibility: "general",
     fields: [
-      { key: "PRODUCT", label: "Product" },
-      { key: "SCREEN_PURPOSE", label: "Screen or page purpose" },
+      { key: "PRODUCT", label: "Product", required: true },
+      { key: "SCREEN_PURPOSE", label: "Screen or page purpose", required: true },
       { key: "USER_GOAL", label: "Primary user goal" },
       { key: "INFORMATION", label: "Information the screen must show", long: true },
       { key: "ACTIONS", label: "Primary actions" },
@@ -464,7 +492,8 @@ Show only the features listed. Do not invent extra menus, tabs or product functi
       USER_GOAL: "check off today's habits in a few taps",
       INFORMATION: "today's date, a streak count, five habit rows with checkboxes",
       ACTIONS: "Add habit",
-      HIERARCHY: "date and streak at the top, habit list filling the middle, one button at the bottom",
+      HIERARCHY:
+        "date and streak at the top, habit list filling the middle, one button at the bottom",
       VISUAL_SYSTEM: "8pt grid, one sans typeface, off-white surface, single accent color",
       DEVICE: "phone screen, 9:19.5 portrait",
     },
@@ -480,11 +509,11 @@ Show only the features listed. Do not invent extra menus, tabs or product functi
     short_title: "Character sheet",
     group: "Structure",
     description:
-      "Game, animation and illustration character documentation with consistent views on one sheet.",
+      "Document a character with consistent front, side and back views, expressions and props on one sheet.",
     best_for: "Game and animation characters, illustration bibles",
     compatibility: "reference-recommended",
     fields: [
-      { key: "CHARACTER", label: "Character" },
+      { key: "CHARACTER", label: "Character", required: true },
       { key: "APPEARANCE", label: "Appearance", long: true },
       { key: "OUTFIT", label: "Outfit" },
       { key: "VIEWS", label: "Views required", hint: "Front, side, back, three-quarter" },
@@ -525,11 +554,12 @@ The same character in every view: identical face, proportions, outfit and colors
     title: "Storyboard / Multi-Panel",
     short_title: "Storyboard",
     group: "Structure",
-    description: "Sequences, shot plans and comics where the same subject carries across panels.",
+    description:
+      "Plan a sequence of scenes while keeping the same characters, setting and visual style consistent from panel to panel.",
     best_for: "Shot planning, comics, sequential storytelling",
     compatibility: "reference-recommended",
     fields: [
-      { key: "MOMENT", label: "Story moment" },
+      { key: "MOMENT", label: "Story moment", required: true },
       { key: "SUBJECT", label: "Recurring subject or character", long: true },
       { key: "PANEL_COUNT", label: "Panel count" },
       { key: "SEQUENCE", label: "Panel sequence", long: true },
@@ -576,12 +606,12 @@ Same character, wardrobe, lighting and palette across all panels.`,
     short_title: "Precise edit",
     group: "Edit",
     description:
-      "Change exactly one thing in an existing image and state plainly what must not move.",
+      "Change one specific thing in an image you already have, and say what must stay exactly as it is.",
     best_for: "Targeted fixes, swaps and removals in an existing image",
     compatibility: "editing-required",
     fields: [
       { key: "SOURCE", label: "Source image" },
-      { key: "CHANGE", label: "The exact change" },
+      { key: "CHANGE", label: "The exact change", required: true },
       { key: "REGION", label: "Target region or object" },
       { key: "PRESERVE", label: "What must stay unchanged", long: true },
       { key: "REPLACEMENT", label: "Replacement details", hint: "Optional" },
@@ -615,12 +645,13 @@ Make no other change. Keep the original framing, lighting, perspective, color an
     title: "Style Transfer / Restyle",
     short_title: "Restyle",
     group: "Edit",
-    description: "Move an existing image into a different medium while keeping its structure.",
+    description:
+      "Turn an existing image into a different medium or style while keeping its content and layout.",
     best_for: "Medium changes, art-direction passes, illustration conversions",
     compatibility: "editing-required",
     fields: [
       { key: "SOURCE", label: "Source or reference" },
-      { key: "TARGET_STYLE", label: "Target medium or style" },
+      { key: "TARGET_STYLE", label: "Target medium or style", required: true },
       { key: "KEEP_CONTENT", label: "Content that must remain", long: true },
       { key: "KEEP_STRUCTURE", label: "Structure that must remain" },
       { key: "COLOR", label: "Color and material treatment" },
@@ -659,14 +690,14 @@ Change only the visual language. Do not add, remove or rearrange subjects, and k
     short_title: "Keep the subject",
     group: "References",
     description:
-      "Keep a person, character, object or product recognizable while changing everything around it.",
+      "Keep a person, product or character recognizable from a reference photo while placing them in a new scene.",
     best_for: "Same face, same product, new scene",
     compatibility: "reference-recommended",
     fields: [
       { key: "REFERENCE", label: "Reference image" },
       { key: "ROLE", label: "Role of the reference", hint: "Identity, product, style, layout" },
       { key: "PRESERVE", label: "Characteristics to preserve", long: true },
-      { key: "ENVIRONMENT", label: "New environment" },
+      { key: "ENVIRONMENT", label: "New environment", required: true },
       { key: "STATE", label: "New clothing or state", hint: "Optional" },
       { key: "COMPOSITION", label: "Composition" },
       { key: "STYLE", label: "Visual direction" },
@@ -703,7 +734,8 @@ The subject must stay recognizably the same. Take nothing else from the referenc
     title: "Multi-Reference Composition",
     short_title: "Multi-reference",
     group: "References",
-    description: "Combine several references with an explicit role assigned to each one.",
+    description:
+      "Combine several reference images, telling the model what each one is for, into a single new image.",
     best_for: "Identity plus product plus style in one image",
     compatibility: "reference-recommended",
     fields: [
@@ -711,7 +743,7 @@ The subject must stay recognizably the same. Take nothing else from the referenc
       { key: "IMAGE_2", label: "Image 2 role" },
       { key: "IMAGE_3", label: "Image 3 role" },
       { key: "IMAGE_4", label: "Image 4 role", hint: "Optional" },
-      { key: "SCENE", label: "Final scene" },
+      { key: "SCENE", label: "Final scene", required: true },
       { key: "COMPOSITION", label: "Composition" },
       { key: "LIGHTING", label: "Lighting" },
       { key: "CONSTRAINTS", label: "Constraints", long: true },
@@ -754,11 +786,12 @@ Do not blend the roles: take identity only from the identity reference, product 
     title: "Logo / Brand → Merch",
     short_title: "Brand & merch",
     group: "Brand",
-    description: "Brand marks and how they look applied to packaging, merch and physical goods.",
+    description:
+      "Create a logo or brand mark and see it applied to packaging, merch or other real-world items.",
     best_for: "Logo concepts, packaging mockups, merch visualization",
     compatibility: "general",
     fields: [
-      { key: "BRAND", label: "Brand name" },
+      { key: "BRAND", label: "Brand name", required: true },
       { key: "WHAT_IT_DOES", label: "What the brand does" },
       { key: "PERSONALITY", label: "Brand personality" },
       { key: "MARK_TYPE", label: "Mark type", hint: "Wordmark, monogram, symbol, combination" },

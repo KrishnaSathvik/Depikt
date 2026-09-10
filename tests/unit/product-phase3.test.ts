@@ -115,7 +115,7 @@ test("current product SEO is unified and never claims to generate images", () =>
   assert.equal("critic" in SEO, false);
   assert.equal(SEO.home.title, "Depikt — AI Image Prompts, References & Templates");
   assert.equal(SEO.root.title, SEO.home.title);
-  assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
+  assert.equal(SEO.prompt.title, "Prompt Workspace: Build & Critique AI Image Prompts | Depikt");
   assert.equal(SEO.library.title, `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`);
   assert.equal(SEO.gallery.title, "AI Image Reference Gallery | Depikt");
   assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
@@ -130,7 +130,7 @@ test("current product SEO is unified and never claims to generate images", () =>
   assert.equal(POSITIONING.eyebrow, "Built for ChatGPT Images 2.5");
   assert.equal(POSITIONING.headline, "Turn rough ideas into image-ready prompts.");
   assert.equal(CTA.buildHero, "Build a Prompt");
-  assert.equal(CTA.browse, "Browse 523 Prompts");
+  assert.equal(CTA.browse, "Browse 543 Prompts");
 });
 
 test("no current-product surface still calls Build and Critique separate tools", () => {
@@ -198,7 +198,7 @@ test("current product UI files carry no generator-era labels", () => {
     const s = read(f);
     for (const re of banned) assert.equal(re.test(s), false, `${f} still contains ${re}`);
   }
-  assert.match(read("src/routes/index.tsx"), /Learn · Build · Improve/);
+  assert.match(read("src/routes/index.tsx"), /Discover · Build · Learn/);
   assert.match(read("public/llms.txt"), /does not generate images/);
   assert.match(read("public/llms.txt"), /GPT Image 2 collection/);
 });
@@ -340,8 +340,8 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
     assert.ok(p.prompt.length > 0);
     assert.equal("target_model" in p, false, "generated data file not re-synced in Phase 3");
   }
-  assert.equal(LIBRARY_COPY.headline, "523 prompts to learn from, remix, and use.");
-  assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 23 tested Images 2.5");
+  assert.equal(LIBRARY_COPY.headline, "543 prompts to learn from, remix, and use.");
+  assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 43 tested Images 2.5");
   assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);
   assert.match(read("src/routes/library.tsx"), /CTA\.remix/);
 });
@@ -421,7 +421,7 @@ test("historical GPT Image 2 blog posts and prompt text are untouched by the mig
 test("launch module is data-driven: real count, real images, deep link to the Images 2.5 collection", () => {
   assert.equal(ANNOUNCEMENT.eyebrow, "New in Depikt");
   assert.equal(ANNOUNCEMENT.title, "See what works with ChatGPT Images 2.5.");
-  assert.equal(ANNOUNCEMENT.meta, "23 new tested recipes");
+  assert.equal(ANNOUNCEMENT.meta, "43 new tested recipes");
   assert.equal(ANNOUNCEMENT.primary.collection, "gpt-image-2.5");
   assert.ok(getPostBySlug(ANNOUNCEMENT.secondary.slug), "secondary CTA slug resolves to a post");
   assert.ok(ANNOUNCEMENT.images.length >= 3 && ANNOUNCEMENT.images.length <= 5);

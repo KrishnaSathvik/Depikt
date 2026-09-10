@@ -71,22 +71,51 @@ const ROUGH_INPUT = "a poster about climate change";
 
 const POLISHED_PROMPT = `Editorial print poster, 2:3 portrait. Bold sans-serif headline "THE CLOCK IS TICKING" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "ARCTIC SEA ICE — SEPT 2026" with a thin 6-tick data sparkline trending down. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality.`;
 
-// Learn → Build → Improve. The step word is a small label; the tool name
-// stays the visible title so the cards match the navigation.
+// The product story: six surfaces, each with one reason to exist. The
+// tagline is the small label; the surface name stays the visible title so
+// the cards match the navigation and footer.
 const FEATURES = [
   {
     to: "/library" as const,
-    step: "Learn",
+    step: "Discover what works.",
     title: TOOL.library,
-    body: `${LIBRARY_PROMPT_COUNT} curated prompts across 10 categories, each with a note on why it works: the ${LEGACY_MODEL_NAME} collection plus ${TARGET_MODEL_NAME} recipes with reviewed results.`,
+    body: `${LIBRARY_PROMPT_COUNT} curated prompts, each with a note on why it works: the ${LEGACY_MODEL_NAME} collection plus ${TARGET_MODEL_NAME} recipes with reviewed results.`,
     cta: "Browse the library",
   },
   {
     to: "/prompt" as const,
-    step: "Build",
+    step: "Build it or improve it.",
     title: TOOL.prompt,
     body: "One workspace with two modes. Build turns a rough idea or a reference image into a precise prompt. Critique scores a prompt you already have and rewrites it.",
     cta: "Open the prompt workspace",
+  },
+  {
+    to: "/gallery" as const,
+    step: "Find a visual direction.",
+    title: TOOL.gallery,
+    body: "Hand-picked visual references across styles and formats. Send one straight into Build mode and describe the result you want.",
+    cta: "Open the gallery",
+  },
+  {
+    to: "/templates" as const,
+    step: "Start with a structure.",
+    title: TOOL.templates,
+    body: "Reusable structures for common image jobs: posters, product shots, infographics, edits, and reference compositions. Fill one in and finish it in Build mode.",
+    cta: "Browse templates",
+  },
+  {
+    to: MCP.pagePath,
+    step: "Bring Depikt into your assistant.",
+    title: "MCP",
+    body: "ChatGPT, Claude, and other compatible assistants can search the library, open prompts and templates, and read guides. Public and read-only.",
+    cta: "Connect an assistant",
+  },
+  {
+    to: "/blog" as const,
+    step: "Learn from real prompting work.",
+    title: "Field Notes",
+    body: "Guides, experiments, and comparisons from actual image-generation work, from prompt structure to precise edits and reference workflows.",
+    cta: "Read the field notes",
   },
 ];
 
@@ -150,7 +179,6 @@ function LandingPage() {
       <LaunchModule />
       <main>
         <Hero />
-        <FeatureGrid />
         <Capabilities />
         <Assistants />
         <BeforeAfter />
@@ -167,7 +195,7 @@ function LandingPage() {
 function Hero() {
   return (
     <section>
-      <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-20 sm:px-6 md:pb-36 md:pt-36 lg:px-12">
+      <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-20 sm:px-6 md:pb-32 md:pt-36 lg:px-12">
         <h1 className="reveal max-w-[13ch] text-display-lg md:text-display-xl text-[color:var(--text-primary)]">
           {POSITIONING.headline}
         </h1>
@@ -191,24 +219,11 @@ function Hero() {
             <Link to="/library">{CTA.browseShort}</Link>
           </Button>
         </div>
-      </div>
-    </section>
-  );
-}
 
-/* ============================================================ */
-
-function FeatureGrid() {
-  return (
-    <section className="border-t border-[color:var(--border-subtle)]">
-      <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-          <p className="eyebrow">Learn · Build · Improve</p>
-          <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-            One library. One workspace.
-          </h2>
-
-          <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-10">
+        {/* The six surfaces, one loop: part of the opening statement, not a second section. */}
+        <Reveal className="mt-24 md:mt-32">
+          <p className="eyebrow">Discover · Build · Learn</p>
+          <div className="mt-10 grid gap-12 md:grid-cols-2 md:gap-10 lg:grid-cols-3">
             {FEATURES.map((f) => (
               <Link key={f.to} to={f.to} className="group flex flex-col">
                 <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
@@ -227,11 +242,13 @@ function FeatureGrid() {
               </Link>
             ))}
           </div>
-        </div>
-      </Reveal>
+        </Reveal>
+      </div>
     </section>
   );
 }
+
+/* ============================================================ */
 
 /* ============================================================ */
 
@@ -356,8 +373,8 @@ function BeforeAfter() {
                 “{ROUGH_INPUT}”
               </p>
               <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-                Build mode works out the format, the reference use, the ratio, and the exact
-                text first, then writes the prompt.
+                Build mode works out the format, the reference use, the ratio, and the exact text
+                first, then writes the prompt.
               </p>
               <div className="mt-8">
                 <Button asChild variant="outline">
@@ -393,7 +410,7 @@ function BeforeAfter() {
 /* ============================================================ */
 
 function LatestGuides() {
-  const guides = getLatestGuides(3);
+  const guides = getLatestGuides(4);
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
       <Reveal>
@@ -413,7 +430,7 @@ function LatestGuides() {
             </Link>
           </div>
 
-          <div className="mt-16 grid gap-12 md:grid-cols-2 md:gap-10">
+          <div className="mt-16 grid grid-cols-2 gap-6 md:gap-10 lg:grid-cols-4">
             {guides.map((p) => (
               <Link
                 key={p.slug}

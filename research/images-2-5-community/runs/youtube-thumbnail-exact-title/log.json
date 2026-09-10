@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:29:32.029Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1280x720",
+    "refs": [],
+    "prompt": "Create a 16:9 YouTube thumbnail.\n\nLeft 60%: the text \"I TESTED 5 STANDING DESKS\" in a very heavy condensed sans, three stacked lines, white with a thick black outline and a subtle drop shadow, filling the height. Beneath it, smaller, in bright yellow: \"one was a mistake\".\n\nRight 40%: a photorealistic standing desk at its highest position, slightly tilted toward the camera, with a red circle-and-slash icon drawn over one of its legs. Background: a clean studio wall in deep teal with a soft spotlight behind the desk.\n\nHigh contrast, no other text, no faces, no logos. Everything must read at 320 pixels wide.",
+    "file": "research/images-2-5-community/runs/youtube-thumbnail-exact-title/attempt-1.png",
+    "ms": 21159,
+    "usage": {
+      "input_tokens": 154,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 154
+      },
+      "output_tokens": 947,
+      "output_tokens_details": {
+        "image_tokens": 947,
+        "text_tokens": 0
+      },
+      "total_tokens": 1101
+    }
+  }
+]

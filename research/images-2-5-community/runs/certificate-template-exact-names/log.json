@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:30:35.232Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1536x1088",
+    "refs": [],
+    "prompt": "Design a landscape certificate of completion on cream paper with a fine navy and gold guilloche border.\n\nText, top to bottom, all centred, exactly as written:\n\"CERTIFICATE OF COMPLETION\" (small caps, letter-spaced, navy)\n\"This certifies that\" (small italic serif)\n\"Maya Okonkwo\" (large elegant script, gold)\n\"has successfully completed the course\" (small italic serif)\n\"Foundations of Visual Design\" (bold serif, navy)\n\"12 September 2026\" (small serif)\n\nBottom-left, a signature line with \"Course Director\" beneath it. Bottom-right, an embossed gold circular seal with a laurel motif and no text inside. Balanced whitespace, nothing else on the page.",
+    "file": "research/images-2-5-community/runs/certificate-template-exact-names/attempt-1.png",
+    "ms": 28589,
+    "usage": {
+      "input_tokens": 156,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 156
+      },
+      "output_tokens": 1498,
+      "output_tokens_details": {
+        "image_tokens": 1498,
+        "text_tokens": 0
+      },
+      "total_tokens": 1654
+    }
+  }
+]

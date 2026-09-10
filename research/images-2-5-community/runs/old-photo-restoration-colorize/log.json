@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T03:25:10.937Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1280x1024",
+    "refs": [],
+    "prompt": "Scan of a damaged black-and-white family photograph from the 1950s: a family of four in front of a suburban house next to a parked car, parents standing, two children in front, everyone smiling at the camera. The print is faded and low-contrast, with two deep creases crossing the image, a torn-off bottom-left corner, a brown water stain top-right, scattered dust and scratches, and a scalloped white paper border. Slightly skewed on the scanner. 5:4 landscape. No text.",
+    "file": "research/images-2-5-community/runs/old-photo-restoration-colorize/setup.png",
+    "ms": 20495,
+    "usage": {
+      "input_tokens": 114,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 114
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 1624
+    }
+  },
+  {
+    "at": "2026-09-10T03:25:53.493Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1280x1024",
+    "refs": [
+      "research/images-2-5-community/runs/old-photo-restoration-colorize/setup.png"
+    ],
+    "prompt": "Restore the attached old photograph in two layers of work.\n\nRepair: remove the creases, tears, water stain and dust; rebuild the missing corner using the surrounding content; recover contrast and detail in the faded areas. Keep every face, pose, garment and background object exactly as in the original; do not reinterpret expressions or add anything that was not there.\n\nColourise: period-plausible, restrained colours for the 1950s: muted fabric tones, natural skin, a soft blue sky, no oversaturation. Keep the light grain of the original so it still reads as a photograph of its time, not a modern render.\n\nOutput the photo alone, straightened, without the paper border.",
+    "file": "research/images-2-5-community/runs/old-photo-restoration-colorize/attempt-1.png",
+    "ms": 33064,
+    "usage": {
+      "input_tokens": 1436,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 156
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2946
+    }
+  }
+]

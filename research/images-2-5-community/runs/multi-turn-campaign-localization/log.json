@@ -1,0 +1,97 @@
+[
+  {
+    "at": "2026-09-10T03:23:54.107Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Vertical 4:5 paid-social campaign image for a sparkling yuzu drink called KUMO. A pale-yellow can with the wordmark \"KUMO\" stands on a sunlit concrete ledge, hard noon shadow, a slice of yuzu beside it, clear blue sky behind. Top-left, a bold navy sans-serif headline in two lines: \"Bright as noon.\" Bottom-left, a small navy rounded button with white text \"Now in stores\". No other text. Clean, minimal, lots of sky.",
+    "file": "research/images-2-5-community/runs/multi-turn-campaign-localization/setup.png",
+    "ms": 18723,
+    "usage": {
+      "input_tokens": 111,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 111
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 1621
+    }
+  },
+  {
+    "at": "2026-09-10T03:26:03.658Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-campaign-localization/setup.png"
+    ],
+    "prompt": "Change the headline \"Bright as noon.\" to the French \"Lumineux comme midi.\" and the button text \"Now in stores\" to \"En magasin\". Keep the same typeface, size, weight and positions; do not move the can or any other element.",
+    "file": "research/images-2-5-community/runs/multi-turn-campaign-localization/attempt-1-turn-1.png",
+    "ms": 26176,
+    "usage": {
+      "input_tokens": 1350,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 70
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2860
+    }
+  },
+  {
+    "at": "2026-09-10T03:26:33.816Z",
+    "kind": "turn",
+    "attempt": 1,
+    "turn": 2,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-campaign-localization/attempt-1-turn-1.png"
+    ],
+    "prompt": "Change the headline \"Lumineux comme midi.\" to the German \"Hell wie der Mittag.\" and the button text \"En magasin\" to \"Jetzt im Handel\". Keep the same typeface, size, weight and positions; do not move the can or any other element.",
+    "file": "research/images-2-5-community/runs/multi-turn-campaign-localization/attempt-1-turn-2.png",
+    "ms": 30111,
+    "usage": {
+      "input_tokens": 1351,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 71
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2861
+    }
+  },
+  {
+    "at": "2026-09-10T03:26:33.817Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/multi-turn-campaign-localization/setup.png"
+    ],
+    "prompt": "Run these as separate turns on the attached campaign image, feeding each result into the next. Each turn changes only the quoted text; layout, product, photo, colours and type styling stay exactly as they are.\n\nTurn 1: Change the headline \"Bright as noon.\" to the French \"Lumineux comme midi.\" and the button text \"Now in stores\" to \"En magasin\". Keep the same typeface, size, weight and positions; do not move the can or any other element.\nTurn 2: Change the headline \"Lumineux comme midi.\" to the German \"Hell wie der Mittag.\" and the button text \"En magasin\" to \"Jetzt im Handel\". Keep the same typeface, size, weight and positions; do not move the can or any other element.",
+    "file": "research/images-2-5-community/runs/multi-turn-campaign-localization/attempt-1-turn-2.png",
+    "ms": 0,
+    "label": "chain of 2"
+  }
+]

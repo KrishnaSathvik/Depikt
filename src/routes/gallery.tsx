@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Wand2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { Pagination } from "@/components/Pagination";
+import { z } from "zod";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SampleImage } from "@/components/SampleImage";
@@ -13,7 +16,15 @@ import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
 
 const GALLERY_URL = absoluteUrl("/gallery");
 
+// Six rows of the four-column desktop grid per page.
+const PAGE_SIZE = 24;
+
+const searchSchema = z.object({
+  page: fallback(z.number().int().min(1), 1).default(1),
+});
+
 export const Route = createFileRoute("/gallery")({
+  validateSearch: zodValidator(searchSchema),
   head: () => {
     const GALLERY_OG_IMAGE = getOgImageForPath("gallery");
     return {
@@ -50,7 +61,23 @@ export const Route = createFileRoute("/gallery")({
 
 function GalleryPage() {
   const navigate = useNavigate();
+  const { page } = Route.useSearch();
   const [selected, setSelected] = useState<string | null>(null);
+
+  const totalPages = Math.max(1, Math.ceil(GALLERY_IMAGES.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const paged = useMemo(
+    () => GALLERY_IMAGES.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [safePage],
+  );
+
+  const goToPage = (p: number) => {
+    const next = Math.max(1, Math.min(totalPages, p));
+    navigate({ to: "/gallery", search: { page: next } });
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   const handleUseAsReference = (filename: string) => {
     navigate({
@@ -68,12 +95,12 @@ function GalleryPage() {
           Reference Gallery
         </h1>
         <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
-          Click any image to preview it, then send it to the {TOOL.prompt} workspace as a reference. You
-          choose there how it is used: style, subject, composition, and so on.
+          Click any image to preview it, then send it to the {TOOL.prompt} workspace as a reference.
+          You choose there how it is used: style, subject, composition, and so on.
         </p>
 
         <div className="mt-10 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3">
-          {GALLERY_IMAGES.map((filename) => (
+          {paged.map((filename) => (
             <button
               key={filename}
               type="button"
@@ -90,6 +117,10 @@ function GalleryPage() {
             </button>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={goToPage} />
+        )}
       </div>
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>

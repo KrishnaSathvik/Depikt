@@ -2,27 +2,31 @@
 
 > Depikt is a prompt workspace and reference library for AI image creation. Explore proven prompt examples, build and improve image prompts in one Prompt workspace with Build and Critique modes, browse visual references, and learn from practical prompting guides.
 
-Depikt's Library currently includes **523 curated prompts**: 500 original GPT Image 2 examples and 23 tested ChatGPT Images 2.5 recipes.
+Depikt's Library currently includes **543 curated prompts**: 500 original GPT Image 2 examples and 43 tested ChatGPT Images 2.5 recipes.
 
 Build and Critique are two modes of one workspace at https://depikt.app/prompt. Depikt writes and reviews prompts; it does not generate images. The older URLs https://depikt.app/generate and https://depikt.app/critique redirect to the matching mode.
 
 ## Core tools
 
-- [Library](https://depikt.app/library): Browse 523 curated image prompts across posters, infographics, UI concepts, social graphics, cinematic scenes, product imagery, illustrations, image edits, multi-panel layouts, reference workflows, and more. Each entry includes a sample image, the full prompt, and an explanation of why it works. The Library contains both GPT Image 2 and tested ChatGPT Images 2.5 examples in one collection.
+- [Library](https://depikt.app/library): Browse 543 curated image prompts across posters, infographics, UI concepts, social graphics, cinematic scenes, product imagery, illustrations, image edits, multi-panel layouts, reference workflows, and more. Each entry includes a sample image, the full prompt, and an explanation of why it works. The Library contains both GPT Image 2 and tested ChatGPT Images 2.5 examples in one collection.
 
-- [Prompt workspace — Build mode](https://depikt.app/prompt?mode=build): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
+- [Prompt](https://depikt.app/prompt): One workspace for writing and reviewing image prompts. It has two modes; they are not separate products.
+  - [Prompt workspace — Build mode](https://depikt.app/prompt?mode=build): Describe what you want to create and optionally attach a reference image. Depikt analyzes the requested format, composition, exact text, aspect ratio, reference intent, missing information, and other constraints before producing a structured image prompt. Reference workflows include style, subject identity, edit source, product/object, composition, and sketch/layout.
+  - [Prompt workspace — Critique mode](https://depikt.app/prompt?mode=critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
 
-- [Prompt workspace — Critique mode](https://depikt.app/prompt?mode=critique): Review an existing image prompt, optionally with its reference or source image. Depikt evaluates intent fidelity, clarity, contradictions, composition, reference handling, edit preservation, text and layout, style coherence, factual integrity, and efficiency, then suggests concrete improvements and a rewritten prompt.
+- [Reference Gallery](https://depikt.app/gallery): Visual-first discovery. Browse hand-picked visual references across different styles and formats, then send one straight into the Prompt workspace in Build mode as a reference.
 
-- [Reference Gallery](https://depikt.app/gallery): Browse hand-picked visual references across different styles and formats. Open an image to inspect it or send it straight into the Prompt workspace in Build mode as a reference.
+- [Templates](https://depikt.app/templates): Reusable, model-neutral structures for common image tasks (subject, composition, text, references, lighting, style, constraints, preserve/change, format). Choose a task, fill in the structure, and finish it in the Prompt workspace (Build mode).
 
-- [Templates](https://depikt.app/templates): Reusable prompt starters for common image tasks. Templates provide a useful structure for getting started before refining the idea in the Prompt workspace (Build mode).
+- [Blog / Field Notes](https://depikt.app/blog): Depikt's knowledge layer: Images 2.5 guides, historical GPT Image 2 guides, prompt and editing techniques, comparisons, experiments, and product announcements.
+
+- [MCP for AI assistants](https://depikt.app/integrations/mcp): Public, read-only access to the same prompts, templates, and guides for MCP-compatible assistants (endpoint https://depikt.app/mcp). See "Use Depikt through MCP" below.
 
 ## ChatGPT Images 2.5
 
 OpenAI released ChatGPT Images 2.5 on September 8, 2026. Depikt's Prompt workspace (Build and Critique modes) has been updated around the newer model's stronger reference handling, precise edits, structured visuals, text-heavy layouts, and multi-turn workflows.
 
-The Library contains **23 generated and reviewed ChatGPT Images 2.5 recipes** alongside the original GPT Image 2 collection.
+The Library contains **43 generated and reviewed ChatGPT Images 2.5 recipes** alongside the original GPT Image 2 collection.
 
 ### Images 2.5 guides
 
@@ -45,7 +49,9 @@ Assistants can use Depikt to:
 - search approved prompts in the Library
 - open an individual prompt in full
 - list available prompt templates
-- read published Depikt guides
+- open an individual template in full
+- search published Depikt guides by topic or category
+- read a guide in full
 
 The MCP integration exposes only information that is already publicly available on depikt.app. It does not provide access to private user information, unpublished content, account data, or write actions.
 

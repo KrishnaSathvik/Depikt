@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:29:10.690Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Design a set of six app icons for a fictional productivity suite, shown on one presentation board.\n\nSystem: rounded-square iOS-style icons, identical corner radius, each with a single flat white glyph centred on a two-tone background (one base colour plus a slightly darker diagonal split in the lower-right). Same glyph stroke weight across all six. No text, no letters as glyphs.\n\nThe six, left to right in two rows of three, each with its base colour: Notes (paper sheet glyph, warm yellow), Calendar (grid glyph, coral red), Tasks (check circle glyph, leaf green), Timer (stopwatch glyph, indigo), Files (folder glyph, sky blue), Mail (envelope glyph, slate grey).\n\nPresent them at equal size on a plain off-white board with even spacing and a soft contact shadow under each. Nothing else on the board.",
+    "file": "research/images-2-5-community/runs/app-icon-set-six/attempt-1.png",
+    "ms": 22508,
+    "usage": {
+      "input_tokens": 181,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 181
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 1553
+    }
+  }
+]

@@ -76,121 +76,519 @@ Better images."
 ## 2. Library (`public/og/library.png`)
 
 ```text
-LAYOUT
-Left 40%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Prompt Library"
-Below it, smaller neutral-gray text: "523 prompt examples".
+Create a premium 1200×630 Open Graph image for Depikt's Prompt Library.
 
-Right 56%: a modular inspiration wall of six miniature image tiles on a strict grid with
-thin hairline gaps, varied aspect ratios (two tall, three square, one wide), each a
-different medium: a travel poster with abstract type shapes, a product photograph on a
-plain sweep, a flat-vector infographic, a watercolor illustration, an architectural
-minimalist poster, and a black-and-white portrait. Tiles are complete and evenly lit; the
-wall feels curated and calm, never noisy. No readable text inside tiles.
+Use the attached Depikt logo as the exact brand reference. Preserve its shape, proportions, spacing, and appearance exactly. Do not redraw, reinterpret, distort, embellish, or replace the logo.
+
+DESIGN SYSTEM
+
+Clean editorial composition on a pure white background.
+Near-black typography.
+Very thin neutral-gray rules where useful.
+Generous negative space.
+Modern creative-tool aesthetic.
+Sophisticated, restrained, highly legible at small social-preview sizes.
+
+Do not make this look like a SaaS dashboard.
+
+LAYOUT
+
+Left side:
+Place the Depikt logo near the upper-left.
+
+Below it, large headline:
+
+"Prompt Library"
+
+Below the headline, smaller text:
+
+"543 prompts to learn from, remix, and use."
+
+Right side:
+Create a carefully art-directed collection of 6–8 visual fragments representing different image-prompt use cases:
+
+- editorial poster
+- product photography
+- infographic
+- cinematic photography
+- UI concept
+- illustration
+- reference-based edit
+
+Arrange them like a refined editorial contact sheet, not a uniform dashboard grid.
+
+Use different visual styles across the fragments while keeping the overall composition coherent.
+
+Some tiles may overlap or crop naturally.
+Use thin borders only.
+No heavy shadows.
 
 TEXT — EXACT
+
+Render only:
+
 "Prompt Library"
-"523 prompt examples"
+
+"543 prompts to learn from, remix, and use."
+
+Do not add any other readable text inside the visual fragments.
+
+Do not add URLs, model names, badges, captions, watermarks, or fake UI labels.
+
+STYLE RESTRICTIONS
+
+No gradients in the background.
+No glowing AI effects.
+No robots.
+No floating spheres.
+No chat bubbles.
+No browser windows.
+No device mockups.
+No fake application interface.
+No excessive shadows.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Crisp typography.
+Strong thumbnail readability.
+Premium editorial social-sharing image.
 ```
 
 ## 3. Prompt (`public/og/prompt.png`)
 
 ```text
-LAYOUT
-Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Prompt Workspace"
-Below it, smaller neutral-gray text: "Build it or improve it".
+Create a premium 1200×630 Open Graph image for Depikt's unified Prompt workspace.
 
-Right 50%: a light editorial transformation in two stages joined by a single thin hairline
-arrow. Stage one: a small torn-notebook scrap with a loose pencil scribble and a tiny rough
-thumbnail sketch. Stage two: a clean white card with a hairline border containing neat rows
-of short abstract text bars, three of them carrying restrained proofreading markup (one thin
-near-black underline, one small circled region, one hairline leader to an abstract margin
-note), with a small elegant ring gauge at the card's upper-right, roughly three-quarters
-filled in near-black. Light and paper-like, never a dark code block. No readable text.
+Use the attached Depikt logo as the exact brand reference. Preserve it exactly. Do not redraw, reinterpret, distort, embellish, or replace it.
+
+The Prompt workspace has two modes:
+Build a prompt
+Critique a prompt
+
+The visual should communicate both without looking like a software screenshot.
+
+DESIGN SYSTEM
+
+Pure white canvas.
+Near-black typography.
+Neutral-gray secondary elements.
+Thin editorial rules.
+Generous whitespace.
+Minimal, intelligent, creative-tool aesthetic.
+
+LAYOUT
+
+Place the Depikt logo in the upper-left.
+
+Large headline:
+
+"Build it.
+Improve it."
+
+Below it, smaller line:
+
+"One workspace for better image prompts."
+
+On the right, create an abstract editorial transformation showing a rough creative idea becoming a precise structured prompt.
+
+Use three stages visually:
+
+1. loose handwritten or fragmented idea
+2. organized structural blocks
+3. refined final prompt composition
+
+Also include a subtle critique layer using restrained annotations, underlines, or editorial marks suggesting improvement and review.
+
+This should feel like an editorial visualization of thinking becoming structured — not a real app interface.
+
+Do not create fake buttons, menus, browser chrome, or dashboards.
 
 TEXT — EXACT
-"Prompt Workspace"
-"Build it or improve it"
+
+Render only:
+
+"Build it.
+Improve it."
+
+"One workspace for better image prompts."
+
+Do not add labels such as Build, Critique, score, input, output, or other UI text inside the visual.
+
+STYLE
+
+Clean modern grotesk typography.
+Strong hierarchy.
+Minimal black and gray structure.
+A small amount of restrained color may appear in the visual transformation only.
+
+No glowing AI imagery.
+No robots.
+No chat bubbles.
+No code.
+No gradients in the page background.
+No 3D text.
+No heavy shadows.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Crisp.
+Editorial.
+High contrast.
+Designed specifically for social-link previews.
 ```
 
 ## 4. Templates (`public/og/templates.png`)
 
 ```text
-LAYOUT
-Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Templates"
-Below it, smaller neutral-gray text: "Start from a structure".
+Create a premium 1200×630 Open Graph image for Depikt Templates.
 
-Right 50%: three light cards with hairline borders, slightly overlapped and fanned like
-stacked stationery. Each card holds neat rows of short abstract text bars, with a few rows
-rendered as empty hairline-outlined slots to suggest fields waiting to be filled. Calm,
-editorial, paper-like; no dark panels, no UI chrome, no readable text.
+Use the attached Depikt logo as the exact brand reference. Preserve it exactly and do not redraw, reinterpret, distort, or embellish it.
+
+CONCEPT
+
+Templates are reusable structures for common image-making tasks — not finished prompt examples.
+
+DESIGN SYSTEM
+
+Pure white canvas.
+Near-black typography.
+Neutral-gray structural lines.
+Minimal editorial grid.
+Generous negative space.
+Intelligent and practical rather than decorative.
+
+LAYOUT
+
+Place the Depikt logo in the upper-left.
+
+Large headline:
+
+"Start with a structure."
+
+Smaller line:
+
+"Reusable templates for common image tasks."
+
+On the right, create a refined visual system of partially completed creative frameworks.
+
+Show several distinct structures suggesting:
+
+- poster
+- product photography
+- infographic
+- image edit
+- reference-based composition
+- storyboard
+
+Represent them using abstract labeled-field shapes, crop frames, image placeholders, typographic hierarchy blocks, and composition guides.
+
+They should feel like creative blueprints waiting to be filled in.
+
+Do NOT create six finished artworks.
+The idea should clearly be STRUCTURE BEFORE RESULT.
+
+Use thin lines, a restrained editorial grid, and perhaps one or two small color accents.
 
 TEXT — EXACT
-"Templates"
-"Start from a structure"
+
+Render only:
+
+"Start with a structure."
+
+"Reusable templates for common image tasks."
+
+Do not render template names or placeholder text inside the structures.
+No fake form labels.
+No URLs.
+No model names.
+No badges.
+
+STYLE RESTRICTIONS
+
+No dashboard UI.
+No browser window.
+No colorful card grid.
+No AI imagery.
+No glowing effects.
+No 3D elements.
+No background gradients.
+No excessive shadows.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Crisp typography.
+Editorial information-design quality.
+Strong thumbnail readability.
 ```
 
 ## 5. Gallery (`public/og/gallery.png`)
 
 ```text
-LAYOUT
-Image-first. The Depikt logo small in the upper-left over white. Headline in the lower-left
-inside the safe area, one line: "Gallery"; beneath it, smaller neutral-gray text:
-"See what prompts can produce".
+Create a premium 1200×630 Open Graph image for Depikt's Reference Gallery.
 
-The remaining canvas, mostly the right two-thirds, is a premium exhibition wall: five
-finished images presented as thin-framed prints with slight overlap and one dominant
-landscape piece. Mediums: a cinematic golden-hour landscape photograph, an impressionist
-cityscape painting, a stark black-and-white architectural photograph, a mosaic-textured
-abstract, and a bold flat-color poster with abstract type shapes. Soft, even museum light,
-subtle real shadows, white wall. No readable text in the prints.
+Use the attached Depikt logo as the exact brand reference. Preserve it exactly without redrawing, modifying, or stylizing it.
+
+DESIGN SYSTEM
+
+Pure white background.
+Near-black typography.
+Very thin neutral-gray framing.
+Large areas of negative space.
+High-end editorial exhibition feel.
+
+LAYOUT
+
+Place the Depikt logo in the upper-left.
+
+Large headline:
+
+"Reference Gallery"
+
+Smaller line underneath:
+
+"Find a visual direction. Make it your own."
+
+Make imagery the main focus.
+
+Create a sophisticated gallery-wall composition of 5–7 distinct visual reference fragments:
+
+- cinematic photograph
+- bold graphic poster
+- architectural image
+- editorial illustration
+- product composition
+- textured artwork
+- structured design piece
+
+Use different aspect ratios.
+Allow elegant cropping and slight overlaps.
+Some images can extend beyond the right or bottom edge.
+
+The arrangement should feel curated by an art director, not like a Pinterest grid or application gallery.
+
+Do not place text inside the reference images.
 
 TEXT — EXACT
-"Gallery"
-"See what prompts can produce"
+
+Render only:
+
+"Reference Gallery"
+
+"Find a visual direction. Make it your own."
+
+No additional readable text.
+No URLs.
+No model names.
+No captions.
+No fake metadata.
+No watermarks.
+
+STYLE RESTRICTIONS
+
+No browser chrome.
+No UI controls.
+No device mockups.
+No AI clichés.
+No glowing effects.
+No huge shadows.
+No colorful background gradients.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Premium editorial presentation.
+Excellent social-preview legibility.
 ```
 
 ## 6. Blog (`public/og/blog.png`)
 
 ```text
-LAYOUT
-Typography-led. Left 50%: the Depikt logo upper-left. Below it, headline in one line:
-"Field Notes"; beneath it, smaller neutral-gray text: "Prompt guides".
+Create a premium 1200×630 Open Graph image for Depikt's Blog / Field Notes.
 
-Right 44%: one supporting element only: a single sheet of white paper with a hairline
-border, slightly rotated, carrying a structured note rendered as abstract marks: a short
-title bar, a numbered list of three items indicated by small dots, a two-column mini table
-with hairline rules, and a tiny thumbnail image tile pinned at the corner (a simple
-still-life photograph in natural light). One thin hairline rule runs horizontally across the
-white space beneath the sheet. Thoughtful and informative, not promotional.
+Use the attached Depikt logo as the exact brand reference. Preserve it exactly without changing its shape, proportions, or visual identity.
+
+CONCEPT
+
+Depikt's Blog is a collection of practical field notes about image prompting, reference workflows, editing, structured visuals, models, and lessons learned from real image-generation work.
+
+The image should feel like an independent design publication, not a product advertisement.
+
+DESIGN SYSTEM
+
+Warm-white or pure-white editorial paper-like canvas.
+Near-black typography.
+Fine neutral-gray rules.
+Extremely restrained visual system.
+Magazine-quality art direction.
+Generous whitespace.
+
+LAYOUT
+
+Place the Depikt logo small near the upper-left.
+
+Use the large editorial headline:
+
+"Field Notes."
+
+Below it:
+
+"Prompts, references, experiments, and what actually works."
+
+Create one strong supporting editorial composition on the right.
+
+Combine:
+
+- a cropped visual study
+- a small prompt fragment represented abstractly without readable text
+- a simple diagram or annotation
+- one photographic or illustrated fragment
+
+Arrange these like material pinned or composed on an art director's desk, but keep everything flat and sophisticated rather than photorealistic stationery clutter.
+
+The overall impression should be:
+
+research
+experimentation
+visual culture
+practical knowledge
 
 TEXT — EXACT
-"Field Notes"
-"Prompt guides"
+
+Render only:
+
+"Field Notes."
+
+"Prompts, references, experiments, and what actually works."
+
+No article titles.
+No dates.
+No URLs.
+No model names.
+No fake handwriting that becomes readable text.
+No additional captions.
+No watermarks.
+
+STYLE RESTRICTIONS
+
+No blog-dashboard appearance.
+No browser mockup.
+No laptop/device.
+No glowing AI imagery.
+No robots.
+No colorful gradient background.
+No excessive paper texture.
+No heavy shadows.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Crisp typography.
+High-end editorial publication quality.
+Designed specifically for X, LinkedIn, Slack, Messages, and other social-link previews.
 ```
 
 ## 7. MCP (`public/og/mcp.png`)
 
 ```text
-LAYOUT
-Left 46%: the Depikt logo upper-left. Below it, headline in two lines, left aligned:
-"Works with
-AI assistants"
-Below it, smaller neutral-gray text: "Public · Read-only".
+Create a premium 1200×630 Open Graph image announcing Depikt's MCP integration.
 
-Right 50%: a quiet editorial diagram of a hand-off. On the left of the right half, a small
-rounded speech-bubble outline in a thin near-black hairline containing three short abstract
-text bars, suggesting a question typed to an assistant. From it, one thin hairline arrow
-leads right to a light card with a hairline border that contains a neat grid of four small
-tiles: a tiny travel-poster fragment with abstract type shapes, a plain product photograph
-on a white sweep, a flat-vector infographic fragment, and a page of abstract text lines.
-A second thin arrow returns from the card to the bubble, closing the loop. No readable text
-in either element, no chat interface, no app window.
+Use the attached Depikt logo as the exact brand reference. Preserve its exact shape and proportions. Do not redraw or alter the logo.
+
+CONCEPT
+
+Depikt's public prompt library, templates, and guides can now be accessed directly by MCP-compatible AI assistants.
+
+Do not make the image look like developer documentation or an API dashboard.
+
+DESIGN SYSTEM
+
+White canvas.
+Near-black typography.
+Thin neutral-gray lines.
+Minimal editorial information-design aesthetic.
+Generous whitespace.
+Technical but approachable.
+
+LAYOUT
+
+Place the Depikt logo in the upper-left.
+
+Large headline:
+
+"Depikt, now through MCP."
+
+Smaller line:
+
+"Prompts, templates, and guides — available to your assistant."
+
+On the right side, create an elegant information-flow visualization.
+
+Show one central Depikt source represented by a clean editorial stack of:
+
+- prompt
+- template
+- guide
+
+Represent these three layers with abstract symbols only (a page, a grid, an open book). Do not write the words "prompt", "template", or "guide" anywhere in the image; the stack must carry no legible text.
+
+From that central source, thin precise lines flow outward toward several abstract assistant endpoints.
+
+Do NOT use ChatGPT, Claude, OpenAI, Anthropic, or other company logos.
+
+Represent assistants only through neutral geometric conversation/workspace symbols.
+
+The visual should communicate:
+
+one public knowledge source
+→ multiple assistants
+→ read-only access
+
+Optionally use subtle tiny lock/open-book/reference symbols, but keep them abstract and minimal.
 
 TEXT — EXACT
-"Works with
-AI assistants"
-"Public · Read-only"
+
+Render only:
+
+"Depikt, now through MCP."
+
+"Prompts, templates, and guides — available to your assistant."
+
+Do not add:
+"API"
+"server"
+"endpoint"
+"public"
+"read-only"
+URLs
+company names
+company logos
+technical code
+watermarks
+
+STYLE RESTRICTIONS
+
+No matrix graphics.
+No neon networking.
+No glowing nodes.
+No robots.
+No cloud diagrams.
+No terminal windows.
+No fake chat screenshots.
+No gradients in the background.
+
+OUTPUT
+
+1200×630 pixels.
+Landscape.
+Precise editorial composition.
+Crisp typography.
+Strong social-preview readability.
 ```

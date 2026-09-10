@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:27:49.101Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Design the top of a square board-game box.\n\nTitle, exactly: \"TIDEWATER\" in a tall serif with a slight sea-worn texture, set in cream across the upper third. Beneath it, smaller, in the same cream: \"A game of lighthouses and lost cargo\".\n\nIllustration: a night harbour seen from above at an angle, three lighthouses sweeping beams across dark water, small cargo ships leaving glowing wakes, a coastline of stone cottages. Painterly, rich navy and teal with warm amber light, fine detail in the ships.\n\nBottom-right corner, a small round cream badge with three lines: \"2–4\", \"45 MIN\", \"AGE 10+\". Bottom-left, a thin cream frame line with no other text. Square 1:1, print-ready feel, no publisher logo.",
+    "file": "research/images-2-5-community/runs/board-game-box-cover/attempt-1.png",
+    "ms": 39431,
+    "usage": {
+      "input_tokens": 176,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 176
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1932
+    }
+  }
+]

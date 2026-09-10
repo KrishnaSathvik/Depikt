@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T03:24:50.364Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Photorealistic close-up portrait of a man in his late thirties, head and shoulders, neutral expression with a slight smile, natural window light from the left, visible pores and fine lines, a few freckles across the nose, one small blemish on the right cheek, slight redness around the nose, a few flyaway hairs. Plain warm-grey background, 85mm lens look, 4:5 portrait. No text.",
+    "file": "research/images-2-5-community/runs/texture-preserving-skin-retouch/setup.png",
+    "ms": 15161,
+    "usage": {
+      "input_tokens": 94,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 94
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 1604
+    }
+  },
+  {
+    "at": "2026-09-10T03:28:07.307Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/texture-preserving-skin-retouch/setup.png"
+    ],
+    "prompt": "Retouch the attached portrait the way a magazine retoucher would, not the way a beauty filter would.\n\nRemove: temporary blemishes, the small spot on the cheek, minor redness, stray flyaway hairs crossing the face.\n\nKeep: all skin texture (pores, fine lines, the natural sheen on the nose and forehead), freckles, the shape of every feature, the eye colour, the catchlights, the original lighting and colour balance. Do not slim the face, enlarge the eyes, whiten the teeth beyond their natural tone, or smooth the skin into plastic.\n\nEven out the skin tone very gently. The result should look like the same photo on a better day.",
+    "file": "research/images-2-5-community/runs/texture-preserving-skin-retouch/attempt-1.png",
+    "ms": 33286,
+    "usage": {
+      "input_tokens": 1431,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 151
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2941
+    }
+  }
+]

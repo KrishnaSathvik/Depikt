@@ -128,6 +128,10 @@ function McpPage() {
         {/* What it can access */}
         <section className="mt-20 border-t border-[color:var(--border-subtle)] pt-12">
           <p className="eyebrow">What it can access</p>
+          <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">
+            {MCP.capabilities.length} read-only tools, in three search-then-read pairs: prompts,
+            templates, and guides.
+          </p>
           <div className="mt-8 grid gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2">
             {MCP.capabilities.map((c) => (
               <div key={c.tool} className="bg-[color:var(--bg-elevated)] p-6">

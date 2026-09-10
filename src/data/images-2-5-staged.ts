@@ -7,6 +7,10 @@
  * approved records are promoted to the database (run
  * scripts/export-staged-images-2-5.ts, then the SQL) and deleted from this
  * file in the same change. Batch 1 (2026-09-09): 23 promoted, 1 held.
+ * Batch 2 (2026-09-10): 20 Depikt originals written and generated with
+ * gpt-image-2.5-sunburst (high); all 20 promoted via
+ * supabase/insert-images-2-5-batch2-staged.sql. Held-record note: base2 /
+ * CREATED2 are defined again when a batch 3 is staged.
  *
  * Provenance rules (see research/images-2-5-community/):
  *   official_prompt     OpenAI published the prompt text. Used verbatim or
@@ -69,6 +73,8 @@ export interface StagedPrompt extends LibraryPrompt {
   original_staged_prompt?: string;
   /** What the review found; why the record was approved or held. */
   outcome_notes?: string;
+  /** Request a transparent PNG from the API (cutouts, sticker sheets). */
+  transparent_background?: boolean;
 }
 
 const CREATED = "2026-09-09T18:00:00.000Z";

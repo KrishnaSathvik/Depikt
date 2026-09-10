@@ -40,11 +40,15 @@ type ModelRow = { target_model?: unknown };
 const asRows = (xs: unknown[]) => xs as ModelRow[];
 
 /** Rows promoted to Supabase, parsed from the export SQL (the record of the promotion). */
-const promoted = [
-  ...read("supabase/insert-images-2-5-batch1-staged.sql").matchAll(
+const PROMOTION_SQL = [
+  "supabase/insert-images-2-5-batch1-staged.sql",
+  "supabase/insert-images-2-5-batch2-staged.sql",
+];
+const promoted = PROMOTION_SQL.flatMap((f) => [
+  ...read(f).matchAll(
     /\) VALUES \(\n {2}'([^']+)',\n {2}'([^']+)',[\s\S]*?\n {2}'(gpt-image-[0-9.]+)',\n {2}'([a-z_]+)',[\s\S]*?\n {2}'(draft|test_ready|tested|approved)',\n {2}(true|false),\n {2}(true|false),[\s\S]*?\n {2}(?:'([^']+)'|NULL),\n {2}'[^']+',\n {2}'[^']+'\n\) ON CONFLICT/g,
   ),
-].map((m) => ({
+]).map((m) => ({
   id: m[1],
   slug: m[2],
   target_model: m[3],
@@ -216,11 +220,11 @@ test("slugify", () => {
 
 // ---------- batch 1: promoted rows (from the export SQL) and held rows (staged) ----------
 
-test("batch 1: 23 promoted + 1 held = 24 unique ids and slugs, none colliding with legacy", () => {
+test("batch 1 (23 promoted + 1 held) and batch 2 (20 promoted) = 44 unique ids and slugs, none colliding with legacy", () => {
   const all = [...promoted.map((r) => ({ id: r.id, slug: r.slug })), ...stagedImages25Prompts];
-  assert.equal(all.length, 24);
-  assert.equal(new Set(all.map((p) => p.id)).size, 24);
-  assert.equal(new Set(all.map((p) => p.slug)).size, 24);
+  assert.equal(all.length, 44);
+  assert.equal(new Set(all.map((p) => p.id)).size, 44);
+  assert.equal(new Set(all.map((p) => p.slug)).size, 44);
   const legacyIds = new Set(curatedPrompts.map((p) => p.id));
   for (const p of all) {
     assert.ok(p.id.startsWith("images25-"), p.id);
@@ -229,7 +233,7 @@ test("batch 1: 23 promoted + 1 held = 24 unique ids and slugs, none colliding wi
   }
 });
 
-test("batch 1: promoted rows are approved, gpt-image-2.5, thumbnailed, and split 17/6 on gallery_ready", () => {
+test("promoted rows are approved, gpt-image-2.5, thumbnailed, and split 27/16 on gallery_ready", () => {
   for (const r of promoted) {
     assert.equal(r.status, "approved", r.id);
     assert.equal(r.target_model, "gpt-image-2.5", r.id);
@@ -237,8 +241,8 @@ test("batch 1: promoted rows are approved, gpt-image-2.5, thumbnailed, and split
     assert.ok(existsSync(resolve(ROOT, `public${r.thumbnail_url}`)), `${r.id} thumbnail missing`);
     assert.ok(SOURCE_TYPES.includes(r.source_type as (typeof SOURCE_TYPES)[number]), r.id);
   }
-  assert.equal(promoted.filter((r) => r.gallery_ready).length, 17);
-  assert.equal(promoted.filter((r) => !r.gallery_ready).length, 6);
+  assert.equal(promoted.filter((r) => r.gallery_ready).length, 27);
+  assert.equal(promoted.filter((r) => !r.gallery_ready).length, 16);
 });
 
 test("batch 1: the three OpenAI edit lines were promoted with the published captions, verbatim", () => {
@@ -312,13 +316,19 @@ test("provenance migration adds the columns, defaults legacy rows to approved, a
 });
 
 test("export SQL is an approved-only idempotent upsert that does not re-run the migration", () => {
-  const sql = read("supabase/insert-images-2-5-batch1-staged.sql");
-  assert.equal((sql.match(/INSERT INTO public\.curated_prompts/g) ?? []).length, promoted.length);
-  for (const p of stagedImages25Prompts) {
-    assert.equal(sql.includes(`'${p.id}'`), false, `${p.id} must not be exported`);
+  const files = PROMOTION_SQL.map((f) => read(f));
+  const inserts = files.reduce(
+    (n, sql) => n + (sql.match(/INSERT INTO public\.curated_prompts/g) ?? []).length,
+    0,
+  );
+  assert.equal(inserts, promoted.length);
+  for (const sql of files) {
+    for (const p of stagedImages25Prompts) {
+      assert.equal(sql.includes(`'${p.id}'`), false, `${p.id} must not be exported`);
+    }
+    assert.match(sql, /ON CONFLICT \(id\) DO UPDATE/);
+    assert.doesNotMatch(sql, /Requires:.*migration/);
   }
-  assert.match(sql, /ON CONFLICT \(id\) DO UPDATE/);
-  assert.doesNotMatch(sql, /Requires:.*migration/);
 });
 
 test("library fetch layer filters to public rows, merges staged records by id, and falls back per migration", () => {

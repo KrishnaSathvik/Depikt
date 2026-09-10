@@ -36,6 +36,8 @@ export interface PromptSearch {
   remixRef?: string;
   restore?: string;
   ref?: string;
+  /** Template slug from /templates. Answered values live in session storage, never in the URL. */
+  template?: string;
 }
 
 /** Anything that is not an explicit mode falls back to Build. */
@@ -45,9 +47,11 @@ export function parsePromptMode(value: unknown): PromptMode {
 
 export const Route = createFileRoute("/prompt")({
   validateSearch: (search: Record<string, unknown>): PromptSearch => {
-    const { seed, prefill, restore, ref } = search;
+    const { seed, prefill, restore, ref, template } = search;
     return {
       mode: parsePromptMode(search.mode),
+      template:
+        typeof template === "string" && /^[a-z0-9-]{1,80}$/.test(template) ? template : undefined,
       seed: typeof seed === "string" && seed.length > 0 && seed.length <= 4000 ? seed : undefined,
       prefill:
         typeof prefill === "string" && prefill.length > 0 && prefill.length <= 4000
@@ -96,15 +100,24 @@ function PromptWorkspace() {
   const navigate = useNavigate();
   const mode = parsePromptMode(search.mode);
 
-  /** Drop consumed params (restore, prefill, seed, ref) but stay in this mode. */
+  /**
+   * Drop consumed params (restore, prefill, seed, ref) but stay in this mode.
+   * The template slug is kept: it is the shareable, refresh-safe form of the
+   * active template context; Build mode owns the answered values.
+   */
   const clearSearch = (keep: PromptMode = mode) => {
-    navigate({ to: "/prompt", search: { mode: keep }, replace: true });
+    navigate({ to: "/prompt", search: { mode: keep, template: search.template }, replace: true });
+  };
+
+  /** Remove the template context entirely (Build mode's "Remove"). */
+  const clearTemplate = () => {
+    navigate({ to: "/prompt", search: { mode: "build" }, replace: true });
   };
 
   const switchMode = (next: PromptMode) => {
     if (next === mode) return;
     trackEvent("prompt_mode_switch", { mode: next });
-    navigate({ to: "/prompt", search: { mode: next }, replace: true });
+    navigate({ to: "/prompt", search: { mode: next, template: search.template }, replace: true });
   };
 
   return (
@@ -157,10 +170,12 @@ function PromptWorkspace() {
               seed: search.seed,
               prefill: search.prefill,
               remixRef: search.remixRef,
+              template: search.template,
               ref: search.ref,
               restore: mode === "build" ? search.restore : undefined,
             }}
             clearSearch={() => clearSearch("build")}
+            clearTemplate={clearTemplate}
           />
         </div>
 

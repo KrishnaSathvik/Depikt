@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-10T03:27:09.531Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/product-packshot.png"
+    ],
+    "prompt": "On the attached can, change only the small line of text under the brand name from \"sparkling yuzu\" to \"sparkling grapefruit\".\n\nMatch the original typeface, weight, letter-spacing, size, colour and baseline position exactly; centre the new, longer line the same way the old one was centred.\n\nEverything else stays identical: the brand wordmark, the cloud icon, the can's colour, the metal rim, the highlights and reflections, the shadow, the background and the framing. Do not re-render the can; treat this as a label correction.",
+    "file": "research/images-2-5-community/runs/packaging-label-text-swap/attempt-1.png",
+    "ms": 25430,
+    "usage": {
+      "input_tokens": 1411,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 131
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2921
+    }
+  }
+]

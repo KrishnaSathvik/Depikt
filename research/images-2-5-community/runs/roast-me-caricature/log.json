@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-10T03:25:06.544Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "Draw a caricature of the person in the attached photo in a bold comic-book style: thick confident ink outlines, flat cel colours, one hard shadow tone, slightly exaggerated head-to-body ratio.\n\nLikeness first: keep their hair, face shape, skin tone, eyebrows and smile recognisable, only exaggerating the features that are already distinctive.\n\nThree running jokes, shown as props rather than text: (1) an oversized double espresso cup held like a trophy, (2) a phone with an absurdly long unread-messages badge, (3) three sticky notes stuck to the forearm, each with a scribbled to-do, unreadable.\n\nPose: three-quarter view, mid-gesture as if explaining something at length. Background: a flat warm-ochre colour with a single halftone-dot burst behind the head. No speech bubbles, no words, no logos.",
+    "file": "research/images-2-5-community/runs/roast-me-caricature/attempt-1.png",
+    "ms": 36146,
+    "usage": {
+      "input_tokens": 1647,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 195
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 3157
+    }
+  }
+]

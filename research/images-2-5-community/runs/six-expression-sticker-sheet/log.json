@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:26:08.959Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Create a sticker sheet of one original character: a round-faced orange cat in a tiny green knitted beanie, drawn in a clean kawaii style with thick dark-brown outlines and flat colours.\n\nSix stickers in a 3 x 2 grid, each showing the same character with a different expression, in this order: 1 delighted, 2 sleepy, 3 shocked, 4 smug, 5 crying-laughing, 6 confused. The character must be identical across all six: same beanie, same proportions, same outline weight, same palette. Only the face and small hand gestures change.\n\nEach sticker has a thick white die-cut border with a rounded outline. Even spacing, no overlap, no text, no numbers, no background: fully transparent PNG.",
+    "file": "research/images-2-5-community/runs/six-expression-sticker-sheet/attempt-1.png",
+    "ms": 29991,
+    "usage": {
+      "input_tokens": 162,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 162
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 1534
+    }
+  }
+]

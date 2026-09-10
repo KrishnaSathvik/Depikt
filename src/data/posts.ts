@@ -53,7 +53,7 @@ export const posts: Post[] = [
       {
         question: "Which assistants work with Depikt?",
         answer:
-          "Any client that supports remote MCP servers over HTTP, including Claude (Claude Desktop and Claude Code) and ChatGPT through custom connectors. Add https://depikt.app/mcp as a server and the four tools appear.",
+          "Any client that supports remote MCP servers over HTTP, including Claude (Claude Desktop and Claude Code) and ChatGPT through custom connectors. Add https://depikt.app/mcp as a server and the six tools appear.",
       },
       {
         question: "Does the integration expose private data?",
@@ -115,12 +115,14 @@ The website remains the place to explore. The integration makes that knowledge u
 
 ## What is available today
 
-The first version supports four core actions:
+The current version supports six core actions, in three search-then-read pairs:
 
 - searching the prompt Library
 - retrieving a complete prompt
 - listing templates
-- reading published guides
+- retrieving a complete template
+- searching published guides
+- reading a guide in full
 
 We are intentionally starting with public, read-only access.
 

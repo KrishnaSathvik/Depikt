@@ -1,39 +1,29 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { getPostBySlug, getPostsByDate } from "@/data/posts";
+import { getPostBySlug } from "@/data/posts";
 
+// Read half of the Guides pair. Discovery lives in search_guides.
 export default defineTool({
   name: "get_guide",
   title: "Read a Depikt guide",
   description:
-    "List Depikt's published prompting guides, or read the full text of one guide by slug. Covers prompt structure, text rendering, infographics, UI mockups, product shots and more.",
+    "Read the full text of one Depikt prompting guide by slug. Use `search_guides` first to find the slug. Covers prompt structure, text rendering, infographics, UI mockups, product shots and more.",
   inputSchema: {
-    slug: z
-      .string()
-      .trim()
-      .optional()
-      .describe("Slug of the guide to read in full. Omit to list all available guides."),
+    slug: z.string().trim().min(1).describe("Slug of the guide to read in full."),
   },
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: ({ slug }) => {
-    if (!slug) {
-      const list = getPostsByDate().map((p) => ({
-        slug: p.slug,
-        title: p.title,
-        category: p.category,
-        published: p.published,
-        excerpt: p.excerpt,
-      }));
-      const payload = { count: list.length, guides: list };
-      return {
-        content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
-        structuredContent: payload,
-      };
-    }
-
     const post = getPostBySlug(slug);
     if (!post)
-      return { content: [{ type: "text", text: `No guide found for slug "${slug}"` }], isError: true };
+      return {
+        content: [
+          {
+            type: "text",
+            text: `No guide found for slug "${slug}". Use search_guides to find available slugs.`,
+          },
+        ],
+        isError: true,
+      };
 
     const payload = {
       slug: post.slug,

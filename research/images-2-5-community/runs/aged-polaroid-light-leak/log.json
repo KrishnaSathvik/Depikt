@@ -1,0 +1,29 @@
+[
+  {
+    "at": "2026-09-10T03:24:30.321Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/portrait-full.png"
+    ],
+    "prompt": "Turn the attached photo into a 1990s instant-film print that has been kept in a drawer for thirty years.\n\nKeep the person, pose, framing and clothing exactly as they are.\n\nApply, in this order: a slight warm-magenta colour shift with lifted, milky blacks; visible film grain across the whole frame; soft focus that gets softer toward the edges; a faint yellow-orange light leak entering from the bottom-right corner and fading out by the middle of the frame; one small dust speck and one hairline scratch near the top-left. Slightly reduce contrast so highlights bloom.\n\nPresent it as the physical print: white instant-film border, wider at the bottom, sitting flat on a plain neutral surface, photographed straight on with soft even light. No handwriting on the border, no text anywhere.",
+    "file": "research/images-2-5-community/runs/aged-polaroid-light-leak/attempt-1.png",
+    "ms": 29562,
+    "usage": {
+      "input_tokens": 1631,
+      "input_tokens_details": {
+        "image_tokens": 1452,
+        "text_tokens": 179
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 3141
+    }
+  }
+]

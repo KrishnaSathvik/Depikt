@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T03:23:35.297Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [],
+    "prompt": "Photorealistic photo of a golden retriever sitting on a lawn in soft morning light, facing the camera with an open-mouthed happy expression, tongue slightly out, ears relaxed, fluffy golden coat. Head-and-chest framing, shallow depth of field, green blurred garden behind. No collar text, no people.",
+    "file": "research/images-2-5-community/runs/pet-as-human-marathon-runner/setup.png",
+    "ms": 21473,
+    "usage": {
+      "input_tokens": 71,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 71
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 1581
+    }
+  },
+  {
+    "at": "2026-09-10T03:25:37.391Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1280",
+    "refs": [
+      "research/images-2-5-community/runs/pet-as-human-marathon-runner/setup.png"
+    ],
+    "prompt": "Reimagine the dog in the attached photo as a human marathon runner crossing a finish line.\n\nCarry over the dog's identity into the person: the same golden-blond hair colour as the coat, warm brown eyes, a broad friendly open-mouthed grin, a slightly goofy energetic posture. Someone who knows the dog should recognise the personality.\n\nScene: mid-stride, arms raised, breaking a finish-line tape; a bright yellow tracksuit; a race bib on the chest with no readable number, just blurred digits; a finisher's medal already around the neck. Background: a city street race with blurred spectators and bunting, late-morning sun.\n\nPhotorealistic, 85mm lens look, shallow depth of field. No text anywhere, no logos on the clothing.",
+    "file": "research/images-2-5-community/runs/pet-as-human-marathon-runner/attempt-1.png",
+    "ms": 33571,
+    "usage": {
+      "input_tokens": 1454,
+      "input_tokens_details": {
+        "image_tokens": 1280,
+        "text_tokens": 174
+      },
+      "output_tokens": 1510,
+      "output_tokens_details": {
+        "image_tokens": 1510,
+        "text_tokens": 0
+      },
+      "total_tokens": 2964
+    }
+  }
+]

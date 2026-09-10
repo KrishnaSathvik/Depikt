@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:30:06.421Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1424",
+    "refs": [],
+    "prompt": "Design the front of a 5 x 7 portrait holiday card.\n\nIllustration: a cosy winter scene in a warm gouache style, a small red cottage in deep snow at dusk, warm light in every window, a string of lights across the porch, pine trees behind, big soft snowflakes falling. Limited palette of cream, deep green, warm red and gold.\n\nGreeting, exactly, in hand-lettered brush script in cream across the sky area: \"Warm wishes from our home to yours\". Nothing else written anywhere on the card.\n\nLeave a quarter-inch clean margin for print bleed. No border line, no year, no names.",
+    "file": "research/images-2-5-community/runs/holiday-card-exact-greeting/attempt-1.png",
+    "ms": 34215,
+    "usage": {
+      "input_tokens": 135,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 135
+      },
+      "output_tokens": 1453,
+      "output_tokens_details": {
+        "image_tokens": 1453,
+        "text_tokens": 0
+      },
+      "total_tokens": 1588
+    }
+  }
+]

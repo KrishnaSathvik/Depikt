@@ -19,7 +19,7 @@ export const LEGACY_MODEL_NAME = "GPT Image 2";
 
 /** Legacy GPT Image 2 rows (500) plus the approved ChatGPT Images 2.5 rows. */
 export const LEGACY_LIBRARY_COUNT = 500;
-export const IMAGES_25_LIBRARY_COUNT = 23;
+export const IMAGES_25_LIBRARY_COUNT = 43;
 export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COUNT;
 
 /**
@@ -176,7 +176,7 @@ export const SEO: Record<
     description: `Build and improve AI image prompts, explore ${LIBRARY_PROMPT_COUNT} curated examples, browse visual references, and start from reusable templates with Depikt.`,
   },
   prompt: {
-    title: "AI Image Prompt Builder & Critic | Depikt",
+    title: "Prompt Workspace: Build & Critique AI Image Prompts | Depikt",
     description:
       "Build a structured image prompt from an idea or reference, or critique an existing prompt and get concrete improvements and a stronger rewrite.",
   },
@@ -250,9 +250,14 @@ export const MCP = {
       body: "Read one structure in full and fill it in with your own details.",
     },
     {
+      tool: "search_guides",
+      title: "Find guides",
+      body: "Search Depikt’s prompting guides by topic or category.",
+    },
+    {
       tool: "get_guide",
-      title: "Read guides",
-      body: "Use Depikt’s prompting guides directly inside the conversation.",
+      title: "Read a guide",
+      body: "Use one of Depikt’s prompting guides directly inside the conversation.",
     },
   ],
   cannot: [

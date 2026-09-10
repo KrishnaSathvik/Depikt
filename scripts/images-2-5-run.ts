@@ -89,11 +89,33 @@ const SIZES: Record<string, string> = {
   "watercolor-ink-fashion-illustration": "1152x1536",
   "impressionist-san-francisco": "1152x1536",
   "mosaic-earth-and-stars": "1536x864",
+  // Batch 2 (2026-09-10)
+  "coloring-book-page-from-photo": "1152x1536",
+  "aged-polaroid-light-leak": "1024x1280",
+  "roast-me-caricature": "1024x1280",
+  "pet-as-human-marathon-runner": "1024x1280",
+  "transparent-product-cutout": "1024x1280",
+  "six-expression-sticker-sheet": "1536x1024",
+  "tattoo-flash-sheet": "1152x1536",
+  "packaging-label-text-swap": "1024x1280",
+  "multi-turn-campaign-localization": "1024x1280",
+  "board-game-box-cover": "1024x1024",
+  "four-season-cabin-strip": "2048x1024",
+  "podcast-cover-art-exact-title": "1024x1024",
+  "living-room-furniture-swap": "1536x1024",
+  "texture-preserving-skin-retouch": "1024x1280",
+  "old-photo-restoration-colorize": "1280x1024",
+  "casual-photo-to-studio-headshot": "1024x1280",
+  "app-icon-set-six": "1536x1024",
+  "youtube-thumbnail-exact-title": "1280x720",
+  "holiday-card-exact-greeting": "1024x1424",
+  "certificate-template-exact-names": "1536x1088",
 };
 // Setup images sometimes need a different size than the final (the recompose test starts square).
 const SETUP_SIZES: Record<string, string> = {
   "recompose-to-new-aspect-ratio": "1024x1024",
   "ticket-localization-edit": "1024x1536",
+  "four-season-cabin-strip": "1024x1024",
 };
 
 // ---------- API ----------
@@ -108,12 +130,21 @@ async function generate(
   size: string,
   model = MODEL,
   quality = QUALITY,
+  transparent = false,
 ): Promise<ImageResult> {
   const t0 = Date.now();
   const res = await fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: { Authorization: `Bearer ${API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model, prompt, size, quality, n: 1, output_format: "png" }),
+    body: JSON.stringify({
+      model,
+      prompt,
+      size,
+      quality,
+      n: 1,
+      output_format: "png",
+      ...(transparent ? { background: "transparent" } : {}),
+    }),
   });
   const json = (await res.json()) as {
     data?: Array<{ b64_json: string }>;
@@ -131,6 +162,7 @@ async function edit(
   size: string,
   model = MODEL,
   quality = QUALITY,
+  transparent = false,
 ): Promise<ImageResult> {
   const t0 = Date.now();
   const form = new FormData();
@@ -140,6 +172,7 @@ async function edit(
   form.set("quality", quality);
   form.set("n", "1");
   form.set("output_format", "png");
+  if (transparent) form.set("background", "transparent");
   for (const p of images) {
     const buf = readFileSync(p);
     form.append("image[]", new Blob([buf], { type: "image/png" }), basename(p));
@@ -240,6 +273,8 @@ async function cmdRun(key: string) {
   if (flags.refs) refs = flags.refs.split(",").map((p) => resolve(ROOT, p.trim()));
   else if (r.needs_reference_images && existsSync(resolve(dir, "setup.png")))
     refs = [resolve(dir, "setup.png")];
+  else if (r.needs_reference_images && r.fixtures_used?.length)
+    refs = r.fixtures_used.map((n) => resolve(RUNS, "_fixtures", `${n}.png`));
   if (r.needs_reference_images && refs.length === 0)
     throw new Error(`${r.slug} needs references; pass --refs or run setup`);
   const attempt = nextAttempt(dir);
@@ -290,7 +325,10 @@ async function cmdRun(key: string) {
     return;
   }
 
-  const out = refs.length ? await edit(prompt, refs, size) : await generate(prompt, size);
+  const transparent = Boolean(r.transparent_background);
+  const out = refs.length
+    ? await edit(prompt, refs, size, MODEL, QUALITY, transparent)
+    : await generate(prompt, size, MODEL, QUALITY, transparent);
   const file = save(dir, `attempt-${attempt}.png`, out.b64);
   appendLog(dir, {
     at: new Date().toISOString(),

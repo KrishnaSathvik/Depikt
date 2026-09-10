@@ -1,0 +1,27 @@
+[
+  {
+    "at": "2026-09-10T03:28:20.848Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Design a square podcast cover, 1:1, that must read at 64 pixels wide.\n\nTitle, exactly: \"SLOW FIELDS\" in a heavy geometric sans, two stacked lines, filling the top half, in off-white. Below it, small: \"a walking podcast\". No other text.\n\nArtwork: a bold flat-colour illustration of a single figure with a backpack walking along a ridge, seen from behind, against a huge low sun. Three colours only: deep forest green, burnt orange, off-white. No gradients, no photographic texture, no fine detail: every shape must survive being shrunk to an app icon.\n\nLeave a clear margin around the title; nothing overlaps the letters.",
+    "file": "research/images-2-5-community/runs/podcast-cover-art-exact-title/attempt-1.png",
+    "ms": 31654,
+    "usage": {
+      "input_tokens": 149,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 149
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1905
+    }
+  }
+]

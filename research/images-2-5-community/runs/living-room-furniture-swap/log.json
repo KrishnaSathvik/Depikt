@@ -1,0 +1,53 @@
+[
+  {
+    "at": "2026-09-10T03:24:35.106Z",
+    "kind": "setup",
+    "model": "gpt-image-2.5-flare",
+    "quality": "high",
+    "size": "1536x1024",
+    "refs": [],
+    "prompt": "Photorealistic interior photo of a bright living room: a grey fabric sofa against the far wall, a round patterned rug in front of it, a large window on the left with soft daylight, pale oak floor, a tall fiddle-leaf fig plant in the corner, a small walnut side table with a ceramic lamp, one framed abstract print on the wall. Eye-level, wide-angle but undistorted, 3:2 landscape. No people, no text.",
+    "file": "research/images-2-5-community/runs/living-room-furniture-swap/setup.png",
+    "ms": 19211,
+    "usage": {
+      "input_tokens": 101,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 101
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 1473
+    }
+  },
+  {
+    "at": "2026-09-10T03:27:33.905Z",
+    "kind": "run",
+    "attempt": 1,
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1536x1024",
+    "refs": [
+      "research/images-2-5-community/runs/living-room-furniture-swap/setup.png"
+    ],
+    "prompt": "In the attached living-room photo, replace two things and nothing else.\n\nReplace the sofa with a low three-seat sofa in oatmeal bouclé with slim oak legs, same footprint and position as the original. Replace the rug with a flat-weave wool rug in a wide navy-and-cream stripe, same size and placement.\n\nKeep everything else exactly as photographed: walls, windows, daylight direction, floor, plants, side table, lamp, artwork, ceiling and camera position. The new pieces must sit in the room with correct perspective, contact shadows and the same light falling on them as on the rest of the scene.",
+    "file": "research/images-2-5-community/runs/living-room-furniture-swap/attempt-1.png",
+    "ms": 30511,
+    "usage": {
+      "input_tokens": 1675,
+      "input_tokens_details": {
+        "image_tokens": 1536,
+        "text_tokens": 139
+      },
+      "output_tokens": 1372,
+      "output_tokens_details": {
+        "image_tokens": 1372,
+        "text_tokens": 0
+      },
+      "total_tokens": 3047
+    }
+  }
+]

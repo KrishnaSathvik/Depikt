@@ -20,12 +20,13 @@ test("MCP server route and explanation page are distinct routes", () => {
   assert.match(read("src/routes/integrations.mcp.tsx"), /createFileRoute\("\/integrations\/mcp"\)/);
 });
 
-test("MCP copy: four read-only capabilities matching the server's tool names", () => {
+test("MCP copy: six read-only capabilities matching the server's tool names", () => {
   const serverTools = [
     "search_prompts",
     "get_prompt",
     "list_templates",
     "get_template",
+    "search_guides",
     "get_guide",
   ];
   assert.deepEqual(
@@ -34,6 +35,11 @@ test("MCP copy: four read-only capabilities matching the server's tool names", (
   );
   const mcpIndex = read("src/lib/mcp/index.ts");
   for (const t of serverTools) assert.match(mcpIndex, new RegExp(t.replace(/_/g, "[_-]")));
+  assert.equal(MCP.capabilities.length, 6);
+  assert.match(mcpIndex, /version: "1\.2\.0"/);
+  assert.match(mcpIndex, /`search_guides`/);
+  // get_guide reads one guide only; discovery lives in search_guides.
+  assert.doesNotMatch(read("src/lib/mcp/tools/get-guide.ts"), /\.optional\(\)/);
   assert.match(MCP.safety, /read-only/);
   assert.equal(/no authentication/i.test(MCP.body + MCP.headline + MCP.meta), false);
 });
