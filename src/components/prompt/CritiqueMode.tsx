@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
+import { ThinkingField } from "@/components/processing/ThinkingField";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { readSSEStream } from "@/lib/sse";
@@ -338,15 +339,15 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
         {(loading || result) && (
           <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
             {loading && !result && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
-              >
-                <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Critiquing your prompt…
-                </div>
+              <div className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6">
+                <ThinkingField
+                  variant="critique"
+                  status="Reviewing your prompt…"
+                  className="max-w-none"
+                />
+                <p className="mt-2.5 text-center text-mono-sm text-[color:var(--text-secondary)]">
+                  Reviewing your prompt…
+                </p>
               </div>
             )}
             {result && (

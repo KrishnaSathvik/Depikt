@@ -95,6 +95,8 @@
   --accent-hover: #2a2a2a;
   --accent-text: #ffffff;
   --accent-orange: #e85d2c;
+  /* Muted blue used only by ThinkingField's processing animation. */
+  --accent-processing: #3b5bdb;
 
   /* ------ Semantic ------ */
   --success: #15803d;

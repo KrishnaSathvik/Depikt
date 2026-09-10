@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
+import { ThinkingField } from "@/components/processing/ThinkingField";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { lovable } from "@/integrations/lovable";
@@ -519,15 +520,15 @@ function GenerationLoadingState({
     const id = setInterval(() => setElapsed(Math.round((Date.now() - start) / 1000)), 1000);
     return () => clearInterval(id);
   }, []);
+  const statusText = phase === "starting" ? "Starting…" : "Generating image…";
   return (
     <div className="mx-auto max-w-[480px] space-y-4 text-center">
-      <div
-        className="mx-auto flex items-center justify-center rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
-        style={{ maxWidth: 400, aspectRatio: ratioLabel.replace(":", " / ") }}
-      >
-        <Sparkles className="h-6 w-6 animate-pulse text-[color:var(--text-secondary)]" />
-      </div>
-      <p className="text-body-md">{phase === "starting" ? "Starting..." : "Generating image..."}</p>
+      <ThinkingField
+        variant="generate"
+        status={statusText}
+        aspectRatio={ratioLabel.replace(":", " / ")}
+      />
+      <p className="text-body-md">{statusText}</p>
       <p className="text-body-sm text-[color:var(--text-secondary)]">
         {ratioLabel} · {orientation} {elapsed > 0 ? `· ${elapsed}s` : ""}
       </p>
