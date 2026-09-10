@@ -16,7 +16,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { ThinkingField } from "@/components/processing/ThinkingField";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
@@ -747,21 +746,34 @@ function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void
 function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
   const facts = describeIntent(intent);
   const understood = facts.length > 0;
-  const statusText = understood ? INTENT_STAGE_LABELS.building : INTENT_STAGE_LABELS.understanding;
   return (
-    <div className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6">
-      {understood && (
-        <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-mono-sm text-[color:var(--text-secondary)]">
-          <span className="text-[color:var(--text-tertiary)]">
-            {INTENT_STAGE_LABELS.understood}
-          </span>
-          <span className="text-[color:var(--text-primary)]">{facts.join(" · ")}</span>
-        </div>
-      )}
-      <ThinkingField variant="build" status={statusText} className="max-w-none" />
-      <p className="mt-2.5 text-center text-mono-sm text-[color:var(--text-secondary)]">
-        {statusText}
-      </p>
+    <div
+      role="status"
+      aria-live="polite"
+      className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
+    >
+      <div className="flex items-start gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
+        <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
+        {understood ? (
+          <div className="min-w-0 space-y-1.5">
+            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+              <span className="text-[color:var(--text-tertiary)]">
+                {INTENT_STAGE_LABELS.understood}
+              </span>
+              <span className="text-[color:var(--text-primary)]">{facts.join(" · ")}</span>
+            </div>
+            <div>{INTENT_STAGE_LABELS.building}</div>
+          </div>
+        ) : (
+          <span>{INTENT_STAGE_LABELS.understanding}</span>
+        )}
+      </div>
+      <div className="mt-6 space-y-2.5">
+        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 w-4/5 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+        <div className="h-2 w-3/4 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
+      </div>
     </div>
   );
 }

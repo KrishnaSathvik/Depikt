@@ -262,10 +262,7 @@ test("intent-stage feedback uses real intent data and honest labels", () => {
     false,
     "no fake percentages",
   );
-  // LoadingState renders its live region via the shared ThinkingField
-  // component rather than inline, so the a11y status role lives there.
-  assert.match(g, /ThinkingField/);
-  assert.match(read("src/components/processing/ThinkingField.tsx"), /role="status"/);
+  assert.match(g, /role="status"/);
 });
 
 // ---------- reference selector labels ----------
