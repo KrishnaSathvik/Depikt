@@ -1,11 +1,12 @@
 # Depikt OG image prompts
 
-Six route-level social cards for Depikt. All six belong to one family and are generated with
+Eight route-level social cards for Depikt. All eight belong to one family and are generated with
 ChatGPT Images 2.5 (`gpt-image-2.5-sunburst`, quality `high`) using `public/logo.png` as the
 only reference image. Generation runs outside the product with
-`node scripts/og-images-run.ts [home|library|builder|critic|gallery|blog|all]` (needs
-`OPENAI_API_KEY` in `.env.local`). The model renders 1536×864 (16:9); the script center-crops to
-1536×806 and resizes to 1200×630, so every prompt keeps a 5% top/bottom safe margin.
+`node scripts/og-images-run.ts [home|library|prompt|templates|gallery|blog|mcp|generate|all]`
+(needs `OPENAI_API_KEY` in `.env.local`). The model renders 1536×864 (16:9); the script
+center-crops to 1536×806 and resizes to 1200×630, so every prompt keeps a 5% top/bottom safe
+margin.
 
 Attempts, logs, and rejected takes live in `research/og-images/runs/`. Only the approved
 1200×630 PNGs are copied to `public/og/<route>.png`.
@@ -591,4 +592,77 @@ Landscape.
 Precise editorial composition.
 Crisp typography.
 Strong social-preview readability.
+```
+
+## 8. Generate (`public/og/generate.png`)
+
+```text
+Create a premium 1200×630 Open Graph image for Depikt's new Generate page.
+
+Use the attached Depikt logo as the exact brand reference. Preserve its shape and proportions
+exactly; do not redraw, reinterpret, distort, embellish, recolor, or replace it. Place it small
+and understated in the upper-left.
+
+DESIGN SYSTEM
+
+Clean editorial product design. Pure white background. Near-black typography. A restrained,
+muted, desaturated processing-blue accent — not bright electric blue. Generous whitespace.
+Minimal and premium. It should feel consistent with a modern creative tool, not a generic AI
+SaaS banner.
+
+LAYOUT
+
+Left 55–60% of the canvas: typography and whitespace, vertically centered.
+
+Place the Depikt logo small in the upper-left.
+
+Large bold headline:
+
+"GENERATE"
+
+Below it, smaller clean sans-serif line:
+
+"Prompt. Reference. Image."
+
+Strong hierarchy between the two lines. No decorative type. No extra copy beyond these two
+lines.
+
+Right 40–45% of the canvas: a static visual inspired by Depikt's processing / "ThinkingField"
+animation — a precise rectangular dot lattice contained within an approximately 4:5 portrait
+image area, roughly vertically centered.
+
+The dots sit on a strict fixed grid — do not let them drift off-grid. Dot size and opacity vary
+organically across the field: some regions have tiny faint dots, some have medium dots, and one
+or two soft concentrated areas have larger, darker dots, as if an image is gradually forming
+from information. There is no actual picture inside the field, only dots. The field's
+rectangular boundary should be implied by where the grid stops — no visible frame or border
+around it, and no border around the full OG image.
+
+TEXT — EXACT
+
+Render only:
+
+"GENERATE"
+
+"Prompt. Reference. Image."
+
+Preserve the exact spelling, capitalization, and punctuation above. Do not add any other
+readable text, labels, URLs, model names, badges, captions, or watermarks anywhere in the image.
+
+STYLE RESTRICTIONS
+
+No arrows. No progress bar. No literal loading spinner. No blur or glow on the dot field. No
+gradients anywhere. No particles floating outside the grid. No connecting lines between dots.
+No OpenAI or ChatGPT logo. No "Flare" or "Sunburst" names anywhere in the image. No fake app
+interface, browser chrome, or mock dashboard. No generic AI sparkle iconography. No 3D objects.
+No photography. No heavy-shadow SaaS card design.
+
+The muted blue used in the dot field should feel integrated with Depikt's monochrome design
+system, not like a bright accent color borrowed from another brand.
+
+OUTPUT
+
+1200×630 pixels. Landscape. Crisp typography. Strong thumbnail readability. Communicate that
+Depikt has moved from prompts into image creation through restraint and the forming-dot visual,
+not by explaining it with more text.
 ```

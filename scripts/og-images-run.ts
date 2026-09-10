@@ -9,7 +9,7 @@
  *
  * Usage:
  *   node scripts/og-images-run.ts all
- *   node scripts/og-images-run.ts home|library|builder|critic|gallery|blog [--model sunburst] [--quality high] [--no-publish]
+ *   node scripts/og-images-run.ts home|library|prompt|templates|gallery|blog|mcp|generate [--model sunburst] [--quality high] [--no-publish]
  *
  * Needs OPENAI_API_KEY in .env.local (or .env). Post-processing uses macOS `sips`.
  */
@@ -71,6 +71,7 @@ const SECTION_TITLES: Record<OgRouteKey, string> = {
   gallery: "## 5. Gallery",
   blog: "## 6. Blog",
   mcp: "## 7. MCP",
+  generate: "## 8. Generate",
 };
 
 function codeBlockAfter(md: string, heading: string): string {
