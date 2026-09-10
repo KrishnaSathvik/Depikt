@@ -106,24 +106,24 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
 
 // ---------- positioning / SEO ----------
 
-test("current product copy targets ChatGPT Images 2.5 and never claims to generate images", () => {
+test("current product SEO is unified and never claims to generate images", () => {
   for (const [key, m] of Object.entries(SEO)) {
     assert.equal(/generator/i.test(m.title), false, `${key} title`);
     assert.equal(/image generator/i.test(m.description), false, `${key} description`);
   }
-  for (const k of ["root", "home", "builder", "critic"] as const)
-    assert.match(SEO[k].title, /ChatGPT Images 2\.5/, k);
-  assert.equal(SEO.builder.title, "ChatGPT Images 2.5 Prompt Builder | Depikt");
-  assert.equal(SEO.critic.title, "ChatGPT Images 2.5 Prompt Critic | Depikt");
-  assert.equal(
-    SEO.library.title,
-    `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples for ChatGPT | Depikt`,
-  );
-  assert.equal(SEO.home.title, "Depikt — AI Image Prompt Builder for ChatGPT Images 2.5");
-  assert.notEqual(SEO.home.title, SEO.root.title);
-  assert.equal(SEO.blog.title, "AI Image Prompt Guides & ChatGPT Images 2.5 Tips | Depikt");
-  assert.equal(JSONLD_NAMES.builder, "Depikt Prompt Builder");
-  assert.equal(JSONLD_NAMES.critic, "Depikt Prompt Critic");
+  assert.equal("builder" in SEO, false);
+  assert.equal("critic" in SEO, false);
+  assert.equal(SEO.home.title, "Depikt — AI Image Prompts, References & Templates");
+  assert.equal(SEO.root.title, SEO.home.title);
+  assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
+  assert.equal(SEO.library.title, `${LIBRARY_PROMPT_COUNT} AI Image Prompt Examples | Depikt`);
+  assert.equal(SEO.gallery.title, "AI Image Reference Gallery | Depikt");
+  assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
+  assert.equal(SEO.blog.title, "AI Image Prompt Guides & Field Notes | Depikt");
+  for (const m of Object.values(SEO)) assert.ok(m.title.length <= 70, m.title);
+  assert.equal(JSONLD_NAMES.prompt, "Depikt Prompt Workspace");
+  assert.equal("builder" in JSONLD_NAMES, false);
+  assert.equal("critic" in JSONLD_NAMES, false);
   for (const d of Object.values(JSONLD_DESCRIPTIONS))
     assert.equal(/generat(es|or) images/i.test(d), false, d);
   assert.match(JSONLD_DESCRIPTIONS.app, /does not generate images/);
@@ -132,6 +132,42 @@ test("current product copy targets ChatGPT Images 2.5 and never claims to genera
   assert.equal(CTA.buildHero, "Build a Prompt");
   assert.equal(CTA.browse, "Browse 523 Prompts");
 });
+
+test("no current-product surface still calls Build and Critique separate tools", () => {
+  const files = [
+    "src/routes/index.tsx",
+    "src/routes/prompt.tsx",
+    "src/routes/library.tsx",
+    "src/routes/gallery.tsx",
+    "src/routes/templates.index.tsx",
+    "src/routes/integrations.mcp.tsx",
+    "src/components/Header.tsx",
+    "src/components/Footer.tsx",
+    "public/llms.txt",
+    "public/manifest.webmanifest",
+  ];
+  for (const f of files) {
+    const s = read(f);
+    assert.equal(/Prompt Builder|Prompt Critic/.test(s), false, `${f} uses a retired tool name`);
+    assert.equal(/\(\/generate\)|"\/generate"|\(\/critique\)|"\/critique"/.test(s), false, f);
+  }
+  // MCP tells assistants the current product model
+  const mcp = read("src/lib/mcp/index.ts");
+  assert.match(mcp, /Build mode/);
+  assert.match(mcp, /Critique mode/);
+  // llms.txt describes one workspace with two modes
+  const llms = read("public/llms.txt");
+  assert.match(llms, /Prompt workspace — Build mode/);
+  assert.match(llms, /Prompt workspace — Critique mode/);
+  // sitemap: canonical /prompt only, no legacy tool URLs
+  const sitemap = read("src/routes/sitemap[.]xml.tsx");
+  assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
+  assert.equal(/absoluteUrl\("\/(generate|critique)"\)/.test(sitemap), false);
+  // footer keeps Templates; header does not
+  assert.match(read("src/components/Footer.tsx"), /\/templates/);
+  assert.equal(/templates/.test(read("src/components/Header.tsx")), false);
+});
+
 
 test("current product UI files carry no generator-era labels", () => {
   const files = [
