@@ -69,7 +69,6 @@ export const ROUTES = {
   templates: "/templates",
 } as const;
 
-
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
   label: string;
@@ -280,7 +279,6 @@ export const JSONLD_DESCRIPTIONS = {
   gallery:
     "A gallery of reference images you can carry into the Prompt workspace in Build mode as a style, subject, or composition reference.",
 } as const;
-
 
 // ---------- library collection copy ----------
 

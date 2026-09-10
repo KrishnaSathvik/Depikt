@@ -8,14 +8,7 @@
  * and /generate and /critique only redirect there.
  */
 
-export type OgRouteKey =
-  | "home"
-  | "library"
-  | "prompt"
-  | "gallery"
-  | "templates"
-  | "blog"
-  | "mcp";
+export type OgRouteKey = "home" | "library" | "prompt" | "gallery" | "templates" | "blog" | "mcp";
 
 export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
   home: "/og/home.png",

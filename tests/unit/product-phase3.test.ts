@@ -168,7 +168,6 @@ test("no current-product surface still calls Build and Critique separate tools",
   assert.equal(/templates/.test(read("src/components/Header.tsx")), false);
 });
 
-
 test("current product UI files carry no generator-era labels", () => {
   const files = [
     "src/routes/index.tsx",

@@ -32,4 +32,3 @@ test("OG route map: one card per primary route, one shared Prompt card", () => {
   assert.equal(existsSync(resolve(PUBLIC, "og/prompt-builder.png")), false);
   assert.equal(existsSync(resolve(PUBLIC, "og/prompt-critic.png")), false);
 });
-
