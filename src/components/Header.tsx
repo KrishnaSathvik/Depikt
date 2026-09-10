@@ -5,9 +5,9 @@ import { ScrollRow } from "@/components/ScrollRow";
 import { useRouterState } from "@tanstack/react-router";
 
 // Visible labels come from product.ts (Library · Prompt · Gallery · Blog).
-// Old header comment kept short deliberately.
-// (Prompt
-// Critic · Gallery · Blog); the route URLs (/generate, /critique) are unchanged.
+// Build and Critique are modes inside /prompt, not separate nav items;
+// Templates lives in the footer.
+
 //
 // White, translucent, hairline bottom border. The active route is marked
 // with a 1px ink underline rather than a pill or background.
