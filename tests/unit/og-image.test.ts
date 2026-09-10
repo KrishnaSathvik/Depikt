@@ -14,10 +14,22 @@ test("every ready OG card exists under public/ and is a 1200x630 PNG path", () =
   }
 });
 
-test("OG route map covers every primary route; only /prompt reuses a card", () => {
+test("OG route map: one card per primary route, one shared Prompt card", () => {
   const files = Object.values(OG_ROUTE_IMAGES);
-  assert.equal(files.length, 8);
-  // /prompt reuses the Prompt Builder card until a dedicated one is generated.
+  assert.equal(files.length, 7);
   assert.equal(new Set(files).size, 7);
-  assert.equal(OG_ROUTE_IMAGES.prompt, OG_ROUTE_IMAGES.builder);
+  assert.deepEqual(Object.keys(OG_ROUTE_IMAGES).sort(), [
+    "blog",
+    "gallery",
+    "home",
+    "library",
+    "mcp",
+    "prompt",
+    "templates",
+  ]);
+  // Build and Critique share the Prompt card; no builder/critic cards remain.
+  assert.equal(OG_ROUTE_IMAGES.prompt, "/og/prompt.png");
+  assert.equal(existsSync(resolve(PUBLIC, "og/prompt-builder.png")), false);
+  assert.equal(existsSync(resolve(PUBLIC, "og/prompt-critic.png")), false);
 });
+

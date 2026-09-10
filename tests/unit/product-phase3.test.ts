@@ -51,16 +51,18 @@ const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 
 // ---------- naming ----------
 
-test("visible names: Generate → Prompt Builder, Critique → Prompt Critic; CTAs Build/Critique Prompt", () => {
-  assert.equal(TOOL.builder, "Prompt Builder");
-  assert.equal(TOOL.critic, "Prompt Critic");
+test("one Prompt product: Build and Critique are modes, not separate tools", () => {
+  assert.equal(TOOL.prompt, "Prompt");
+  assert.equal(TOOL.buildMode, "Prompt — Build mode");
+  assert.equal(TOOL.critiqueMode, "Prompt — Critique mode");
+  assert.equal("builder" in TOOL, false);
+  assert.equal("critic" in TOOL, false);
   assert.equal(CTA.build, "Build Prompt");
   assert.equal(CTA.critique, "Critique Prompt");
   assert.equal(CTA.critiqueAnother, "Critique Another Prompt");
   assert.equal(CTA.newPrompt, "New Prompt");
   assert.equal(CTA.building, "Building prompt…");
-  assert.equal(CTA.remix, "Remix in Prompt Builder");
-  assert.equal(TOOL.prompt, "Prompt");
+  assert.equal(CTA.remix, "Remix in Prompt");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
     ["Library", "Prompt", "Gallery", "Blog"],
@@ -69,8 +71,9 @@ test("visible names: Generate → Prompt Builder, Critique → Prompt Critic; CT
 
 test("/prompt is canonical; /generate and /critique still resolve via redirects", () => {
   assert.equal(ROUTES.prompt, "/prompt");
-  assert.equal(ROUTES.builder, "/generate");
-  assert.equal(ROUTES.critic, "/critique");
+  assert.equal(ROUTES.legacyBuilder, "/generate");
+  assert.equal(ROUTES.legacyCritic, "/critique");
+
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
     ["/library", "/prompt", "/gallery", "/blog"],
