@@ -196,7 +196,7 @@ export const SEO: Record<
   },
 
   mcp: {
-    title: "Depikt for AI Assistants: Connect the Prompt Library Through MCP | Depikt",
+    title: "Depikt for AI Assistants: Prompt Library via MCP | Depikt",
     description:
       "Connect Depikt through MCP and let ChatGPT, Claude, and other compatible assistants search the prompt library, open full prompts, browse templates, and read guides. Public and read-only.",
   },
