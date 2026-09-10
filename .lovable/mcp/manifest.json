@@ -8,7 +8,7 @@
   "mcp": {
     "server": {
       "name": "depikt",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "title": "Depikt"
     },
     "tools": [
@@ -125,9 +125,34 @@
         "outputSchema": null
       },
       {
+        "name": "search_guides",
+        "title": "Search guides",
+        "description": "Search Depikt's published prompting guides by keyword and/or category. Returns an overview (slug, title, category, date, excerpt); use `get_guide` with a slug to read one guide in full. Omit both filters to list every guide.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {
+            "query": {
+              "description": "Keywords to match against guide title, excerpt, and category. Omit to browse.",
+              "type": "string"
+            },
+            "category": {
+              "description": "Category filter, e.g. Images 2.5, How-to, Reference, Comparison, Product.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
         "name": "get_guide",
         "title": "Read a Depikt guide",
-        "description": "List Depikt's published prompting guides, or read the full text of one guide by slug. Covers prompt structure, text rendering, infographics, UI mockups, product shots and more.",
+        "description": "Read the full text of one Depikt prompting guide by slug. Use `search_guides` first to find the slug. Covers prompt structure, text rendering, infographics, UI mockups, product shots and more.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -138,10 +163,14 @@
           "type": "object",
           "properties": {
             "slug": {
-              "description": "Slug of the guide to read in full. Omit to list all available guides.",
-              "type": "string"
+              "type": "string",
+              "minLength": 1,
+              "description": "Slug of the guide to read in full."
             }
-          }
+          },
+          "required": [
+            "slug"
+          ]
         },
         "outputSchema": null
       }
