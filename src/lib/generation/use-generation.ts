@@ -110,6 +110,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const { user, loading: authLoading, signInWithProvider } = useAuth();
   // Signed-out submit: the provider chooser (GenerationAuthDialog) is open.
   const [authPrompt, setAuthPrompt] = useState(false);
+  // "exhausted" → the shared OutOfCreditsPanel replaces the generic error.
+  const [creditState, setCreditState] = useState<"ok" | "exhausted">("ok");
 
   const [references, setReferences] = useState<ReferenceEntry[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
@@ -142,7 +144,10 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   useEffect(() => {
     if (!user) return;
     getCreditBalance()
-      .then((r) => setCredits(r.availableCredits))
+      .then((r) => {
+        setCredits(r.availableCredits);
+        if (r.availableCredits > 0) setCreditState("ok");
+      })
       .catch(() => setCredits(null));
   }, [user, phase]);
 
@@ -313,8 +318,16 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       return;
     }
 
+    // Pre-empt: a signed-in user with a known zero balance never hits the API.
+    if (credits === 0) {
+      setCreditState("exhausted");
+      trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "preempt" });
+      return;
+    }
+
     setPhase("starting");
     setErrorMessage(null);
+    setCreditState("ok");
     trackEvent("generate_submitted", { source: sourceContextRef.current.type });
     try {
       const idempotencyKey = input.idempotencyKey ?? crypto.randomUUID();
@@ -334,7 +347,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     } catch (err) {
       setPhase("error");
       if (err instanceof GenerationApiError && err.status === 402) {
-        setErrorMessage(ERROR_COPY.insufficient_credit);
+        // Authoritative: the server refused the reservation.
+        setPhase("idle");
+        setCreditState("exhausted");
+        setCredits(0);
+        trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "server" });
+        return;
       } else if (err instanceof GenerationApiError && err.status === 401) {
         setErrorMessage(ERROR_COPY.auth);
       } else {
@@ -448,5 +466,6 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     authPrompt,
     chooseAuthProvider,
     dismissAuthPrompt,
+    creditState,
   };
 }

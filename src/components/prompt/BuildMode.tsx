@@ -40,6 +40,7 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
 import { TemplateSetup } from "@/components/TemplateSetup";
 import { getTemplateBySlug, type Template } from "@/data/templates";
@@ -677,12 +678,15 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
               />
             )}
             {result?.prompt && isNativeGenerationEnabled() && (
-              <InlineGenerationPanel
-                promptLabel="Your prompt"
-                promptText={result.prompt}
-                structuredAspectRatio={result.aspect_ratio ?? null}
-                gen={gen}
-              />
+              <>
+                <GenerationCreditGate gen={gen} className="mt-6" />
+                <InlineGenerationPanel
+                  promptLabel="Your prompt"
+                  promptText={result.prompt}
+                  structuredAspectRatio={result.aspect_ratio ?? null}
+                  gen={gen}
+                />
+              </>
             )}
           </div>
         )}

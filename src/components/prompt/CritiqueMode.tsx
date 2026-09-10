@@ -31,6 +31,7 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
 /**
  * Critique mode of the unified Prompt workspace (/prompt?mode=critique).
@@ -370,12 +371,15 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
               />
             )}
             {result?.rewritten_prompt && isNativeGenerationEnabled() && (
-              <InlineGenerationPanel
-                promptLabel="Rewritten prompt"
-                promptText={result.rewritten_prompt}
-                structuredAspectRatio={null}
-                gen={gen}
-              />
+              <>
+                <GenerationCreditGate gen={gen} className="mt-6" />
+                <InlineGenerationPanel
+                  promptLabel="Rewritten prompt"
+                  promptText={result.rewritten_prompt}
+                  structuredAspectRatio={null}
+                  gen={gen}
+                />
+              </>
             )}
           </div>
         )}

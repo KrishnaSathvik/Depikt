@@ -61,6 +61,30 @@ export const Route = createFileRoute("/sitemap.xml")({
             priority: "0.9",
             changefreq: "weekly",
           },
+          {
+            loc: absoluteUrl("/pricing"),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.8",
+            changefreq: "monthly",
+          },
+          {
+            loc: absoluteUrl("/help"),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.6",
+            changefreq: "monthly",
+          },
+          {
+            loc: absoluteUrl("/privacy"),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.3",
+            changefreq: "yearly",
+          },
+          {
+            loc: absoluteUrl("/terms"),
+            lastmod: STATIC_LASTMOD,
+            priority: "0.3",
+            changefreq: "yearly",
+          },
           ...posts.map((p) => ({
             loc: absoluteUrl(`/blog/${p.slug}`),
             lastmod: p.updated ?? p.published,

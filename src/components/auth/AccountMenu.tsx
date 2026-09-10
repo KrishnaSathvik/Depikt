@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { useAccountSummary } from "@/lib/billing/use-account-summary";
+import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
 import { AUTH_COPY, ROUTES } from "@/lib/product";
 
 function initialFor(user: User): string {
@@ -30,6 +31,7 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const summary = useAccountSummary(user);
+  const { openBuyCredits } = useBuyCredits();
 
   async function openPortal() {
     const { openBillingPortal } = await import("@/lib/billing/client");
@@ -58,7 +60,7 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
         <DropdownMenuItem
           onSelect={() => {
             if (onBuyCredits) onBuyCredits();
-            else void navigate({ to: ROUTES.account, search: { buy: "1" } });
+            else openBuyCredits("account_menu");
           }}
         >
           Buy credits

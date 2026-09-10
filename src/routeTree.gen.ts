@@ -41,6 +41,7 @@ import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/porta
 import { Route as ApiBillingConfirmRouteImport } from './routes/api/billing/confirm'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 import { Route as ApiBillingAccountRouteImport } from './routes/api/billing/account'
+import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 
@@ -205,6 +206,11 @@ const ApiBillingAccountRoute = ApiBillingAccountRouteImport.update({
   path: '/api/billing/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
+  id: '/api/account/delete',
+  path: '/api/account/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
   id: '/api/generation/sessions/$id',
   path: '/api/generation/sessions/$id',
@@ -238,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -311,6 +319,7 @@ export interface FileRoutesById {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -349,6 +358,7 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/account/delete'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -385,6 +395,7 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog'
     | '/templates'
+    | '/api/account/delete'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -421,6 +432,7 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/account/delete'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -458,6 +470,7 @@ export interface RootRouteChildren {
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiBillingAccountRoute: typeof ApiBillingAccountRoute
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingConfirmRoute: typeof ApiBillingConfirmRoute
@@ -698,6 +711,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBillingAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/account/delete': {
+      id: '/api/account/delete'
+      path: '/api/account/delete'
+      fullPath: '/api/account/delete'
+      preLoaderRoute: typeof ApiAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/sessions/$id': {
       id: '/api/generation/sessions/$id'
       path: '/api/generation/sessions/$id'
@@ -749,6 +769,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationsMcpRoute: IntegrationsMcpRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiBillingAccountRoute: ApiBillingAccountRoute,
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingConfirmRoute: ApiBillingConfirmRoute,
@@ -765,3 +786,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

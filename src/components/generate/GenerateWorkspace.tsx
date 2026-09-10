@@ -21,6 +21,7 @@ import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { trackEvent } from "@/lib/analytics";
 import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
 /**
  * /generate — the direct creation workspace.
@@ -132,7 +133,8 @@ export function GenerateWorkspace() {
         <GenerationAuthDialog gen={gen} />
         <p className="eyebrow mb-2 text-center">Generate</p>
         <h1 className="text-heading-lg mb-8 text-center">Create an image.</h1>
-        {gen.errorMessage && (
+        <GenerationCreditGate gen={gen} className="mb-6" />
+        {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mb-4 text-center text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
         <div className="space-y-4">
@@ -184,6 +186,7 @@ export function GenerateWorkspace() {
       <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12 lg:space-y-0">
         {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
         <div>
+          <GenerationCreditGate gen={gen} className="mb-6" />
           <p className="eyebrow mb-2">Prompt</p>
           {editing ? (
             <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">

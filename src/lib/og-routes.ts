@@ -16,7 +16,8 @@ export type OgRouteKey =
   | "gallery"
   | "templates"
   | "blog"
-  | "mcp";
+  | "mcp"
+  | "pricing";
 
 export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
   home: "/og/home.png",
@@ -27,9 +28,16 @@ export const OG_ROUTE_IMAGES: Record<OgRouteKey, string> = {
   templates: "/og/templates.png",
   blog: "/og/blog.png",
   mcp: "/og/mcp.png",
+  pricing: "/og/pricing.png",
 };
 
-/** Cards that exist in public/og/. Add a key here after its PNG is committed. */
+/**
+ * Cards that exist in public/og/. Add a key here after its PNG is committed.
+ * "pricing" is not ready yet — no card has been generated (that runs outside
+ * the product with node scripts/og-images-run.ts, needing OPENAI_API_KEY);
+ * until then it falls back to a random curated-prompt thumbnail like any
+ * other not-yet-ready route.
+ */
 export const OG_ROUTE_READY: ReadonlySet<OgRouteKey> = new Set<OgRouteKey>([
   "home",
   "library",

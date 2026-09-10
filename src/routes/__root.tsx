@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { Analytics } from "@/components/Analytics";
 import { DevAuthBanner } from "@/components/DevAuthBanner";
+import { BuyCreditsProvider } from "@/components/billing/BuyCreditsProvider";
 import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -140,9 +141,11 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Analytics />
-        <DevAuthBanner />
-        <Outlet />
+        <BuyCreditsProvider>
+          <Analytics />
+          <DevAuthBanner />
+          <Outlet />
+        </BuyCreditsProvider>
         <Toaster
           theme="light"
           position="top-right"
