@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+import { isSupabaseConfigured, supabase } from '@/integrations/supabase/client';
+import { curatedPrompts } from '@/data/curated-prompts';
 import { toast } from 'sonner';
 import type { LibraryPrompt, PromptSource } from '@/types/library';
 import { normalizeTargetModel } from '@/lib/target-model';
@@ -204,6 +205,17 @@ export async function fetchLibrary(): Promise<LibraryPrompt[]> {
   if (_libraryInflight) return _libraryInflight;
 
   _libraryInflight = (async () => {
+    // A build without Supabase variables still serves the legacy collection
+    // from the repo instead of crashing the route.
+    if (!isSupabaseConfigured()) {
+      const fallback = orderForDisplay(
+        mergeById(curatedPrompts as LibraryPrompt[], publicStagedPrompts()),
+        FEATURED_25_SLUGS,
+        FEATURED_IDS,
+      );
+      _libraryCache = fallback;
+      return fallback;
+    }
     const { data: sessionData } = await supabase.auth.getSession();
     const isAuthed = !!sessionData?.session;
 
