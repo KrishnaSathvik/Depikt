@@ -511,7 +511,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         ) : (
           <div>
             <h2 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
-              What do you want to create?
+              Build a prompt for your image.
             </h2>
             <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[56ch]">
               {templateCtx
