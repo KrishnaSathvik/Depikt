@@ -37,7 +37,7 @@ test("avatar system never calls image generation or Storage, and never hits Dice
 test("DiceBear is generated locally: @dicebear/core + curated style packages, imported directly", () => {
   const pkg = JSON.parse(read("package.json")) as { dependencies?: Record<string, string> };
   assert.ok(pkg.dependencies?.["@dicebear/core"], "@dicebear/core must be a direct dependency");
-  for (const style of ["lorelei", "notionists", "thumbs"]) {
+  for (const style of ["lorelei", "notionists", "thumbs", "open-peeps", "bottts"]) {
     assert.ok(
       pkg.dependencies?.[`@dicebear/${style}`],
       `@dicebear/${style} must be a direct dependency`,
@@ -48,10 +48,13 @@ test("DiceBear is generated locally: @dicebear/core + curated style packages, im
   assert.match(renderer, /from "@dicebear\/lorelei"/);
   assert.match(renderer, /from "@dicebear\/notionists"/);
   assert.match(renderer, /from "@dicebear\/thumbs"/);
+  assert.match(renderer, /from "@dicebear\/open-peeps"/);
+  assert.match(renderer, /from "@dicebear\/bottts"/);
   assert.match(renderer, /createAvatar\(/);
-  // Not all 61 DiceBear styles -- only the three curated ones (CLAUDE.md /
-  // the redesign brief: "Choose 2-3 curated styles", never all of them.
-  assert.doesNotMatch(renderer, /@dicebear\/bottts|@dicebear\/avataaars|@dicebear\/pixel-art/);
+  // Not all 61 DiceBear styles -- only the five curated ones (CLAUDE.md /
+  // the redesign brief: "Choose 2-3 curated styles" -- five is still a
+  // small, deliberate set, never all of them).
+  assert.doesNotMatch(renderer, /@dicebear\/avataaars|@dicebear\/pixel-art|@dicebear\/micah/);
 });
 
 test("no rendered SVG/avatar image is stored -- only the (seed, style) pair", () => {
@@ -60,7 +63,10 @@ test("no rendered SVG/avatar image is stored -- only the (seed, style) pair", ()
   assert.match(migration, /avatar_variant\s+text NOT NULL/);
   assert.doesNotMatch(migration, /avatar_svg|avatar_url|avatar_image/i);
   // avatar_variant is restricted to the curated style set at the DB layer too.
-  assert.match(migration, /avatar_variant IN \('lorelei', 'notionists', 'thumbs'\)/);
+  assert.match(
+    migration,
+    /avatar_variant IN \('lorelei', 'notionists', 'thumbs', 'open-peeps', 'bottts'\)/,
+  );
 });
 
 test("ProfileProvider is mounted at the root, inside AuthProvider", () => {

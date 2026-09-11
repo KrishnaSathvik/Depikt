@@ -113,7 +113,7 @@ BEGIN
   -- avatar_variant is restricted to the curated DiceBear style set.
   rejected := false;
   BEGIN
-    UPDATE public.profiles SET avatar_variant = 'bottts' WHERE user_id = u; -- not a curated style
+    UPDATE public.profiles SET avatar_variant = 'micah' WHERE user_id = u; -- not a curated style
   EXCEPTION WHEN check_violation THEN rejected := true; END;
   ASSERT rejected, 'avatar_variant must be one of the curated DiceBear styles';
   UPDATE public.profiles SET avatar_variant = 'thumbs' WHERE user_id = u;

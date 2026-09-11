@@ -31,6 +31,14 @@ export interface PlanCardsProps {
   currentPlan?: PlanKey | null;
   /** A plan carried through sign-up (?plan=) to highlight. */
   resumeKey?: string | null;
+  /**
+   * Drop the $0 Free card -- for the account/Plan tab's inline "View plans"
+   * (the viewer already has an account, so there is nothing to sign up
+   * for) and the credit packs, which belong on the marketing /pricing page,
+   * not inline in the account upgrade view.
+   */
+  hideFree?: boolean;
+  hidePacks?: boolean;
 }
 
 function IntervalToggle({
@@ -83,7 +91,14 @@ function Includes({ items }: { items: ReadonlyArray<string> }) {
   );
 }
 
-export function PlanCards({ interval, onIntervalChange, currentPlan, resumeKey }: PlanCardsProps) {
+export function PlanCards({
+  interval,
+  onIntervalChange,
+  currentPlan,
+  resumeKey,
+  hideFree,
+  hidePacks,
+}: PlanCardsProps) {
   const { user } = useAuth();
   const [busy, setBusy] = useState<ProductKey | null>(null);
   const [authGate, setAuthGate] = useState<PaidPlanKey | null>(null);
@@ -171,54 +186,57 @@ export function PlanCards({ interval, onIntervalChange, currentPlan, resumeKey }
         <IntervalToggle interval={interval} onChange={onIntervalChange} />
       </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
-        {/* FREE */}
-        <div className="flex flex-col rounded-lg border border-[color:var(--border-subtle)] p-6">
-          <p className="eyebrow">{PRICING_COPY.free.name}</p>
-          <p className="mt-3">
-            <span className="text-display-md tabular-nums">$0</span>
-          </p>
-          <p className="mt-4 text-body-md font-medium text-[color:var(--text-primary)]">
-            {STARTER_CREDITS} image credits
-          </p>
-          <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
-            {PRICING_COPY.free.note}
-          </p>
-          <Includes items={PRICING_COPY.free.includes} />
-          <div className="mt-auto pt-8">
-            {user ? (
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to={ROUTES.legacyBuilder}>{PRICING_COPY.cta.freeSignedIn} →</Link>
-              </Button>
-            ) : (
-              <Button asChild variant="outline" size="lg" className="w-full">
-                <Link to={ROUTES.signUp}>{PRICING_COPY.cta.free} →</Link>
-              </Button>
-            )}
+      <div className={cn("mt-10 grid gap-4", hideFree ? "md:grid-cols-2" : "md:grid-cols-3")}>
+        {!hideFree && (
+          <div className="flex flex-col rounded-lg border border-[color:var(--border-subtle)] p-6">
+            <p className="eyebrow">{PRICING_COPY.free.name}</p>
+            <p className="mt-3">
+              <span className="text-display-md tabular-nums">$0</span>
+            </p>
+            <p className="mt-4 text-body-md font-medium text-[color:var(--text-primary)]">
+              {STARTER_CREDITS} image credits
+            </p>
+            <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
+              {PRICING_COPY.free.note}
+            </p>
+            <Includes items={PRICING_COPY.free.includes} />
+            <div className="mt-auto pt-8">
+              {user ? (
+                <Button asChild variant="outline" size="lg" className="w-full">
+                  <Link to={ROUTES.legacyBuilder}>{PRICING_COPY.cta.freeSignedIn} →</Link>
+                </Button>
+              ) : (
+                <Button asChild variant="outline" size="lg" className="w-full">
+                  <Link to={ROUTES.signUp}>{PRICING_COPY.cta.free} →</Link>
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
         {paidCard("pro")}
         {paidCard("max")}
       </div>
 
       {/* PACKS */}
-      <div className="mt-16 border-t border-[color:var(--border-subtle)] pt-10">
-        <h2 className="text-heading-md">{PRICING_COPY.packsHeading}</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-3">
-          {CREDIT_PACKS.map((pack) => (
-            <div
-              key={pack.key}
-              className="flex items-baseline justify-between rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
-            >
-              <span className="text-body-md font-medium">{pack.credits} credits</span>
-              <span className="text-body-md tabular-nums">{formatUsd(pack.priceCents)}</span>
-            </div>
-          ))}
+      {!hidePacks && (
+        <div className="mt-16 border-t border-[color:var(--border-subtle)] pt-10">
+          <h2 className="text-heading-md">{PRICING_COPY.packsHeading}</h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {CREDIT_PACKS.map((pack) => (
+              <div
+                key={pack.key}
+                className="flex items-baseline justify-between rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
+              >
+                <span className="text-body-md font-medium">{pack.credits} credits</span>
+                <span className="text-body-md tabular-nums">{formatUsd(pack.priceCents)}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-body-sm text-[color:var(--text-secondary)]">
+            {PRICING_COPY.packsNote} {PRICING_COPY.creditRule}
+          </p>
         </div>
-        <p className="mt-4 text-body-sm text-[color:var(--text-secondary)]">
-          {PRICING_COPY.packsNote} {PRICING_COPY.creditRule}
-        </p>
-      </div>
+      )}
 
       <BillingAuthDialog
         open={authGate !== null}

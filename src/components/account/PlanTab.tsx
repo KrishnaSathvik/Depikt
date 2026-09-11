@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
+import { PlanCards } from "@/components/billing/PlanCards";
 import { openBillingPortal } from "@/lib/billing/client";
 import { formatLongDate, formatShortDate } from "@/lib/billing/credit-state";
-import { PLAN_LABEL } from "@/lib/billing/plans";
-import { ROUTES } from "@/lib/product";
+import { PLAN_LABEL, type BillingInterval } from "@/lib/billing/plans";
 import { toast } from "sonner";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
@@ -31,6 +32,8 @@ function planLine(s: AccountSummaryResponse): { main: string; sub: string | null
 
 export function PlanTab({ summary }: { summary: AccountSummaryResponse | null }) {
   const { openBuyCredits } = useBuyCredits();
+  const [showPlans, setShowPlans] = useState(false);
+  const [interval, setIntervalState] = useState<BillingInterval>("month");
 
   if (!summary) {
     return (
@@ -65,7 +68,7 @@ export function PlanTab({ summary }: { summary: AccountSummaryResponse | null })
             </p>
           )}
           <div className="flex flex-wrap gap-2 pt-1">
-            {summary.hasStripeCustomer ? (
+            {summary.hasStripeCustomer && (
               <Button
                 variant="outline"
                 size="sm"
@@ -75,17 +78,28 @@ export function PlanTab({ summary }: { summary: AccountSummaryResponse | null })
               >
                 Manage billing →
               </Button>
-            ) : (
-              <Button variant="outline" size="sm" asChild>
-                <a href={ROUTES.pricing}>View plans →</a>
-              </Button>
             )}
-            {summary.plan === "pro" && (
-              <Button variant="ghost" size="sm" asChild>
-                <a href={ROUTES.pricing}>Upgrade to Max →</a>
+            {summary.plan !== "max" && (
+              <Button variant="outline" size="sm" onClick={() => setShowPlans((v) => !v)}>
+                {showPlans
+                  ? "Hide plans"
+                  : summary.plan === "pro"
+                    ? "Upgrade to Max →"
+                    : "View plans →"}
               </Button>
             )}
           </div>
+          {showPlans && (
+            <div className="pt-4">
+              <PlanCards
+                interval={interval}
+                onIntervalChange={setIntervalState}
+                currentPlan={summary.plan}
+                hideFree
+                hidePacks
+              />
+            </div>
+          )}
         </div>
       </section>
 

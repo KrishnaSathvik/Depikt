@@ -50,7 +50,7 @@ BEGIN
   -- seed string, free-form but bounded.
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_avatar_variant_check') THEN
     ALTER TABLE public.profiles ADD CONSTRAINT profiles_avatar_variant_check
-      CHECK (avatar_variant IN ('lorelei', 'notionists', 'thumbs'));
+      CHECK (avatar_variant IN ('lorelei', 'notionists', 'thumbs', 'open-peeps', 'bottts'));
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_avatar_seed_length') THEN
     ALTER TABLE public.profiles ADD CONSTRAINT profiles_avatar_seed_length
@@ -244,6 +244,6 @@ COMMENT ON TABLE public.profiles IS
 COMMENT ON COLUMN public.profiles.avatar_seed IS
   'DiceBear seed string. Defaults to the user_id at creation (deterministic, stable across devices); the avatar picker can set it to a different deterministic shuffle seed. Never re-derived from username.';
 COMMENT ON COLUMN public.profiles.avatar_variant IS
-  'DiceBear style id -- one of lorelei/notionists/thumbs (profiles_avatar_variant_check). See src/lib/profile/avatar.ts. Generated locally from @dicebear/*, never fetched from a remote API; never stored as rendered SVG.';
+  'DiceBear style id -- one of lorelei/notionists/thumbs/open-peeps/bottts (profiles_avatar_variant_check). See src/lib/profile/avatar.ts. Generated locally from @dicebear/*, never fetched from a remote API; never stored as rendered SVG.';
 COMMENT ON FUNCTION public.ensure_profile IS
   'Idempotent: returns the existing profile or creates one with a generated, collision-free username. Called by the signup trigger and lazily by the app for pre-migration accounts.';

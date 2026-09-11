@@ -2,12 +2,12 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { BillingAuthDialog } from "@/components/auth/BillingAuthDialog";
 import { useAuth } from "@/lib/auth-context";
 import { startCheckout } from "@/lib/billing/client";
@@ -25,7 +25,8 @@ export interface BuyCreditsSheetProps {
 /**
  * The one credit-purchase surface. Three packs from the catalog, one
  * selection, one button to Stripe-hosted Checkout. Never shows a price the
- * catalog did not produce.
+ * catalog did not produce. A centered dialog, not a side drawer -- opening
+ * from the middle of the screen like every other Depikt modal.
  */
 export function BuyCreditsSheet({ open, onOpenChange, source }: BuyCreditsSheetProps) {
   const { user } = useAuth();
@@ -51,18 +52,14 @@ export function BuyCreditsSheet({ open, onOpenChange, source }: BuyCreditsSheetP
 
   return (
     <>
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent
-          side="right"
-          className="flex w-full flex-col sm:max-w-[420px]"
-          data-source={source}
-        >
-          <SheetHeader className="text-left">
-            <SheetTitle className="text-heading-md">{BUY_CREDITS_COPY.title}</SheetTitle>
-            <SheetDescription className="text-body-sm text-[color:var(--text-secondary)]">
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-[420px]" data-source={source}>
+          <DialogHeader className="text-left">
+            <DialogTitle className="text-heading-md">{BUY_CREDITS_COPY.title}</DialogTitle>
+            <DialogDescription className="text-body-sm text-[color:var(--text-secondary)]">
               {BUY_CREDITS_COPY.body}
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="mt-6 space-y-2" role="radiogroup" aria-label="Credit packs">
             {CREDIT_PACKS.map((pack) => {
@@ -115,8 +112,8 @@ export function BuyCreditsSheet({ open, onOpenChange, source }: BuyCreditsSheetP
               {BUY_CREDITS_COPY.rule}
             </p>
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <BillingAuthDialog
         open={authGate}

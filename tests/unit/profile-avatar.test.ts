@@ -9,8 +9,8 @@ import {
   avatarShuffleSeeds,
 } from "../../src/lib/profile/avatar.ts";
 
-test("curated style set is exactly Lorelei, Notionists, Thumbs; Lorelei is the default", () => {
-  assert.deepEqual(AVATAR_STYLES, ["lorelei", "notionists", "thumbs"]);
+test("curated style set is exactly Lorelei, Notionists, Thumbs, Open Peeps, Bottts; Lorelei is the default", () => {
+  assert.deepEqual(AVATAR_STYLES, ["lorelei", "notionists", "thumbs", "open-peeps", "bottts"]);
   assert.equal(DEFAULT_AVATAR_STYLE, "lorelei");
   assert.equal(new Set(AVATAR_STYLES).size, AVATAR_STYLES.length, "styles must be distinct");
 });
@@ -20,9 +20,9 @@ test("isAvatarStyle / normalizeAvatarStyle", () => {
     assert.ok(isAvatarStyle(s));
     assert.equal(normalizeAvatarStyle(s), s);
   }
-  assert.ok(!isAvatarStyle("bottts"), "not one of the curated styles");
+  assert.ok(!isAvatarStyle("micah"), "not one of the curated styles");
   assert.equal(
-    normalizeAvatarStyle("bottts"),
+    normalizeAvatarStyle("micah"),
     DEFAULT_AVATAR_STYLE,
     "malformed falls back to default",
   );

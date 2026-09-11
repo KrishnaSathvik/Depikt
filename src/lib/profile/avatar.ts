@@ -9,11 +9,27 @@
 // no third-party network call on every profile render, and no dependency
 // on DiceBear's uptime.
 
-export const AVATAR_STYLES = ["lorelei", "notionists", "thumbs"] as const;
+import { hashToIndex } from "./hash.ts";
+
+// Five deliberately distinct looks -- a line-art portrait, an illustrated
+// workspace character, a playful simple face, a hand-drawn person, and a
+// quirky robot -- so "shuffle" actually produces different-looking
+// avatars, not eight variations on one theme. Still curated, not all 61
+// styles: each was picked for being tasteful (no neon) and MIT/CC0/
+// free-for-commercial-use licensed.
+export const AVATAR_STYLES = ["lorelei", "notionists", "thumbs", "open-peeps", "bottts"] as const;
 export type AvatarStyle = (typeof AVATAR_STYLES)[number];
 
-/** Lorelei is the default Depikt style; Notionists and Thumbs are the other curated choices. */
+/** Lorelei is the default Depikt style; the rest are the other curated choices. */
 export const DEFAULT_AVATAR_STYLE: AvatarStyle = "lorelei";
+
+/**
+ * Depikt-palette background colors (white / near-black / muted blue /
+ * subtle tones -- no neon), passed to every createAvatar() call so each
+ * seed also gets a distinct background baked into the SVG itself. DiceBear
+ * expects bare 6-digit hex, no "#". See DepiktAvatar.tsx.
+ */
+export const AVATAR_BACKGROUND_COLORS = ["FFFFFF", "111111", "EEF1FB", "2B3A67", "F2F2F2"] as const;
 
 export function isAvatarStyle(value: string): value is AvatarStyle {
   return (AVATAR_STYLES as readonly string[]).includes(value);
@@ -43,4 +59,23 @@ export function avatarShuffleSeeds(seed: string, round: number, count = 8): stri
   const out: string[] = [];
   for (let i = 0; i < count; i++) out.push(`${seed}:shuffle:${round}:${i}`);
   return out;
+}
+
+export interface AvatarCandidate {
+  seed: string;
+  style: AvatarStyle;
+}
+
+/**
+ * Like avatarShuffleSeeds, but each candidate also gets a style -- hashed
+ * off its own seed so it's deterministic and looks arbitrary, not cycled
+ * in a visible 1-2-3-4-5 order. This backs the picker's "just show 8 random
+ * avatars, no style buttons" grid: every shuffle mixes styles freely
+ * instead of showing 8 variations within one selected style.
+ */
+export function avatarShuffleCandidates(seed: string, round: number, count = 8): AvatarCandidate[] {
+  return avatarShuffleSeeds(seed, round, count).map((candidateSeed) => ({
+    seed: candidateSeed,
+    style: AVATAR_STYLES[hashToIndex(`${candidateSeed}:style`, AVATAR_STYLES.length)],
+  }));
 }
