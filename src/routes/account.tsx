@@ -140,8 +140,8 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <AccountHeader summary={summary} />
-        <div className="mt-8">
+        {activeTab === "account" && <AccountHeader summary={summary} />}
+        <div className={activeTab === "account" ? "mt-8" : undefined}>
           <AccountNav active={activeTab} onChange={setActiveTab} />
         </div>
         <div className="mt-8">
