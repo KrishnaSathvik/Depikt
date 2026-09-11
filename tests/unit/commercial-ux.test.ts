@@ -202,16 +202,25 @@ test("help page is self-service only, no fake support channel", () => {
     "Can I buy credits without subscribing?",
     "What happens if I cancel?",
     "How do I manage billing?",
-    "Where are generated images stored?",
+    "How many references can I add?",
+    "Can I edit an existing generated image?",
+    "What does Regenerate do?",
+    "Where can I find my generated images?",
     "How do I delete my account?",
   ]) {
     assert.ok(questions.includes(q), `missing help question: ${q}`);
   }
+  // Four categories, matching the redesigned Getting started / Images &
+  // references / Plans & credits / Account & data structure.
+  assert.deepEqual(
+    HELP_SECTIONS.map((s) => s.id),
+    ["getting-started", "images-and-references", "plans-and-credits", "account-and-data"],
+  );
   const all = JSON.stringify(HELP_SECTIONS);
   assert.doesNotMatch(all, /24\/7|support@|Contact support|live chat/i);
 });
 
-test("privacy and terms cover the required subjects and invent no owner details", () => {
+test("privacy and terms cover the required subjects, invent no owner details, and never show an [OWNER INPUT] marker", () => {
   for (const [md, required] of [
     [
       PRIVACY_MD,
@@ -246,18 +255,31 @@ test("privacy and terms cover the required subjects and invent no owner details"
         "not be unique",
         "Acceptable use",
         "OpenAI",
-        "Governing law",
       ],
     ],
   ] as const) {
     for (const s of required) assert.match(md, new RegExp(s, "i"), `missing: ${s}`);
     assert.doesNotMatch(md, /@depikt\.app/, "no invented email address");
     assert.doesNotMatch(md, /GDPR[- ]certified|CCPA[- ]certified|SOC ?2/i);
-    assert.match(md, /\[OWNER INPUT/, "unresolved owner inputs must stay visibly flagged");
+    // Facts only the operator can decide (entity/address, a privacy
+    // contact, governing law, a specific refund window) are not resolved
+    // yet -- rather than publish an invented answer, those clauses are
+    // omitted entirely. Public content must never carry the internal
+    // placeholder that once marked them, or a fabricated stand-in.
+    assert.doesNotMatch(md, /\[OWNER INPUT/, "no visible owner-input marker in public copy");
+    assert.doesNotMatch(
+      md,
+      /governing law/i,
+      "governing law is unresolved -- omitted, not invented",
+    );
   }
   assert.match(LEGAL_LAST_UPDATED, /^\d{4}-\d{2}-\d{2}$/);
-  for (const f of ["src/routes/privacy.tsx", "src/routes/terms.tsx"])
-    assert.match(read(f), /renderMarkdown\(/);
+  const shell = read("src/components/legal/LegalPage.tsx");
+  assert.match(shell, /renderMarkdown\(/);
+  assert.match(shell, /formatEffectiveDate\(/);
+  for (const f of ["src/routes/privacy.tsx", "src/routes/terms.tsx"]) {
+    assert.match(read(f), /<LegalPage/);
+  }
 });
 
 // ---------- footer / header ----------

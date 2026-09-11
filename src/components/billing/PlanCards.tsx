@@ -126,17 +126,28 @@ export function PlanCards({
     const copy = PRICING_COPY[plan];
     const isCurrent = currentPlan === plan;
     const isResume = resumeKey === product.key;
+    const isPro = plan === "pro";
     return (
       <div
         key={plan}
         className={cn(
           "flex flex-col rounded-lg border p-6",
-          isResume || plan === "pro"
+          isResume || isPro
             ? "border-[color:var(--text-primary)]"
             : "border-[color:var(--border-subtle)]",
         )}
       >
-        <p className="eyebrow">{copy.name}</p>
+        {/* Subtle, not a badge -- a small label above the card, like the
+            rest of Pricing's restrained system. */}
+        <p
+          className={cn(
+            "text-[12px] font-medium uppercase tracking-[0.06em]",
+            isPro ? "text-[color:var(--text-primary)]" : "invisible",
+          )}
+        >
+          Most popular
+        </p>
+        <p className="mt-1 eyebrow">{copy.name}</p>
         {interval === "month" ? (
           <p className="mt-3">
             <span className="text-display-md tabular-nums">{formatUsd(product.priceCents)}</span>
@@ -147,11 +158,13 @@ export function PlanCards({
             <span className="text-display-md tabular-nums">{formatUsd(product.priceCents)}</span>
             <span className="text-body-sm text-[color:var(--text-secondary)]">/year</span>
             <span className="mt-1 block text-body-sm text-[color:var(--text-secondary)]">
-              ~{monthlyEquivalent(product.priceCents)}/month · {yearlySavingsLabel(plan)}
+              ~{monthlyEquivalent(product.priceCents)}/month effective · {yearlySavingsLabel(plan)}
             </span>
           </p>
         )}
-        <p className="mt-4 text-body-md font-medium text-[color:var(--text-primary)]">
+        {/* Credits are the real differentiator between plans -- bolder than
+            the feature bullets below, which are identical across Pro/Max. */}
+        <p className="mt-5 text-heading-sm text-[color:var(--text-primary)]">
           {PLAN_CREDITS[plan]} image credits every month
         </p>
         <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
@@ -189,11 +202,14 @@ export function PlanCards({
       <div className={cn("mt-10 grid gap-4", hideFree ? "md:grid-cols-2" : "md:grid-cols-3")}>
         {!hideFree && (
           <div className="flex flex-col rounded-lg border border-[color:var(--border-subtle)] p-6">
-            <p className="eyebrow">{PRICING_COPY.free.name}</p>
+            <p className="invisible text-[12px] font-medium uppercase tracking-[0.06em]">
+              Most popular
+            </p>
+            <p className="mt-1 eyebrow">{PRICING_COPY.free.name}</p>
             <p className="mt-3">
               <span className="text-display-md tabular-nums">$0</span>
             </p>
-            <p className="mt-4 text-body-md font-medium text-[color:var(--text-primary)]">
+            <p className="mt-5 text-heading-sm text-[color:var(--text-primary)]">
               {STARTER_CREDITS} image credits
             </p>
             <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
@@ -225,10 +241,19 @@ export function PlanCards({
             {CREDIT_PACKS.map((pack) => (
               <div
                 key={pack.key}
-                className="flex items-baseline justify-between rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
+                className="rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
               >
-                <span className="text-body-md font-medium">{pack.credits} credits</span>
-                <span className="text-body-md tabular-nums">{formatUsd(pack.priceCents)}</span>
+                <span className="block text-body-md font-medium text-[color:var(--text-primary)]">
+                  {pack.credits} credits
+                </span>
+                <span className="mt-1 block text-heading-sm tabular-nums text-[color:var(--text-primary)]">
+                  {formatUsd(pack.priceCents)}
+                </span>
+                {pack.badge && (
+                  <span className="mt-1.5 block text-[12px] font-medium text-[color:var(--text-tertiary)]">
+                    {pack.badge}
+                  </span>
+                )}
               </div>
             ))}
           </div>

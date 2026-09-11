@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { PRIVACY_MD } from "@/data/legal";
-import { renderMarkdown } from "@/lib/markdown";
+import { LegalPage } from "@/components/legal/LegalPage";
+import { PRIVACY_INTRO, PRIVACY_MD } from "@/data/legal";
 import { ROUTES, SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -36,16 +33,7 @@ export const Route = createFileRoute("/privacy")({
 });
 
 function Page() {
-  const { nodes } = useMemo(() => renderMarkdown(PRIVACY_MD), []);
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
-      <Header />
-      <main className="mx-auto w-full max-w-[720px] flex-1 px-4 py-12 sm:px-6 sm:py-20">
-        <p className="eyebrow">Privacy</p>
-        <h1 className="mt-3 text-display-md">Privacy Policy</h1>
-        <div className="prose-content mt-10">{nodes}</div>
-      </main>
-      <Footer />
-    </div>
+    <LegalPage eyebrow="Privacy" title="Privacy Policy" intro={PRIVACY_INTRO} md={PRIVACY_MD} />
   );
 }

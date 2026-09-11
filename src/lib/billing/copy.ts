@@ -4,7 +4,7 @@
 export const PRICING_COPY = {
   eyebrow: "Pricing",
   headline: "Create more with Depikt.",
-  sub: "Every plan includes Depikt's prompt, reference, and creation tools. Image credits are used when you generate, edit, or regenerate an image.",
+  sub: "Start free, then choose the amount of image creation you need. Image credits are used when you generate, edit, or regenerate an image.",
   toggleMonthly: "Monthly",
   /** $199 vs 12 × $19.99 and $399 vs 12 × $39.99 both save about 17%. */
   toggleYearly: "Yearly · save 17%",
@@ -13,7 +13,7 @@ export const PRICING_COPY = {
     name: "Free",
     credits: "5 image credits",
     note: "One-time starter credits. No credit card required.",
-    includes: ["Library", "Prompt Build & Critique", "Gallery", "Templates", "Generate & Edit"],
+    includes: ["Explore all Depikt tools", "Generate and edit images"],
   },
   pro: {
     name: "Pro",

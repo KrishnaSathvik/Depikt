@@ -64,7 +64,17 @@ export const Route = createFileRoute("/pricing")({
   component: PricingPage,
 });
 
-const FAQ = HELP_SECTIONS.find((s) => s.id === "plans-and-credits")?.items.slice(0, 4) ?? [];
+const PRICING_FAQ_QUESTIONS = [
+  "How do monthly credits work?",
+  "Do credits roll over?",
+  "Can I buy credits without subscribing?",
+  "How do annual plans work?",
+  "What happens if I cancel?",
+];
+const planCredits = HELP_SECTIONS.find((s) => s.id === "plans-and-credits")?.items ?? [];
+const FAQ = PRICING_FAQ_QUESTIONS.map((q) => planCredits.find((i) => i.q === q)).filter(
+  (i): i is (typeof planCredits)[number] => i !== undefined,
+);
 
 function PricingPage() {
   const { plan: resumeKeyParam, interval: intervalParam } = Route.useSearch();
