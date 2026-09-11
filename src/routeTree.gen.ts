@@ -41,7 +41,10 @@ import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/porta
 import { Route as ApiBillingConfirmRouteImport } from './routes/api/billing/confirm'
 import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
 import { Route as ApiBillingAccountRouteImport } from './routes/api/billing/account'
+import { Route as ApiAccountUsernameAvailabilityRouteImport } from './routes/api/account/username-availability'
+import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
+import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/creations'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 
@@ -206,9 +209,25 @@ const ApiBillingAccountRoute = ApiBillingAccountRouteImport.update({
   path: '/api/billing/account',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAccountUsernameAvailabilityRoute =
+  ApiAccountUsernameAvailabilityRouteImport.update({
+    id: '/api/account/username-availability',
+    path: '/api/account/username-availability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
+  id: '/api/account/profile',
+  path: '/api/account/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
   id: '/api/account/delete',
   path: '/api/account/delete',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAccountCreationsRoute = ApiAccountCreationsRouteImport.update({
+  id: '/api/account/creations',
+  path: '/api/account/creations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
@@ -244,7 +263,10 @@ export interface FileRoutesByFullPath {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/account/creations': typeof ApiAccountCreationsRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -281,7 +303,10 @@ export interface FileRoutesByTo {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
+  '/api/account/creations': typeof ApiAccountCreationsRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -319,7 +344,10 @@ export interface FileRoutesById {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
+  '/api/account/creations': typeof ApiAccountCreationsRoute
   '/api/account/delete': typeof ApiAccountDeleteRoute
+  '/api/account/profile': typeof ApiAccountProfileRoute
+  '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
   '/api/billing/account': typeof ApiBillingAccountRoute
   '/api/billing/checkout': typeof ApiBillingCheckoutRoute
   '/api/billing/confirm': typeof ApiBillingConfirmRoute
@@ -358,7 +386,10 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/account/creations'
     | '/api/account/delete'
+    | '/api/account/profile'
+    | '/api/account/username-availability'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -395,7 +426,10 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog'
     | '/templates'
+    | '/api/account/creations'
     | '/api/account/delete'
+    | '/api/account/profile'
+    | '/api/account/username-availability'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -432,7 +466,10 @@ export interface FileRouteTypes {
     | '/integrations/mcp'
     | '/blog/'
     | '/templates/'
+    | '/api/account/creations'
     | '/api/account/delete'
+    | '/api/account/profile'
+    | '/api/account/username-availability'
     | '/api/billing/account'
     | '/api/billing/checkout'
     | '/api/billing/confirm'
@@ -470,7 +507,10 @@ export interface RootRouteChildren {
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
+  ApiAccountCreationsRoute: typeof ApiAccountCreationsRoute
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
+  ApiAccountProfileRoute: typeof ApiAccountProfileRoute
+  ApiAccountUsernameAvailabilityRoute: typeof ApiAccountUsernameAvailabilityRoute
   ApiBillingAccountRoute: typeof ApiBillingAccountRoute
   ApiBillingCheckoutRoute: typeof ApiBillingCheckoutRoute
   ApiBillingConfirmRoute: typeof ApiBillingConfirmRoute
@@ -711,11 +751,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBillingAccountRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/account/username-availability': {
+      id: '/api/account/username-availability'
+      path: '/api/account/username-availability'
+      fullPath: '/api/account/username-availability'
+      preLoaderRoute: typeof ApiAccountUsernameAvailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/profile': {
+      id: '/api/account/profile'
+      path: '/api/account/profile'
+      fullPath: '/api/account/profile'
+      preLoaderRoute: typeof ApiAccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/account/delete': {
       id: '/api/account/delete'
       path: '/api/account/delete'
       fullPath: '/api/account/delete'
       preLoaderRoute: typeof ApiAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/creations': {
+      id: '/api/account/creations'
+      path: '/api/account/creations'
+      fullPath: '/api/account/creations'
+      preLoaderRoute: typeof ApiAccountCreationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generation/sessions/$id': {
@@ -769,7 +830,10 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationsMcpRoute: IntegrationsMcpRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
+  ApiAccountCreationsRoute: ApiAccountCreationsRoute,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
+  ApiAccountProfileRoute: ApiAccountProfileRoute,
+  ApiAccountUsernameAvailabilityRoute: ApiAccountUsernameAvailabilityRoute,
   ApiBillingAccountRoute: ApiBillingAccountRoute,
   ApiBillingCheckoutRoute: ApiBillingCheckoutRoute,
   ApiBillingConfirmRoute: ApiBillingConfirmRoute,

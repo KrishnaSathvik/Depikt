@@ -427,6 +427,18 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setErrorMessage(null);
   }
 
+  /**
+   * "Open in Generate" from an existing creation: seed the canvas with a
+   * version that already exists, ready to edit — no job, no re-upload. See
+   * GenerationHandoff.sourceVersion and Account → Creations' "Open in
+   * Generate" action.
+   */
+  function hydrateVersion(version: SessionVersion) {
+    setVersions([version]);
+    setActiveVersionId(version.id);
+    setPhase("result");
+  }
+
   /** Provider picked in AuthGateDialog: start OAuth, keeping the persisted submission. */
   async function chooseAuthProvider(provider: AuthProviderId) {
     const result = await signInWithProvider(
@@ -479,6 +491,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     applyEdit,
     download,
     reset,
+    hydrateVersion,
     resultUrl,
     displayModel,
     authPrompt,

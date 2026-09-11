@@ -3,34 +3,24 @@ import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
+import { AccountTabs, isAccountTabId, type AccountTabId } from "@/components/account/AccountTabs";
+import { OverviewTab } from "@/components/account/OverviewTab";
+import { CreationsTab } from "@/components/account/CreationsTab";
+import { ProfileTab } from "@/components/account/ProfileTab";
+import { PlanTab } from "@/components/account/PlanTab";
 import { useAuth } from "@/lib/auth-context";
-import {
-  clearLocalUserData,
-  confirmCheckout,
-  deleteAccount,
-  getAccountSummary,
-  openBillingPortal,
-} from "@/lib/billing/client";
-import { formatLongDate, formatShortDate } from "@/lib/billing/credit-state";
-import { CATALOG, PLAN_LABEL, isProductKey } from "@/lib/billing/plans";
+import { confirmCheckout, getAccountSummary } from "@/lib/billing/client";
+import { CATALOG, isProductKey } from "@/lib/billing/plans";
 import { trackEvent } from "@/lib/analytics";
-import { AUTH_COPY, ROUTES, SEO } from "@/lib/product";
+import { ROUTES, SEO } from "@/lib/product";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 export interface AccountSearch {
   buy?: string;
   checkout?: string;
   session_id?: string;
+  tab?: AccountTabId;
 }
 
 export const Route = createFileRoute("/account")({
@@ -38,6 +28,7 @@ export const Route = createFileRoute("/account")({
     ...(typeof search.buy === "string" ? { buy: search.buy } : {}),
     ...(typeof search.checkout === "string" ? { checkout: search.checkout } : {}),
     ...(typeof search.session_id === "string" ? { session_id: search.session_id } : {}),
+    ...(isAccountTabId(search.tab) ? { tab: search.tab } : {}),
   }),
   head: () => ({
     meta: [
@@ -49,47 +40,19 @@ export const Route = createFileRoute("/account")({
   component: AccountPage,
 });
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border-t border-[color:var(--border-subtle)] py-8 first:border-t-0 first:pt-0">
-      <p className="eyebrow">{title}</p>
-      <div className="mt-4">{children}</div>
-    </section>
-  );
-}
-
-function planLine(s: AccountSummaryResponse): { main: string; sub: string | null } {
-  if (s.plan === "free") return { main: PLAN_LABEL.free, sub: null };
-  const name = PLAN_LABEL[s.plan];
-  const periodEnd = formatShortDate(s.currentPeriodEnd);
-  const periodEndLong = formatLongDate(s.currentPeriodEnd);
-  if (s.billingInterval === "year") {
-    const refresh = formatShortDate(s.nextCreditGrantAt);
-    return {
-      main: `${name} · Annual`,
-      sub: s.cancelAtPeriodEnd
-        ? `Plan ends ${periodEndLong ?? "at the end of the paid year"}${refresh ? ` · Credits refresh ${refresh}` : ""}`
-        : `${refresh ? `Credits refresh ${refresh} · ` : ""}Subscription renews ${periodEndLong ?? "yearly"}`,
-    };
-  }
-  return {
-    main: s.cancelAtPeriodEnd
-      ? `${name} · Ends ${periodEnd ?? "at period end"}`
-      : `${name} · Renews ${periodEnd ?? "monthly"}`,
-    sub: null,
-  };
-}
-
 function AccountPage() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { buy, checkout, session_id: sessionId } = Route.useSearch();
+  const { buy, checkout, session_id: sessionId, tab } = Route.useSearch();
   const { openBuyCredits } = useBuyCredits();
   const [summary, setSummary] = useState<AccountSummaryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [deleting, setDeleting] = useState(false);
+
+  const activeTab: AccountTabId = tab ?? "overview";
+  function setActiveTab(next: AccountTabId) {
+    trackEvent("account_tab_changed", {});
+    void navigate({ to: ROUTES.account, search: { tab: next }, replace: true });
+  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -144,7 +107,7 @@ function AccountPage() {
       } finally {
         if (!cancelled) {
           void load();
-          void navigate({ to: ROUTES.account, search: {}, replace: true });
+          void navigate({ to: ROUTES.account, search: { tab: "plan" }, replace: true });
         }
       }
     })();
@@ -156,204 +119,37 @@ function AccountPage() {
   useEffect(() => {
     if (user && buy === "1") {
       openBuyCredits("account_param");
-      void navigate({ to: ROUTES.account, search: {}, replace: true });
+      void navigate({ to: ROUTES.account, search: { tab: activeTab }, replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, buy, openBuyCredits, navigate]);
 
-  async function handleDelete() {
-    if (confirmText !== "DELETE") return;
-    setDeleting(true);
-    try {
-      await deleteAccount();
-      trackEvent("account_deleted", {});
-      await clearLocalUserData();
-      await signOut();
-      toast.success("Your account has been deleted.");
-      void navigate({ to: "/", replace: true });
-    } catch {
-      setDeleting(false);
-      toast.error("Could not delete your account. Please try again.");
-    }
+  if (!user) {
+    return (
+      <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+        <Header />
+        <main className="flex-1" />
+        <Footer />
+      </div>
+    );
   }
-
-  const plan = summary ? planLine(summary) : null;
-  const resetDate = summary
-    ? formatShortDate(
-        summary.billingInterval === "year" ? summary.nextCreditGrantAt : summary.currentPeriodEnd,
-      )
-    : null;
-  const pastDue =
-    summary?.subscriptionStatus === "past_due" || summary?.subscriptionStatus === "unpaid";
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[680px] flex-1 px-4 py-12 sm:px-6 sm:py-16">
-        {user && (
-          <>
-            <Section title="ACCOUNT">
-              <p className="text-body-md text-[color:var(--text-secondary)]">
-                Signed in as <span className="text-[color:var(--text-primary)]">{user.email}</span>
-              </p>
-            </Section>
-
-            {error && <p className="text-body-sm text-red-600">{error}</p>}
-
-            <Section title="PLAN">
-              {summary ? (
-                <div className="space-y-3">
-                  <p className="text-heading-sm">{plan?.main}</p>
-                  {plan?.sub && (
-                    <p className="text-body-sm text-[color:var(--text-secondary)]">{plan.sub}</p>
-                  )}
-                  {pastDue && (
-                    <p className="rounded-md border border-[color:var(--border-default)] px-3 py-2 text-body-sm">
-                      Payment failed. Update billing to keep your monthly credits.
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    {summary.hasStripeCustomer ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          openBillingPortal().catch(() => toast.error("Could not open billing."))
-                        }
-                      >
-                        Manage billing →
-                      </Button>
-                    ) : (
-                      <Button variant="outline" size="sm" asChild>
-                        <a href={ROUTES.pricing}>View plans →</a>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
-              )}
-            </Section>
-
-            <Section title="CREDITS">
-              {summary ? (
-                <div className="space-y-3">
-                  <p className="text-heading-sm tabular-nums">
-                    {summary.credits.available} credits remaining
-                  </p>
-                  <dl className="grid gap-1 text-body-sm text-[color:var(--text-secondary)]">
-                    {summary.plan !== "free" && (
-                      <div className="flex justify-between gap-4">
-                        <dt>Included this month</dt>
-                        <dd className="tabular-nums text-[color:var(--text-primary)]">
-                          {summary.credits.plan} of {summary.credits.allocation}
-                        </dd>
-                      </div>
-                    )}
-                    <div className="flex justify-between gap-4">
-                      <dt>Extra</dt>
-                      <dd className="tabular-nums text-[color:var(--text-primary)]">
-                        {summary.credits.extra}
-                      </dd>
-                    </div>
-                    {summary.plan !== "free" && resetDate && (
-                      <div className="flex justify-between gap-4">
-                        <dt>Plan credits reset</dt>
-                        <dd className="text-[color:var(--text-primary)]">{resetDate}</dd>
-                      </div>
-                    )}
-                  </dl>
-                  <div className="pt-1">
-                    <Button size="sm" onClick={() => openBuyCredits("account")}>
-                      Buy credits
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
-              )}
-            </Section>
-
-            <Section title="USAGE">
-              {summary && summary.usage.length > 0 ? (
-                <ul className="divide-y divide-[color:var(--border-subtle)]">
-                  {summary.usage.map((u) => (
-                    <li
-                      key={u.id}
-                      className="flex items-center justify-between gap-4 py-2 text-body-sm"
-                    >
-                      <span className="text-[color:var(--text-secondary)]">
-                        {formatLongDate(u.createdAt)}
-                      </span>
-                      <span className="text-[color:var(--text-primary)]">
-                        {u.operation === "edit" ? "Edit" : "Generate"}
-                      </span>
-                      <span className="text-[color:var(--text-secondary)]">
-                        {u.creditCost} credit
-                      </span>
-                      <span className="text-[color:var(--text-tertiary)]">{u.status}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-body-sm text-[color:var(--text-tertiary)]">
-                  No image operations yet.
-                </p>
-              )}
-            </Section>
-
-            <Section title="ACCOUNT">
-              <Button variant="outline" size="sm" onClick={() => void signOut()}>
-                {AUTH_COPY.signOut}
-              </Button>
-            </Section>
-
-            <Section title="DANGER">
-              <p className="text-body-sm text-[color:var(--text-secondary)]">
-                Deleting your account removes your generations, references, credits, and any active
-                subscription. This cannot be undone.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
-                onClick={() => setConfirmOpen(true)}
-              >
-                Delete account
-              </Button>
-            </Section>
-          </>
-        )}
+      <main className="mx-auto w-full max-w-[760px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <AccountTabs active={activeTab} onChange={setActiveTab} />
+        {error && <p className="mt-4 text-body-sm text-red-600">{error}</p>}
+        <div className="mt-8">
+          {activeTab === "overview" && (
+            <OverviewTab summary={summary} onViewCreations={() => setActiveTab("creations")} />
+          )}
+          {activeTab === "creations" && <CreationsTab />}
+          {activeTab === "profile" && <ProfileTab />}
+          {activeTab === "plan" && <PlanTab summary={summary} />}
+        </div>
       </main>
       <Footer />
-
-      <Dialog open={confirmOpen} onOpenChange={(o) => !deleting && setConfirmOpen(o)}>
-        <DialogContent className="max-w-[420px]">
-          <DialogTitle className="text-heading-sm">Delete your account?</DialogTitle>
-          <DialogDescription className="text-body-sm text-[color:var(--text-secondary)]">
-            This permanently removes your Depikt generations and account data. Any active
-            subscription is cancelled immediately. Type DELETE to continue.
-          </DialogDescription>
-          <Input
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            placeholder="DELETE"
-            aria-label="Type DELETE to confirm"
-            autoComplete="off"
-          />
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={deleting}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={confirmText !== "DELETE" || deleting}
-              onClick={() => void handleDelete()}
-            >
-              {deleting ? "Deleting…" : "Delete account"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

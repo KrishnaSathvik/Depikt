@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { GA_INLINE_SCRIPT, GA_LOADER_SRC } from "@/lib/analytics";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { ProfileProvider } from "@/lib/profile/profile-context";
 import { Analytics } from "@/components/Analytics";
 import { DevAuthBanner } from "@/components/DevAuthBanner";
 import { BuyCreditsProvider } from "@/components/billing/BuyCreditsProvider";
@@ -141,11 +142,13 @@ function RootComponent() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <BuyCreditsProvider>
-          <Analytics />
-          <DevAuthBanner />
-          <Outlet />
-        </BuyCreditsProvider>
+        <ProfileProvider>
+          <BuyCreditsProvider>
+            <Analytics />
+            <DevAuthBanner />
+            <Outlet />
+          </BuyCreditsProvider>
+        </ProfileProvider>
         <Toaster
           theme="light"
           position="top-right"

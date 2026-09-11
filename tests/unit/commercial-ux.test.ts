@@ -139,25 +139,44 @@ test("generation exposes creditState and hosts render the shared panel", () => {
 
 // ---------- account ----------
 
-test("/account has the V1 sections, confirms checkout server-side, and a deliberate delete flow", () => {
+// /account is now Overview/Creations/Profile/Plan & Credits tabs (the
+// profile + creations account phase) rather than one long page — the
+// former PLAN/CREDITS/USAGE sections and delete flow now live in
+// PlanTab.tsx and ProfileTab.tsx respectively; see tests/unit/account-*.
+test("/account confirms checkout server-side and stays noindex", () => {
   const src = read("src/routes/account.tsx");
-  for (const s of ["PLAN", "CREDITS", "USAGE", "Delete account", "Manage billing", "Buy credits"]) {
-    assert.match(src, new RegExp(s), s);
-  }
-  assert.match(src, /AUTH_COPY\.signOut/, "sign out label comes from the shared auth copy");
   assert.match(src, /confirmCheckout\(/);
   assert.match(src, /checkout_completed/);
   assert.match(src, /credit_purchase_completed/);
-  assert.match(src, /Type DELETE to continue|type DELETE/i);
-  assert.match(src, /account_deleted/);
   assert.match(src, /noindex, nofollow/);
   assert.doesNotMatch(src, /recharts|<Chart/);
+});
+
+test("Plan & Credits tab has the plan/credits sections and billing actions", () => {
+  const src = read("src/components/account/PlanTab.tsx");
+  for (const s of ["PLAN", "CREDITS", "Manage billing", "Buy credits"]) {
+    assert.match(src, new RegExp(s), s);
+  }
+});
+
+test("Profile tab has a deliberate, typed-confirmation delete flow", () => {
+  const src = read("src/components/account/ProfileTab.tsx");
+  assert.match(src, /Delete account/);
+  assert.match(src, /Type DELETE to continue|type DELETE/i);
+  assert.match(src, /account_deleted/);
   const api = read("src/routes/api/account/delete.ts");
   assert.match(api, /subscriptions\.cancel\(/);
   assert.match(api, /removeUserStorage\(/);
   assert.match(api, /deleted_accounts/);
   assert.match(api, /auth\.admin\.deleteUser\(/);
   assert.match(api, /authenticateGenerationRequest\(request\)/);
+});
+
+test("sign out is available from the account menu and Overview, using the shared auth copy", () => {
+  const menu = read("src/components/auth/AccountMenu.tsx");
+  const overview = read("src/components/account/OverviewTab.tsx");
+  assert.match(menu, /AUTH_COPY\.signOut/);
+  assert.match(overview, /AUTH_COPY\.signOut/);
 });
 
 // ---------- help / legal ----------

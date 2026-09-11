@@ -64,6 +64,23 @@ export function GenerateWorkspace() {
       setSourceContext({ type: handoff.sourceType, id: handoff.sourceId ?? null });
       trackEvent("generate_opened", { source: handoff.sourceType });
       for (const ref of handoff.references) void gen.addReferenceFromDataUrl(ref.dataUrl);
+      // "Open in Generate" from an existing creation: hydrate the canvas
+      // with that version directly (no job, no re-upload) and open the
+      // edit composer so the next action is naturally "edit this".
+      if (handoff.sourceVersion) {
+        gen.hydrateVersion({
+          id: handoff.sourceVersion.id,
+          parent_version_id: null,
+          storage_path: "",
+          width: handoff.sourceVersion.width,
+          height: handoff.sourceVersion.height,
+          prompt: handoff.sourceVersion.prompt,
+          model: handoff.sourceVersion.model,
+          created_at: handoff.sourceVersion.createdAt,
+          url: handoff.sourceVersion.previewUrl,
+        });
+        setEditing(true);
+      }
       // Library already contains a complete, ready-to-submit prompt — a
       // button labeled "Generate" there must start generation, not just
       // arrive at a pre-filled composer requiring a second click.

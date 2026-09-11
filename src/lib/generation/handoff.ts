@@ -17,6 +17,22 @@ export interface GenerationHandoff {
   routingHints?: RoutingHints | null;
   sourceType: SourceContextType;
   sourceId?: string | null;
+  /**
+   * "Open in Generate" from an existing creation (Account → Creations): the
+   * version being continued. No re-upload — the edit endpoint fetches this
+   * version's own stored bytes server-side by id (see jobs.ts's
+   * `req.operation === "edit" && req.sourceVersionId` fetch). previewUrl is
+   * a short-lived signed URL used only to render the canvas immediately.
+   */
+  sourceVersion?: {
+    id: string;
+    previewUrl: string | null;
+    width: number;
+    height: number;
+    prompt: string;
+    model: "flare" | "sunburst";
+    createdAt: string;
+  } | null;
 }
 
 const KEY = "depikt:generation-handoff";
