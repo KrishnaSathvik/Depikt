@@ -39,7 +39,7 @@ import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
-import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
 import { TemplateSetup } from "@/components/TemplateSetup";
@@ -495,7 +495,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
 
   return (
     <div>
-      <GenerationAuthDialog gen={gen} />
+      <AuthGateDialog gen={gen} />
       <div>
         {/* INPUT */}
         {inputCollapsed && savedRoughIdea ? (

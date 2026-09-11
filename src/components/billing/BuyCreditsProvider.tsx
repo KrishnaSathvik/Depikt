@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import { BuyCreditsSheet } from "@/components/billing/BuyCreditsSheet";
+import { useAuth } from "@/lib/auth-context";
+import { useResumeCheckoutOnAuth } from "@/lib/billing/use-resume-checkout";
 
 interface BuyCreditsContextValue {
   open: boolean;
@@ -18,6 +20,12 @@ const BuyCreditsContext = createContext<BuyCreditsContextValue>({
  * the account menu, and the out-of-credits panel — nowhere else.
  */
 export function BuyCreditsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  // A plan or pack picked before an auth detour (Pricing "Get Pro", Buy
+  // credits "Continue to checkout" while signed out) resumes straight to
+  // Stripe Checkout the moment a session exists — covers both the
+  // full-page-redirect return and the in-app popup/iframe return.
+  useResumeCheckoutOnAuth(user);
   const [open, setOpen] = useState(false);
   const [source, setSource] = useState<string | undefined>(undefined);
   const openBuyCredits = useCallback((s?: string) => {

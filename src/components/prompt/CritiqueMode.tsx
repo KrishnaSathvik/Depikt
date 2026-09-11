@@ -30,7 +30,7 @@ import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
-import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
 /**
@@ -248,7 +248,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
 
   return (
     <div>
-      <GenerationAuthDialog gen={gen} />
+      <AuthGateDialog gen={gen} />
       <div>
         {collapsed && savedInput ? (
           <CollapsedInput

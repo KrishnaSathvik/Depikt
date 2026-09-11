@@ -290,10 +290,14 @@ export const SEO: Record<
 
 export const AUTH_COPY = {
   signInTitle: "Sign in to Depikt",
+  signInSubtitle: "Continue where you left off.",
   signUpTitle: "Create your Depikt account",
-  generateTitle: "Sign in to generate",
-  generateBody:
-    "Your image will start as soon as you're signed in. New accounts get 5 image credits.",
+  signUpSubtitle: "Save your creations, get 5 image credits, and continue your work anywhere.",
+  starterCreditsLine: "5 image credits included.",
+  signUpNote: "5 starter credits · Save creations · Manage your plan",
+  signingIn: "Signing you in…",
+  redirecting: "Redirecting…",
+  welcomeToast: "Welcome to Depikt — 5 image credits added.",
   newToDepikt: "New to Depikt?",
   createAccount: "Create an account",
   haveAccount: "Already have an account?",

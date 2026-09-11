@@ -20,7 +20,7 @@ import type { SessionVersion } from "@/lib/generation/client";
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { trackEvent } from "@/lib/analytics";
-import { GenerationAuthDialog } from "@/components/auth/GenerationAuthDialog";
+import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
 /**
@@ -130,7 +130,7 @@ export function GenerateWorkspace() {
   if (isIdle) {
     return (
       <div className="mx-auto max-w-[800px] px-4 py-14 sm:px-6">
-        <GenerationAuthDialog gen={gen} />
+        <AuthGateDialog gen={gen} />
         <p className="eyebrow mb-2 text-center">Generate</p>
         <h1 className="text-heading-lg mb-8 text-center">Create an image.</h1>
         <GenerationCreditGate gen={gen} className="mb-6" />
@@ -182,7 +182,7 @@ export function GenerateWorkspace() {
 
   return (
     <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 lg:px-8">
-      <GenerationAuthDialog gen={gen} />
+      <AuthGateDialog gen={gen} />
       <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12 lg:space-y-0">
         {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
         <div>

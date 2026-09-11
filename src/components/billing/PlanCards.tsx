@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Check } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { BillingAuthDialog } from "@/components/auth/BillingAuthDialog";
 import { startCheckout } from "@/lib/billing/client";
 import { PRICING_COPY } from "@/lib/billing/copy";
+import { planGateHeadline } from "@/lib/auth/gate-copy";
 import {
   CREDIT_PACKS,
   PLAN_CREDITS,
@@ -83,16 +85,16 @@ function Includes({ items }: { items: ReadonlyArray<string> }) {
 
 export function PlanCards({ interval, onIntervalChange, currentPlan, resumeKey }: PlanCardsProps) {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [busy, setBusy] = useState<ProductKey | null>(null);
+  const [authGate, setAuthGate] = useState<PaidPlanKey | null>(null);
 
   async function choose(plan: PaidPlanKey) {
     const product = planProduct(plan, interval);
     if (!user) {
-      void navigate({
-        to: ROUTES.signUp,
-        search: { next: `${ROUTES.pricing}?plan=${product.key}` },
-      });
+      // Don't lose the plan to a navigation: the auth gate remembers it
+      // (savePendingCheckout) and sends the user straight to Checkout once
+      // they're signed in — no re-selecting the plan.
+      setAuthGate(plan);
       return;
     }
     setBusy(product.key);
@@ -217,6 +219,13 @@ export function PlanCards({ interval, onIntervalChange, currentPlan, resumeKey }
           {PRICING_COPY.packsNote} {PRICING_COPY.creditRule}
         </p>
       </div>
+
+      <BillingAuthDialog
+        open={authGate !== null}
+        onOpenChange={(open) => !open && setAuthGate(null)}
+        headline={authGate ? planGateHeadline(authGate) : ""}
+        productKey={authGate ? planProduct(authGate, interval).key : null}
+      />
     </div>
   );
 }

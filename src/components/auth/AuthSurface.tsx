@@ -18,6 +18,9 @@ export interface AuthSurfaceProps {
   redirectTo?: string;
   /** Called after the provider button is pressed (before navigation). */
   onStart?: (provider: AuthProviderId) => void;
+  /** Busy-state button label. Full pages redirect ("Redirecting…"); dialogs
+   *  that may resolve in place (popup/iframe) say "Signing you in…". */
+  busyLabel?: string;
   className?: string;
 }
 
@@ -56,6 +59,7 @@ export function AuthSurface({
   compact = false,
   redirectTo,
   onStart,
+  busyLabel = AUTH_COPY.redirecting,
   className,
 }: AuthSurfaceProps) {
   const { signInWithProvider } = useAuth();
@@ -83,9 +87,14 @@ export function AuthSurface({
   return (
     <div className={cn("w-full max-w-[360px]", className)}>
       {!compact && (
-        <h1 className="text-heading-lg mb-8 text-center">
-          {isSignUp ? AUTH_COPY.signUpTitle : AUTH_COPY.signInTitle}
-        </h1>
+        <div className="mb-8 text-center">
+          <h1 className="text-heading-lg">
+            {isSignUp ? AUTH_COPY.signUpTitle : AUTH_COPY.signInTitle}
+          </h1>
+          <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">
+            {isSignUp ? AUTH_COPY.signUpSubtitle : AUTH_COPY.signInSubtitle}
+          </p>
+        </div>
       )}
 
       <div className="space-y-2">
@@ -106,7 +115,7 @@ export function AuthSurface({
             data-analytics-id={`auth-${mode}-${id}`}
           >
             <ProviderMark id={id} />
-            {busy === id ? "Redirecting…" : providerLabel(id)}
+            {busy === id ? busyLabel : providerLabel(id)}
           </Button>
         ))}
       </div>
@@ -128,6 +137,12 @@ export function AuthSurface({
             Privacy Policy
           </Link>
           .
+        </p>
+      )}
+
+      {isSignUp && !compact && (
+        <p className="mt-6 text-center text-[12px] text-[color:var(--text-tertiary)]">
+          {AUTH_COPY.signUpNote}
         </p>
       )}
 

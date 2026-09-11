@@ -108,8 +108,16 @@ export interface UseGenerationOptions {
 
 export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const { user, loading: authLoading, signInWithProvider } = useAuth();
-  // Signed-out submit: the provider chooser (GenerationAuthDialog) is open.
+  // Signed-out submit: the provider chooser (AuthGateDialog) is open.
   const [authPrompt, setAuthPrompt] = useState(false);
+  // What to show inside the dialog: a muted prompt excerpt and, if the
+  // submit had a reference attached, its thumbnail — so a user who is about
+  // to authenticate can see Depikt still remembers what they were doing.
+  const [authPromptContext, setAuthPromptContext] = useState<{
+    sourceType: SourceContextType;
+    prompt: string;
+    referenceDataUrl: string | null;
+  } | null>(null);
   // "exhausted" → the shared OutOfCreditsPanel replaces the generic error.
   const [creditState, setCreditState] = useState<"ok" | "exhausted">("ok");
 
@@ -313,8 +321,13 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       });
       // Open the shared provider chooser; chooseAuthProvider() starts OAuth
       // and the pending-generation effect above resumes on return.
+      setAuthPromptContext({
+        sourceType: sourceContextRef.current.type,
+        prompt: effectivePrompt,
+        referenceDataUrl: referencesRef.current[0]?.local.dataUrl ?? null,
+      });
       setAuthPrompt(true);
-      trackEvent("generate_auth_requested", {});
+      trackEvent("generate_auth_requested", { source: sourceContextRef.current.type });
       return;
     }
 
@@ -414,7 +427,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setErrorMessage(null);
   }
 
-  /** Provider picked in GenerationAuthDialog: start OAuth, keeping the persisted submission. */
+  /** Provider picked in AuthGateDialog: start OAuth, keeping the persisted submission. */
   async function chooseAuthProvider(provider: AuthProviderId) {
     const result = await signInWithProvider(
       provider,
@@ -423,18 +436,23 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     if (!result.ok) {
       clearPendingGeneration();
       setAuthPrompt(false);
+      setAuthPromptContext(null);
       toast.error("Sign-in failed");
       return;
     }
     // In the iframe/popup path the session arrives without a navigation;
     // the resume effect fires on `user` and the dialog closes here.
-    if (!result.redirected) setAuthPrompt(false);
+    if (!result.redirected) {
+      setAuthPrompt(false);
+      setAuthPromptContext(null);
+    }
   }
 
   /** User closed the chooser without signing in: forget the pending submission. */
   function dismissAuthPrompt() {
     clearPendingGeneration();
     setAuthPrompt(false);
+    setAuthPromptContext(null);
   }
 
   const activeVersion = versions.find((v) => v.id === activeVersionId);
@@ -464,6 +482,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     resultUrl,
     displayModel,
     authPrompt,
+    authPromptContext,
     chooseAuthProvider,
     dismissAuthPrompt,
     creditState,

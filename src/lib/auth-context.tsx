@@ -5,7 +5,7 @@ import { lovable } from "@/integrations/lovable";
 import { AUTH_STARTED_KEY, type AuthProviderId } from "@/lib/auth/providers";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
-import { STARTER_CREDITS } from "@/lib/billing/plans";
+import { AUTH_COPY } from "@/lib/product";
 
 export type SignInResult = { ok: true; redirected: boolean } | { ok: false; error: string };
 
@@ -71,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const createdAt = Date.parse(newSession.user.created_at ?? "");
           const isNew = Number.isFinite(createdAt) && Date.now() - createdAt < 120_000;
           trackEvent("auth_completed", { method: started.provider, is_new_user: isNew });
-          if (isNew) toast.success(`${STARTER_CREDITS} image credits are ready.`);
+          if (isNew) toast.success(AUTH_COPY.welcomeToast);
         }
       }
     });

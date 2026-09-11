@@ -136,17 +136,13 @@ test("use-generation exposes an auth prompt instead of starting OAuth itself", (
   assert.match(submitBody, /setAuthPrompt\(true\)/);
 });
 
-test("every generation host renders the shared auth chooser dialog", () => {
+test("every generation host renders the shared auth gate dialog", () => {
   for (const file of [
     "src/components/generate/GenerateWorkspace.tsx",
     "src/components/prompt/BuildMode.tsx",
     "src/components/prompt/CritiqueMode.tsx",
   ]) {
-    assert.match(
-      read(file),
-      /<GenerationAuthDialog gen=\{gen\}/,
-      `${file} must render GenerationAuthDialog`,
-    );
+    assert.match(read(file), /<AuthGateDialog gen=\{gen\}/, `${file} must render AuthGateDialog`);
   }
 });
 
@@ -164,4 +160,78 @@ test("header shows one Sign in link when signed out and an avatar menu when sign
   assert.match(menu, /ROUTES\.account/);
   assert.match(menu, /AUTH_COPY\.signOut|Sign out/);
   assert.match(menu, /credits/);
+});
+
+// ---------- editorial auth surface: no card, contextual subtitle ----------
+
+test("AuthSurface is the page itself (no bordered card) and each mode has a contextual subtitle", () => {
+  const src = read("src/components/auth/AuthSurface.tsx");
+  assert.doesNotMatch(src, /rounded-lg border|shadow-xl|bg-\[color:var\(--bg-elevated\)\]/);
+  assert.match(src, /AUTH_COPY\.signInSubtitle/);
+  assert.match(src, /AUTH_COPY\.signUpSubtitle/);
+  const copy = read("src/lib/product.ts");
+  assert.match(copy, /signInSubtitle: "Continue where you left off\."/);
+  assert.match(
+    copy,
+    /signUpSubtitle: "Save your creations, get 5 image credits, and continue your work anywhere\."/,
+  );
+  // Sign-in never mentions credits — the user may already be on a paid plan.
+  assert.doesNotMatch(copy.match(/signInSubtitle:.*/)?.[0] ?? "", /credit/i);
+  assert.match(src, /busyLabel/);
+});
+
+test("welcome toast fires once on real first sign-in, quiet and specific", () => {
+  const ctx = read("src/lib/auth-context.tsx");
+  assert.match(ctx, /AUTH_COPY\.welcomeToast/);
+  assert.match(ctx, /if \(isNew\) toast\.success/);
+  const copy = read("src/lib/product.ts");
+  assert.match(copy, /welcomeToast: "Welcome to Depikt — 5 image credits added\."/);
+});
+
+// ---------- contextual generation auth gate ----------
+
+test("AuthGateDialog headline follows what the user already asked for, shows an excerpt/reference, and adapts to mobile", () => {
+  const src = read("src/components/auth/AuthGateDialog.tsx");
+  assert.match(src, /generationGateHeadline\(/);
+  assert.match(src, /promptExcerpt\(/);
+  assert.match(src, /useIsMobile\(/);
+  assert.match(src, /side="bottom"/, "mobile uses a bottom sheet, not a floating dialog");
+  assert.match(src, /authPromptContext/);
+  assert.match(src, /busyLabel=\{AUTH_COPY\.signingIn\}/);
+  assert.doesNotMatch(src, /Sign in to generate|Sign in required/i);
+
+  const gen = read("src/lib/generation/use-generation.ts");
+  assert.match(gen, /authPromptContext/);
+  const submitStart = gen.indexOf("async function submit(");
+  const submitBody = gen.slice(submitStart, gen.indexOf('setPhase("starting")', submitStart));
+  assert.match(submitBody, /setAuthPromptContext\(/);
+});
+
+// ---------- billing auth gate (Pricing / Buy credits while signed out) ----------
+
+test("Pricing and Buy-credits keep the chosen plan/pack across auth instead of navigating away", () => {
+  const cards = read("src/components/billing/PlanCards.tsx");
+  assert.match(cards, /<BillingAuthDialog/);
+  assert.match(cards, /planGateHeadline\(/);
+  assert.doesNotMatch(
+    cards,
+    /navigate\(\{\s*to: ROUTES\.signUp/s,
+    "no navigate-away on Get Pro/Max",
+  );
+
+  const sheet = read("src/components/billing/BuyCreditsSheet.tsx");
+  assert.match(sheet, /<BillingAuthDialog/);
+  assert.match(sheet, /PACK_GATE_HEADLINE/);
+  assert.doesNotMatch(sheet, /ROUTES\.signUp/, "no navigate-away on Continue to checkout");
+
+  const dialog = read("src/components/auth/BillingAuthDialog.tsx");
+  assert.match(dialog, /savePendingCheckout\(/);
+  assert.match(dialog, /useIsMobile\(/);
+  assert.match(dialog, /side="bottom"/);
+
+  const resume = read("src/lib/billing/use-resume-checkout.ts");
+  assert.match(resume, /readPendingCheckout\(\)/);
+  assert.match(resume, /clearPendingCheckout\(\)/);
+  assert.match(resume, /startCheckout\(/);
+  assert.match(read("src/components/billing/BuyCreditsProvider.tsx"), /useResumeCheckoutOnAuth\(/);
 });
