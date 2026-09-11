@@ -208,10 +208,10 @@ function HomePage() {
           <p className="mt-3 max-w-[60ch] text-body-lg text-[color:var(--text-secondary)]">
             {LIBRARY_COPY.subline}
           </p>
-          <p className="mt-2 text-body-sm font-medium text-[color:var(--text-tertiary)]">
-            {LIBRARY_COPY.collections}
-          </p>
-          <p className="mt-1 text-body-sm text-[color:var(--text-tertiary)]">
+          {/* Skippable on mobile: eyebrow, H1, and subline already fill
+              the screen above the fold there. Still reachable from the
+              footer's MCP link. */}
+          <p className="mt-2 hidden text-body-sm text-[color:var(--text-tertiary)] sm:block">
             {MCP.libraryNote}{" "}
             <Link
               to={MCP.pagePath}

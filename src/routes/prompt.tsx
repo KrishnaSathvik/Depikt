@@ -158,7 +158,7 @@ function PromptWorkspace() {
         <div
           role="tablist"
           aria-label="Prompt workspace mode"
-          className="mt-5 inline-flex rounded-full border border-[color:var(--border)] p-1"
+          className="mt-5 inline-flex w-full rounded-full border border-[color:var(--border)] p-1 sm:w-auto"
         >
           {MODES.map((m) => {
             const selected = m.id === mode;
@@ -174,7 +174,7 @@ function PromptWorkspace() {
                 data-analytics-id={`prompt-mode-${m.id}`}
                 onClick={() => switchMode(m.id)}
                 className={cn(
-                  "min-w-[104px] rounded-full px-5 py-2 text-body-sm transition-colors",
+                  "flex-1 rounded-full px-3 py-2 text-body-sm transition-colors sm:min-w-[104px] sm:flex-none sm:px-5",
                   selected
                     ? "bg-[color:var(--accent)] text-white"
                     : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
