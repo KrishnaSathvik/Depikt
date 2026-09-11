@@ -26,13 +26,10 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "daily",
           },
           {
+            // Generate is now a mode of this same page (?mode=generate),
+            // not its own URL — /generate only redirects here, same as
+            // /critique, so neither gets its own sitemap entry.
             loc: absoluteUrl("/prompt"),
-            lastmod: STATIC_LASTMOD,
-            priority: "0.9",
-            changefreq: "weekly",
-          },
-          {
-            loc: absoluteUrl("/generate"),
             lastmod: STATIC_LASTMOD,
             priority: "0.9",
             changefreq: "weekly",

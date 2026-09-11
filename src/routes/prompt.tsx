@@ -4,16 +4,23 @@ import { Footer } from "@/components/Footer";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
+import { GenerateWorkspace } from "@/components/generate/GenerateWorkspace";
 import { BuildMode } from "@/components/prompt/BuildMode";
 import { CritiqueMode } from "@/components/prompt/CritiqueMode";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
 /**
- * Unified Prompt workspace. Build and Critique are two modes over the same
- * object of work (the prompt). Both stay mounted so each keeps its own draft,
- * result, and reference image while the user switches modes.
- * /generate and /critique redirect here; the APIs and history kinds are unchanged.
+ * Unified Prompt workspace. Generate, Build, and Critique are three modes
+ * over the same object of work. All three stay mounted so each keeps its own
+ * draft/result/reference while the user switches modes. /generate and
+ * /critique redirect here; the APIs and history kinds are unchanged.
+ *
+ * Generate is only offered as a mode when the native-generation feature
+ * flag is on (see lib/generation/feature-flag.ts) — Build and Critique
+ * predate and don't depend on it, so the workspace must keep working
+ * without it.
  */
 const PROMPT_URL = absoluteUrl("/prompt");
 const PROMPT_JSONLD = {
@@ -27,7 +34,7 @@ const PROMPT_JSONLD = {
   offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
 };
 
-export type PromptMode = "build" | "critique";
+export type PromptMode = "generate" | "build" | "critique";
 
 export interface PromptSearch {
   mode?: PromptMode;
@@ -42,7 +49,9 @@ export interface PromptSearch {
 
 /** Anything that is not an explicit mode falls back to Build. */
 export function parsePromptMode(value: unknown): PromptMode {
-  return value === "critique" ? "critique" : "build";
+  if (value === "critique") return "critique";
+  if (value === "generate") return "generate";
+  return "build";
 }
 
 export const Route = createFileRoute("/prompt")({
@@ -90,7 +99,8 @@ export const Route = createFileRoute("/prompt")({
   component: PromptWorkspace,
 });
 
-const MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
+const ALL_MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
+  { id: "generate", label: "Generate", hint: "Create an image directly from a prompt" },
   { id: "build", label: "Build", hint: "Write a new prompt from an idea or a reference" },
   { id: "critique", label: "Critique", hint: "Score and rewrite a prompt you already have" },
 ];
@@ -98,7 +108,13 @@ const MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
 function PromptWorkspace() {
   const search = Route.useSearch();
   const navigate = useNavigate();
-  const mode = parsePromptMode(search.mode);
+  const generationEnabled = isNativeGenerationEnabled();
+  const MODES = generationEnabled ? ALL_MODES : ALL_MODES.filter((m) => m.id !== "generate");
+  const requestedMode = parsePromptMode(search.mode);
+  // Generate is gated by the feature flag; a stale link/bookmark with
+  // mode=generate while it's off falls back to Build rather than showing an
+  // empty tab with no matching panel.
+  const mode = requestedMode === "generate" && !generationEnabled ? "build" : requestedMode;
 
   /**
    * Drop consumed params (restore, prefill, seed, ref) but stay in this mode.
@@ -124,7 +140,7 @@ function PromptWorkspace() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
-        <p className="eyebrow">{TOOL.prompt}</p>
+        <p className="eyebrow">{generationEnabled ? TOOL.generate : TOOL.prompt}</p>
 
         <div
           role="tablist"
@@ -156,6 +172,18 @@ function PromptWorkspace() {
             );
           })}
         </div>
+
+        {generationEnabled && (
+          <div
+            role="tabpanel"
+            id="prompt-panel-generate"
+            aria-labelledby="prompt-tab-generate"
+            hidden={mode !== "generate"}
+            className="mt-8"
+          >
+            <GenerateWorkspace />
+          </div>
+        )}
 
         <div
           role="tabpanel"

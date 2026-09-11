@@ -7,12 +7,21 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/auth/AccountMenu";
 
-// Visible labels come from product.ts (Library · Prompt · Gallery). Blog
+interface NavItem {
+  to: (typeof ROUTES)[keyof typeof ROUTES];
+  label: string;
+  exact?: boolean;
+  search?: { mode: "generate" };
+}
+
+// Visible labels come from product.ts (Library · Generate · Gallery). Blog
 // lives in the footer only, not the header.
-// Build and Critique are modes inside /prompt, not separate nav items;
-// Templates lives in the footer. Generate is inserted after Prompt only
-// when the native-generation feature flag is on — never part of the frozen
-// NAV_ITEMS export itself, so it can't leak into production before launch.
+// Generate, Build, and Critique are all modes inside one unified workspace
+// (/prompt), not separate nav items; Templates lives in the footer. The one
+// nav entry for that workspace is inserted here, between Library and
+// Gallery: labeled Generate when the native-generation feature flag is on,
+// or Prompt when it's off (Build/Critique predate the flag and must stay
+// reachable without it) — never part of the frozen NAV_ITEMS export itself.
 //
 // White, translucent, hairline bottom border. The active route is marked
 // with a 1px ink underline rather than a pill or background.
@@ -20,13 +29,13 @@ import { AccountMenu } from "@/components/auth/AccountMenu";
 export function Header() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const { user, loading } = useAuth();
-  const items = isNativeGenerationEnabled()
-    ? [
-        ...NAV_ITEMS.slice(0, 2),
-        { to: ROUTES.legacyBuilder, label: TOOL.generate },
-        ...NAV_ITEMS.slice(2),
-      ]
-    : NAV_ITEMS;
+  // Links straight to /prompt (not the /generate redirect route) so the
+  // active-state match below works purely on pathname, matching whichever
+  // mode tab ends up selected.
+  const workspaceItem: NavItem = isNativeGenerationEnabled()
+    ? { to: ROUTES.prompt, label: TOOL.generate, search: { mode: "generate" } }
+    : { to: ROUTES.prompt, label: TOOL.prompt };
+  const items: NavItem[] = [NAV_ITEMS[0], workspaceItem, NAV_ITEMS[1]];
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-12">
@@ -42,10 +51,11 @@ export function Header() {
           aria-label="Primary"
           className="absolute left-1/2 top-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-0.5 whitespace-nowrap md:flex"
         >
-          {items.map(({ to, label, exact }) => (
+          {items.map(({ to, label, exact, search }) => (
             <Link
               key={to}
               to={to}
+              search={search}
               className={NAV_CLS}
               activeProps={{ className: NAV_CLS_ACTIVE }}
               activeOptions={exact ? { exact: true } : undefined}
@@ -78,10 +88,11 @@ export function Header() {
         className="border-t border-[color:var(--border-subtle)] md:hidden"
         innerClassName="justify-center px-2"
       >
-        {items.map(({ to, label, exact }) => (
+        {items.map(({ to, label, exact, search }) => (
           <Link
             key={to}
             to={to}
+            search={search}
             className={MOBILE_NAV_CLS}
             activeProps={{ className: MOBILE_NAV_CLS_ACTIVE }}
             activeOptions={exact ? { exact: true } : undefined}

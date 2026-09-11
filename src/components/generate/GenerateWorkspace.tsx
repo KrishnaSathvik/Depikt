@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
 import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
-import { CTA, ROUTES, TOOL } from "@/lib/product";
+import { CTA, ROUTES } from "@/lib/product";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
@@ -151,12 +151,11 @@ export function GenerateWorkspace() {
 
   if (isIdle) {
     return (
-      <div className="mx-auto w-full max-w-[1040px] px-4 py-10 sm:px-6 sm:py-16">
+      <>
         <AuthGateDialog gen={gen} />
-        <p className="eyebrow">{TOOL.generate}</p>
-        <h1 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
+        <h2 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
           Create an image.
-        </h1>
+        </h2>
         <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
           Describe what you want, optionally add a reference image, and generate.
         </p>
@@ -189,7 +188,7 @@ export function GenerateWorkspace() {
             {CTA.improveInPrompt} →
           </Button>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -202,7 +201,7 @@ export function GenerateWorkspace() {
         : "error";
 
   return (
-    <div className="mx-auto max-w-[1240px] px-4 py-10 sm:px-6 lg:px-8">
+    <>
       <AuthGateDialog gen={gen} />
       <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12 lg:space-y-0">
         {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
@@ -292,7 +291,7 @@ export function GenerateWorkspace() {
           }
         />
       </div>
-    </div>
+    </>
   );
 }
 

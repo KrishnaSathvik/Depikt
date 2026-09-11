@@ -71,11 +71,21 @@ test("reference attachment lives inside the composer's referencesSlot, not a sep
 
 // ---------- Generate matches Prompt's visual chrome (header + reference control) ----------
 
-test("Generate's idle header uses the same chrome as Prompt: eyebrow, display heading, subtitle, 1040px left-aligned container", () => {
-  const gen = read("src/components/generate/GenerateWorkspace.tsx");
+test("Generate is merged into /prompt as a third mode and shares its page chrome (1040px container, one eyebrow)", () => {
   const prompt = read("src/routes/prompt.tsx");
-  assert.match(gen, /max-w-\[1040px\]/);
+  const gen = read("src/components/generate/GenerateWorkspace.tsx");
+  // The container/eyebrow are owned once by the parent page, same as
+  // Build/Critique — GenerateWorkspace doesn't duplicate them.
   assert.match(prompt, /max-w-\[1040px\]/);
+  assert.match(prompt, /<GenerateWorkspace/);
+  assert.doesNotMatch(gen, /max-w-\[1040px\]/, "GenerateWorkspace must not own a page container");
+  assert.doesNotMatch(
+    gen,
+    /className="eyebrow"/,
+    "the eyebrow is the parent page's, not the mode's",
+  );
+  // GenerateWorkspace still owns its own heading/subtitle, matching Build's
+  // <h2> pattern (each mode's own context under the shared eyebrow).
   assert.match(gen, /text-display-md sm:text-display-lg/);
   assert.doesNotMatch(gen, /text-heading-lg/, "must not keep the old smaller centered heading");
   assert.doesNotMatch(
@@ -83,7 +93,15 @@ test("Generate's idle header uses the same chrome as Prompt: eyebrow, display he
     /text-center/,
     "the idle composer is left-aligned like Prompt, not centered",
   );
-  assert.match(gen, /<p className="eyebrow">\{TOOL\.generate\}<\/p>/);
+});
+
+test("the unified workspace has three tabs — Generate, Build, Critique — and Generate is gated by the feature flag", () => {
+  const prompt = read("src/routes/prompt.tsx");
+  assert.match(prompt, /id: "generate", label: "Generate"/);
+  assert.match(prompt, /id: "build", label: "Build"/);
+  assert.match(prompt, /id: "critique", label: "Critique"/);
+  assert.match(prompt, /isNativeGenerationEnabled\(\)/);
+  assert.match(prompt, /ALL_MODES\.filter/);
 });
 
 test("Generate's reference control matches ReferenceImagePicker's visual language (dashed pill, mono 12px, bg-subtle thumbnail pill)", () => {

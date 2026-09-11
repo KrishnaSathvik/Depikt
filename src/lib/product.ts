@@ -94,14 +94,20 @@ export const ROUTES = {
   terms: "/terms",
 } as const;
 
-/** Header nav. Blog lives in the footer only (Resources column), not here. */
+/**
+ * Header nav. Blog lives in the footer only (Resources column), not here.
+ * The unified Generate/Build/Critique workspace has no entry of its own
+ * here — Header.tsx inserts one between Library and Gallery, labeled
+ * Generate (-> ROUTES.legacyBuilder) when the native-generation feature
+ * flag is on, or Prompt (-> ROUTES.prompt) when it's off (Build/Critique
+ * predate the flag and must stay reachable without it).
+ */
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
   label: string;
   exact?: boolean;
 }> = [
   { to: ROUTES.library, label: TOOL.library, exact: true },
-  { to: ROUTES.prompt, label: TOOL.prompt },
   { to: ROUTES.gallery, label: TOOL.gallery },
 ];
 

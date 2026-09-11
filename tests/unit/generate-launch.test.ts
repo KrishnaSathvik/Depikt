@@ -7,7 +7,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { SEO, JSONLD_NAMES, JSONLD_DESCRIPTIONS } from "../../src/lib/product.ts";
-import { OG_ROUTE_IMAGES, OG_ROUTE_READY } from "../../src/lib/og-routes.ts";
 import { CORE_RULES } from "../../src/lib/prompt-engine/builder.ts";
 import { posts, getPostsByDate } from "../../src/data/posts.ts";
 
@@ -15,23 +14,22 @@ function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
 }
 
-test("Generate has canonical metadata, a unique title/description, and its own OG card", () => {
+test("Generate is a pure redirect into /prompt?mode=generate — no page of its own, same as /critique", () => {
   const g = read("src/routes/generate.tsx");
-  assert.match(g, /absoluteUrl\("\/generate"\)/);
-  assert.match(g, /links: \[\{ rel: "canonical", href: GENERATE_URL \}\]/);
-  assert.match(g, /getOgImageForPath\("generate"\)/);
-  assert.match(g, /og:image:width.*1200/);
-  assert.match(g, /og:image:height.*630/);
-  assert.equal(SEO.generate.title, "AI Image Generator & Editor | Depikt");
-  assert.ok(SEO.generate.description.length > 0);
+  assert.match(g, /redirect\(\{/);
+  assert.match(g, /to: "\/prompt"/);
+  assert.match(g, /statusCode: 301/);
+  assert.doesNotMatch(g, /component:/);
+  assert.doesNotMatch(g, /head:/);
+  // The merged /prompt page owns the canonical metadata now (SEO.prompt,
+  // tested elsewhere) — SEO.generate/JSONLD_NAMES.generate survive only as
+  // historical constants (e.g. the launch blog post still names the model).
   assert.notEqual(SEO.generate.title, SEO.prompt.title);
-  assert.equal(OG_ROUTE_READY.has("generate"), true);
-  assert.equal(OG_ROUTE_IMAGES.generate, "/og/generate.png");
 });
 
-test("sitemap includes /generate and the new launch post; no query/session/API/private routes", () => {
+test("sitemap includes the new launch post; no /generate, /critique, or query/session/API/private routes", () => {
   const sitemap = read("src/routes/sitemap[.]xml.tsx");
-  assert.match(sitemap, /absoluteUrl\("\/generate"\)/);
+  assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   // Static routes only, plus the posts array — no dynamic session/job ids
   // and no /api routes among the URLs the sitemap emits.
   assert.equal(/absoluteUrl\(`?\/api\//.test(sitemap), false);

@@ -63,9 +63,13 @@ test("one Prompt product: Build and Critique are modes, not separate tools", () 
   assert.equal(CTA.newPrompt, "New Prompt");
   assert.equal(CTA.building, "Building prompt…");
   assert.equal(CTA.remix, "Remix in Prompt");
+  // The unified workspace's own header nav entry (labeled Generate or
+  // Prompt depending on the native-generation flag) is inserted by
+  // Header.tsx, not part of the frozen NAV_ITEMS export itself — see
+  // tests/unit/commercial-auth.test.ts / creation-composer.test.ts for that.
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Library", "Prompt", "Gallery"],
+    ["Library", "Gallery"],
   );
 });
 
@@ -76,20 +80,23 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
 
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/prompt", "/gallery"],
+    ["/library", "/gallery"],
   );
   assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
-  for (const [f, mode] of [
-    ["src/routes/generate.tsx", "build"],
-    ["src/routes/critique.tsx", "critique"],
-  ] as const) {
-    const s = read(f);
-    assert.match(s, /redirect\(\{/);
-    assert.match(s, /to: "\/prompt"/);
-    assert.match(s, new RegExp(`mode: "${mode}"`));
-    assert.match(s, /statusCode: 301/);
-  }
-  // the workspace mounts both modes so each keeps its own draft
+  // Both legacy routes redirect into /prompt with a mode; generate.tsx's
+  // mode is computed (feature-flag dependent), critique.tsx's is a literal.
+  const genSrc = read("src/routes/generate.tsx");
+  assert.match(genSrc, /redirect\(\{/);
+  assert.match(genSrc, /to: "\/prompt"/);
+  assert.match(genSrc, /statusCode: 301/);
+  assert.match(genSrc, /isNativeGenerationEnabled\(\) \? "generate" : "build"/);
+  const critiqueSrc = read("src/routes/critique.tsx");
+  assert.match(critiqueSrc, /redirect\(\{/);
+  assert.match(critiqueSrc, /to: "\/prompt"/);
+  assert.match(critiqueSrc, /mode: "critique"/);
+  assert.match(critiqueSrc, /statusCode: 301/);
+  // the workspace mounts all three modes so each keeps its own draft
+  assert.match(read("src/routes/prompt.tsx"), /<GenerateWorkspace/);
   assert.match(read("src/routes/prompt.tsx"), /<BuildMode/);
   assert.match(read("src/routes/prompt.tsx"), /<CritiqueMode/);
   assert.match(read("src/routes/prompt.tsx"), /role="tablist"/);
@@ -186,10 +193,11 @@ test("no current-product surface still calls Build and Critique separate tools",
   assert.match(llms, /Prompt workspace — Build mode/);
   assert.match(llms, /Prompt workspace — Critique mode/);
   assert.match(llms, /\[Generate\]\(https:\/\/depikt\.app\/generate\)/);
-  // sitemap: canonical /prompt and /generate, no legacy /critique URL
+  // sitemap: canonical /prompt only — /generate and /critique are both
+  // pure redirects onto it now, neither gets its own sitemap entry.
   const sitemap = read("src/routes/sitemap[.]xml.tsx");
   assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
-  assert.match(sitemap, /absoluteUrl\("\/generate"\)/);
+  assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
   // footer keeps Templates; header does not
   assert.match(read("src/components/Footer.tsx"), /\/templates/);
