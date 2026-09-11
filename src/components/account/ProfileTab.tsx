@@ -17,7 +17,9 @@ import { checkUsernameAvailability } from "@/lib/profile/client";
 import { normalizeUsername, validateUsername } from "@/lib/profile/username";
 import { clearLocalUserData, deleteAccount } from "@/lib/billing/client";
 import { trackEvent } from "@/lib/analytics";
+import { AUTH_COPY } from "@/lib/product";
 import { useNavigate } from "@tanstack/react-router";
+import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 type UsernameState =
   | { kind: "idle" }
@@ -26,7 +28,21 @@ type UsernameState =
   | { kind: "unavailable"; message: string }
   | { kind: "unchanged" };
 
-export function ProfileTab() {
+/** "google" -> "Google", "azure" -> "Microsoft" (Supabase's provider id for
+ *  it), missing/"email" -> "Email". Unknown ids fall back to Title Case. */
+function signedInWithLabel(raw: string | null): string {
+  if (!raw || raw === "email") return "Email";
+  const known: Record<string, string> = {
+    google: "Google",
+    apple: "Apple",
+    azure: "Microsoft",
+    microsoft: "Microsoft",
+    lovable: "Lovable",
+  };
+  return known[raw] ?? raw.charAt(0).toUpperCase() + raw.slice(1);
+}
+
+export function ProfileTab({ summary }: { summary: AccountSummaryResponse | null }) {
   const { user, signOut } = useAuth();
   const { profile, save } = useProfile();
   const navigate = useNavigate();
@@ -118,16 +134,21 @@ export function ProfileTab() {
     }
   }
 
+  async function handleSignOut() {
+    await signOut();
+    void navigate({ to: "/" });
+  }
+
   return (
-    <div>
+    <div className="max-w-[680px]">
       <h1 className="text-heading-md">Profile</h1>
 
       <div className="mt-6 space-y-8">
         <div>
           <p className="eyebrow">Profile picture</p>
-          <div className="mt-3 flex items-center gap-4">
+          <div className="mt-3 flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
             {profile && (
-              <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={64} />
+              <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={96} />
             )}
             <Button
               variant="outline"
@@ -146,7 +167,7 @@ export function ProfileTab() {
           </label>
           <Input
             id="display-name"
-            className="mt-2 max-w-sm"
+            className="mt-2 max-w-md"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
             maxLength={60}
@@ -157,7 +178,7 @@ export function ProfileTab() {
           <label htmlFor="username" className="eyebrow">
             Username
           </label>
-          <div className="mt-2 flex max-w-sm items-center gap-1 rounded-md border border-[color:var(--border-default)] pl-3 focus-within:ring-2 focus-within:ring-[color:var(--accent)]">
+          <div className="mt-2 flex max-w-md items-center gap-1 rounded-md border border-[color:var(--border-default)] pl-3 focus-within:ring-2 focus-within:ring-[color:var(--accent)]">
             <span className="text-[14px] text-[color:var(--text-tertiary)]">@</span>
             <Input
               id="username"
@@ -189,8 +210,20 @@ export function ProfileTab() {
           </Button>
         </div>
 
-        <div className="border-t border-[color:var(--border-subtle)] pt-6">
-          <p className="eyebrow">Danger</p>
+        <div className="flex items-center justify-between gap-4 border-t border-[color:var(--border-subtle)] pt-6">
+          <div>
+            <p className="eyebrow">Account</p>
+            <p className="mt-1.5 text-body-sm text-[color:var(--text-secondary)]">
+              Signed in with {signedInWithLabel(summary?.provider ?? null)}
+            </p>
+          </div>
+          <Button variant="outline" size="sm" onClick={() => void handleSignOut()}>
+            {AUTH_COPY.signOut}
+          </Button>
+        </div>
+
+        <div className="rounded-lg border border-red-200 bg-red-50/40 p-4">
+          <p className="eyebrow text-red-700">Danger zone</p>
           <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
             Deleting your account removes your generations, references, credits, and any active
             subscription. This cannot be undone.
@@ -198,7 +231,7 @@ export function ProfileTab() {
           <Button
             variant="outline"
             size="sm"
-            className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
+            className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
             onClick={() => setConfirmOpen(true)}
           >
             Delete account

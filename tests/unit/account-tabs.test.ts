@@ -38,8 +38,8 @@ test("isAccountTabId rejects anything not one of the three ids", () => {
 
 test("Favorites and History are not linked anywhere in /account -- only from Library/Prompt", () => {
   for (const file of [
-    "src/components/account/AccountRail.tsx",
-    "src/components/account/AccountTabs.tsx",
+    "src/components/account/AccountHeader.tsx",
+    "src/components/account/AccountNav.tsx",
     "src/routes/account.tsx",
   ]) {
     const src = read(file);
@@ -96,18 +96,29 @@ test("AccountMenu is a direct link to /account (Profile, the default tab) -- no 
   assert.doesNotMatch(src, /onSelect=|onClick=/, "no menu items, just the one link");
 });
 
-test("desktop uses a left rail, mobile uses the horizontal tab row -- both share ACCOUNT_TABS and offer Sign out", () => {
-  const rail = read("src/components/account/AccountRail.tsx");
-  assert.match(rail, /hidden .*lg:block/);
-  assert.match(rail, /ACCOUNT_TABS/);
-  assert.match(rail, /AUTH_COPY\.signOut/);
-  const tabs = read("src/components/account/AccountTabs.tsx");
-  assert.match(tabs, /ACCOUNT_TABS/);
-  assert.match(tabs, /AUTH_COPY\.signOut/);
+test("one shared AccountNav (no separate desktop rail / mobile tab row) plus an AccountHeader identity block", () => {
+  const nav = read("src/components/account/AccountNav.tsx");
+  assert.match(nav, /ACCOUNT_TABS/);
+  const header = read("src/components/account/AccountHeader.tsx");
+  assert.match(header, /<DepiktAvatar/);
+  assert.match(header, /useProfile\(/);
   const page = read("src/routes/account.tsx");
-  assert.match(page, /<AccountRail/);
-  assert.match(page, /<AccountTabs/);
-  assert.match(page, /lg:hidden/, "the mobile tab row must be hidden at lg+");
+  assert.match(page, /<AccountHeader/);
+  assert.match(page, /<AccountNav/);
+  // No permanent left sidebar for exactly three sections.
+  assert.doesNotMatch(page, /AccountRail/);
+});
+
+test("Sign out lives on Profile, set apart from account navigation, not mixed into a tab/menu list", () => {
+  const profile = read("src/components/account/ProfileTab.tsx");
+  assert.match(profile, /AUTH_COPY\.signOut/);
+  assert.match(profile, /handleSignOut/);
+  for (const f of [
+    "src/components/account/AccountHeader.tsx",
+    "src/components/account/AccountNav.tsx",
+  ]) {
+    assert.doesNotMatch(read(f), /signOut/i, `${f} must not also offer sign out`);
+  }
 });
 
 test("/favorites and /history are public routes, not gated by auth", () => {

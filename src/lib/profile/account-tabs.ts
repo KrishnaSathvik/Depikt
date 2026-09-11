@@ -1,11 +1,11 @@
-// Pure /account tab definitions, kept out of AccountTabs.tsx so tests (and
+// Pure /account tab definitions, kept out of AccountNav.tsx so tests (and
 // any non-JSX consumer) can import it directly -- Node's built-in TS
 // support strips .ts but can't parse .tsx.
 //
 // No Overview: every section it summarized (identity, plan, credits,
-// recent creations, sign out) already exists on its own tab or in the
-// rail/row's own Sign out action, so a fifth "summary of everything else"
-// tab was pure duplication.
+// recent creations, sign out) already exists on its own tab, in
+// AccountHeader, or at the bottom of Profile (Sign out), so a fourth
+// "summary of everything else" tab was pure duplication.
 //
 // Favorites and History are NOT tabs here, and not linked from anywhere in
 // /account at all -- they're local, Dexie/IndexedDB data never tied to a

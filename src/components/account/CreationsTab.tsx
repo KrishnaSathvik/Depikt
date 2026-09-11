@@ -62,17 +62,17 @@ export function CreationsTab() {
       <h1 className="text-heading-md">Creations</h1>
       <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">Your generated images.</p>
 
-      <div className="mt-5 flex gap-2">
+      <div className="mt-5 inline-flex gap-0.5 rounded-full bg-[color:var(--bg-subtle)] p-0.5">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setFilter(f.id)}
             className={cn(
-              "rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors",
+              "rounded-full px-3 py-1 text-[12px] font-medium transition-colors",
               filter === f.id
-                ? "border-[color:var(--text-primary)] bg-[color:var(--text-primary)] text-[color:var(--bg)]"
-                : "border-[color:var(--border-default)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+                ? "bg-[color:var(--bg)] text-[color:var(--text-primary)] shadow-sm"
+                : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
             )}
           >
             {f.label}
@@ -118,8 +118,14 @@ export function CreationsTab() {
                       Unavailable
                     </div>
                   )}
-                  <p className="px-2 py-1.5 text-[12px] text-[color:var(--text-tertiary)]">
+                  <p className="flex items-center gap-1.5 px-2 py-1.5 text-[12px] text-[color:var(--text-tertiary)]">
                     {formatShort(item.createdAt)}
+                    {item.operation && (
+                      <>
+                        <span aria-hidden="true">·</span>
+                        <span>{item.operation === "edit" ? "Edited" : "Generated"}</span>
+                      </>
+                    )}
                   </p>
                 </button>
               ))}

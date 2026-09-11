@@ -172,17 +172,14 @@ test("Profile tab has a deliberate, typed-confirmation delete flow", () => {
   assert.match(api, /authenticateGenerationRequest\(request\)/);
 });
 
-test("sign out is available from the account rail/tabs, using the shared auth copy", () => {
-  // Overview (which also offered sign out) was removed, and the header's
-  // AccountMenu dropdown that later took over sign out was itself removed
-  // (see tests/unit/account-tabs.test.ts) -- Sign out now lives directly on
-  // /account, in both the desktop rail and the mobile tab row.
-  for (const f of [
-    "src/components/account/AccountRail.tsx",
-    "src/components/account/AccountTabs.tsx",
-  ]) {
-    assert.match(read(f), /AUTH_COPY\.signOut/);
-  }
+test("sign out is available from Profile, using the shared auth copy", () => {
+  // Overview (which also offered sign out) was removed, then the header's
+  // AccountMenu dropdown that took over sign out was itself removed, then
+  // the desktop rail/mobile tab row that took it over next was replaced by
+  // one shared AccountHeader + AccountNav (see tests/unit/account-tabs.
+  // test.ts) -- Sign out now lives at the bottom of Profile, set apart from
+  // account navigation rather than mixed into it.
+  assert.match(read("src/components/account/ProfileTab.tsx"), /AUTH_COPY\.signOut/);
 });
 
 // ---------- help / legal ----------

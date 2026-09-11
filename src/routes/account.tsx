@@ -4,8 +4,8 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
-import { AccountTabs } from "@/components/account/AccountTabs";
-import { AccountRail } from "@/components/account/AccountRail";
+import { AccountHeader } from "@/components/account/AccountHeader";
+import { AccountNav } from "@/components/account/AccountNav";
 import { CreationsTab } from "@/components/account/CreationsTab";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { PlanTab } from "@/components/account/PlanTab";
@@ -140,18 +140,16 @@ function AccountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[960px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <div className="lg:hidden">
-          <AccountTabs active={activeTab} onChange={setActiveTab} />
+      <main className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <AccountHeader summary={summary} />
+        <div className="mt-8">
+          <AccountNav active={activeTab} onChange={setActiveTab} />
         </div>
-        <div className="lg:flex lg:items-start lg:gap-10">
-          <AccountRail active={activeTab} onChange={setActiveTab} />
-          <div className="mt-8 min-w-0 flex-1 lg:mt-0">
-            {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
-            {activeTab === "creations" && <CreationsTab />}
-            {activeTab === "profile" && <ProfileTab />}
-            {activeTab === "plan" && <PlanTab summary={summary} />}
-          </div>
+        <div className="mt-8">
+          {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
+          {activeTab === "creations" && <CreationsTab />}
+          {activeTab === "profile" && <ProfileTab summary={summary} />}
+          {activeTab === "plan" && <PlanTab summary={summary} />}
         </div>
       </main>
       <Footer />
