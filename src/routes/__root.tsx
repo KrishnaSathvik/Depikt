@@ -6,6 +6,7 @@ import { ProfileProvider } from "@/lib/profile/profile-context";
 import { Analytics } from "@/components/Analytics";
 import { DevAuthBanner } from "@/components/DevAuthBanner";
 import { BuyCreditsProvider } from "@/components/billing/BuyCreditsProvider";
+import { AccountHubProvider } from "@/components/account/AccountHubProvider";
 import { ThemeProvider } from "@/lib/theme-context";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
@@ -144,9 +145,11 @@ function RootComponent() {
       <AuthProvider>
         <ProfileProvider>
           <BuyCreditsProvider>
-            <Analytics />
-            <DevAuthBanner />
-            <Outlet />
+            <AccountHubProvider>
+              <Analytics />
+              <DevAuthBanner />
+              <Outlet />
+            </AccountHubProvider>
           </BuyCreditsProvider>
         </ProfileProvider>
         <Toaster

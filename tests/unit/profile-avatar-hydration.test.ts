@@ -24,17 +24,12 @@ test("AccountMenu never guesses an identity (email initial) while the profile is
 
 test("AccountMenu's loading placeholder is neutral, not a default/guessed DiceBear avatar", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
-  // avatarNode is the one trigger visual shared by the desktop dropdown and
-  // the mobile sheet button -- its unresolved-profile branch must be a
-  // plain neutral element, never a second DepiktAvatar call (which would
-  // render a default/placeholder seed that itself gets swapped out once
-  // the real avatar loads).
-  const avatarNodeBlock = src.slice(
-    src.indexOf("const avatarNode ="),
-    src.indexOf("const identity ="),
-  );
-  const fallbackBranch = avatarNodeBlock.slice(avatarNodeBlock.indexOf(") : ("));
-  assert.ok(fallbackBranch.length > 0, "expected an else-branch after avatarNode's ternary");
+  // AccountMenu is now just the trigger button (profile ? DepiktAvatar :
+  // neutral placeholder) -- the ternary's else-branch must stay a plain
+  // element, never a second DepiktAvatar call with a default/placeholder
+  // seed that itself gets swapped out once the real avatar loads.
+  const fallbackBranch = src.slice(src.indexOf(") : ("));
+  assert.ok(fallbackBranch.length > 0, "expected an else-branch after the profile ternary");
   assert.ok(
     !/DepiktAvatar/.test(fallbackBranch),
     "loading fallback must not render any avatar identity",
@@ -42,13 +37,23 @@ test("AccountMenu's loading placeholder is neutral, not a default/guessed DiceBe
   assert.match(fallbackBranch, /aria-hidden="true"/);
 });
 
-test("AccountMenu swaps the desktop dropdown for a mobile bottom sheet, not a bigger dropdown", () => {
+test("AccountMenu opens the one AccountHub instead of owning a dropdown or sheet itself", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
+  assert.doesNotMatch(
+    src,
+    /useIsMobile\(\)/,
+    "responsive dropdown/sheet split now lives in AccountHub, not here",
+  );
+  assert.doesNotMatch(src, /from "@\/components\/ui\/sheet"/);
+  assert.match(src, /useAccountHub\(/);
+  assert.match(src, /hub\.openHub\(/);
+});
+
+test("AccountHub itself swaps a desktop dialog for a mobile bottom sheet", () => {
+  const src = read("src/components/account/AccountHub.tsx");
   assert.match(src, /useIsMobile\(\)/);
   assert.match(src, /from "@\/components\/ui\/sheet"/);
   assert.match(src, /side="bottom"/);
-  // The same trigger (avatarNode) opens either surface -- no separate,
-  // larger avatar/identity element exists just for the mobile case.
   assert.match(src, /if \(isMobile\) \{/);
 });
 

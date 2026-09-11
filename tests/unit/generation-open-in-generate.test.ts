@@ -35,7 +35,7 @@ test("GenerateWorkspace's handoff effect hydrates the source version and opens t
 });
 
 test("Creations detail's Open in Generate builds the handoff from the creation, not a fresh upload", () => {
-  const src = read("src/components/account/CreationDetailDialog.tsx");
+  const src = read("src/components/account/CreationDetailView.tsx");
   assert.match(src, /saveGenerationHandoff\(/);
   assert.match(src, /sourceVersion: \{/);
   assert.match(

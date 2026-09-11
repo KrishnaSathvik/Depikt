@@ -16,7 +16,7 @@ test("avatar system never calls image generation or Storage, and never hits Dice
   for (const file of [
     "src/lib/profile/avatar.ts",
     "src/components/profile/DepiktAvatar.tsx",
-    "src/components/account/AvatarPickerDialog.tsx",
+    "src/components/account/AvatarPickerBody.tsx",
   ]) {
     const src = read(file);
     assert.ok(

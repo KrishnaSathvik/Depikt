@@ -153,14 +153,14 @@ test("/account confirms checkout server-side and stays noindex", () => {
 });
 
 test("Account tab has the plan/credits sections and billing actions", () => {
-  const src = read("src/components/account/AccountTab.tsx");
+  const src = read("src/components/account/AccountPanels.tsx");
   for (const s of ["PLAN", "CREDITS", "Manage billing", "Buy credits"]) {
     assert.match(src, new RegExp(s), s);
   }
 });
 
 test("Account tab has a deliberate, typed-confirmation delete flow", () => {
-  const src = read("src/components/account/AccountTab.tsx");
+  const src = read("src/components/account/AccountPanels.tsx");
   assert.match(src, /Delete account/);
   assert.match(src, /Type DELETE to continue|type DELETE/i);
   assert.match(src, /account_deleted/);
@@ -172,15 +172,16 @@ test("Account tab has a deliberate, typed-confirmation delete flow", () => {
   assert.match(api, /authenticateGenerationRequest\(request\)/);
 });
 
-test("sign out is available from the Account tab, using the shared auth copy", () => {
+test("sign out is available from the Account panels and the AccountHub, using the shared auth copy", () => {
   // Overview (which also offered sign out) was removed, then the header's
   // AccountMenu dropdown that took over sign out was itself removed and
-  // later reinstated as fast navigation (not a duplicate account
-  // architecture), then a desktop rail/mobile tab row, then a Profile tab
-  // -- Sign out now lives at the bottom of the Account tab, set apart from
-  // account navigation rather than mixed into it (see tests/unit/
-  // account-tabs.test.ts).
-  assert.match(read("src/components/account/AccountTab.tsx"), /AUTH_COPY\.signOut/);
+  // reinstated a few times over, then folded into a single AccountHub --
+  // Sign out now lives at the bottom of the Account panels (reused by both
+  // the full-page Account tab and the Hub's "account" view) and again in
+  // the Hub's own home view, set apart from account navigation rather than
+  // mixed into it (see tests/unit/account-tabs.test.ts).
+  assert.match(read("src/components/account/AccountPanels.tsx"), /AUTH_COPY\.signOut/);
+  assert.match(read("src/components/account/AccountHub.tsx"), /AUTH_COPY\.signOut/);
 });
 
 // ---------- help / legal ----------

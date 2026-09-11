@@ -184,11 +184,12 @@ test("header shows one Sign in link when signed out and an avatar menu when sign
   assert.match(header, /<AccountMenu/);
   assert.doesNotMatch(header, /Get started/);
   assert.doesNotMatch(header, /Sign up/);
-  // Fast navigation, not a second account architecture -- see
-  // tests/unit/account-tabs.test.ts for the full AccountMenu assertions.
+  // Fast navigation via the one AccountHub, not a second account
+  // architecture -- see tests/unit/account-tabs.test.ts for the full
+  // AccountMenu/AccountHub assertions.
   const menu = read("src/components/auth/AccountMenu.tsx");
-  assert.match(menu, /DropdownMenu/);
-  assert.match(menu, /ROUTES\.account/);
+  assert.match(menu, /useAccountHub\(/);
+  assert.match(menu, /hub\.openHub\(/);
 });
 
 // ---------- editorial auth surface: no card, contextual subtitle ----------

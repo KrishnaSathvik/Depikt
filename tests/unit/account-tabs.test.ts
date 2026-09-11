@@ -91,20 +91,55 @@ test("no OverviewTab, ProfileTab, or PlanTab file survives the merge", () => {
   }
 });
 
-test("AccountMenu is fast navigation (Creations/Account/Buy credits/Manage billing/Sign out), no separate Profile item", () => {
+test("AccountMenu is just the avatar trigger -- no dropdown, no dialog of its own -- it opens the one AccountHub", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
-  assert.match(src, /DropdownMenu/);
-  // The identity block itself opens /account with no ?tab= (defaults to Account).
-  assert.match(src, /onSelect=\{\(\) => void navigate\(\{ to: ROUTES\.account \}\)\}/);
-  assert.match(src, /search: \{ tab: "creations" \}/);
-  assert.match(src, /search: \{ tab: "account" \}/);
-  assert.match(src, />\s*Creations\s*</);
-  assert.match(
-    src,
-    />\s*Account\s*</,
-    "a plain Account item, since there's no Profile item anymore",
-  );
-  assert.doesNotMatch(src, />\s*Profile\s*</, "no separate Profile menu item");
+  assert.doesNotMatch(src, /DropdownMenu/, "the dropdown was replaced by AccountHub");
+  assert.match(src, /useAccountHub\(/);
+  assert.match(src, /hub\.openHub\("home"\)/);
+});
+
+test("AccountHub is the one canonical account/profile/creation surface -- home, creations, creation-detail, account, edit-profile, avatar-picker", () => {
+  const provider = read("src/components/account/AccountHubProvider.tsx");
+  for (const view of [
+    '"home"',
+    '"creations"',
+    '"creation-detail"',
+    '"account"',
+    '"edit-profile"',
+    '"avatar-picker"',
+  ]) {
+    assert.ok(provider.includes(view), `HubView must include ${view}`);
+  }
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /<CreationsGrid/);
+  assert.match(hub, /<CreationDetailView/);
+  assert.match(hub, /<AccountPanels/);
+  assert.match(hub, /<EditProfileForm/);
+  assert.match(hub, /<AvatarPickerBody/);
+  // Desktop dialog vs mobile sheet, same split as the rest of the account area.
+  assert.match(hub, /useIsMobile\(/);
+});
+
+test("no standalone AvatarPickerDialog/EditProfileDialog/CreationDetailDialog survive -- AccountHub replaced all three", () => {
+  for (const f of [
+    "src/components/account/AvatarPickerDialog.tsx",
+    "src/components/account/EditProfileDialog.tsx",
+    "src/components/account/CreationDetailDialog.tsx",
+    "src/components/account/AccountHeader.tsx",
+  ]) {
+    assert.equal(
+      (() => {
+        try {
+          readFileSync(resolve(import.meta.dirname, "../..", f));
+          return true;
+        } catch {
+          return false;
+        }
+      })(),
+      false,
+      `${f} must not exist`,
+    );
+  }
 });
 
 test("one shared AccountNav (no separate desktop rail / mobile tab row); Creations doesn't repeat the identity block", () => {
@@ -121,26 +156,26 @@ test("one shared AccountNav (no separate desktop rail / mobile tab row); Creatio
   assert.doesNotMatch(page, /AccountRail/);
 });
 
-test("identity (avatar + name/username) is edited from the Account tab, not a separate Profile screen", () => {
+test("identity (avatar + name/username) is edited via the AccountHub, from both the Account tab and the Hub's home view", () => {
+  const identityRow = read("src/components/account/IdentityRow.tsx");
+  assert.match(identityRow, /<DepiktAvatar/);
+  assert.match(identityRow, /useProfile\(/);
   const account = read("src/components/account/AccountTab.tsx");
-  assert.match(account, /<DepiktAvatar/);
-  assert.match(account, /useProfile\(/);
-  assert.match(
-    account,
-    /<AvatarPickerDialog/,
-    "tapping the avatar opens the avatar picker directly",
-  );
-  assert.match(account, /<EditProfileDialog/, "the pencil opens the name/username editor directly");
-  const editDialog = read("src/components/account/EditProfileDialog.tsx");
-  assert.match(editDialog, /useProfile\(/);
-  assert.match(editDialog, /useIsMobile\(/, "bottom sheet on mobile, centered dialog on desktop");
-  assert.match(editDialog, /side="bottom"/);
+  assert.match(account, /<IdentityRow/);
+  assert.match(account, /hub\.pushView\("avatar-picker"\)/);
+  assert.match(account, /hub\.pushView\("edit-profile"\)/);
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /<IdentityRow/);
+  const editForm = read("src/components/account/EditProfileForm.tsx");
+  assert.match(editForm, /useProfile\(/);
 });
 
-test("Sign out lives in the Account tab, set apart from account navigation, not mixed into a tab/menu list", () => {
-  const account = read("src/components/account/AccountTab.tsx");
-  assert.match(account, /AUTH_COPY\.signOut/);
-  assert.match(account, /handleSignOut/);
+test("Sign out lives in the Account panels and the Hub's home view, not mixed into account navigation", () => {
+  const panels = read("src/components/account/AccountPanels.tsx");
+  assert.match(panels, /AUTH_COPY\.signOut/);
+  assert.match(panels, /handleSignOut/);
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /AUTH_COPY\.signOut/);
   assert.doesNotMatch(
     read("src/components/account/AccountNav.tsx"),
     /signOut/i,
@@ -148,8 +183,8 @@ test("Sign out lives in the Account tab, set apart from account navigation, not 
   );
 });
 
-test("Account tab shows Plan & Credits, sign-in details, and account deletion -- everything that isn't a creation or identity edit", () => {
-  const src = read("src/components/account/AccountTab.tsx");
+test("Account panels show Plan & Credits, sign-in details, and account deletion -- everything that isn't a creation or identity edit", () => {
+  const src = read("src/components/account/AccountPanels.tsx");
   for (const s of [
     "PLAN &amp; CREDITS",
     "credits remaining",

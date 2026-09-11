@@ -2,9 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useProfile } from "@/lib/profile/profile-context";
 import { checkUsernameAvailability } from "@/lib/profile/client";
 import { normalizeUsername, validateUsername } from "@/lib/profile/username";
@@ -18,39 +15,23 @@ type UsernameState =
   | { kind: "unchanged" };
 
 /**
- * Display name + username, opened from the pencil next to the name in
- * AccountHeader -- there is no standalone Profile screen to navigate to.
- * A centered dialog on desktop, a bottom sheet on mobile (same responsive
- * pattern as BillingAuthDialog). Saving updates the shared profile state
- * (useProfile), so AccountHeader and the header avatar menu both reflect
- * the change immediately without a page reload.
+ * Display name + username form -- the AccountHub's "edit-profile" view
+ * body. No Dialog/Sheet of its own; the hub shell supplies the chrome.
+ * Saving updates the shared profile state (useProfile), so every surface
+ * reading it (header trigger, the Account tab's identity row) reflects the
+ * change immediately, then calls `onDone` to pop back to the hub's home.
  */
-export function EditProfileDialog({
-  open,
-  onOpenChange,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export function EditProfileForm({ onDone }: { onDone: () => void }) {
   const { profile, save } = useProfile();
-  const isMobile = useIsMobile();
 
-  const [displayName, setDisplayName] = useState("");
-  const [username, setUsername] = useState("");
-  const [usernameState, setUsernameState] = useState<UsernameState>({ kind: "idle" });
+  const [displayName, setDisplayName] = useState(profile?.displayName ?? "");
+  const [username, setUsername] = useState(profile?.username ?? "");
+  const [usernameState, setUsernameState] = useState<UsernameState>({ kind: "unchanged" });
   const [saving, setSaving] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset to the current profile every time the dialog opens, not just on mount.
   useEffect(() => {
-    if (!open || !profile) return;
-    setDisplayName(profile.displayName ?? "");
-    setUsername(profile.username);
-    setUsernameState({ kind: "unchanged" });
-  }, [open, profile]);
-
-  useEffect(() => {
-    if (!open || !profile) return;
+    if (!profile) return;
     const normalized = normalizeUsername(username);
     if (normalized === profile.username) {
       setUsernameState({ kind: "unchanged" });
@@ -77,7 +58,7 @@ export function EditProfileDialog({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [open, username, profile]);
+  }, [username, profile]);
 
   const canSave =
     Boolean(profile) &&
@@ -97,7 +78,7 @@ export function EditProfileDialog({
       });
       trackEvent("profile_updated", {});
       toast.success("Profile updated.");
-      onOpenChange(false);
+      onDone();
     } catch {
       toast.error("Could not save your profile. Try again.");
     } finally {
@@ -105,8 +86,8 @@ export function EditProfileDialog({
     }
   }
 
-  const body = (
-    <div className="mt-5 space-y-5">
+  return (
+    <div className="space-y-5">
       <div>
         <label htmlFor="display-name" className="eyebrow">
           Display name
@@ -157,25 +138,5 @@ export function EditProfileDialog({
         </Button>
       </div>
     </div>
-  );
-
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="rounded-t-2xl">
-          <SheetTitle className="text-heading-sm">Edit profile</SheetTitle>
-          {body}
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px]">
-        <DialogTitle className="text-heading-sm">Edit profile</DialogTitle>
-        {body}
-      </DialogContent>
-    </Dialog>
   );
 }
