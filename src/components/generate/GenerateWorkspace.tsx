@@ -4,6 +4,7 @@ import { Sparkles, Plus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
+import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
 import { CTA, ROUTES } from "@/lib/product";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
@@ -129,6 +130,10 @@ export function GenerateWorkspace() {
     void gen.submit({ prompt, structuredAspectRatio: structuredRatio, routingHints });
   }
 
+  function useChip(text: string) {
+    setPrompt(text);
+  }
+
   function improveInPrompt() {
     saveGenerationHandoff({
       prompt,
@@ -162,23 +167,19 @@ export function GenerateWorkspace() {
             onAddReference={gen.addReference}
             onRemoveReference={gen.removeReference}
             onRetryReference={gen.retryReferenceUpload}
-            ratioCaption={
+            onSubmit={submitComposer}
+            caption={[
               resolvedSize.source !== "fallback"
                 ? `${resolvedSize.ratioLabel} · ${resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}`
-                : null
-            }
+                : "Auto ratio",
+              !gen.authLoading && gen.user && gen.credits !== null
+                ? `${gen.credits} credits left`
+                : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           />
-          <p className="text-center text-body-sm text-[color:var(--text-secondary)]">
-            {gen.authLoading
-              ? null
-              : gen.user && gen.credits !== null
-                ? `${gen.credits} credits remaining`
-                : null}
-          </p>
-          <Button className="w-full" size="lg" onClick={submitComposer}>
-            <Sparkles className="mr-1.5 h-4 w-4" />
-            Generate image → · 1 credit
-          </Button>
+          <ComposerChips chips={GENERATE_CHIPS} onSelect={useChip} />
           <div className="text-center">
             <Button variant="ghost" size="sm" onClick={improveInPrompt}>
               {CTA.improveInPrompt} →
@@ -292,6 +293,15 @@ export function GenerateWorkspace() {
   );
 }
 
+const GENERATE_CHIPS = [
+  { label: "editorial poster", text: "minimalist editorial poster, bold type, restrained palette" },
+  { label: "product shot", text: "clean studio product photo on white, soft shadow, square crop" },
+  {
+    label: "cinematic portrait",
+    text: "cinematic portrait, natural window light, shallow depth of field",
+  },
+] as const;
+
 function ComposerSurface({
   prompt,
   onPromptChange,
@@ -299,7 +309,8 @@ function ComposerSurface({
   onAddReference,
   onRemoveReference,
   onRetryReference,
-  ratioCaption,
+  onSubmit,
+  caption,
 }: {
   prompt: string;
   onPromptChange: (v: string) => void;
@@ -307,20 +318,14 @@ function ComposerSurface({
   onAddReference: (file: File) => void;
   onRemoveReference: (index: number) => void;
   onRetryReference: (index: number) => void;
-  ratioCaption: string | null;
+  onSubmit: () => void;
+  caption: string;
 }) {
   return (
-    <div className="rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)]">
-      <Textarea
-        value={prompt}
-        onChange={(e) => onPromptChange(e.target.value)}
-        placeholder="Describe what you want to create..."
-        rows={6}
-        aria-label="Image prompt"
-        className="rounded-none rounded-t-md border-0 shadow-none focus-visible:outline-none"
-      />
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--border-subtle)] px-4 py-3">
-        <div className="flex flex-wrap items-center gap-2">
+    <CreationComposer
+      caption={caption}
+      referencesSlot={
+        <>
           {references.map((r, i) => (
             <div
               key={i}
@@ -356,6 +361,9 @@ function ComposerSurface({
             <label className="inline-flex cursor-pointer items-center gap-1.5 text-body-sm text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]">
               <Plus className="h-3.5 w-3.5" />
               Add reference
+              <span className="text-[color:var(--text-tertiary)]">
+                {references.length} / {MAX_REFERENCE_IMAGES_V1}
+              </span>
               <input
                 type="file"
                 accept="image/*"
@@ -368,12 +376,23 @@ function ComposerSurface({
               />
             </label>
           )}
-        </div>
-        {ratioCaption && (
-          <span className="text-body-sm text-[color:var(--text-secondary)]">{ratioCaption}</span>
-        )}
-      </div>
-    </div>
+        </>
+      }
+      submit={
+        <Button onClick={onSubmit} className="gap-1.5">
+          <Sparkles className="h-4 w-4" />
+          Generate image →
+        </Button>
+      }
+    >
+      <Textarea
+        value={prompt}
+        onChange={(e) => onPromptChange(e.target.value)}
+        placeholder="Describe what you want to create..."
+        rows={6}
+        aria-label="Image prompt"
+      />
+    </CreationComposer>
   );
 }
 

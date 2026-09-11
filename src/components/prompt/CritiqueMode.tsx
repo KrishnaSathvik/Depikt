@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
+import { CreationComposer } from "@/components/composer/CreationComposer";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { readSSEStream } from "@/lib/sse";
@@ -274,7 +275,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
               <label htmlFor="critique-input" className="sr-only">
                 Prompt to critique
               </label>
-              <div
+              <CreationComposer
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -285,6 +286,43 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                   const file = e.dataTransfer.files?.[0];
                   if (file) handleImageFile(file);
                 }}
+                referencesSlot={
+                  imageLoading ? (
+                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Processing image…
+                    </div>
+                  ) : (
+                    <ReferenceImagePicker
+                      value={reference}
+                      onChange={setReference}
+                      addLabel="Add source / reference image (optional)"
+                    />
+                  )
+                }
+                caption={
+                  <span className="hidden sm:inline">
+                    or press{" "}
+                    <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                      {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                    </kbd>
+                  </span>
+                }
+                submit={
+                  <Button onClick={score} disabled={loading} className="gap-2">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {CTA.critiquing}
+                      </>
+                    ) : (
+                      <>
+                        <ScanSearch className="h-4 w-4" />
+                        {CTA.critique}
+                      </>
+                    )}
+                  </Button>
+                }
               >
                 <Textarea
                   id="critique-input"
@@ -302,44 +340,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                   placeholder="Paste a prompt to critique…"
                   className="min-h-[240px] resize-y text-[16px] leading-[1.65] px-5 py-4 font-mono"
                 />
-              </div>
-
-              <div className="mt-3">
-                {imageLoading ? (
-                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Processing image…
-                  </div>
-                ) : (
-                  <ReferenceImagePicker
-                    value={reference}
-                    onChange={setReference}
-                    addLabel="Add source / reference image (optional)"
-                  />
-                )}
-              </div>
-
-              <div className="mt-6 flex items-center gap-3">
-                <Button onClick={score} disabled={loading} size="lg" className="gap-2">
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {CTA.critiquing}
-                    </>
-                  ) : (
-                    <>
-                      <ScanSearch className="h-4 w-4" />
-                      {CTA.critique}
-                    </>
-                  )}
-                </Button>
-                <span className="text-mono-sm text-[color:var(--text-tertiary)] hidden sm:inline">
-                  or press{" "}
-                  <kbd className="px-1.5 py-0.5 rounded-sm bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[11px]">
-                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                  </kbd>
-                </span>
-              </div>
+              </CreationComposer>
             </div>
           </div>
         )}

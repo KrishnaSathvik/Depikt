@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
+import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
@@ -543,7 +544,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
               >
                 {templateCtx ? "Anything else?" : "Describe what you want to make"}
               </label>
-              <div
+              <CreationComposer
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -554,6 +555,48 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                   const file = e.dataTransfer.files?.[0];
                   if (file) handleImageFile(file);
                 }}
+                referencesSlot={
+                  imageLoading ? (
+                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Processing image…
+                    </div>
+                  ) : (
+                    <ReferenceImagePicker value={reference} onChange={setReference} />
+                  )
+                }
+                caption={
+                  <span className="hidden sm:inline">
+                    or press{" "}
+                    <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                      {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                    </kbd>
+                  </span>
+                }
+                submit={
+                  <Button
+                    onClick={() => generate()}
+                    disabled={loading || streaming}
+                    className="gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {CTA.building}
+                      </>
+                    ) : streaming ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Writing…
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-4 w-4" />
+                        {CTA.build}
+                      </>
+                    )}
+                  </Button>
+                }
               >
                 <Textarea
                   id="rough-idea"
@@ -577,65 +620,11 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                     templateCtx ? "min-h-[140px]" : "min-h-[220px]"
                   }`}
                 />
-              </div>
+              </CreationComposer>
 
-              {/* Reference image + "use as" selector */}
-              <div className="mt-3">
-                {imageLoading ? (
-                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Processing image…
-                  </div>
-                ) : (
-                  <ReferenceImagePicker value={reference} onChange={setReference} />
-                )}
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2" hidden={Boolean(templateCtx)}>
-                <span className="text-mono-sm text-[color:var(--text-tertiary)] mr-1">Try:</span>
-                {EXAMPLE_CHIPS.map((chip) => (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    onClick={() => handleChipClick(chip.text)}
-                    className="pill normal-case tracking-normal text-[12px] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-6 flex items-center gap-3">
-                <Button
-                  onClick={() => generate()}
-                  disabled={loading || streaming}
-                  size="lg"
-                  className="gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {CTA.building}
-                    </>
-                  ) : streaming ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Writing…
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="h-4 w-4" />
-                      {CTA.build}
-                    </>
-                  )}
-                </Button>
-                <span className="text-mono-sm text-[color:var(--text-tertiary)] hidden sm:inline">
-                  or press{" "}
-                  <kbd className="px-1.5 py-0.5 rounded-sm bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[11px]">
-                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                  </kbd>
-                </span>
-              </div>
+              {!templateCtx && (
+                <ComposerChips chips={EXAMPLE_CHIPS} onSelect={handleChipClick} className="mt-3" />
+              )}
             </div>
           </div>
         )}
