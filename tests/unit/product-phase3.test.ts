@@ -65,7 +65,7 @@ test("one Prompt product: Build and Critique are modes, not separate tools", () 
   assert.equal(CTA.remix, "Remix in Prompt");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Library", "Prompt", "Gallery", "Blog"],
+    ["Library", "Prompt", "Gallery"],
   );
 });
 
@@ -76,7 +76,7 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
 
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/prompt", "/gallery", "/blog"],
+    ["/library", "/prompt", "/gallery"],
   );
   assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
   for (const [f, mode] of [

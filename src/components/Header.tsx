@@ -7,7 +7,8 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useAuth } from "@/lib/auth-context";
 import { AccountMenu } from "@/components/auth/AccountMenu";
 
-// Visible labels come from product.ts (Library · Prompt · Gallery · Blog).
+// Visible labels come from product.ts (Library · Prompt · Gallery). Blog
+// lives in the footer only, not the header.
 // Build and Critique are modes inside /prompt, not separate nav items;
 // Templates lives in the footer. Generate is inserted after Prompt only
 // when the native-generation feature flag is on — never part of the frozen

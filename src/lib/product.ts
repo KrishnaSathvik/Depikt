@@ -94,6 +94,7 @@ export const ROUTES = {
   terms: "/terms",
 } as const;
 
+/** Header nav. Blog lives in the footer only (Resources column), not here. */
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
   label: string;
@@ -102,7 +103,6 @@ export const NAV_ITEMS: ReadonlyArray<{
   { to: ROUTES.library, label: TOOL.library, exact: true },
   { to: ROUTES.prompt, label: TOOL.prompt },
   { to: ROUTES.gallery, label: TOOL.gallery },
-  { to: ROUTES.blog, label: TOOL.blog },
 ];
 
 export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago";

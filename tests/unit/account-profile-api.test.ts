@@ -74,7 +74,24 @@ test("creations route paginates rather than returning everything at once", () =>
 
 test("creations route supports the generated/edited filter via the owning job's operation", () => {
   const src = read("src/routes/api/account/creations.ts");
-  assert.match(src, /generation_jobs!inner\(operation\)/);
+  assert.match(src, /generation_jobs!image_versions_job_id_fkey!inner\(operation\)/);
   assert.match(src, /"generation_jobs\.operation", "generate"/);
   assert.match(src, /"generation_jobs\.operation", "edit"/);
+});
+
+// Regression: image_versions has two FKs to generation_jobs (its own job_id,
+// and an edit's source_version_id pointing at a *different* row's job), so
+// PostgREST's bare `generation_jobs!inner(...)` embed is ambiguous and 500s
+// with PGRST201 ("more than one relationship was found"). Confirmed live
+// against a real Supabase project with both migrations applied, and fixed
+// by naming the FK explicitly. The embed must never regress to the bare,
+// ambiguous form.
+test("creations route names the FK explicitly, never the ambiguous bare embed", () => {
+  const src = read("src/routes/api/account/creations.ts");
+  assert.equal(
+    /generation_jobs!inner\(/.test(src),
+    false,
+    "bare generation_jobs!inner(...) is ambiguous between two FKs (PGRST201) -- must use generation_jobs!image_versions_job_id_fkey!inner(...)",
+  );
+  assert.match(src, /image_versions_job_id_fkey/);
 });

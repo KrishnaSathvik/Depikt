@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth-context";
 import { MCP, ROUTES, TOOL } from "@/lib/product";
-import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 
 type FooterLink = { to: string; label: string };
 
@@ -26,18 +25,20 @@ function Column({ title, links }: { title: string; links: FooterLink[] }) {
 }
 
 /**
- * Restrained four-column footer. Templates and MCP live here (never in the
- * primary header); the Account column shows Sign in or Account depending on
- * session. White, hairline, no tagline.
+ * Restrained three-column footer. No Product column: the header nav
+ * already covers Library/Prompt/Generate/Gallery, so repeating it here was
+ * just noise. Templates and MCP live here (never in the primary header);
+ * the Account column shows Sign in or Account depending on session. White,
+ * hairline, no tagline.
+ *
+ * Mobile/tablet (below lg): a balanced two-column grid — Resources in one
+ * column, Account+Legal stacked together in the other (three items don't
+ * split evenly into two, so Account and Legal share a column rather than
+ * leaving Legal wrapping alone under Resources). Desktop (lg+): three
+ * separate columns, via `lg:contents` releasing the pair back into the grid.
  */
 export function Footer() {
   const { user } = useAuth();
-  const product: FooterLink[] = [
-    { to: ROUTES.library, label: TOOL.library },
-    { to: ROUTES.prompt, label: TOOL.prompt },
-    ...(isNativeGenerationEnabled() ? [{ to: ROUTES.legacyBuilder, label: TOOL.generate }] : []),
-    { to: ROUTES.gallery, label: TOOL.gallery },
-  ];
   const resources: FooterLink[] = [
     { to: ROUTES.blog, label: TOOL.blog },
     { to: "/templates", label: TOOL.templates },
@@ -56,11 +57,12 @@ export function Footer() {
   return (
     <footer className="border-t border-[color:var(--border-subtle)] bg-[color:var(--bg)]">
       <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-12">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          <Column title="Product" links={product} />
+        <div className="grid grid-cols-2 gap-8 lg:grid-cols-3">
           <Column title="Resources" links={resources} />
-          <Column title="Account" links={account} />
-          <Column title="Legal" links={legal} />
+          <div className="space-y-6 lg:contents">
+            <Column title="Account" links={account} />
+            <Column title="Legal" links={legal} />
+          </div>
         </div>
         <div className="mt-10 flex items-baseline gap-3 border-t border-[color:var(--border-subtle)] pt-6">
           <span className="text-[15px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">

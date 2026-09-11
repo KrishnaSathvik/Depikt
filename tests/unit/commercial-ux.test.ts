@@ -256,10 +256,9 @@ test("privacy and terms cover the required subjects and invent no owner details"
 
 // ---------- footer / header ----------
 
-test("footer has the four restrained columns and no stale tagline", () => {
+test("footer has the three restrained columns and no stale tagline", () => {
   const src = read("src/components/Footer.tsx");
   for (const s of [
-    "Product",
     "Resources",
     "Account",
     "Legal",
@@ -272,6 +271,8 @@ test("footer has the four restrained columns and no stale tagline", () => {
   ]) {
     assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
   }
+  // No Product column: it only duplicated the header nav.
+  assert.doesNotMatch(src, /title="Product"/);
   assert.doesNotMatch(src, /A workspace for better image prompts\./);
   assert.doesNotMatch(src, /Sign up/);
   assert.match(src, /useAuth\(\)/, "signed-in footer shows Account instead of Sign in");

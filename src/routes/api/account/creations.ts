@@ -54,10 +54,15 @@ export const Route = createFileRoute("/api/account/creations")({
             ? Math.min(Math.floor(limitParam), MAX_LIMIT)
             : DEFAULT_LIMIT;
 
+        // image_versions has two FKs to generation_jobs (its own job_id, and
+        // an edit's source_version_id pointing at a *different* row's job),
+        // so PostgREST can't infer which relationship "generation_jobs"
+        // means and 400s with PGRST201. Name the FK explicitly: the row's
+        // own job, via image_versions.job_id -> generation_jobs.id.
         let query = db
           .from("image_versions")
           .select(
-            "id, job_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!inner(operation)",
+            "id, job_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation)",
           )
           .order("created_at", { ascending: false })
           .limit(limit + 1);
@@ -67,7 +72,10 @@ export const Route = createFileRoute("/api/account/creations")({
         if (type === "edited") query = query.eq("generation_jobs.operation", "edit");
 
         const { data, error } = await query;
-        if (error) return jsonError("Could not load your creations.", 500);
+        if (error) {
+          console.error("GET /api/account/creations:", error);
+          return jsonError("Could not load your creations.", 500);
+        }
 
         const rows = (data ?? []) as unknown as CreationRow[];
         const hasMore = rows.length > limit;
