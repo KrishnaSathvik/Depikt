@@ -2,11 +2,11 @@
 -- deterministic avatar, and the trigger that creates one automatically for
 -- every new auth.users row.
 --
--- NOT APPLIED TO PRODUCTION. Same review status as the 2026-09-10/11
--- generation and commercial migrations -- prepared for the Supabase SQL
--- Editor, tested on a scratch Postgres via scripts/test-profiles-migration.sh
--- (tests/sql/profiles.test.sql holds the invariants). Additive: does not
--- touch credit_accounts, billing_accounts, or any generation table.
+-- APPLIED TO PRODUCTION (confirmed 2026-09-11 via a live account audit:
+-- a real generated username/avatar renders in Account → Profile). Tested
+-- on a scratch Postgres via scripts/test-profiles-migration.sh (tests/sql/
+-- profiles.test.sql holds the invariants). Additive: does not touch
+-- credit_accounts, billing_accounts, or any generation table.
 --
 -- Word lists mirror src/lib/profile/username.ts (ADJECTIVES/NOUNS) --
 -- tests/unit/profile-username.test.ts checks the two stay in sync. Real

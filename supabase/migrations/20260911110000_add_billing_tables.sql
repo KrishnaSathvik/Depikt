@@ -2,7 +2,8 @@
 -- idempotency, purchase records, deletion audit, and the annual monthly-grant
 -- RPC.
 --
--- NOT APPLIED TO PRODUCTION until the owner runs it. Tested with
+-- APPLIED TO PRODUCTION (confirmed 2026-09-11 via a live account audit:
+-- Account → Plan & Credits reads a real billing_accounts row). Tested with
 -- scripts/test-credit-migration.sh. Idempotent.
 
 -- ==========================================================================

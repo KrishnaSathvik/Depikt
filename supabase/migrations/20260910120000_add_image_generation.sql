@@ -1,10 +1,11 @@
 -- Phase 5 (native image generation): credit ledger, generation sessions/jobs,
 -- and immutable image versions.
 --
--- NOT APPLIED TO PRODUCTION. This file is prepared for review and must be
--- run through the Supabase SQL Editor (or `supabase db push` against a
--- branch) by the project owner, per CLAUDE.md's RLS constraints — the anon
--- key cannot write, and this migration is not auto-applied by the app.
+-- APPLIED TO PRODUCTION (confirmed 2026-09-11 via a live account audit:
+-- real generation_jobs/image_versions rows render in Account → Creations).
+-- Was run through the Supabase SQL Editor by the project owner, per
+-- CLAUDE.md's RLS constraints — the anon key cannot write, and this
+-- migration is not auto-applied by the app.
 --
 -- Idempotent: safe to re-run (CREATE TABLE IF NOT EXISTS / CREATE OR REPLACE
 -- for functions, guarded DO blocks for constraints).

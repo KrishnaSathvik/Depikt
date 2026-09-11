@@ -1,8 +1,9 @@
 -- Phase 5 (native image generation), part 3: private storage bucket and
 -- ownership policies for generated images and reference uploads.
 --
--- NOT APPLIED TO PRODUCTION. Same review status as the two prior
--- 2026-09-10 generation migrations.
+-- APPLIED TO PRODUCTION. Same confirmed status as the two prior
+-- 2026-09-10 generation migrations (see 20260910120000's header) — live
+-- generated images are stored in and served from this bucket.
 --
 -- Paths are always users/<user-id>/... (src/lib/generation/storage-paths.ts
 -- is the only code allowed to construct one, and it refuses to build a path

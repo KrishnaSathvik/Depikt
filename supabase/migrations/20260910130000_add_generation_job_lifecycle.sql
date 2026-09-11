@@ -2,8 +2,10 @@
 -- write policies needed to run generation from a request-scoped background
 -- continuation (see architecture note below) without a service role key.
 --
--- NOT APPLIED TO PRODUCTION. Same review status as
--- 20260910120000_add_image_generation.sql.
+-- APPLIED TO PRODUCTION. Same confirmed status as
+-- 20260910120000_add_image_generation.sql (see its header) — live
+-- generation jobs complete and settle, which requires this migration's
+-- lifecycle RPCs and write policies.
 --
 -- ==========================================================================
 -- Architecture note (async execution):

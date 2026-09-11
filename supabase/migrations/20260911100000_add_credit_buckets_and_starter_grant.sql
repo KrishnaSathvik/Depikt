@@ -1,9 +1,10 @@
 -- Phase 6 (commercial launch), part 1: credit buckets, starter grant,
 -- subscription/top-up grant RPCs.
 --
--- NOT APPLIED TO PRODUCTION until the owner runs it in the Supabase SQL
--- Editor. Tested on a scratch Postgres via scripts/test-credit-migration.sh
--- (tests/sql/commercial-credits.test.sql holds the invariants).
+-- APPLIED TO PRODUCTION (confirmed 2026-09-11 via a live account audit:
+-- Account → Plan & Credits reads real credit_accounts rows). Tested on a
+-- scratch Postgres via scripts/test-credit-migration.sh (tests/sql/
+-- commercial-credits.test.sql holds the invariants).
 --
 -- Model (locked):
 --   1 credit = 1 successful image operation, regardless of model.
