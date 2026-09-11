@@ -100,25 +100,25 @@ export function CreationsTab() {
                     setSelected(item);
                     trackEvent("creation_opened", {});
                   }}
-                  className="mb-3 block w-full break-inside-avoid overflow-hidden rounded-lg border border-[color:var(--border-subtle)] text-left"
+                  className="group mb-3 block w-full break-inside-avoid text-left"
                 >
                   {item.url ? (
                     <img
                       src={item.url}
                       alt=""
                       style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                      className="w-full object-cover"
+                      className="w-full rounded-md object-cover transition-opacity group-hover:opacity-90"
                       loading="lazy"
                     />
                   ) : (
                     <div
                       style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                      className="flex items-center justify-center bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
+                      className="flex items-center justify-center rounded-md bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
                     >
                       Unavailable
                     </div>
                   )}
-                  <p className="flex items-center gap-1.5 px-2 py-1.5 text-[12px] text-[color:var(--text-tertiary)]">
+                  <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-[color:var(--text-tertiary)]">
                     {formatShort(item.createdAt)}
                     {item.operation && (
                       <>

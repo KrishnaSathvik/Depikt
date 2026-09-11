@@ -139,7 +139,7 @@ function AccountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
         <AccountHeader summary={summary} />
         <div className="mt-8">
           <AccountNav active={activeTab} onChange={setActiveTab} />

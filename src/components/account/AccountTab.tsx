@@ -128,150 +128,152 @@ export function AccountTab({ summary }: { summary: AccountSummaryResponse | null
   );
 
   return (
-    <div className="max-w-[680px]">
+    <div>
       <h1 className="text-heading-md">Account</h1>
 
-      <section className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
-        <p className="eyebrow">PLAN &amp; CREDITS</p>
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <section className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
+          <p className="eyebrow">PLAN &amp; CREDITS</p>
 
-        <div className="mt-3">
-          <p className="text-heading-sm">{planTitle(summary)}</p>
-          {priceLine(summary) && (
-            <p className="mt-0.5 text-body-sm text-[color:var(--text-secondary)]">
-              {priceLine(summary)}
-            </p>
-          )}
-          {renewalLine(summary) && (
-            <p className="mt-0.5 text-body-sm text-[color:var(--text-secondary)]">
-              {renewalLine(summary)}
-            </p>
-          )}
-        </div>
-
-        {pastDue && (
-          <p className="mt-3 rounded-md border border-[color:var(--border-default)] px-3 py-2 text-body-sm">
-            Payment failed. Update billing to keep your monthly credits.
-          </p>
-        )}
-
-        <div className="mt-6">
-          <p className="text-display-md tabular-nums text-[color:var(--text-primary)]">
-            {summary.credits.available}
-          </p>
-          <p className="text-body-sm text-[color:var(--text-tertiary)]">credits remaining</p>
-
-          {isPaid ? (
-            <>
-              <div className="mt-5">
-                <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
-                  <span>Included this month</span>
-                  <span className="tabular-nums text-[color:var(--text-primary)]">
-                    {summary.credits.plan} / {summary.credits.allocation}
-                  </span>
-                </div>
-                <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
-                  <div
-                    className="h-full rounded-full bg-[color:var(--text-primary)]"
-                    style={{ width: `${includedPct}%` }}
-                  />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
-                <span>Extra credits</span>
-                <span className="tabular-nums text-[color:var(--text-primary)]">
-                  {summary.credits.extra}
-                </span>
-              </div>
-              {refreshDate && (
-                <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">
-                  Credits refresh {refreshDate}.
-                </p>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="mt-5 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
-                <span>Starter credits</span>
-                <span className="tabular-nums text-[color:var(--text-primary)]">
-                  {starterFraction ?? summary.credits.extra}
-                </span>
-              </div>
-              <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">
-                Starter credits do not refresh.
+          <div className="mt-3">
+            <p className="text-heading-sm">{planTitle(summary)}</p>
+            {priceLine(summary) && (
+              <p className="mt-0.5 text-body-sm text-[color:var(--text-secondary)]">
+                {priceLine(summary)}
               </p>
-            </>
-          )}
-
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => openBuyCredits("account")}>
-              Buy credits
-            </Button>
-            {summary.hasStripeCustomer && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  openBillingPortal().catch(() => toast.error("Could not open billing."))
-                }
-              >
-                Manage billing →
-              </Button>
             )}
-            {summary.plan !== "max" && (
-              <Button variant="outline" size="sm" onClick={() => setShowPlans((v) => !v)}>
-                {showPlans
-                  ? "Hide plans"
-                  : summary.plan === "pro"
-                    ? "Upgrade to Max →"
-                    : "View plans →"}
-              </Button>
+            {renewalLine(summary) && (
+              <p className="mt-0.5 text-body-sm text-[color:var(--text-secondary)]">
+                {renewalLine(summary)}
+              </p>
             )}
           </div>
-          {showPlans && (
-            <div className="pt-6">
-              <PlanCards
-                interval={interval}
-                onIntervalChange={setIntervalState}
-                currentPlan={summary.plan}
-                hideFree
-                hidePacks
-              />
-            </div>
-          )}
-        </div>
-      </section>
 
-      <section className="mt-8 flex items-center justify-between gap-4 border-t border-[color:var(--border-subtle)] pt-6">
-        <div>
-          <p className="eyebrow">SIGN IN</p>
-          <p className="mt-1.5 text-body-sm text-[color:var(--text-secondary)]">
-            {signedInWithLabel(summary.provider)}
-          </p>
-          {summary.email && (
-            <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
+          {pastDue && (
+            <p className="mt-3 rounded-md border border-[color:var(--border-default)] px-3 py-2 text-body-sm">
+              Payment failed. Update billing to keep your monthly credits.
+            </p>
           )}
-        </div>
-        <Button variant="outline" size="sm" onClick={() => void handleSignOut()}>
-          {AUTH_COPY.signOut}
-        </Button>
-      </section>
+
+          <div className="mt-6">
+            <p className="text-display-md tabular-nums text-[color:var(--text-primary)]">
+              {summary.credits.available}
+            </p>
+            <p className="text-body-sm text-[color:var(--text-tertiary)]">credits remaining</p>
+
+            {isPaid ? (
+              <>
+                <div className="mt-5">
+                  <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+                    <span>Included this month</span>
+                    <span className="tabular-nums text-[color:var(--text-primary)]">
+                      {summary.credits.plan} / {summary.credits.allocation}
+                    </span>
+                  </div>
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
+                    <div
+                      className="h-full rounded-full bg-[color:var(--text-primary)]"
+                      style={{ width: `${includedPct}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+                  <span>Extra credits</span>
+                  <span className="tabular-nums text-[color:var(--text-primary)]">
+                    {summary.credits.extra}
+                  </span>
+                </div>
+                {refreshDate && (
+                  <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">
+                    Credits refresh {refreshDate}.
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="mt-5 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+                  <span>Starter credits</span>
+                  <span className="tabular-nums text-[color:var(--text-primary)]">
+                    {starterFraction ?? summary.credits.extra}
+                  </span>
+                </div>
+                <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">
+                  Starter credits do not refresh.
+                </p>
+              </>
+            )}
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => openBuyCredits("account")}>
+                Buy credits
+              </Button>
+              {summary.hasStripeCustomer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    openBillingPortal().catch(() => toast.error("Could not open billing."))
+                  }
+                >
+                  Manage billing →
+                </Button>
+              )}
+              {summary.plan !== "max" && (
+                <Button variant="outline" size="sm" onClick={() => setShowPlans((v) => !v)}>
+                  {showPlans
+                    ? "Hide plans"
+                    : summary.plan === "pro"
+                      ? "Upgrade to Max →"
+                      : "View plans →"}
+                </Button>
+              )}
+            </div>
+            {showPlans && (
+              <div className="pt-6">
+                <PlanCards
+                  interval={interval}
+                  onIntervalChange={setIntervalState}
+                  currentPlan={summary.plan}
+                  hideFree
+                  hidePacks
+                />
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="flex flex-col justify-between gap-4 rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
+          <div>
+            <p className="eyebrow">ACCOUNT ACCESS</p>
+            <p className="mt-3 text-body-sm text-[color:var(--text-secondary)]">
+              Signed in with {signedInWithLabel(summary.provider)}
+            </p>
+            {summary.email && (
+              <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
+            )}
+          </div>
+          <div>
+            <Button variant="outline" size="sm" onClick={() => void handleSignOut()}>
+              {AUTH_COPY.signOut}
+            </Button>
+          </div>
+        </section>
+      </div>
 
       <section className="mt-8 border-t border-[color:var(--border-subtle)] pt-6">
-        <div className="rounded-lg border border-red-200 bg-red-50/40 p-4">
-          <p className="eyebrow text-red-700">Delete account</p>
-          <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
-            Permanently delete your account, creations, references, and credits. This cannot be
-            undone.
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
-            onClick={() => setConfirmOpen(true)}
-          >
-            Delete account
-          </Button>
-        </div>
+        <p className="eyebrow text-red-700">Delete account</p>
+        <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
+          Permanently delete your account, creations, references, and credits. This cannot be
+          undone.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
+          onClick={() => setConfirmOpen(true)}
+        >
+          Delete account
+        </Button>
       </section>
 
       <Dialog open={confirmOpen} onOpenChange={(o) => !deleting && setConfirmOpen(o)}>

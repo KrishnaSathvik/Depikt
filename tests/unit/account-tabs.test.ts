@@ -152,7 +152,7 @@ test("Account tab shows Plan & Credits, sign-in details, and account deletion --
   for (const s of [
     "PLAN &amp; CREDITS",
     "credits remaining",
-    "SIGN IN",
+    "ACCOUNT ACCESS",
     "Delete account",
     "signedInWithLabel",
   ]) {

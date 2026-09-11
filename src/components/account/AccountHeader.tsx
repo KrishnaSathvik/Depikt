@@ -15,6 +15,11 @@ import type { AccountSummaryResponse } from "@/routes/api/billing/account";
  * to open the DiceBear picker, tap the pencil next to the name to edit
  * display name/username -- never a duplicate "Profile picture" or name
  * form buried in a tab's content.
+ *
+ * One horizontal row on every breakpoint (no centered mobile stack -- that
+ * wasted half a screen for no reason). The plan/credits summary sits to
+ * the right of the name on desktop where there's room, and drops under the
+ * username on narrow screens rather than fighting for a third column.
  */
 export function AccountHeader({ summary }: { summary: AccountSummaryResponse | null }) {
   const { user } = useAuth();
@@ -27,22 +32,27 @@ export function AccountHeader({ summary }: { summary: AccountSummaryResponse | n
     : null;
 
   return (
-    <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
-      <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
-        {profile && (
-          <button
-            type="button"
-            onClick={() => setAvatarOpen(true)}
-            disabled={!user}
-            aria-label="Change avatar"
-            className="group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
-          >
-            <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={72} />
-            <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
-              <Pencil className="h-4 w-4 text-white" />
-            </span>
-          </button>
-        )}
+    <div className="flex items-center gap-3.5 sm:gap-4">
+      {profile && (
+        <button
+          type="button"
+          onClick={() => setAvatarOpen(true)}
+          disabled={!user}
+          aria-label="Change avatar"
+          className="group relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
+        >
+          <DepiktAvatar
+            seed={profile.avatarSeed}
+            style={profile.avatarVariant}
+            size={64}
+            className="h-16 w-16 sm:h-14 sm:w-14"
+          />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
+            <Pencil className="h-4 w-4 text-white" />
+          </span>
+        </button>
+      )}
+      <div className="flex min-w-0 flex-1 items-start justify-between gap-3">
         <div className="min-w-0">
           <button
             type="button"
@@ -60,13 +70,18 @@ export function AccountHeader({ summary }: { summary: AccountSummaryResponse | n
           {profile && (
             <p className="text-body-sm text-[color:var(--text-tertiary)]">@{profile.username}</p>
           )}
+          {creditsLabel && (
+            <p className="mt-0.5 text-body-sm font-medium text-[color:var(--text-secondary)] sm:hidden">
+              {creditsLabel}
+            </p>
+          )}
         </div>
+        {creditsLabel && (
+          <p className="hidden shrink-0 text-body-sm font-medium text-[color:var(--text-secondary)] sm:block">
+            {creditsLabel}
+          </p>
+        )}
       </div>
-      {creditsLabel && (
-        <p className="text-body-sm font-medium text-[color:var(--text-secondary)]">
-          {creditsLabel}
-        </p>
-      )}
 
       {profile && user && (
         <AvatarPickerDialog

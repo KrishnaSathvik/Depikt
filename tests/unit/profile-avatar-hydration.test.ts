@@ -24,19 +24,32 @@ test("AccountMenu never guesses an identity (email initial) while the profile is
 
 test("AccountMenu's loading placeholder is neutral, not a default/guessed DiceBear avatar", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
-  const triggerBlock = src.slice(
-    src.indexOf("DropdownMenuTrigger"),
-    src.indexOf("</DropdownMenuTrigger>"),
+  // avatarNode is the one trigger visual shared by the desktop dropdown and
+  // the mobile sheet button -- its unresolved-profile branch must be a
+  // plain neutral element, never a second DepiktAvatar call (which would
+  // render a default/placeholder seed that itself gets swapped out once
+  // the real avatar loads).
+  const avatarNodeBlock = src.slice(
+    src.indexOf("const avatarNode ="),
+    src.indexOf("const identity ="),
   );
-  // The unresolved-profile branch must be a plain neutral element, never a
-  // second DepiktAvatar call (which would render a default/placeholder seed
-  // that itself gets swapped out once the real avatar loads).
-  const fallbackBranch = triggerBlock.slice(triggerBlock.indexOf(") : ("));
+  const fallbackBranch = avatarNodeBlock.slice(avatarNodeBlock.indexOf(") : ("));
+  assert.ok(fallbackBranch.length > 0, "expected an else-branch after avatarNode's ternary");
   assert.ok(
     !/DepiktAvatar/.test(fallbackBranch),
     "loading fallback must not render any avatar identity",
   );
   assert.match(fallbackBranch, /aria-hidden="true"/);
+});
+
+test("AccountMenu swaps the desktop dropdown for a mobile bottom sheet, not a bigger dropdown", () => {
+  const src = read("src/components/auth/AccountMenu.tsx");
+  assert.match(src, /useIsMobile\(\)/);
+  assert.match(src, /from "@\/components\/ui\/sheet"/);
+  assert.match(src, /side="bottom"/);
+  // The same trigger (avatarNode) opens either surface -- no separate,
+  // larger avatar/identity element exists just for the mobile case.
+  assert.match(src, /if \(isMobile\) \{/);
 });
 
 test("profile hydration cache is scoped by user id and never returns a mismatched row", () => {
