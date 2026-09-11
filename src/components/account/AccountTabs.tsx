@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ScrollRow } from "@/components/ScrollRow";
 import { useAuth } from "@/lib/auth-context";
+import { useProfile } from "@/lib/profile/profile-context";
 import { AUTH_COPY } from "@/lib/product";
 import { cn } from "@/lib/utils";
 import { ACCOUNT_TABS, isAccountTabId, type AccountTabId } from "@/lib/profile/account-tabs";
@@ -8,13 +9,17 @@ import { ACCOUNT_TABS, isAccountTabId, type AccountTabId } from "@/lib/profile/a
 export { ACCOUNT_TABS, isAccountTabId, type AccountTabId };
 
 const linkClassName =
-  "shrink-0 snap-start whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]";
+  "shrink-0 snap-start whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors";
 
 /**
- * Mobile: a compact horizontal tab row (ScrollRow, same pattern as the
- * header's mobile nav). Desktop uses AccountRail instead — see account.tsx,
- * which renders this only below `lg`. Sign out trails the three tabs so
- * mobile visitors have the same access AccountRail gives desktop.
+ * Mobile: name/username above a pill-style tab row, with Sign out set apart
+ * to its right -- not another item in the tab scroll. No avatar here: the
+ * header directly above already shows it, and Profile's own "Profile
+ * picture" section shows it again right below -- a third copy in between
+ * was pure repetition, not identity context. Pills (rather than the
+ * header's own underline style) keep this row visually distinct from
+ * Header's mobile nav immediately above it. Desktop uses AccountRail
+ * instead — see account.tsx, which renders this only below `lg`.
  */
 export function AccountTabs({
   active,
@@ -23,6 +28,7 @@ export function AccountTabs({
   active: AccountTabId;
   onChange: (id: AccountTabId) => void;
 }) {
+  const { profile } = useProfile();
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -32,31 +38,51 @@ export function AccountTabs({
   }
 
   return (
-    <ScrollRow
-      as="nav"
-      ariaLabel="Account sections"
-      activeKey={active}
-      innerClassName="gap-1 border-b border-[color:var(--border-subtle)]"
-    >
-      {ACCOUNT_TABS.map((t) => (
-        <button
-          key={t.id}
-          type="button"
-          data-active={t.id === active ? "true" : undefined}
-          aria-current={t.id === active ? "page" : undefined}
-          onClick={() => onChange(t.id)}
-          className={cn(
-            linkClassName,
-            t.id === active &&
-              "border-[color:var(--text-primary)] text-[color:var(--text-primary)]",
+    <div>
+      <div className="flex items-center justify-between gap-3 pb-4">
+        <div className="min-w-0">
+          <p className="truncate text-[14px] font-medium text-[color:var(--text-primary)]">
+            {profile?.displayName ?? "Depikt Creator"}
+          </p>
+          {profile && (
+            <p className="truncate text-[12px] text-[color:var(--text-tertiary)]">
+              @{profile.username}
+            </p>
           )}
+        </div>
+        <button
+          type="button"
+          onClick={() => void handleSignOut()}
+          className="shrink-0 text-[13px] font-medium text-[color:var(--text-tertiary)] transition-colors hover:text-[color:var(--text-primary)]"
         >
-          {t.label}
+          {AUTH_COPY.signOut}
         </button>
-      ))}
-      <button type="button" onClick={() => void handleSignOut()} className={linkClassName}>
-        {AUTH_COPY.signOut}
-      </button>
-    </ScrollRow>
+      </div>
+
+      <ScrollRow
+        as="nav"
+        ariaLabel="Account sections"
+        activeKey={active}
+        innerClassName="gap-1.5 border-b border-[color:var(--border-subtle)] pb-4"
+      >
+        {ACCOUNT_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            data-active={t.id === active ? "true" : undefined}
+            aria-current={t.id === active ? "page" : undefined}
+            onClick={() => onChange(t.id)}
+            className={cn(
+              linkClassName,
+              t.id === active
+                ? "bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+                : "bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]",
+            )}
+          >
+            {t.label}
+          </button>
+        ))}
+      </ScrollRow>
+    </div>
   );
 }
