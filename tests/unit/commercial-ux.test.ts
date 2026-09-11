@@ -139,10 +139,10 @@ test("generation exposes creditState and hosts render the shared panel", () => {
 
 // ---------- account ----------
 
-// /account is now Overview/Creations/Profile/Plan & Credits tabs (the
-// profile + creations account phase) rather than one long page — the
-// former PLAN/CREDITS/USAGE sections and delete flow now live in
-// PlanTab.tsx and ProfileTab.tsx respectively; see tests/unit/account-*.
+// /account is now Creations/Account (identity lives in AccountHeader above
+// both, not a Profile tab; Plan & Credits merged into Account alongside
+// sign-in details and deletion) rather than one long page or a three/four
+// tab set — see tests/unit/account-*.
 test("/account confirms checkout server-side and stays noindex", () => {
   const src = read("src/routes/account.tsx");
   assert.match(src, /confirmCheckout\(/);
@@ -152,15 +152,15 @@ test("/account confirms checkout server-side and stays noindex", () => {
   assert.doesNotMatch(src, /recharts|<Chart/);
 });
 
-test("Plan & Credits tab has the plan/credits sections and billing actions", () => {
-  const src = read("src/components/account/PlanTab.tsx");
+test("Account tab has the plan/credits sections and billing actions", () => {
+  const src = read("src/components/account/AccountTab.tsx");
   for (const s of ["PLAN", "CREDITS", "Manage billing", "Buy credits"]) {
     assert.match(src, new RegExp(s), s);
   }
 });
 
-test("Profile tab has a deliberate, typed-confirmation delete flow", () => {
-  const src = read("src/components/account/ProfileTab.tsx");
+test("Account tab has a deliberate, typed-confirmation delete flow", () => {
+  const src = read("src/components/account/AccountTab.tsx");
   assert.match(src, /Delete account/);
   assert.match(src, /Type DELETE to continue|type DELETE/i);
   assert.match(src, /account_deleted/);
@@ -172,14 +172,15 @@ test("Profile tab has a deliberate, typed-confirmation delete flow", () => {
   assert.match(api, /authenticateGenerationRequest\(request\)/);
 });
 
-test("sign out is available from Profile, using the shared auth copy", () => {
+test("sign out is available from the Account tab, using the shared auth copy", () => {
   // Overview (which also offered sign out) was removed, then the header's
-  // AccountMenu dropdown that took over sign out was itself removed, then
-  // the desktop rail/mobile tab row that took it over next was replaced by
-  // one shared AccountHeader + AccountNav (see tests/unit/account-tabs.
-  // test.ts) -- Sign out now lives at the bottom of Profile, set apart from
-  // account navigation rather than mixed into it.
-  assert.match(read("src/components/account/ProfileTab.tsx"), /AUTH_COPY\.signOut/);
+  // AccountMenu dropdown that took over sign out was itself removed and
+  // later reinstated as fast navigation (not a duplicate account
+  // architecture), then a desktop rail/mobile tab row, then a Profile tab
+  // -- Sign out now lives at the bottom of the Account tab, set apart from
+  // account navigation rather than mixed into it (see tests/unit/
+  // account-tabs.test.ts).
+  assert.match(read("src/components/account/AccountTab.tsx"), /AUTH_COPY\.signOut/);
 });
 
 // ---------- help / legal ----------

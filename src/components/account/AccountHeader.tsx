@@ -1,18 +1,26 @@
+import { useState } from "react";
+import { Pencil } from "lucide-react";
 import { DepiktAvatar } from "@/components/profile/DepiktAvatar";
+import { AvatarPickerDialog } from "@/components/account/AvatarPickerDialog";
+import { EditProfileDialog } from "@/components/account/EditProfileDialog";
+import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile/profile-context";
 import { PLAN_LABEL } from "@/lib/billing/plans";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 /**
- * The one identity block for /account: avatar, name, username, plan +
- * credits. Centered stack on mobile, a row with plan/credits pushed right
- * on desktop -- same content either way, so Creations/Profile/Plan &
- * Credits never need to repeat who's signed in or what plan they're on.
- * Replaces the old AccountRail (a permanent left sidebar, weak for exactly
- * three sections) and the identity line that used to open AccountTabs.
+ * The one identity block for /account, above both Creations and Account --
+ * there is no separate Profile page. Avatar, name, username, plan +
+ * credits, all in one place. Editing happens here directly: tap the avatar
+ * to open the DiceBear picker, tap the pencil next to the name to edit
+ * display name/username -- never a duplicate "Profile picture" or name
+ * form buried in a tab's content.
  */
 export function AccountHeader({ summary }: { summary: AccountSummaryResponse | null }) {
-  const { profile } = useProfile();
+  const { user } = useAuth();
+  const { profile, save } = useProfile();
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const creditsLabel = summary
     ? `${PLAN_LABEL[summary.plan]} · ${summary.credits.available} credit${summary.credits.available === 1 ? "" : "s"}`
@@ -22,12 +30,33 @@ export function AccountHeader({ summary }: { summary: AccountSummaryResponse | n
     <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left">
       <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
         {profile && (
-          <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={72} />
+          <button
+            type="button"
+            onClick={() => setAvatarOpen(true)}
+            disabled={!user}
+            aria-label="Change avatar"
+            className="group relative rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
+          >
+            <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={72} />
+            <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
+              <Pencil className="h-4 w-4 text-white" />
+            </span>
+          </button>
         )}
         <div className="min-w-0">
-          <p className="text-heading-sm text-[color:var(--text-primary)]">
-            {profile?.displayName ?? "Depikt Creator"}
-          </p>
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            disabled={!profile}
+            className="group inline-flex items-center gap-1.5"
+          >
+            <span className="text-heading-sm text-[color:var(--text-primary)]">
+              {profile?.displayName ?? "Depikt Creator"}
+            </span>
+            {profile && (
+              <Pencil className="h-3.5 w-3.5 text-[color:var(--text-tertiary)] opacity-0 transition-opacity group-hover:opacity-100" />
+            )}
+          </button>
           {profile && (
             <p className="text-body-sm text-[color:var(--text-tertiary)]">@{profile.username}</p>
           )}
@@ -38,6 +67,20 @@ export function AccountHeader({ summary }: { summary: AccountSummaryResponse | n
           {creditsLabel}
         </p>
       )}
+
+      {profile && user && (
+        <AvatarPickerDialog
+          open={avatarOpen}
+          onOpenChange={setAvatarOpen}
+          userId={user.id}
+          currentSeed={profile.avatarSeed}
+          currentStyle={profile.avatarVariant}
+          onSave={async ({ seed, style }) => {
+            await save({ avatarSeed: seed, avatarVariant: style });
+          }}
+        />
+      )}
+      <EditProfileDialog open={editOpen} onOpenChange={setEditOpen} />
     </div>
   );
 }

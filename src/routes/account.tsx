@@ -7,8 +7,7 @@ import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
 import { AccountHeader } from "@/components/account/AccountHeader";
 import { AccountNav } from "@/components/account/AccountNav";
 import { CreationsTab } from "@/components/account/CreationsTab";
-import { ProfileTab } from "@/components/account/ProfileTab";
-import { PlanTab } from "@/components/account/PlanTab";
+import { AccountTab } from "@/components/account/AccountTab";
 import { useAuth } from "@/lib/auth-context";
 import { confirmCheckout, getAccountSummary } from "@/lib/billing/client";
 import { CATALOG, isProductKey } from "@/lib/billing/plans";
@@ -49,8 +48,8 @@ function AccountPage() {
   const [summary, setSummary] = useState<AccountSummaryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // No tab in the URL (e.g. the header avatar's identity click) -> Profile;
-  // an explicit ?tab= (e.g. "My creations" in the account menu) wins.
+  // No tab in the URL (e.g. the header avatar's identity click) -> Account;
+  // an explicit ?tab= (e.g. "Creations" in the account menu) wins.
   const activeTab: AccountTabId = tab ?? DEFAULT_ACCOUNT_TAB;
   function setActiveTab(next: AccountTabId) {
     trackEvent("account_tab_changed", {});
@@ -110,7 +109,7 @@ function AccountPage() {
       } finally {
         if (!cancelled) {
           void load();
-          void navigate({ to: ROUTES.account, search: { tab: "plan" }, replace: true });
+          void navigate({ to: ROUTES.account, search: { tab: "account" }, replace: true });
         }
       }
     })();
@@ -148,8 +147,7 @@ function AccountPage() {
         <div className="mt-8">
           {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
           {activeTab === "creations" && <CreationsTab />}
-          {activeTab === "profile" && <ProfileTab summary={summary} />}
-          {activeTab === "plan" && <PlanTab summary={summary} />}
+          {activeTab === "account" && <AccountTab summary={summary} />}
         </div>
       </main>
       <Footer />
