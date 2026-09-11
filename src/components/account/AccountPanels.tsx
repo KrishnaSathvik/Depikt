@@ -1,19 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { PlanCards } from "@/components/billing/PlanCards";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
-import { useAuth } from "@/lib/auth-context";
-import { openBillingPortal, clearLocalUserData, deleteAccount } from "@/lib/billing/client";
+import { openBillingPortal } from "@/lib/billing/client";
 import { formatLongDate, formatShortDate } from "@/lib/billing/credit-state";
 import {
   PLAN_LABEL,
@@ -23,8 +13,6 @@ import {
   type BillingInterval,
   type PaidPlanKey,
 } from "@/lib/billing/plans";
-import { trackEvent } from "@/lib/analytics";
-import { AUTH_COPY } from "@/lib/product";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 /** "google" -> "Google", "azure" -> "Microsoft" (Supabase's provider id for
@@ -66,42 +54,17 @@ function renewalLine(s: AccountSummaryResponse): string | null {
 }
 
 /**
- * Plan & Credits, sign-in details, and account deletion -- everything in
- * the Account tab/view that isn't the identity row itself (see
- * [[IdentityRow]], hosted separately by whoever renders this: the
- * full-page Account tab and the AccountHub's "account" view both mount
- * this component and nothing else).
+ * Plan & Credits and sign-in details -- everything in the Account tab/view
+ * that isn't the identity row (see [[IdentityRow]]) and isn't Sign out or
+ * Delete account, both of which live only in the AccountHub's home view
+ * now (see [[DeleteAccountAction]]) rather than duplicated here. Hosted
+ * separately by whoever renders this: the full-page Account tab and the
+ * AccountHub's "account" view both mount this component and nothing else.
  */
 export function AccountPanels({ summary }: { summary: AccountSummaryResponse | null }) {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
   const { openBuyCredits } = useBuyCredits();
   const [showPlans, setShowPlans] = useState(false);
   const [interval, setIntervalState] = useState<BillingInterval>("month");
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
-  const [deleting, setDeleting] = useState(false);
-
-  async function handleSignOut() {
-    await signOut();
-    void navigate({ to: "/" });
-  }
-
-  async function handleDelete() {
-    if (confirmText !== "DELETE") return;
-    setDeleting(true);
-    try {
-      await deleteAccount();
-      trackEvent("account_deleted", {});
-      await clearLocalUserData();
-      await signOut();
-      toast.success("Your account has been deleted.");
-      void navigate({ to: "/", replace: true });
-    } catch {
-      setDeleting(false);
-      toast.error("Could not delete your account. Please try again.");
-    }
-  }
 
   if (!summary) {
     return <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>;
@@ -237,68 +200,16 @@ export function AccountPanels({ summary }: { summary: AccountSummaryResponse | n
           </div>
         </section>
 
-        <section className="flex flex-col justify-between gap-4 rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
-          <div>
-            <p className="eyebrow">ACCOUNT ACCESS</p>
-            <p className="mt-3 text-body-sm text-[color:var(--text-secondary)]">
-              Signed in with {signedInWithLabel(summary.provider)}
-            </p>
-            {summary.email && (
-              <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
-            )}
-          </div>
-          <div>
-            <Button variant="outline" size="sm" onClick={() => void handleSignOut()}>
-              {AUTH_COPY.signOut}
-            </Button>
-          </div>
+        <section className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
+          <p className="eyebrow">ACCOUNT ACCESS</p>
+          <p className="mt-3 text-body-sm text-[color:var(--text-secondary)]">
+            Signed in with {signedInWithLabel(summary.provider)}
+          </p>
+          {summary.email && (
+            <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
+          )}
         </section>
       </div>
-
-      <section className="mt-8 border-t border-[color:var(--border-subtle)] pt-6">
-        <p className="eyebrow text-red-700">Delete account</p>
-        <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
-          Permanently delete your account, creations, references, and credits. This cannot be
-          undone.
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="mt-3 border-red-300 text-red-700 hover:bg-red-100"
-          onClick={() => setConfirmOpen(true)}
-        >
-          Delete account
-        </Button>
-      </section>
-
-      <Dialog open={confirmOpen} onOpenChange={(o) => !deleting && setConfirmOpen(o)}>
-        <DialogContent className="max-w-[420px]">
-          <DialogTitle className="text-heading-sm">Delete your account?</DialogTitle>
-          <DialogDescription className="text-body-sm text-[color:var(--text-secondary)]">
-            This permanently removes your Depikt generations and account data. Any active
-            subscription is cancelled immediately. Type DELETE to continue.
-          </DialogDescription>
-          <Input
-            value={confirmText}
-            onChange={(e) => setConfirmText(e.target.value)}
-            placeholder="DELETE"
-            aria-label="Type DELETE to confirm"
-            autoComplete="off"
-          />
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmOpen(false)} disabled={deleting}>
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              disabled={confirmText !== "DELETE" || deleting}
-              onClick={() => void handleDelete()}
-            >
-              {deleting ? "Deleting…" : "Delete account"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

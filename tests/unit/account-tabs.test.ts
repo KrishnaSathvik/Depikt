@@ -170,12 +170,24 @@ test("identity (avatar + name/username) is edited via the AccountHub, from both 
   assert.match(editForm, /useProfile\(/);
 });
 
-test("Sign out lives in the Account panels and the Hub's home view, not mixed into account navigation", () => {
+test("Sign out and Delete account live only in the AccountHub's home view, not in the Account panels or navigation", () => {
   const panels = read("src/components/account/AccountPanels.tsx");
-  assert.match(panels, /AUTH_COPY\.signOut/);
-  assert.match(panels, /handleSignOut/);
+  assert.doesNotMatch(
+    panels,
+    /AUTH_COPY\.signOut/,
+    "Sign out must not be duplicated in AccountPanels -- it's a profile-level action, home view only",
+  );
+  assert.doesNotMatch(
+    panels,
+    /confirmOpen|deleteAccount\(/,
+    "the delete-account confirm flow must not be duplicated in AccountPanels -- see DeleteAccountAction",
+  );
   const hub = read("src/components/account/AccountHub.tsx");
   assert.match(hub, /AUTH_COPY\.signOut/);
+  assert.match(hub, /<DeleteAccountAction/);
+  const deleteAction = read("src/components/account/DeleteAccountAction.tsx");
+  assert.match(deleteAction, /deleteAccount\(/);
+  assert.match(deleteAction, /Type DELETE to confirm|type DELETE/i);
   assert.doesNotMatch(
     read("src/components/account/AccountNav.tsx"),
     /signOut/i,
@@ -183,13 +195,12 @@ test("Sign out lives in the Account panels and the Hub's home view, not mixed in
   );
 });
 
-test("Account panels show Plan & Credits, sign-in details, and account deletion -- everything that isn't a creation or identity edit", () => {
+test("Account panels show Plan & Credits and sign-in details -- everything that isn't a creation, identity edit, sign out, or account deletion", () => {
   const src = read("src/components/account/AccountPanels.tsx");
   for (const s of [
     "PLAN &amp; CREDITS",
     "credits remaining",
     "ACCOUNT ACCESS",
-    "Delete account",
     "signedInWithLabel",
   ]) {
     assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);

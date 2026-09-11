@@ -160,7 +160,7 @@ test("Account tab has the plan/credits sections and billing actions", () => {
 });
 
 test("Account tab has a deliberate, typed-confirmation delete flow", () => {
-  const src = read("src/components/account/AccountPanels.tsx");
+  const src = read("src/components/account/DeleteAccountAction.tsx");
   assert.match(src, /Delete account/);
   assert.match(src, /Type DELETE to continue|type DELETE/i);
   assert.match(src, /account_deleted/);
@@ -172,15 +172,14 @@ test("Account tab has a deliberate, typed-confirmation delete flow", () => {
   assert.match(api, /authenticateGenerationRequest\(request\)/);
 });
 
-test("sign out is available from the Account panels and the AccountHub, using the shared auth copy", () => {
+test("sign out is available from the AccountHub's home view, using the shared auth copy", () => {
   // Overview (which also offered sign out) was removed, then the header's
   // AccountMenu dropdown that took over sign out was itself removed and
   // reinstated a few times over, then folded into a single AccountHub --
-  // Sign out now lives at the bottom of the Account panels (reused by both
-  // the full-page Account tab and the Hub's "account" view) and again in
-  // the Hub's own home view, set apart from account navigation rather than
-  // mixed into it (see tests/unit/account-tabs.test.ts).
-  assert.match(read("src/components/account/AccountPanels.tsx"), /AUTH_COPY\.signOut/);
+  // Sign out (and Delete account) now live only at the bottom of the Hub's
+  // home view, a profile-level action set apart from account navigation
+  // and not duplicated in the Account panels (see tests/unit/
+  // account-tabs.test.ts).
   assert.match(read("src/components/account/AccountHub.tsx"), /AUTH_COPY\.signOut/);
 });
 
@@ -283,25 +282,20 @@ test("privacy and terms cover the required subjects, invent no owner details, an
 
 // ---------- footer / header ----------
 
-test("footer has the three restrained columns and no stale tagline", () => {
+test("footer has the two restrained columns, no stale tagline, no Help/Privacy/Terms (those live in the AccountHub now)", () => {
   const src = read("src/components/Footer.tsx");
-  for (const s of [
-    "Resources",
-    "Account",
-    "Legal",
-    "ROUTES.pricing",
-    "ROUTES.help",
-    "ROUTES.privacy",
-    "ROUTES.terms",
-    "/templates",
-    "MCP.pagePath",
-  ]) {
+  for (const s of ["Resources", "Account", "ROUTES.pricing", "/templates", "MCP.pagePath"]) {
     assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
   }
   // No Product column: it only duplicated the header nav.
   assert.doesNotMatch(src, /title="Product"/);
   assert.doesNotMatch(src, /A workspace for better image prompts\./);
   assert.doesNotMatch(src, /Sign up/);
+  // No Legal column -- Help/Privacy/Terms moved to the AccountHub home view.
+  assert.doesNotMatch(src, /title="Legal"/);
+  assert.doesNotMatch(src, /ROUTES\.help/);
+  assert.doesNotMatch(src, /ROUTES\.privacy/);
+  assert.doesNotMatch(src, /ROUTES\.terms/);
   assert.match(src, /useAuth\(\)/, "signed-in footer shows Account instead of Sign in");
 });
 

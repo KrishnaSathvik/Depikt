@@ -25,23 +25,19 @@ function Column({ title, links }: { title: string; links: FooterLink[] }) {
 }
 
 /**
- * Restrained three-column footer. No Product column: the header nav
- * already covers Library/Prompt/Generate/Gallery, so repeating it here was
- * just noise. Templates and MCP live here (never in the primary header);
- * the Account column shows Pricing, then Sign in or Account depending on
+ * Restrained two-column footer. No Product column: the header nav already
+ * covers Library/Prompt/Generate/Gallery, so repeating it here was just
+ * noise. Templates and MCP live here (never in the primary header); the
+ * Account column shows Pricing, then Sign in or Account depending on
  * session. White, hairline, no tagline.
  *
- * Favorites/History are NOT here -- a global utility link buried at the
- * bottom of every page is the wrong home for something people reach for
- * mid-task. They're linked from where the data is actually created/used
- * instead: the Library header (favoriting) and the header's account menu
- * for signed-in users. See src/routes/favorites.tsx, history.tsx.
- *
- * Mobile/tablet (below lg): a balanced two-column grid — Resources in one
- * column, Account+Legal stacked together in the other (three items don't
- * split evenly into two, so Account and Legal share a column rather than
- * leaving Legal wrapping alone under Resources). Desktop (lg+): three
- * separate columns, via `lg:contents` releasing the pair back into the grid.
+ * No Help/Privacy/Terms column -- those live in the AccountHub's home view
+ * now (opened from the header avatar), so repeating them down here was
+ * redundant. Favorites/History are NOT here either, for the same "wrong
+ * home for something people reach for mid-task" reason -- they're linked
+ * from where the data is actually created/used instead: the Library header
+ * (favoriting) and the header's account menu for signed-in users. See
+ * src/routes/favorites.tsx, history.tsx.
  */
 export function Footer() {
   const { user } = useAuth();
@@ -49,26 +45,18 @@ export function Footer() {
     { to: ROUTES.blog, label: TOOL.blog },
     { to: "/templates", label: TOOL.templates },
     { to: MCP.pagePath, label: "MCP" },
-    { to: ROUTES.help, label: "Help" },
   ];
   const account: FooterLink[] = [
     { to: ROUTES.pricing, label: "Pricing" },
     user ? { to: ROUTES.account, label: "Account" } : { to: ROUTES.signIn, label: "Sign in" },
   ];
-  const legal: FooterLink[] = [
-    { to: ROUTES.privacy, label: "Privacy" },
-    { to: ROUTES.terms, label: "Terms" },
-  ];
 
   return (
     <footer className="border-t border-[color:var(--border-subtle)] bg-[color:var(--bg)]">
       <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 lg:px-12">
-        <div className="grid grid-cols-2 gap-8 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-8">
           <Column title="Resources" links={resources} />
-          <div className="space-y-6 lg:contents">
-            <Column title="Account" links={account} />
-            <Column title="Legal" links={legal} />
-          </div>
+          <Column title="Account" links={account} />
         </div>
         <div className="mt-10 flex items-baseline gap-3 border-t border-[color:var(--border-subtle)] pt-6">
           <span className="text-[15px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">

@@ -9,6 +9,7 @@ import { CreationDetailView } from "@/components/account/CreationDetailView";
 import { AccountPanels } from "@/components/account/AccountPanels";
 import { EditProfileForm } from "@/components/account/EditProfileForm";
 import { AvatarPickerBody } from "@/components/account/AvatarPickerBody";
+import { DeleteAccountAction } from "@/components/account/DeleteAccountAction";
 import { useAccountHub, type HubView } from "@/components/account/AccountHubProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/lib/auth-context";
@@ -99,14 +100,7 @@ function HomeView() {
       <div className="mt-4 border-t border-[color:var(--border-subtle)] pt-1">
         <HubRow onClick={() => hub.pushView("creations")}>Creations</HubRow>
         <HubRow onClick={() => hub.pushView("account")}>Account</HubRow>
-        <HubRow
-          onClick={() => {
-            hub.closeHub();
-            openBuyCredits("account_hub");
-          }}
-        >
-          Buy credits
-        </HubRow>
+        <HubRow onClick={() => openBuyCredits("account_hub")}>Buy credits</HubRow>
       </div>
 
       <div className="mt-2 border-t border-[color:var(--border-subtle)] pt-1">
@@ -130,13 +124,7 @@ function HomeView() {
         >
           {AUTH_COPY.signOut}
         </button>
-        <button
-          type="button"
-          onClick={() => hub.pushView("account")}
-          className="w-full rounded-md px-1 py-2 text-left text-[14px] font-medium text-red-700 hover:bg-red-50"
-        >
-          Delete account
-        </button>
+        <DeleteAccountAction />
       </div>
     </div>
   );
