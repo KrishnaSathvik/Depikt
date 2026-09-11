@@ -20,6 +20,19 @@ interface AuthContextType {
    * Lovable preview iframe it resolves after the popup completes.
    */
   signInWithProvider: (provider: AuthProviderId, redirectTo?: string) => Promise<SignInResult>;
+  /**
+   * Passwordless email — Supabase's own magic link/OTP, not Lovable's OAuth
+   * broker (Lovable's client only handles Google/Apple/Microsoft/Lovable).
+   * Never resolves `redirected: true`: this only sends the email: the
+   * session is established later, when the user opens the link and lands
+   * back on `redirectTo` (detectSessionInUrl picks it up automatically —
+   * see src/integrations/supabase/client.ts). `shouldCreateUser: false` on
+   * /sign-in so it never silently creates an account there.
+   */
+  signInWithEmail: (
+    email: string,
+    opts: { redirectTo?: string; shouldCreateUser: boolean },
+  ) => Promise<SignInResult>;
   signOut: () => Promise<void>;
 }
 
@@ -28,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signInWithProvider: async () => ({ ok: false, error: "Auth is not available" }),
+  signInWithEmail: async () => ({ ok: false, error: "Auth is not available" }),
   signOut: async () => {},
 });
 
@@ -105,13 +119,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { ok: true, redirected: Boolean(result.redirected) };
   };
 
+  const signInWithEmail = async (
+    email: string,
+    opts: { redirectTo?: string; shouldCreateUser: boolean },
+  ): Promise<SignInResult> => {
+    if (!isSupabaseConfigured()) return { ok: false, error: "Auth is not available" };
+    try {
+      sessionStorage.setItem(AUTH_STARTED_KEY, JSON.stringify({ provider: "email" }));
+    } catch {
+      /* ignore */
+    }
+    trackEvent("auth_started", { method: "email" });
+    const emailRedirectTo =
+      opts.redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo, shouldCreateUser: opts.shouldCreateUser },
+    });
+    if (error) {
+      try {
+        sessionStorage.removeItem(AUTH_STARTED_KEY);
+      } catch {
+        /* ignore */
+      }
+      return { ok: false, error: error.message };
+    }
+    return { ok: true, redirected: false };
+  };
+
   const signOut = async () => {
     if (!isSupabaseConfigured()) return;
     await supabase.auth.signOut();
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signInWithProvider, signOut }}>
+    <AuthContext.Provider
+      value={{ user, session, loading, signInWithProvider, signInWithEmail, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );

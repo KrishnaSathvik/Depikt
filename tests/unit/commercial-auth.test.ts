@@ -7,7 +7,11 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { safeNextPath } from "../../src/lib/auth/next-param.ts";
-import { AUTH_PROVIDERS, enabledAuthProviders } from "../../src/lib/auth/providers.ts";
+import {
+  AUTH_PROVIDERS,
+  enabledAuthProviders,
+  isEmailAuthEnabled,
+} from "../../src/lib/auth/providers.ts";
 import { ROUTES, SEO } from "../../src/lib/product.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
@@ -49,21 +53,33 @@ test("safeNextPath honors a custom fallback", () => {
 
 // ---------- providers ----------
 
-test("provider catalog is Google, Apple, Microsoft with visible labels", () => {
+test("provider catalog is Email + Google, Apple, Microsoft, Lovable with short labels", () => {
   assert.deepEqual(
     AUTH_PROVIDERS.map((p) => p.id),
-    ["google", "apple", "microsoft"],
+    ["google", "apple", "microsoft", "lovable"],
   );
-  for (const p of AUTH_PROVIDERS) assert.match(p.label, /^Continue with /);
+  // Short labels for the 2x2 grid ("Google", not "Continue with Google");
+  // AuthSurface itself supplies "Continue with email" for the email button.
+  for (const p of AUTH_PROVIDERS) assert.doesNotMatch(p.label, /^Continue with /);
+  assert.match(read("src/lib/product.ts"), /continueWithEmail: "Continue with email"/);
 });
 
-test("only Google is enabled by default; Apple and Microsoft need explicit flags", () => {
-  assert.deepEqual(enabledAuthProviders({}), ["google"]);
+test("all five methods (email + four OAuth providers) are enabled by default; each has its own override flag", () => {
+  assert.deepEqual(enabledAuthProviders({}), ["google", "apple", "microsoft", "lovable"]);
+  assert.ok(isEmailAuthEnabled({}));
   assert.deepEqual(
-    enabledAuthProviders({ VITE_AUTH_APPLE_ENABLED: "true", VITE_AUTH_MICROSOFT_ENABLED: "true" }),
-    ["google", "apple", "microsoft"],
+    enabledAuthProviders({
+      VITE_AUTH_APPLE_ENABLED: "false",
+      VITE_AUTH_MICROSOFT_ENABLED: "false",
+    }),
+    ["google", "lovable"],
   );
-  assert.deepEqual(enabledAuthProviders({ VITE_AUTH_GOOGLE_ENABLED: "false" }), []);
+  assert.deepEqual(enabledAuthProviders({ VITE_AUTH_GOOGLE_ENABLED: "false" }), [
+    "apple",
+    "microsoft",
+    "lovable",
+  ]);
+  assert.equal(isEmailAuthEnabled({ VITE_AUTH_EMAIL_ENABLED: "false" }), false);
 });
 
 // ---------- routes + SEO ----------
@@ -94,7 +110,7 @@ test("/sign-in and /sign-up routes exist, are noindex, and share AuthSurface", (
 
 // ---------- AuthSurface ----------
 
-test("AuthSurface has both modes, no email/password fields, and the sign-up legal line", () => {
+test("AuthSurface has both modes, passwordless email (magic link, never a password), and the sign-up legal line", () => {
   const src = read("src/components/auth/AuthSurface.tsx");
   const copy = read("src/lib/product.ts");
   assert.match(copy, /Sign in to Depikt/);
@@ -108,8 +124,21 @@ test("AuthSurface has both modes, no email/password fields, and the sign-up lega
   assert.match(src, /ROUTES\.terms/);
   assert.match(src, /ROUTES\.privacy/);
   assert.doesNotMatch(src, /type="password"/);
-  assert.doesNotMatch(src, /type="email"/);
-  assert.match(src, /enabledAuthProviders\(/, "buttons must come from the enabled-provider list");
+  assert.match(src, /type="email"/, "email is now a real input, not OAuth-only");
+  assert.match(
+    src,
+    /enabledAuthProviders\(/,
+    "OAuth buttons must come from the enabled-provider list",
+  );
+  assert.match(src, /isEmailAuthEnabled\(/, "email must also be feature-flag gated");
+  // /sign-in must never silently create an account via the email flow.
+  assert.match(src, /shouldCreateUser: isSignUp/);
+});
+
+test("email sign-in never creates an account; sign-up does", () => {
+  const ctx = read("src/lib/auth-context.tsx");
+  assert.match(ctx, /signInWithOtp/);
+  assert.match(ctx, /shouldCreateUser: opts\.shouldCreateUser/);
 });
 
 test("sign-in goes through auth-context, which wraps the Lovable OAuth client once", () => {
@@ -234,4 +263,48 @@ test("Pricing and Buy-credits keep the chosen plan/pack across auth instead of n
   assert.match(resume, /clearPendingCheckout\(\)/);
   assert.match(resume, /startCheckout\(/);
   assert.match(read("src/components/billing/BuyCreditsProvider.tsx"), /useResumeCheckoutOnAuth\(/);
+});
+
+// ---------- regression: single OAuth start per click ----------
+
+test("AuthGateDialog's OAuth click starts sign-in exactly once (skipOwnSignIn), email always through AuthSurface itself", () => {
+  const dialog = read("src/components/auth/AuthGateDialog.tsx");
+  assert.match(
+    dialog,
+    /skipOwnSignIn/,
+    "AuthGateDialog must opt AuthSurface out of its own OAuth call",
+  );
+  assert.match(dialog, /if \(provider !== "email"\) gen\.chooseAuthProvider\(provider\)/);
+
+  const surface = read("src/components/auth/AuthSurface.tsx");
+  // With skipOwnSignIn, an OAuth click must return before AuthSurface's own signInWithProvider call.
+  const startFnIdx = surface.indexOf("async function startProvider(");
+  const startFnBody = surface.slice(startFnIdx, surface.indexOf("\n  }\n", startFnIdx));
+  assert.match(startFnBody, /if \(skipOwnSignIn\) return;/);
+  const skipIdx = startFnBody.indexOf("if (skipOwnSignIn) return;");
+  const signInIdx = startFnBody.indexOf("await signInWithProvider(");
+  assert.ok(skipIdx > 0 && signInIdx > skipIdx, "the skip must guard the signInWithProvider call");
+  // Email has no equivalent caller-side starter, so it's never gated by skipOwnSignIn.
+  const emailFnIdx = surface.indexOf("async function submitEmail(");
+  const emailFnBody = surface.slice(emailFnIdx, surface.indexOf("\n  }\n", emailFnIdx));
+  assert.doesNotMatch(emailFnBody, /skipOwnSignIn/);
+});
+
+// ---------- brand marks ----------
+
+test("provider marks use real brand colors, not a monochrome placeholder", () => {
+  const src = read("src/components/auth/AuthSurface.tsx");
+  // Google's four-color G.
+  for (const hex of ["#4285F4", "#34A853", "#FBBC05", "#EA4335"]) assert.ok(src.includes(hex), hex);
+  // Microsoft's four-square mark.
+  for (const hex of ["#F25022", "#7FBA00", "#00A4EF", "#FFB900"]) assert.ok(src.includes(hex), hex);
+});
+
+test("the dialog close control is a plain 32px icon button, not a filled gray circle", () => {
+  const src = read("src/components/ui/dialog.tsx");
+  const closeIdx = src.indexOf("DialogPrimitive.Close className=");
+  const closeTag = src.slice(closeIdx, src.indexOf(">", closeIdx));
+  // bg-black/60 belongs to the overlay backdrop, not the close button itself.
+  assert.doesNotMatch(closeTag, /bg-black\/60/);
+  assert.match(src, /h-8 w-8/);
 });

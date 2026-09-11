@@ -52,7 +52,7 @@ export function BillingAuthDialog({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[70vh] overflow-y-auto rounded-t-2xl">
+        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
           <SheetTitle className="text-heading-sm">{headline}</SheetTitle>
           <SheetDescription className="sr-only">{headline}</SheetDescription>
           <div className="mt-4">{body}</div>
@@ -63,7 +63,7 @@ export function BillingAuthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[440px] p-8">
+      <DialogContent className="max-h-[85vh] max-w-[440px] overflow-y-auto p-8">
         <DialogTitle className="text-heading-sm">{headline}</DialogTitle>
         <DialogDescription className="sr-only">{headline}</DialogDescription>
         {body}

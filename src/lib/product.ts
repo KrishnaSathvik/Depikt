@@ -304,6 +304,17 @@ export const AUTH_COPY = {
   signIn: "Sign in",
   legalPrefix: "By continuing, you agree to the",
   signOut: "Sign out",
+  emailLabel: "Email",
+  emailPlaceholder: "you@example.com",
+  continueWithEmail: "Continue with email",
+  sendingLink: "Sending link…",
+  orContinueWith: "or continue with",
+  checkInboxTitle: "Check your inbox",
+  checkInboxBody: "We sent a sign-in link to",
+  useAnotherEmail: "Use another email",
+  resendPrompt: "Didn't get it?",
+  resendAction: "Resend",
+  emailNotFound: "No account found for that email. Try creating one instead.",
 } as const;
 
 // ---------- MCP integration (public, read-only) ----------
