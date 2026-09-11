@@ -9,6 +9,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getProfile, updateProfile, type ProfileResponse, type UpdateProfileInput } from "./client";
+import { readCachedProfile, writeCachedProfile } from "./cache";
 
 interface ProfileContextType {
   profile: ProfileResponse | null;
@@ -38,12 +39,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       return;
     }
-    setLoading(true);
+    // Hydrate synchronously from this user's last-known cache before the
+    // network round-trip resolves, so a page refresh repaints the same
+    // avatar/name instead of a transient placeholder. Only set `loading`
+    // when there's nothing cached to show yet.
+    const cached = readCachedProfile(user.id);
+    if (cached) {
+      setProfile(cached);
+    } else {
+      setLoading(true);
+    }
     try {
-      setProfile(await getProfile());
+      const fresh = await getProfile();
+      setProfile(fresh);
+      writeCachedProfile(user.id, fresh);
     } catch {
-      // Transient failure: header/menu fall back to a neutral avatar and
-      // the email-based initial; nothing here blocks the rest of the app.
+      // Transient failure: keep whatever was already shown (cached value,
+      // or the neutral loading placeholder) rather than blocking the rest
+      // of the app.
     } finally {
       setLoading(false);
     }
@@ -53,11 +66,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
-  const save = useCallback(async (input: UpdateProfileInput) => {
-    const next = await updateProfile(input);
-    setProfile(next);
-    return next;
-  }, []);
+  const save = useCallback(
+    async (input: UpdateProfileInput) => {
+      // Server round-trip completes (and the DB write is confirmed) before
+      // touching any shared/local state -- never close a picker or update
+      // the header on an optimistic guess.
+      const next = await updateProfile(input);
+      setProfile(next);
+      if (user) writeCachedProfile(user.id, next);
+      return next;
+    },
+    [user],
+  );
 
   return (
     <ProfileContext.Provider value={{ profile, loading, refresh, save }}>

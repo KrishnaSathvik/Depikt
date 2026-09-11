@@ -52,9 +52,14 @@ export function AccountMenu({ user }: { user: User }) {
             label={displayName}
           />
         ) : (
-          <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg)] text-[12px] font-semibold text-[color:var(--text-primary)]">
-            {(user.email ?? "?").charAt(0).toUpperCase()}
-          </span>
+          // Neutral loading placeholder only -- never guess an identity
+          // (an email initial, a default DiceBear seed) while the real
+          // profile is still in flight. Showing a wrong identity, even
+          // briefly, reads as the saved avatar having changed.
+          <span
+            aria-hidden="true"
+            className="block h-7 w-7 shrink-0 rounded-full bg-[color:var(--bg-subtle)]"
+          />
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
