@@ -1,12 +1,9 @@
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { ScrollRow } from "@/components/ScrollRow";
+import { useAuth } from "@/lib/auth-context";
+import { AUTH_COPY } from "@/lib/product";
 import { cn } from "@/lib/utils";
-import {
-  ACCOUNT_EXTERNAL_LINKS,
-  ACCOUNT_TABS,
-  isAccountTabId,
-  type AccountTabId,
-} from "@/lib/profile/account-tabs";
+import { ACCOUNT_TABS, isAccountTabId, type AccountTabId } from "@/lib/profile/account-tabs";
 
 export { ACCOUNT_TABS, isAccountTabId, type AccountTabId };
 
@@ -16,7 +13,8 @@ const linkClassName =
 /**
  * Mobile: a compact horizontal tab row (ScrollRow, same pattern as the
  * header's mobile nav). Desktop uses AccountRail instead — see account.tsx,
- * which renders this only below `lg`.
+ * which renders this only below `lg`. Sign out trails the three tabs so
+ * mobile visitors have the same access AccountRail gives desktop.
  */
 export function AccountTabs({
   active,
@@ -25,6 +23,14 @@ export function AccountTabs({
   active: AccountTabId;
   onChange: (id: AccountTabId) => void;
 }) {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await signOut();
+    void navigate({ to: "/" });
+  }
+
   return (
     <ScrollRow
       as="nav"
@@ -32,25 +38,7 @@ export function AccountTabs({
       activeKey={active}
       innerClassName="gap-1 border-b border-[color:var(--border-subtle)]"
     >
-      <button
-        type="button"
-        data-active={ACCOUNT_TABS[0].id === active ? "true" : undefined}
-        aria-current={ACCOUNT_TABS[0].id === active ? "page" : undefined}
-        onClick={() => onChange(ACCOUNT_TABS[0].id)}
-        className={cn(
-          linkClassName,
-          ACCOUNT_TABS[0].id === active &&
-            "border-[color:var(--text-primary)] text-[color:var(--text-primary)]",
-        )}
-      >
-        {ACCOUNT_TABS[0].label}
-      </button>
-      {ACCOUNT_EXTERNAL_LINKS.map((l) => (
-        <Link key={l.to} to={l.to} className={linkClassName}>
-          {l.label}
-        </Link>
-      ))}
-      {ACCOUNT_TABS.slice(1).map((t) => (
+      {ACCOUNT_TABS.map((t) => (
         <button
           key={t.id}
           type="button"
@@ -66,6 +54,9 @@ export function AccountTabs({
           {t.label}
         </button>
       ))}
+      <button type="button" onClick={() => void handleSignOut()} className={linkClassName}>
+        {AUTH_COPY.signOut}
+      </button>
     </ScrollRow>
   );
 }

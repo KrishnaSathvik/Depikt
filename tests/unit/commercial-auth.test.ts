@@ -177,18 +177,18 @@ test("every generation host renders the shared auth gate dialog", () => {
 
 // ---------- header ----------
 
-test("header shows one Sign in link when signed out and an avatar menu when signed in", () => {
+test("header shows one Sign in link when signed out and an avatar link to /account when signed in", () => {
   const header = read("src/components/Header.tsx");
   assert.match(header, /useAuth\(\)/);
   assert.match(header, /ROUTES\.signIn/);
   assert.match(header, /<AccountMenu/);
   assert.doesNotMatch(header, /Get started/);
   assert.doesNotMatch(header, /Sign up/);
+  // The avatar is a direct link to /account, not a dropdown -- see
+  // tests/unit/account-tabs.test.ts for the full AccountMenu assertions.
   const menu = read("src/components/auth/AccountMenu.tsx");
-  assert.match(menu, /DropdownMenu/);
+  assert.doesNotMatch(menu, /DropdownMenu/);
   assert.match(menu, /ROUTES\.account/);
-  assert.match(menu, /AUTH_COPY\.signOut|Sign out/);
-  assert.match(menu, /credits/);
 });
 
 // ---------- editorial auth surface: no card, contextual subtitle ----------

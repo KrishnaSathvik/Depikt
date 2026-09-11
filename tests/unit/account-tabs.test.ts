@@ -3,7 +3,6 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import {
-  ACCOUNT_EXTERNAL_LINKS,
   ACCOUNT_TABS,
   DEFAULT_ACCOUNT_TAB,
   isAccountTabId,
@@ -37,15 +36,16 @@ test("isAccountTabId rejects anything not one of the three ids", () => {
   assert.ok(!isAccountTabId(42));
 });
 
-test("Favorites and History are public links to /favorites and /history, not account tabs", () => {
-  assert.deepEqual(
-    ACCOUNT_EXTERNAL_LINKS.map((l) => l.label),
-    ["Favorites", "History"],
-  );
-  assert.deepEqual(
-    ACCOUNT_EXTERNAL_LINKS.map((l) => l.to),
-    ["/favorites", "/history"],
-  );
+test("Favorites and History are not linked anywhere in /account -- only from Library/Prompt", () => {
+  for (const file of [
+    "src/components/account/AccountRail.tsx",
+    "src/components/account/AccountTabs.tsx",
+    "src/routes/account.tsx",
+  ]) {
+    const src = read(file);
+    assert.doesNotMatch(src, /ROUTES\.favorites/, `${file} must not link to /favorites`);
+    assert.doesNotMatch(src, /ROUTES\.history/, `${file} must not link to /history`);
+  }
 });
 
 test("/account's validateSearch only accepts a known tab id, defaulting elsewhere to Profile", () => {
@@ -85,27 +85,25 @@ test("no OverviewTab file survives the merge", () => {
   );
 });
 
-test("AccountMenu's identity block opens Profile (the default tab), no separate 'Account' item", () => {
+test("AccountMenu is a direct link to /account (Profile, the default tab) -- no dropdown", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
-  // The identity DropdownMenuItem navigates to /account with no explicit
-  // tab, which resolves to Profile via DEFAULT_ACCOUNT_TAB.
-  assert.match(src, /onSelect=\{\(\) => void navigate\(\{ to: ROUTES\.account \}\)\}/);
-  assert.doesNotMatch(src, />\s*Account\s*</, "no generic 'Account' menu item");
-  assert.match(src, /search: \{ tab: "creations" \}/);
-  assert.match(src, />\s*Creations\s*</);
-  // Favorites/History are public pages now -- plain navigate, no ?tab=.
-  assert.match(src, /onSelect=\{\(\) => void navigate\(\{ to: ROUTES\.favorites \}\)\}/);
-  assert.match(src, /onSelect=\{\(\) => void navigate\(\{ to: ROUTES\.history \}\)\}/);
+  assert.doesNotMatch(src, /DropdownMenu/, "the header avatar no longer opens a dropdown");
+  assert.match(src, /to=\{ROUTES\.account\}/);
+  assert.match(src, /<DepiktAvatar/);
+  // No duplicated navigation: none of the account-rail destinations, buy
+  // credits, or sign out are wired up as click handlers here anymore --
+  // they're one click away on /account itself, not a second menu first.
+  assert.doesNotMatch(src, /onSelect=|onClick=/, "no menu items, just the one link");
 });
 
-test("desktop uses a left rail, mobile uses the horizontal tab row -- both share ACCOUNT_TABS and ACCOUNT_EXTERNAL_LINKS", () => {
+test("desktop uses a left rail, mobile uses the horizontal tab row -- both share ACCOUNT_TABS and offer Sign out", () => {
   const rail = read("src/components/account/AccountRail.tsx");
   assert.match(rail, /hidden .*lg:block/);
   assert.match(rail, /ACCOUNT_TABS/);
-  assert.match(rail, /ACCOUNT_EXTERNAL_LINKS/);
+  assert.match(rail, /AUTH_COPY\.signOut/);
   const tabs = read("src/components/account/AccountTabs.tsx");
   assert.match(tabs, /ACCOUNT_TABS/);
-  assert.match(tabs, /ACCOUNT_EXTERNAL_LINKS/);
+  assert.match(tabs, /AUTH_COPY\.signOut/);
   const page = read("src/routes/account.tsx");
   assert.match(page, /<AccountRail/);
   assert.match(page, /<AccountTabs/);
