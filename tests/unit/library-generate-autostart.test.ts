@@ -15,9 +15,11 @@ function read(rel: string): string {
 }
 
 test("Library's handoff still saves prompt + navigates to /generate", () => {
-  const lib = read("src/routes/library.tsx");
-  assert.match(lib, /sourceType: "library"/);
-  assert.match(lib, /navigate\(\{ to: ROUTES\.legacyBuilder \}\)/);
+  // Moved into the shared PromptDetailDialog (used by /library and
+  // Account's Favorites tab) when Favorites moved out of Library.
+  const dialog = read("src/components/library/PromptDetailDialog.tsx");
+  assert.match(dialog, /sourceType: "library"/);
+  assert.match(dialog, /navigate\(\{ to: ROUTES\.legacyBuilder \}\)/);
 });
 
 test("GenerateWorkspace auto-submits only a library-sourced handoff with a real prompt", () => {

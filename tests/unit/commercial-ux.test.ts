@@ -172,11 +172,11 @@ test("Profile tab has a deliberate, typed-confirmation delete flow", () => {
   assert.match(api, /authenticateGenerationRequest\(request\)/);
 });
 
-test("sign out is available from the account menu and Overview, using the shared auth copy", () => {
+test("sign out is available from the account menu, using the shared auth copy", () => {
+  // Overview (which also offered sign out) was removed -- see
+  // tests/unit/account-tabs.test.ts. The account menu is the one place now.
   const menu = read("src/components/auth/AccountMenu.tsx");
-  const overview = read("src/components/account/OverviewTab.tsx");
   assert.match(menu, /AUTH_COPY\.signOut/);
-  assert.match(overview, /AUTH_COPY\.signOut/);
 });
 
 // ---------- help / legal ----------

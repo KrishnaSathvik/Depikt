@@ -1,16 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import {
-  Copy,
-  ExternalLink,
-  Search,
-  ArrowRight,
-  Star,
-  Clock,
-  Trash2,
-  Wand2,
-  Sparkles,
-} from "lucide-react";
+import { Search, Wand2 } from "lucide-react";
 
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -18,24 +8,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Pagination } from "@/components/Pagination";
 import { Button } from "@/components/ui/button";
-import { PromptSurface } from "@/components/PromptSurface";
-import { SampleImage } from "@/components/SampleImage";
-import { fetchLibrary, copyPrompt, openInImago } from "@/lib/library";
-import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
-import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { fetchLibrary } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-import {
-  CTA,
-  JSONLD_DESCRIPTIONS,
-  JSONLD_NAMES,
-  LIBRARY_COPY,
-  MCP,
-  ROUTES,
-  SEO,
-  TOOL,
-  historyKindLabel,
-} from "@/lib/product";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, LIBRARY_COPY, MCP, SEO, TOOL } from "@/lib/product";
 import {
   TARGET_MODEL_LABELS,
   availableCollections,
@@ -43,30 +19,17 @@ import {
   shouldShowCollectionFilter,
   type TargetModel,
 } from "@/lib/target-model";
-import {
-  SOURCE_TYPE_LABELS,
-  STATUS_LABELS,
-  normalizeSourceType,
-  normalizeStatus,
-} from "@/lib/library-metadata";
 
 const LIBRARY_URL = absoluteUrl("/library");
 import type { LibraryPrompt } from "@/types/library";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useFavoriteIds, toggleFavoriteLocal } from "@/lib/favorites";
-import {
-  useHistory,
-  removeHistoryEntry,
-  clearAllHistory,
-  formatRelativeTime,
-} from "@/lib/history-db";
-import { migrateLocalStorageHistory } from "@/lib/migrate-history";
+import { useFavoriteIds } from "@/lib/favorites";
+import { PromptCard } from "@/components/library/PromptCard";
+import { PromptDetailDialog } from "@/components/library/PromptDetailDialog";
 
 const PAGE_SIZE = 12;
 
 const searchSchema = z.object({
   page: fallback(z.number().int().min(1), 1).default(1),
-  view: fallback(z.enum(["browse", "favorites", "history"]), "browse").default("browse"),
   // Collection filter lives in the URL so the homepage can deep-link to Images 2.5.
   collection: fallback(z.enum(["all", "gpt-image-2", "gpt-image-2.5"]), "all").default("all"),
 });
@@ -129,12 +92,10 @@ const CATEGORIES = [
 
 type CategoryFilter = (typeof CATEGORIES)[number];
 
-type ViewTab = "browse" | "favorites" | "history";
-
 function HomePage() {
   // Loader-provided data — always populated, never blocks paint after first load.
   const prompts = Route.useLoaderData();
-  const { page, view, collection } = Route.useSearch();
+  const { page, collection } = Route.useSearch();
   const navigate = useNavigate({ from: "/library" });
   const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
   // Collection (target model) filter. Rendered only once more than one
@@ -145,33 +106,24 @@ function HomePage() {
   const activeCollection: TargetModel | "all" =
     showCollections && collections.some((c) => c.value === collection) ? collection : "all";
   const setActiveCollection = (c: TargetModel | "all") =>
-    navigate({ search: { page: 1, view, collection: c } });
+    navigate({ search: { page: 1, collection: c } });
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<LibraryPrompt | null>(null);
 
+  // Favoriting a prompt from here still works (the star on each card) —
+  // only the dedicated Favorites/History browsing views moved to Account
+  // (Creations · Favorites · History · Profile · Plan & Credits).
   const favoriteIds = useFavoriteIds();
-  const historyEntries = useHistory();
-
-  // One-time migration from localStorage to IndexedDB
-  useEffect(() => {
-    migrateLocalStorageHistory();
-  }, []);
 
   // Reset to page 1 whenever the filter set changes.
   const setCategory = (c: CategoryFilter) => {
     setActiveCategory(c);
-    if (page !== 1) navigate({ search: { page: 1, view, collection } });
+    if (page !== 1) navigate({ search: { page: 1, collection } });
   };
   const setSearchInput = (v: string) => {
     setSearch(v);
-    if (page !== 1) navigate({ search: { page: 1, view, collection } });
-  };
-
-  const setView = (v: ViewTab) => {
-    navigate({ search: { page: 1, view: v, collection } });
-    setActiveCategory("All");
-    setSearch("");
+    if (page !== 1) navigate({ search: { page: 1, collection } });
   };
 
   // Debounce search 150ms to smooth keystrokes on slower devices.
@@ -181,11 +133,7 @@ function HomePage() {
   }, [search]);
 
   const filtered = useMemo(() => {
-    // Choose base list: full library or favorites-only
-    let list: LibraryPrompt[] =
-      view === "favorites"
-        ? prompts.filter((p: LibraryPrompt) => favoriteIds.has(`${p.source}-${p.id}`))
-        : prompts;
+    let list: LibraryPrompt[] = prompts;
 
     if (activeCategory !== "All") {
       list = list.filter((p) => p.category === activeCategory);
@@ -204,15 +152,7 @@ function HomePage() {
       );
     }
     return list;
-  }, [
-    prompts,
-    activeCategory,
-    activeCollection,
-    showCollections,
-    debouncedSearch,
-    view,
-    favoriteIds,
-  ]);
+  }, [prompts, activeCategory, activeCollection, showCollections, debouncedSearch]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -223,7 +163,7 @@ function HomePage() {
 
   const goToPage = (p: number) => {
     const next = Math.max(1, Math.min(totalPages, p));
-    navigate({ search: { page: next, view, collection } });
+    navigate({ search: { page: next, collection } });
     if (typeof window !== "undefined") {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -260,39 +200,22 @@ function HomePage() {
             </Link>
           </p>
 
-          {/* View tabs */}
-          <div className="mt-4 flex items-center gap-6 border-b border-[color:var(--border-subtle)] md:mt-7">
-            <ViewTabButton active={view === "browse"} onClick={() => setView("browse")}>
-              Browse
-            </ViewTabButton>
-            <ViewTabButton active={view === "favorites"} onClick={() => setView("favorites")}>
-              <Star className="h-3.5 w-3.5" />
-              Favorites
-            </ViewTabButton>
-            <ViewTabButton active={view === "history"} onClick={() => setView("history")}>
-              <Clock className="h-3.5 w-3.5" />
-              History
-            </ViewTabButton>
+          {/* Search */}
+          <div className="relative mt-4 max-w-2xl md:mt-7">
+            <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search by mood, subject, or style…"
+              aria-label="Search prompts"
+              className="w-full border-0 border-b border-[color:var(--border-default)] bg-transparent py-3 pl-7 pr-4 text-body-lg text-[color:var(--text-primary)] placeholder:text-[color:var(--text-quaternary)] focus:border-[color:var(--text-primary)] focus:outline-none focus-visible:outline-none rounded-none"
+            />
           </div>
-
-          {/* Search — only for browse and favorites */}
-          {view !== "history" && (
-            <div className="relative mt-3 max-w-2xl md:mt-5">
-              <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Search by mood, subject, or style…"
-                aria-label="Search prompts"
-                className="w-full border-0 border-b border-[color:var(--border-default)] bg-transparent py-3 pl-7 pr-4 text-body-lg text-[color:var(--text-primary)] placeholder:text-[color:var(--text-quaternary)] focus:border-[color:var(--text-primary)] focus:outline-none focus-visible:outline-none rounded-none"
-              />
-            </div>
-          )}
         </div>
 
         {/* Collection chips — only once a second collection exists */}
-        {view !== "history" && showCollections && (
+        {showCollections && (
           <div className="mx-auto max-w-[1400px] px-4 pb-2 sm:px-6 lg:px-12">
             <div
               role="group"
@@ -317,405 +240,83 @@ function HomePage() {
           </div>
         )}
 
-        {/* Category chips — only for browse and favorites */}
-        {view !== "history" && (
-          <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
-            <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {CATEGORIES.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCategory(c)}
-                  aria-pressed={activeCategory === c}
-                  className={`pill shrink-0 ${
-                    activeCategory === c
-                      ? "pill-solid"
-                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
+        {/* Category chips */}
+        <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
+          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {CATEGORIES.map((c) => (
+              <button
+                key={c}
+                onClick={() => setCategory(c)}
+                aria-pressed={activeCategory === c}
+                className={`pill shrink-0 ${
+                  activeCategory === c
+                    ? "pill-solid"
+                    : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
+                }`}
+              >
+                {c}
+              </button>
+            ))}
           </div>
-        )}
+        </div>
       </section>
 
       {/* Content */}
-      {view === "history" ? (
-        <HistoryView entries={historyEntries} />
-      ) : (
-        <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 md:py-8 lg:px-12">
-          {/* Grid header */}
-          <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
-            <p className="text-[13px] text-[color:var(--text-tertiary)]">
-              {filtered.length} prompts · thumbnails are sample outputs
-              {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
+      <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 md:py-8 lg:px-12">
+        {/* Grid header */}
+        <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
+          <p className="text-[13px] text-[color:var(--text-tertiary)]">
+            {filtered.length} prompts · thumbnails are sample outputs
+            {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
+          </p>
+          <Button asChild size="sm" className="shrink-0">
+            <Link to="/prompt" search={{ mode: "build" as const }}>
+              <Wand2 className="h-3.5 w-3.5" />
+              Build your own
+            </Link>
+          </Button>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-body-md text-[color:var(--text-tertiary)]">
+              No prompts match those filters.
             </p>
-            <Button asChild size="sm" className="shrink-0">
-              <Link to="/prompt" search={{ mode: "build" as const }}>
-                <Wand2 className="h-3.5 w-3.5" />
-                Build your own
-              </Link>
-            </Button>
+            {(activeCategory !== "All" || search) && (
+              <button
+                onClick={() => {
+                  setActiveCategory("All");
+                  setSearch("");
+                  if (page !== 1) navigate({ search: { page: 1, collection } });
+                }}
+                className="mt-4 text-body-sm font-medium text-[color:var(--text-primary)] underline underline-offset-4"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
-
-          {filtered.length === 0 ? (
-            <div className="py-20 text-center">
-              <p className="text-body-md text-[color:var(--text-tertiary)]">
-                {view === "favorites"
-                  ? "No favorites yet. Star prompts to save them here."
-                  : "No prompts match those filters."}
-              </p>
-              {(activeCategory !== "All" || search) && (
-                <button
-                  onClick={() => {
-                    setActiveCategory("All");
-                    setSearch("");
-                    if (page !== 1) navigate({ search: { page: 1, view } });
-                  }}
-                  className="mt-4 text-body-sm font-medium text-[color:var(--text-primary)] underline underline-offset-4"
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {pageItems.map((p: LibraryPrompt) => (
-                  <PromptCard
-                    key={`${p.source}-${p.id}`}
-                    prompt={p}
-                    onOpen={() => setSelected(p)}
-                    isFavorited={favoriteIds.has(`${p.source}-${p.id}`)}
-                  />
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <Pagination
-                  currentPage={safePage}
-                  totalPages={totalPages}
-                  onPageChange={goToPage}
+        ) : (
+          <>
+            <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {pageItems.map((p: LibraryPrompt) => (
+                <PromptCard
+                  key={`${p.source}-${p.id}`}
+                  prompt={p}
+                  onOpen={() => setSelected(p)}
+                  isFavorited={favoriteIds.has(`${p.source}-${p.id}`)}
                 />
-              )}
-            </>
-          )}
-        </section>
-      )}
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={goToPage} />
+            )}
+          </>
+        )}
+      </section>
 
       <PromptDetailDialog prompt={selected} onClose={() => setSelected(null)} />
       <Footer />
     </div>
-  );
-}
-
-function ViewTabButton({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className={`inline-flex items-center gap-1.5 pb-3 text-body-sm font-medium transition-colors border-b -mb-px ${
-        active
-          ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
-          : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-secondary)]"
-      }`}
-    >
-      {children}
-    </button>
-  );
-}
-
-// ─── PromptCard ──────────────────────────────────────────────────────────────
-
-function PromptCard({
-  prompt,
-  onOpen,
-  isFavorited,
-}: {
-  prompt: LibraryPrompt;
-  onOpen: () => void;
-  isFavorited: boolean;
-}) {
-  return (
-    <article
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      aria-label={`View prompt: ${prompt.title}`}
-      className="group relative flex cursor-pointer flex-col bg-[color:var(--bg-elevated)] transition-colors hover:bg-[color:var(--bg-muted)] focus-visible:z-10"
-    >
-      {/* Star icon */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleFavoriteLocal(`${prompt.source}-${prompt.id}`, prompt.source);
-        }}
-        className={`absolute top-3 right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full transition-all ${
-          prompt.thumbnail_url ? "bg-black/40 backdrop-blur-sm" : "bg-[color:var(--bg-subtle)]"
-        } ${
-          isFavorited
-            ? "text-[color:var(--accent-orange)] opacity-100"
-            : "text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[color:var(--accent-orange)]"
-        }`}
-        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
-      >
-        <Star className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
-      </button>
-
-      {/* Thumbnail */}
-      {prompt.thumbnail_url ? (
-        <div className="relative aspect-square w-full overflow-hidden bg-[color:var(--bg-subtle)]">
-          {/* Square frame, whole image: landscape and portrait results are never cropped. */}
-          <img
-            src={prompt.thumbnail_url}
-            alt=""
-            loading="lazy"
-            className="h-full w-full object-contain"
-          />
-        </div>
-      ) : (
-        <div className="flex aspect-[3/1] items-end px-5 pt-5 sm:aspect-auto">
-          <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-            {prompt.category}
-          </span>
-        </div>
-      )}
-
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <h2 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">
-          {prompt.title}
-        </h2>
-        <p className="line-clamp-2 text-body-sm text-[color:var(--text-secondary)]">
-          {prompt.prompt}
-        </p>
-        <span className="mt-auto flex items-center gap-1 pt-3 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
-          View prompt
-          <ArrowRight className="h-3.5 w-3.5" />
-        </span>
-      </div>
-    </article>
-  );
-}
-
-function HistoryView({ entries }: { entries: import("@/lib/db").HistoryRecord[] }) {
-  const navigate = useNavigate();
-
-  const handleRestore = (entry: import("@/lib/db").HistoryRecord) => {
-    if (entry.kind === "critique") {
-      navigate({ to: "/prompt", search: { mode: "critique" as const, restore: entry.id } });
-    } else {
-      navigate({ to: "/prompt", search: { mode: "build" as const, restore: entry.id } });
-    }
-  };
-
-  if (entries.length === 0) {
-    return (
-      <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-20 text-center sm:px-6 lg:px-12">
-        <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)]">
-          <Clock className="h-4 w-4 text-[color:var(--text-tertiary)]" />
-        </div>
-        <p className="text-body-md text-[color:var(--text-tertiary)]">
-          No history yet. Build or critique a prompt to get started.
-        </p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 lg:px-12">
-      <div className="mb-5 flex items-center justify-between gap-4">
-        <p className="text-[13px] text-[color:var(--text-tertiary)]">
-          {entries.length} {entries.length === 1 ? "entry" : "entries"}
-        </p>
-        <button
-          onClick={() => {
-            if (confirm("Clear all history? This can't be undone.")) clearAllHistory();
-          }}
-          className="inline-flex items-center gap-1.5 text-body-sm text-[color:var(--text-tertiary)] hover:text-[color:var(--error)] transition-colors"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-          Clear all
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {entries.map((entry) => (
-          <article
-            key={entry.id}
-            className="group relative flex cursor-pointer flex-col gap-3 bg-[color:var(--bg-elevated)] p-6 transition-colors hover:bg-[color:var(--bg-muted)]"
-            onClick={() => handleRestore(entry)}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-[13px] font-medium text-[color:var(--text-primary)]">
-                {historyKindLabel(entry.kind)}
-              </span>
-              {typeof entry.result.category === "string" && (
-                <>
-                  <span className="text-[color:var(--text-tertiary)]">·</span>
-                  <span className="truncate text-[13px] text-[color:var(--text-secondary)]">
-                    {entry.result.category}
-                  </span>
-                </>
-              )}
-            </div>
-            <p className="line-clamp-2 text-body-sm text-[color:var(--text-primary)]">
-              {entry.roughIdea}
-            </p>
-            <div className="mt-auto flex items-center justify-between pt-2">
-              <span className="text-[13px] text-[color:var(--text-tertiary)]">
-                {formatRelativeTime(entry.createdAt)}
-              </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeHistoryEntry(entry.id);
-                }}
-                className="inline-flex h-6 w-6 items-center justify-center rounded text-[color:var(--text-tertiary)] hover:text-[color:var(--error)] hover:bg-[color:var(--bg-subtle)] opacity-0 group-hover:opacity-100 transition-opacity"
-                aria-label="Remove from history"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function PromptDetailDialog({
-  prompt,
-  onClose,
-}: {
-  prompt: LibraryPrompt | null;
-  onClose: () => void;
-}) {
-  const navigate = useNavigate();
-  if (!prompt) return null;
-
-  const handleGenerate = () => {
-    saveGenerationHandoff({
-      prompt: prompt.prompt,
-      references: [],
-      structuredAspectRatio: null,
-      routingHints: prompt.category ? { category: prompt.category } : undefined,
-      sourceType: "library",
-      sourceId: prompt.id,
-    });
-    void navigate({ to: ROUTES.legacyBuilder });
-  };
-
-  return (
-    <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="max-h-[92vh] w-[calc(100%-1rem)] max-w-4xl overflow-y-auto bg-[color:var(--bg-elevated)] p-0 sm:max-h-[90vh]">
-        {/* 1. The sample output is the proof of the prompt, so it comes first. */}
-        {prompt.thumbnail_url && (
-          <SampleImage
-            src={prompt.thumbnail_url}
-            alt={`Sample output for ${prompt.title}`}
-            maxHeightClass="max-h-[52vh] sm:max-h-[60vh]"
-            className="border-b border-[color:var(--border-subtle)]"
-          />
-        )}
-        <div className="p-6 sm:p-8">
-          <DialogHeader className="pr-8">
-            <p className="eyebrow">
-              {prompt.category} · {TARGET_MODEL_LABELS[normalizeTargetModel(prompt.target_model)]}{" "}
-              collection
-              {normalizeStatus(prompt.status) !== "approved" &&
-                ` · ${STATUS_LABELS[normalizeStatus(prompt.status)]}`}
-            </p>
-            <DialogTitle className="text-heading-lg text-[color:var(--text-primary)]">
-              {prompt.title}
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="mt-4">
-            <PromptSurface label="Prompt">{prompt.prompt}</PromptSurface>
-          </div>
-
-          <div className="mt-4 flex flex-wrap gap-2">
-            {isNativeGenerationEnabled() && (
-              <Button size="sm" onClick={handleGenerate}>
-                <Sparkles className="h-3.5 w-3.5" />
-                Generate · 1 credit
-              </Button>
-            )}
-            <Button asChild size="sm" variant={isNativeGenerationEnabled() ? "outline" : "default"}>
-              <Link
-                to="/prompt"
-                search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
-              >
-                <Wand2 className="h-3.5 w-3.5" />
-                {CTA.remix}
-              </Link>
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => openInImago(prompt.prompt)}>
-              Open in Imago
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => copyPrompt(prompt.prompt)}>
-              <Copy className="h-3.5 w-3.5" />
-              Copy
-            </Button>
-          </div>
-          <p className="mt-2 text-[13px] text-[color:var(--text-tertiary)]">
-            <span className="hidden sm:inline">
-              Opens Imago with your prompt copied. Paste with{" "}
-              <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
-                ⌘V
-              </kbd>
-            </span>
-            <span className="sm:hidden">
-              Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-            </span>
-          </p>
-
-          {prompt.why_it_works && (
-            <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
-              <p className="eyebrow mb-2">Why it works</p>
-              <p className="text-body-md text-[color:var(--text-secondary)]">
-                {prompt.why_it_works}
-              </p>
-            </div>
-          )}
-
-          {/* Provenance line: only Images 2.5 rows carry a source type other than the default. */}
-          {normalizeTargetModel(prompt.target_model) === "gpt-image-2.5" && (
-            <p className="mt-4 text-[13px] text-[color:var(--text-tertiary)]">
-              {SOURCE_TYPE_LABELS[normalizeSourceType(prompt.source_type)]}
-              {prompt.source_creator ? ` · ${prompt.source_creator}` : ""}
-              {prompt.source_url ? (
-                <>
-                  {" · "}
-                  <a
-                    href={prompt.source_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline underline-offset-2"
-                  >
-                    source
-                  </a>
-                </>
-              ) : null}
-            </p>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }

@@ -4,7 +4,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -19,7 +18,9 @@ import { AUTH_COPY, ROUTES } from "@/lib/product";
 /**
  * Signed-in header control: the account's Depikt avatar (never the OAuth
  * provider photo — see CLAUDE.md's header-avatar rule) opening a compact
- * menu with identity, plan/credits, and account actions.
+ * menu. The identity block itself is the first item — clicking it opens
+ * /account on Profile (its default tab); there's no separate "Account"
+ * item duplicating that.
  */
 export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?: () => void }) {
   const { signOut } = useAuth();
@@ -56,8 +57,11 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
         )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex items-center gap-2.5">
+        <DropdownMenuItem
+          onSelect={() => void navigate({ to: ROUTES.account })}
+          className="items-start py-2"
+        >
+          <div className="flex w-full items-center gap-2.5">
             {profile && (
               <DepiktAvatar
                 seed={profile.avatarSeed}
@@ -66,7 +70,7 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
                 label={displayName}
               />
             )}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-[13px] font-medium text-[color:var(--text-primary)]">
                 {displayName}
               </p>
@@ -75,22 +79,35 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
                   @{profile.username}
                 </p>
               )}
+              <p className="mt-0.5 text-[12px] text-[color:var(--text-secondary)]">
+                {summary.credits === null ? "—" : `${summary.credits} credits`}
+                {planLabel && summary.plan !== "free" ? ` · ${planLabel}` : ""}
+              </p>
             </div>
           </div>
-          <p className="mt-2 text-[12px] text-[color:var(--text-secondary)]">
-            {summary.credits === null ? "—" : `${summary.credits} credits`}
-            {planLabel && summary.plan !== "free" ? ` · ${planLabel}` : ""}
-          </p>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => void navigate({ to: ROUTES.account })}>
-          Account
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "creations" } })}
         >
-          My creations
+          Creations
         </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "favorites" } })}
+        >
+          Favorites
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "history" } })}
+        >
+          History
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "plan" } })}
+        >
+          Plan &amp; Credits
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={() => {
             if (onBuyCredits) onBuyCredits();

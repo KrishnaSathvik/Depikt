@@ -389,7 +389,9 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
   assert.equal(LIBRARY_COPY.headline, "543 prompts to learn from, remix, and use.");
   assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 43 tested Images 2.5");
   assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);
-  assert.match(read("src/routes/library.tsx"), /CTA\.remix/);
+  // Remix now lives in the shared PromptDetailDialog (used by /library and
+  // Account's Favorites tab), not duplicated in library.tsx itself.
+  assert.match(read("src/components/library/PromptDetailDialog.tsx"), /CTA\.remix/);
 });
 
 // ---------- history compatibility ----------

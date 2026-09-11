@@ -4,9 +4,11 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
-import { AccountTabs, isAccountTabId, type AccountTabId } from "@/components/account/AccountTabs";
-import { OverviewTab } from "@/components/account/OverviewTab";
+import { AccountTabs } from "@/components/account/AccountTabs";
+import { AccountRail } from "@/components/account/AccountRail";
 import { CreationsTab } from "@/components/account/CreationsTab";
+import { FavoritesTab } from "@/components/account/FavoritesTab";
+import { HistoryTab } from "@/components/account/HistoryTab";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { PlanTab } from "@/components/account/PlanTab";
 import { useAuth } from "@/lib/auth-context";
@@ -14,6 +16,7 @@ import { confirmCheckout, getAccountSummary } from "@/lib/billing/client";
 import { CATALOG, isProductKey } from "@/lib/billing/plans";
 import { trackEvent } from "@/lib/analytics";
 import { ROUTES, SEO } from "@/lib/product";
+import { DEFAULT_ACCOUNT_TAB, isAccountTabId, type AccountTabId } from "@/lib/profile/account-tabs";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 export interface AccountSearch {
@@ -48,7 +51,9 @@ function AccountPage() {
   const [summary, setSummary] = useState<AccountSummaryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const activeTab: AccountTabId = tab ?? "overview";
+  // No tab in the URL (e.g. the header avatar's identity click) -> Profile;
+  // an explicit ?tab= (e.g. "My creations" in the account menu) wins.
+  const activeTab: AccountTabId = tab ?? DEFAULT_ACCOUNT_TAB;
   function setActiveTab(next: AccountTabId) {
     trackEvent("account_tab_changed", {});
     void navigate({ to: ROUTES.account, search: { tab: next }, replace: true });
@@ -137,16 +142,20 @@ function AccountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[760px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <AccountTabs active={activeTab} onChange={setActiveTab} />
-        {error && <p className="mt-4 text-body-sm text-red-600">{error}</p>}
-        <div className="mt-8">
-          {activeTab === "overview" && (
-            <OverviewTab summary={summary} onViewCreations={() => setActiveTab("creations")} />
-          )}
-          {activeTab === "creations" && <CreationsTab />}
-          {activeTab === "profile" && <ProfileTab />}
-          {activeTab === "plan" && <PlanTab summary={summary} />}
+      <main className="mx-auto w-full max-w-[960px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <div className="lg:hidden">
+          <AccountTabs active={activeTab} onChange={setActiveTab} />
+        </div>
+        <div className="lg:flex lg:items-start lg:gap-10">
+          <AccountRail active={activeTab} onChange={setActiveTab} />
+          <div className="mt-8 min-w-0 flex-1 lg:mt-0">
+            {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
+            {activeTab === "creations" && <CreationsTab />}
+            {activeTab === "favorites" && <FavoritesTab />}
+            {activeTab === "history" && <HistoryTab />}
+            {activeTab === "profile" && <ProfileTab />}
+            {activeTab === "plan" && <PlanTab summary={summary} />}
+          </div>
         </div>
       </main>
       <Footer />

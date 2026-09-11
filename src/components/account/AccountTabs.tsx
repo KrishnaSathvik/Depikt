@@ -5,9 +5,9 @@ import { ACCOUNT_TABS, isAccountTabId, type AccountTabId } from "@/lib/profile/a
 export { ACCOUNT_TABS, isAccountTabId, type AccountTabId };
 
 /**
- * One restrained tab row for both breakpoints: it fits without scrolling
- * at desktop widths and becomes ScrollRow's horizontal tab pattern (already
- * used for the header's mobile nav) once it doesn't.
+ * Mobile: a compact horizontal tab row (ScrollRow, same pattern as the
+ * header's mobile nav). Desktop uses AccountRail instead — see account.tsx,
+ * which renders this only below `lg`.
  */
 export function AccountTabs({
   active,

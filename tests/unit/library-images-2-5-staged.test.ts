@@ -336,9 +336,11 @@ test("library fetch layer filters to public rows, merges staged records by id, a
   assert.match(lib, /filterPublic\(/);
   assert.match(lib, /mergeById\(curated, publicStagedPrompts\(\)\)/);
   assert.match(lib, /\[PROVENANCE_COLUMNS, MODEL_COLUMNS, CURATED_COLUMNS\]/);
-  const route = read("src/routes/library.tsx");
-  assert.match(route, /STATUS_LABELS\[normalizeStatus\(prompt\.status\)\]/);
-  assert.match(route, /SOURCE_TYPE_LABELS/);
+  // The prompt detail view (STATUS_LABELS/SOURCE_TYPE_LABELS) is now the
+  // shared PromptDetailDialog, used by /library and Account's Favorites tab.
+  const detail = read("src/components/library/PromptDetailDialog.tsx");
+  assert.match(detail, /STATUS_LABELS\[normalizeStatus\(prompt\.status\)\]/);
+  assert.match(detail, /SOURCE_TYPE_LABELS/);
   assert.match(read("scripts/sync-curated-prompts.mjs"), /source_type/);
 });
 
