@@ -81,10 +81,21 @@ function ProviderMark({ id }: { id: AuthProviderId }) {
         <rect x="12" y="12" width="10" height="10" fill="#FFB900" />
       </svg>
     );
-  // Lovable — approximated (no official brand asset in this project).
+  // Lovable — approximated (no official brand asset in this project): a
+  // heart in Lovable's pink-to-red gradient, the closest safe match to
+  // their mark without reproducing a trademarked asset pixel-for-pixel.
   return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4" fill="#FB64B6">
-      <path d="M12 20.5s-7.5-4.44-9.7-9.08C.9 8.2 2.3 4.9 5.6 4.1c1.9-.46 3.9.3 5 1.9a1 1 0 0 0 1.6 0c1.1-1.6 3.1-2.36 5-1.9 3.3.8 4.7 4.1 3.3 7.32C19.5 16.06 12 20.5 12 20.5Z" />
+    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4">
+      <defs>
+        <linearGradient id="lovable-mark-gradient" x1="2" y1="4" x2="22" y2="21">
+          <stop offset="0" stopColor="#FF6FB3" />
+          <stop offset="1" stopColor="#FF5A3C" />
+        </linearGradient>
+      </defs>
+      <path
+        fill="url(#lovable-mark-gradient)"
+        d="M12 21s-7.8-4.6-10.1-9.3C.4 8.4 1.9 4.6 5.6 3.7c2-.5 4.1.3 5.3 2a1.3 1.3 0 0 0 2.2 0c1.2-1.7 3.3-2.5 5.3-2 3.7.9 5.2 4.7 3.7 8C19.8 16.4 12 21 12 21Z"
+      />
     </svg>
   );
 }
@@ -344,12 +355,6 @@ export function AuthSurface({
             Privacy Policy
           </Link>
           .
-        </p>
-      )}
-
-      {isSignUp && !compact && (
-        <p className="mt-6 text-center text-[12px] text-[color:var(--text-tertiary)]">
-          {AUTH_COPY.signUpNote}
         </p>
       )}
 

@@ -313,7 +313,6 @@ export const AUTH_COPY = {
   signUpTitle: "Create your Depikt account",
   signUpSubtitle: "Save your creations, get 5 image credits, and continue your work anywhere.",
   starterCreditsLine: "5 image credits included.",
-  signUpNote: "5 starter credits · Save creations · Manage your plan",
   signingIn: "Signing you in…",
   redirecting: "Redirecting…",
   welcomeToast: "Welcome to Depikt — 5 image credits added.",
