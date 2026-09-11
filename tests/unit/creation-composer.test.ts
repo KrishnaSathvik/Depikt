@@ -68,3 +68,36 @@ test("reference attachment lives inside the composer's referencesSlot, not a sep
     assert.match(read(f), /referencesSlot=\{/, f);
   }
 });
+
+// ---------- Generate matches Prompt's visual chrome (header + reference control) ----------
+
+test("Generate's idle header uses the same chrome as Prompt: eyebrow, display heading, subtitle, 1040px left-aligned container", () => {
+  const gen = read("src/components/generate/GenerateWorkspace.tsx");
+  const prompt = read("src/routes/prompt.tsx");
+  assert.match(gen, /max-w-\[1040px\]/);
+  assert.match(prompt, /max-w-\[1040px\]/);
+  assert.match(gen, /text-display-md sm:text-display-lg/);
+  assert.doesNotMatch(gen, /text-heading-lg/, "must not keep the old smaller centered heading");
+  assert.doesNotMatch(
+    gen,
+    /text-center/,
+    "the idle composer is left-aligned like Prompt, not centered",
+  );
+  assert.match(gen, /<p className="eyebrow">\{TOOL\.generate\}<\/p>/);
+});
+
+test("Generate's reference control matches ReferenceImagePicker's visual language (dashed pill, mono 12px, bg-subtle thumbnail pill)", () => {
+  const gen = read("src/components/generate/GenerateWorkspace.tsx");
+  const picker = read("src/components/ReferenceImagePicker.tsx");
+  for (const cls of [
+    "border-dashed",
+    "font-mono",
+    "text-[12px]",
+    "bg-[color:var(--bg-subtle)]",
+    "rounded-md",
+  ]) {
+    assert.ok(gen.includes(cls), `GenerateWorkspace missing "${cls}"`);
+    assert.ok(picker.includes(cls), `ReferenceImagePicker missing "${cls}" (drifted)`);
+  }
+  assert.match(gen, /ImagePlus/, "same add-reference icon as ReferenceImagePicker, not Plus");
+});

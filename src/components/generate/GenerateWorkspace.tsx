@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Sparkles, Plus, X, RefreshCw } from "lucide-react";
+import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
 import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
-import { CTA, ROUTES } from "@/lib/product";
+import { CTA, ROUTES, TOOL } from "@/lib/product";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
@@ -151,15 +151,20 @@ export function GenerateWorkspace() {
 
   if (isIdle) {
     return (
-      <div className="mx-auto max-w-[800px] px-4 py-14 sm:px-6">
+      <div className="mx-auto w-full max-w-[1040px] px-4 py-10 sm:px-6 sm:py-16">
         <AuthGateDialog gen={gen} />
-        <p className="eyebrow mb-2 text-center">Generate</p>
-        <h1 className="text-heading-lg mb-8 text-center">Create an image.</h1>
-        <GenerationCreditGate gen={gen} className="mb-6" />
+        <p className="eyebrow">{TOOL.generate}</p>
+        <h1 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
+          Create an image.
+        </h1>
+        <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
+          Describe what you want, optionally add a reference image, and generate.
+        </p>
+        <GenerationCreditGate gen={gen} className="mt-6" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
-          <p className="mb-4 text-center text-body-sm text-red-600">{gen.errorMessage}</p>
+          <p className="mt-4 text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
-        <div className="space-y-4">
+        <div className="mt-8 space-y-4">
           <ComposerSurface
             prompt={prompt}
             onPromptChange={setPrompt}
@@ -180,11 +185,9 @@ export function GenerateWorkspace() {
               .join(" · ")}
           />
           <ComposerChips chips={GENERATE_CHIPS} onSelect={useChip} />
-          <div className="text-center">
-            <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-              {CTA.improveInPrompt} →
-            </Button>
-          </div>
+          <Button variant="ghost" size="sm" onClick={improveInPrompt}>
+            {CTA.improveInPrompt} →
+          </Button>
         </div>
       </div>
     );
@@ -329,40 +332,45 @@ function ComposerSurface({
           {references.map((r, i) => (
             <div
               key={i}
-              className="relative h-10 w-10 overflow-hidden rounded border border-[color:var(--border-subtle)]"
+              className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
             >
-              <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+              <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded">
+                <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                {r.uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-[9px]">
+                    …
+                  </div>
+                )}
+                {r.error && (
+                  <button
+                    type="button"
+                    onClick={() => onRetryReference(i)}
+                    aria-label="Retry attaching reference"
+                    className="absolute inset-0 flex items-center justify-center bg-white/85"
+                  >
+                    <RefreshCw className="h-3 w-3" />
+                  </button>
+                )}
+              </div>
+              <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+                Reference
+              </span>
               <button
                 type="button"
                 aria-label="Remove reference"
                 onClick={() => onRemoveReference(i)}
-                className="absolute right-0 top-0 flex h-4 w-4 items-center justify-center rounded-bl bg-black/60 text-white"
+                className="ml-1 rounded p-0.5 text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)]"
               >
-                <X className="h-2.5 w-2.5" />
+                <X className="h-3.5 w-3.5" />
               </button>
-              {r.uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-white/60 text-[9px]">
-                  …
-                </div>
-              )}
-              {r.error && (
-                <button
-                  type="button"
-                  onClick={() => onRetryReference(i)}
-                  aria-label="Retry attaching reference"
-                  className="absolute inset-0 flex items-center justify-center bg-white/85"
-                >
-                  <RefreshCw className="h-3 w-3" />
-                </button>
-              )}
             </div>
           ))}
           {references.length < MAX_REFERENCE_IMAGES_V1 && (
-            <label className="inline-flex cursor-pointer items-center gap-1.5 text-body-sm text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]">
-              <Plus className="h-3.5 w-3.5" />
-              Add reference
+            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[color:var(--border-subtle)] px-2.5 py-1.5 text-[12px] font-mono text-[color:var(--text-tertiary)] transition-colors hover:border-[color:var(--border-default)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-secondary)]">
+              <ImagePlus className="h-3.5 w-3.5" />
+              Add reference image
               <span className="text-[color:var(--text-tertiary)]">
-                {references.length} / {MAX_REFERENCE_IMAGES_V1}
+                {references.length}/{MAX_REFERENCE_IMAGES_V1}
               </span>
               <input
                 type="file"
