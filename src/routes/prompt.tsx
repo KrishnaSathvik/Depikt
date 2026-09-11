@@ -1,9 +1,10 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { History } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO, TOOL } from "@/lib/product";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
 import { GenerateWorkspace } from "@/components/generate/GenerateWorkspace";
 import { BuildMode } from "@/components/prompt/BuildMode";
 import { CritiqueMode } from "@/components/prompt/CritiqueMode";
@@ -140,7 +141,19 @@ function PromptWorkspace() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
-        <p className="eyebrow">{generationEnabled ? TOOL.generate : TOOL.prompt}</p>
+        <div className="flex items-center justify-between gap-4">
+          <p className="eyebrow">{generationEnabled ? TOOL.generate : TOOL.prompt}</p>
+          {/* Drafts pile up right here, so the link to past ones lives here
+              too -- not buried in the footer or an auth-gated tab. Local
+              (Dexie), no sign-in needed; see src/routes/history.tsx. */}
+          <Link
+            to={ROUTES.history}
+            className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+          >
+            <History className="h-3.5 w-3.5" />
+            History
+          </Link>
+        </div>
 
         <div
           role="tablist"

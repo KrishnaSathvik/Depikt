@@ -7,8 +7,6 @@ import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
 import { AccountTabs } from "@/components/account/AccountTabs";
 import { AccountRail } from "@/components/account/AccountRail";
 import { CreationsTab } from "@/components/account/CreationsTab";
-import { FavoritesTab } from "@/components/account/FavoritesTab";
-import { HistoryTab } from "@/components/account/HistoryTab";
 import { ProfileTab } from "@/components/account/ProfileTab";
 import { PlanTab } from "@/components/account/PlanTab";
 import { useAuth } from "@/lib/auth-context";
@@ -151,8 +149,6 @@ function AccountPage() {
           <div className="mt-8 min-w-0 flex-1 lg:mt-0">
             {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
             {activeTab === "creations" && <CreationsTab />}
-            {activeTab === "favorites" && <FavoritesTab />}
-            {activeTab === "history" && <HistoryTab />}
             {activeTab === "profile" && <ProfileTab />}
             {activeTab === "plan" && <PlanTab summary={summary} />}
           </div>

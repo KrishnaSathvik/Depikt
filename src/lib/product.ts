@@ -84,6 +84,9 @@ export const ROUTES = {
   gallery: "/gallery",
   blog: "/blog",
   templates: "/templates",
+  /** Public: local (Dexie/IndexedDB) data, no sign-in required. */
+  favorites: "/favorites",
+  history: "/history",
   // Commercial launch (Phase 6). Auth and account are noindex; the rest are public.
   signIn: "/sign-in",
   signUp: "/sign-up",
@@ -210,7 +213,9 @@ export const SEO: Record<
   | "terms"
   | "signIn"
   | "signUp"
-  | "account",
+  | "account"
+  | "favorites"
+  | "history",
   PageMeta
 > = {
   root: {
@@ -290,6 +295,14 @@ export const SEO: Record<
   },
   /** noindex, nofollow */
   account: { title: "Account | Depikt", description: "Your Depikt plan, credits, and usage." },
+  favorites: {
+    title: "Favorites | Depikt",
+    description: "Prompts you've saved from the Library, stored on this device.",
+  },
+  history: {
+    title: "History | Depikt",
+    description: "Your recent Build and Critique drafts, stored on this device.",
+  },
 };
 
 // ---------- auth surface copy ----------

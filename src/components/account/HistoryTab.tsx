@@ -12,8 +12,9 @@ import { historyKindLabel } from "@/lib/product";
 import type { HistoryRecord } from "@/lib/db";
 
 /**
- * Recent Build/Critique drafts, moved in from /library. Local to this
- * browser (Dexie/IndexedDB) — not yet synced to the account server-side.
+ * Recent Build/Critique drafts, moved in from /library. Rendered at the
+ * public /history route (src/routes/history.tsx), not gated by sign-in —
+ * local to this browser (Dexie/IndexedDB), never tied to an account.
  */
 export function HistoryTab() {
   const entries = useHistory();

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Search, Wand2 } from "lucide-react";
+import { Search, Star, Wand2 } from "lucide-react";
 
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -11,7 +11,15 @@ import { Button } from "@/components/ui/button";
 import { fetchLibrary } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, LIBRARY_COPY, MCP, SEO, TOOL } from "@/lib/product";
+import {
+  JSONLD_DESCRIPTIONS,
+  JSONLD_NAMES,
+  LIBRARY_COPY,
+  MCP,
+  ROUTES,
+  SEO,
+  TOOL,
+} from "@/lib/product";
 import {
   TARGET_MODEL_LABELS,
   availableCollections,
@@ -111,9 +119,9 @@ function HomePage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selected, setSelected] = useState<LibraryPrompt | null>(null);
 
-  // Favoriting a prompt from here still works (the star on each card) —
-  // only the dedicated Favorites/History browsing views moved to Account
-  // (Creations · Favorites · History · Profile · Plan & Credits).
+  // Favoriting a prompt from here still works (the star on each card); the
+  // saved list itself lives at the public /favorites page, linked from the
+  // header just below (also used for the count badge there).
   const favoriteIds = useFavoriteIds();
 
   // Reset to page 1 whenever the filter set changes.
@@ -180,7 +188,20 @@ function HomePage() {
       */}
       <section className="border-b border-[color:var(--border-subtle)]">
         <div className="mx-auto max-w-[1400px] px-4 pt-8 pb-3 sm:px-6 md:pt-14 md:pb-6 lg:px-12">
-          <p className="eyebrow">{TOOL.library}</p>
+          <div className="flex items-center justify-between gap-4">
+            <p className="eyebrow">{TOOL.library}</p>
+            {/* Favoriting happens right on this page's cards, so the link
+                to view the saved list lives here too -- not buried in the
+                footer or an auth-gated tab. Local (Dexie), no sign-in
+                needed; see src/routes/favorites.tsx. */}
+            <Link
+              to={ROUTES.favorites}
+              className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+            >
+              <Star className="h-3.5 w-3.5" />
+              Favorites{favoriteIds.size > 0 ? ` (${favoriteIds.size})` : ""}
+            </Link>
+          </div>
           <h1 className="mt-4 max-w-[22ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
             {LIBRARY_COPY.headline}
           </h1>

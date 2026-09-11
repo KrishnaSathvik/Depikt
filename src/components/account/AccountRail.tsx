@@ -1,7 +1,15 @@
+import { Link } from "@tanstack/react-router";
 import { DepiktAvatar } from "@/components/profile/DepiktAvatar";
 import { useProfile } from "@/lib/profile/profile-context";
-import { ACCOUNT_TABS, type AccountTabId } from "@/lib/profile/account-tabs";
+import {
+  ACCOUNT_EXTERNAL_LINKS,
+  ACCOUNT_TABS,
+  type AccountTabId,
+} from "@/lib/profile/account-tabs";
 import { cn } from "@/lib/utils";
+
+const linkClassName =
+  "block w-full rounded-md px-3 py-2 text-left text-[14px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]";
 
 /**
  * Desktop-only left rail (hidden below `lg` — AccountTabs is the mobile
@@ -41,7 +49,31 @@ export function AccountRail({
       </div>
 
       <ul className="mt-6 space-y-0.5">
-        {ACCOUNT_TABS.map((t) => (
+        {/* Creations tab first, then the Favorites/History links (same
+            position they held as tabs before), then the remaining tabs. */}
+        <li>
+          <button
+            type="button"
+            aria-current={ACCOUNT_TABS[0].id === active ? "page" : undefined}
+            onClick={() => onChange(ACCOUNT_TABS[0].id)}
+            className={cn(
+              "block w-full rounded-md px-3 py-2 text-left text-[14px] font-medium transition-colors",
+              ACCOUNT_TABS[0].id === active
+                ? "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
+                : "text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]",
+            )}
+          >
+            {ACCOUNT_TABS[0].label}
+          </button>
+        </li>
+        {ACCOUNT_EXTERNAL_LINKS.map((l) => (
+          <li key={l.to}>
+            <Link to={l.to} className={linkClassName}>
+              {l.label}
+            </Link>
+          </li>
+        ))}
+        {ACCOUNT_TABS.slice(1).map((t) => (
           <li key={t.id}>
             <button
               type="button"

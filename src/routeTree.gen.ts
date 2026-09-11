@@ -19,9 +19,11 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as HistoryRouteImport } from './routes/history'
 import { Route as HelpRouteImport } from './routes/help'
 import { Route as GenerateRouteImport } from './routes/generate'
 import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as FavoritesRouteImport } from './routes/favorites'
 import { Route as CritiqueRouteImport } from './routes/critique'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
@@ -98,6 +100,11 @@ const LibraryRoute = LibraryRouteImport.update({
   path: '/library',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpRoute = HelpRouteImport.update({
   id: '/help',
   path: '/help',
@@ -111,6 +118,11 @@ const GenerateRoute = GenerateRouteImport.update({
 const GalleryRoute = GalleryRouteImport.update({
   id: '/gallery',
   path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CritiqueRoute = CritiqueRouteImport.update({
@@ -245,9 +257,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
+  '/favorites': typeof FavoritesRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
   '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
@@ -285,9 +299,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
+  '/favorites': typeof FavoritesRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
   '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
@@ -326,9 +342,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/account': typeof AccountRoute
   '/critique': typeof CritiqueRoute
+  '/favorites': typeof FavoritesRoute
   '/gallery': typeof GalleryRoute
   '/generate': typeof GenerateRoute
   '/help': typeof HelpRoute
+  '/history': typeof HistoryRoute
   '/library': typeof LibraryRoute
   '/mcp': typeof McpRoute
   '/pricing': typeof PricingRoute
@@ -368,9 +386,11 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/critique'
+    | '/favorites'
     | '/gallery'
     | '/generate'
     | '/help'
+    | '/history'
     | '/library'
     | '/mcp'
     | '/pricing'
@@ -408,9 +428,11 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/critique'
+    | '/favorites'
     | '/gallery'
     | '/generate'
     | '/help'
+    | '/history'
     | '/library'
     | '/mcp'
     | '/pricing'
@@ -448,9 +470,11 @@ export interface FileRouteTypes {
     | '/'
     | '/account'
     | '/critique'
+    | '/favorites'
     | '/gallery'
     | '/generate'
     | '/help'
+    | '/history'
     | '/library'
     | '/mcp'
     | '/pricing'
@@ -489,9 +513,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AccountRoute: typeof AccountRoute
   CritiqueRoute: typeof CritiqueRoute
+  FavoritesRoute: typeof FavoritesRoute
   GalleryRoute: typeof GalleryRoute
   GenerateRoute: typeof GenerateRoute
   HelpRoute: typeof HelpRoute
+  HistoryRoute: typeof HistoryRoute
   LibraryRoute: typeof LibraryRoute
   McpRoute: typeof McpRoute
   PricingRoute: typeof PricingRoute
@@ -597,6 +623,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LibraryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help': {
       id: '/help'
       path: '/help'
@@ -616,6 +649,13 @@ declare module '@tanstack/react-router' {
       path: '/gallery'
       fullPath: '/gallery'
       preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/critique': {
@@ -811,9 +851,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
   CritiqueRoute: CritiqueRoute,
+  FavoritesRoute: FavoritesRoute,
   GalleryRoute: GalleryRoute,
   GenerateRoute: GenerateRoute,
   HelpRoute: HelpRoute,
+  HistoryRoute: HistoryRoute,
   LibraryRoute: LibraryRoute,
   McpRoute: McpRoute,
   PricingRoute: PricingRoute,

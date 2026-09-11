@@ -92,14 +92,10 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
         >
           Creations
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "favorites" } })}
-        >
+        <DropdownMenuItem onSelect={() => void navigate({ to: ROUTES.favorites })}>
           Favorites
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onSelect={() => void navigate({ to: ROUTES.account, search: { tab: "history" } })}
-        >
+        <DropdownMenuItem onSelect={() => void navigate({ to: ROUTES.history })}>
           History
         </DropdownMenuItem>
         <DropdownMenuItem

@@ -8,12 +8,12 @@ import type { LibraryPrompt } from "@/types/library";
 
 /**
  * Prompts starred from the Library. Favoriting itself still happens on
- * Library's own cards (the star icon) — this tab is just where the saved
- * list lives now, out of Library's public browsing surface.
- *
- * Favorites are local to this browser (Dexie/IndexedDB, see
- * src/lib/favorites.ts) — not yet synced to the account server-side, so
- * they won't follow you to a different device or browser.
+ * Library's own cards (the star icon) — this is just where the saved list
+ * lives now, out of Library's public browsing surface. Rendered at the
+ * public /favorites route (src/routes/favorites.tsx), not gated by
+ * sign-in — favorites are local to this browser (Dexie/IndexedDB, see
+ * src/lib/favorites.ts), never tied to an account, so there was never a
+ * reason to require one just to view them.
  */
 export function FavoritesTab() {
   const favoriteIds = useFavoriteIds();

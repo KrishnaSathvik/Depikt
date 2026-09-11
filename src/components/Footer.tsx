@@ -28,8 +28,14 @@ function Column({ title, links }: { title: string; links: FooterLink[] }) {
  * Restrained three-column footer. No Product column: the header nav
  * already covers Library/Prompt/Generate/Gallery, so repeating it here was
  * just noise. Templates and MCP live here (never in the primary header);
- * the Account column shows Sign in or Account depending on session. White,
- * hairline, no tagline.
+ * the Account column shows Pricing, then Sign in or Account depending on
+ * session. White, hairline, no tagline.
+ *
+ * Favorites/History are NOT here -- a global utility link buried at the
+ * bottom of every page is the wrong home for something people reach for
+ * mid-task. They're linked from where the data is actually created/used
+ * instead: the Library header (favoriting) and the header's account menu
+ * for signed-in users. See src/routes/favorites.tsx, history.tsx.
  *
  * Mobile/tablet (below lg): a balanced two-column grid — Resources in one
  * column, Account+Legal stacked together in the other (three items don't
