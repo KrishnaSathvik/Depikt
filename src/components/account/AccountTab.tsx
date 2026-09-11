@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,7 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { PlanCards } from "@/components/billing/PlanCards";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
+import { DepiktAvatar } from "@/components/profile/DepiktAvatar";
+import { AvatarPickerDialog } from "@/components/account/AvatarPickerDialog";
+import { EditProfileDialog } from "@/components/account/EditProfileDialog";
 import { useAuth } from "@/lib/auth-context";
+import { useProfile } from "@/lib/profile/profile-context";
 import { openBillingPortal, clearLocalUserData, deleteAccount } from "@/lib/billing/client";
 import { formatLongDate, formatShortDate } from "@/lib/billing/credit-state";
 import {
@@ -66,12 +71,15 @@ function renewalLine(s: AccountSummaryResponse): string | null {
 }
 
 /**
- * Everything that isn't a creation or an identity edit: Plan & Credits,
- * sign-in details, and account deletion. No separate Plan & Credits tab or
- * Profile tab -- AccountHeader above already owns identity/avatar/name.
+ * Everything that isn't a creation: identity (avatar/name/username), Plan &
+ * Credits, sign-in details, and account deletion. No separate Profile tab
+ * or page-level header -- Creations shouldn't repeat this block, so it
+ * lives only here, at the top of the one tab that's actually about the
+ * account rather than the work in it.
  */
 export function AccountTab({ summary }: { summary: AccountSummaryResponse | null }) {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
+  const { profile, save } = useProfile();
   const navigate = useNavigate();
   const { openBuyCredits } = useBuyCredits();
   const [showPlans, setShowPlans] = useState(false);
@@ -79,6 +87,8 @@ export function AccountTab({ summary }: { summary: AccountSummaryResponse | null
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [avatarOpen, setAvatarOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   async function handleSignOut() {
     await signOut();
@@ -101,11 +111,77 @@ export function AccountTab({ summary }: { summary: AccountSummaryResponse | null
     }
   }
 
+  // Shared with the loading branch below so the identity row doesn't pop
+  // in only once the (separately-fetched) billing summary resolves --
+  // profile and summary load in parallel and rarely finish at the same
+  // moment.
+  const identityRow = (
+    <div className="mt-5 flex items-center gap-3.5">
+      {profile && (
+        <button
+          type="button"
+          onClick={() => setAvatarOpen(true)}
+          disabled={!user}
+          aria-label="Change avatar"
+          className="group relative shrink-0 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
+        >
+          <DepiktAvatar
+            seed={profile.avatarSeed}
+            style={profile.avatarVariant}
+            size={56}
+            className="h-14 w-14"
+          />
+          <span className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-full bg-black/0 opacity-0 transition-all group-hover:bg-black/35 group-hover:opacity-100">
+            <Pencil className="h-4 w-4 text-white" />
+          </span>
+        </button>
+      )}
+      <div className="min-w-0">
+        <button
+          type="button"
+          onClick={() => setEditOpen(true)}
+          disabled={!profile}
+          className="group inline-flex items-center gap-1.5"
+        >
+          <span className="text-heading-sm text-[color:var(--text-primary)]">
+            {profile?.displayName ?? "Depikt Creator"}
+          </span>
+          {profile && (
+            <Pencil className="h-3.5 w-3.5 text-[color:var(--text-tertiary)] opacity-0 transition-opacity group-hover:opacity-100" />
+          )}
+        </button>
+        {profile && (
+          <p className="text-body-sm text-[color:var(--text-tertiary)]">@{profile.username}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const profileDialogs = (
+    <>
+      {profile && user && (
+        <AvatarPickerDialog
+          open={avatarOpen}
+          onOpenChange={setAvatarOpen}
+          userId={user.id}
+          currentSeed={profile.avatarSeed}
+          currentStyle={profile.avatarVariant}
+          onSave={async ({ seed, style }) => {
+            await save({ avatarSeed: seed, avatarVariant: style });
+          }}
+        />
+      )}
+      <EditProfileDialog open={editOpen} onOpenChange={setEditOpen} />
+    </>
+  );
+
   if (!summary) {
     return (
       <div>
         <h1 className="text-heading-md">Account</h1>
-        <p className="mt-4 text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
+        {identityRow}
+        <p className="mt-6 text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
+        {profileDialogs}
       </div>
     );
   }
@@ -130,6 +206,7 @@ export function AccountTab({ summary }: { summary: AccountSummaryResponse | null
   return (
     <div>
       <h1 className="text-heading-md">Account</h1>
+      {identityRow}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2">
         <section className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
@@ -304,6 +381,8 @@ export function AccountTab({ summary }: { summary: AccountSummaryResponse | null
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {profileDialogs}
     </div>
   );
 }

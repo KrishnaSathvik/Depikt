@@ -19,7 +19,7 @@ test("the two account tabs are Creations and Account, in order -- no Profile, no
   );
   const ids: readonly string[] = ACCOUNT_TABS.map((t) => t.id);
   assert.ok(!ids.includes("overview"), "Overview must not exist");
-  assert.ok(!ids.includes("profile"), "identity lives in AccountHeader, not a Profile tab");
+  assert.ok(!ids.includes("profile"), "identity lives in the Account tab, not a Profile tab");
   assert.ok(!ids.includes("plan"), "Plan & Credits merged into the Account tab");
   assert.ok(!ids.includes("favorites"), "Favorites is a public page, not an account tab");
   assert.ok(!ids.includes("history"), "History is a public page, not an account tab");
@@ -39,7 +39,6 @@ test("isAccountTabId rejects anything not one of the two ids", () => {
 
 test("Favorites and History are not linked anywhere in /account -- only from Library/Prompt", () => {
   for (const file of [
-    "src/components/account/AccountHeader.tsx",
     "src/components/account/AccountNav.tsx",
     "src/components/account/AccountTab.tsx",
     "src/routes/account.tsx",
@@ -108,27 +107,30 @@ test("AccountMenu is fast navigation (Creations/Account/Buy credits/Manage billi
   assert.doesNotMatch(src, />\s*Profile\s*</, "no separate Profile menu item");
 });
 
-test("one shared AccountNav (no separate desktop rail / mobile tab row) plus an AccountHeader identity block", () => {
+test("one shared AccountNav (no separate desktop rail / mobile tab row); Creations doesn't repeat the identity block", () => {
   const nav = read("src/components/account/AccountNav.tsx");
   assert.match(nav, /ACCOUNT_TABS/);
-  const header = read("src/components/account/AccountHeader.tsx");
-  assert.match(header, /<DepiktAvatar/);
-  assert.match(header, /useProfile\(/);
   const page = read("src/routes/account.tsx");
-  assert.match(page, /<AccountHeader/);
+  assert.doesNotMatch(
+    page,
+    /<AccountHeader/,
+    "no page-level identity header repeated above both tabs -- Creations must not show it",
+  );
   assert.match(page, /<AccountNav/);
   // No permanent left sidebar for exactly two sections.
   assert.doesNotMatch(page, /AccountRail/);
 });
 
-test("identity (avatar + name/username) is edited from AccountHeader, not a separate Profile screen", () => {
-  const header = read("src/components/account/AccountHeader.tsx");
+test("identity (avatar + name/username) is edited from the Account tab, not a separate Profile screen", () => {
+  const account = read("src/components/account/AccountTab.tsx");
+  assert.match(account, /<DepiktAvatar/);
+  assert.match(account, /useProfile\(/);
   assert.match(
-    header,
+    account,
     /<AvatarPickerDialog/,
     "tapping the avatar opens the avatar picker directly",
   );
-  assert.match(header, /<EditProfileDialog/, "the pencil opens the name/username editor directly");
+  assert.match(account, /<EditProfileDialog/, "the pencil opens the name/username editor directly");
   const editDialog = read("src/components/account/EditProfileDialog.tsx");
   assert.match(editDialog, /useProfile\(/);
   assert.match(editDialog, /useIsMobile\(/, "bottom sheet on mobile, centered dialog on desktop");
@@ -139,12 +141,11 @@ test("Sign out lives in the Account tab, set apart from account navigation, not 
   const account = read("src/components/account/AccountTab.tsx");
   assert.match(account, /AUTH_COPY\.signOut/);
   assert.match(account, /handleSignOut/);
-  for (const f of [
-    "src/components/account/AccountHeader.tsx",
-    "src/components/account/AccountNav.tsx",
-  ]) {
-    assert.doesNotMatch(read(f), /signOut/i, `${f} must not also offer sign out`);
-  }
+  assert.doesNotMatch(
+    read("src/components/account/AccountNav.tsx"),
+    /signOut/i,
+    "AccountNav must not also offer sign out",
+  );
 });
 
 test("Account tab shows Plan & Credits, sign-in details, and account deletion -- everything that isn't a creation or identity edit", () => {

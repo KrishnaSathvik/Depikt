@@ -139,8 +139,8 @@ test("generation exposes creditState and hosts render the shared panel", () => {
 
 // ---------- account ----------
 
-// /account is now Creations/Account (identity lives in AccountHeader above
-// both, not a Profile tab; Plan & Credits merged into Account alongside
+// /account is now Creations/Account (identity lives at the top of the
+// Account tab, not repeated above both and not a Profile tab; Plan & Credits merged into Account alongside
 // sign-in details and deletion) rather than one long page or a three/four
 // tab set — see tests/unit/account-*.
 test("/account confirms checkout server-side and stays noindex", () => {
