@@ -33,7 +33,10 @@ export function getProfile(): Promise<ProfileResponse> {
 export interface UpdateProfileInput {
   displayName?: string;
   username?: string;
+  /** DiceBear style id (see AVATAR_STYLES) -- set together with avatarSeed from the picker. */
   avatarVariant?: string;
+  /** DiceBear seed -- the picker sets this alongside avatarVariant; a style change alone keeps the current seed. */
+  avatarSeed?: string;
 }
 
 export function updateProfile(input: UpdateProfileInput): Promise<ProfileResponse> {

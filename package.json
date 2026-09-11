@@ -18,6 +18,10 @@
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
+    "@dicebear/core": "^9.4.3",
+    "@dicebear/lorelei": "^9.4.3",
+    "@dicebear/notionists": "^9.4.3",
+    "@dicebear/thumbs": "^9.4.3",
     "@hookform/resolvers": "^5.2.2",
     "@lovable.dev/cloud-auth-js": "^1.1.2",
     "@lovable.dev/mcp-js": "^2.0.4",

@@ -45,6 +45,17 @@ BEGIN
     ALTER TABLE public.profiles ADD CONSTRAINT profiles_display_name_length
       CHECK (display_name IS NULL OR length(display_name) BETWEEN 1 AND 60);
   END IF;
+  -- avatar_variant holds a DiceBear style id (curated set only -- see
+  -- src/lib/profile/avatar.ts's AVATAR_STYLES); avatar_seed is the DiceBear
+  -- seed string, free-form but bounded.
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_avatar_variant_check') THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_avatar_variant_check
+      CHECK (avatar_variant IN ('lorelei', 'notionists', 'thumbs'));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profiles_avatar_seed_length') THEN
+    ALTER TABLE public.profiles ADD CONSTRAINT profiles_avatar_seed_length
+      CHECK (length(avatar_seed) BETWEEN 1 AND 200);
+  END IF;
 END $$;
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -137,16 +148,13 @@ END;
 $$;
 
 -- ==========================================================================
--- Deterministic default avatar variant -- mirrors
--- src/lib/profile/avatar.ts's deriveDefaultAvatarVariant. Only used as the
--- initial value; the picker (client-side) writes its own chosen variant.
+-- Default avatar -- DiceBear's Lorelei style (src/lib/profile/avatar.ts's
+-- DEFAULT_AVATAR_STYLE), seeded with the user's own id so the same account
+-- always renders the same default avatar on every device, until the picker
+-- (client-side) writes a different seed/style.
 -- ==========================================================================
 CREATE OR REPLACE FUNCTION public.default_avatar_variant(p_user_id uuid) RETURNS text
-LANGUAGE sql IMMUTABLE AS $$
-  SELECT 's' || public.username_word_index(p_user_id::text || ':avatar:symbol', 24)::text
-      || '-b' || public.username_word_index(p_user_id::text || ':avatar:bg', 10)::text
-      || '-c' || public.username_word_index(p_user_id::text || ':avatar:composition', 3)::text
-$$;
+LANGUAGE sql IMMUTABLE AS $$ SELECT 'lorelei' $$;
 
 -- ==========================================================================
 -- ensure_profile -- idempotent: returns the existing row if one already
@@ -234,8 +242,8 @@ GRANT EXECUTE ON FUNCTION public.is_reserved_username(text) TO authenticated, se
 COMMENT ON TABLE public.profiles IS
   'One row per auth user: username, display_name, avatar_seed/variant. Never plan/credits/Stripe ids -- those stay in credit_accounts/billing_accounts. Not publicly readable.';
 COMMENT ON COLUMN public.profiles.avatar_seed IS
-  'Always the user_id (kept as its own column, not re-derived, so a future non-user-id seed source is a data migration, not a schema change).';
+  'DiceBear seed string. Defaults to the user_id at creation (deterministic, stable across devices); the avatar picker can set it to a different deterministic shuffle seed. Never re-derived from username.';
 COMMENT ON COLUMN public.profiles.avatar_variant IS
-  'Compact "s<i>-b<i>-c<i>" symbol/background/composition index string; see src/lib/profile/avatar.ts. Never rendered SVG.';
+  'DiceBear style id -- one of lorelei/notionists/thumbs (profiles_avatar_variant_check). See src/lib/profile/avatar.ts. Generated locally from @dicebear/*, never fetched from a remote API; never stored as rendered SVG.';
 COMMENT ON FUNCTION public.ensure_profile IS
   'Idempotent: returns the existing profile or creates one with a generated, collision-free username. Called by the signup trigger and lazily by the app for pre-migration accounts.';

@@ -3,41 +3,69 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { DepiktAvatar } from "@/components/profile/DepiktAvatar";
-import { avatarShuffleCandidates, deriveDefaultAvatarVariant } from "@/lib/profile/avatar";
+import {
+  AVATAR_STYLES,
+  avatarShuffleSeeds,
+  deriveDefaultAvatarSeed,
+  normalizeAvatarStyle,
+  type AvatarStyle,
+} from "@/lib/profile/avatar";
 import { trackEvent } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
+
+const STYLE_LABEL: Record<AvatarStyle, string> = {
+  lorelei: "Lorelei",
+  notionists: "Notionists",
+  thumbs: "Thumbs",
+};
 
 export function AvatarPickerDialog({
   open,
   onOpenChange,
   userId,
-  currentVariant,
+  currentSeed,
+  currentStyle,
   onSave,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   userId: string;
-  currentVariant: string;
-  onSave: (variant: string) => Promise<void>;
+  currentSeed: string;
+  currentStyle: string;
+  onSave: (input: { seed: string; style: AvatarStyle }) => Promise<void>;
 }) {
+  const [style, setStyle] = useState<AvatarStyle>(normalizeAvatarStyle(currentStyle));
   const [round, setRound] = useState(0);
-  const [selected, setSelected] = useState(currentVariant);
+  const [selectedSeed, setSelectedSeed] = useState(currentSeed);
   const [saving, setSaving] = useState(false);
 
-  // The default (round 0) always includes the account's original
-  // deterministic avatar so "shuffle away, then come back" is possible.
-  const candidates = useMemo(() => {
-    const shuffled = avatarShuffleCandidates(userId, round, 8);
+  // Round 0 always includes the account's current seed for this style (or
+  // the plain default) so "shuffle away, then come back" is possible.
+  const seeds = useMemo(() => {
+    const shuffled = avatarShuffleSeeds(userId, round, 8);
     if (round === 0) {
-      const defaultVariant = deriveDefaultAvatarVariant(userId);
-      return [defaultVariant, ...shuffled.filter((v) => v !== defaultVariant)].slice(0, 8);
+      const anchor =
+        style === normalizeAvatarStyle(currentStyle)
+          ? currentSeed
+          : deriveDefaultAvatarSeed(userId);
+      return [anchor, ...shuffled.filter((s) => s !== anchor)].slice(0, 8);
     }
     return shuffled;
-  }, [userId, round]);
+  }, [userId, round, style, currentSeed, currentStyle]);
+
+  function pickStyle(next: AvatarStyle) {
+    if (next === style) return;
+    setStyle(next);
+    setRound(0);
+    setSelectedSeed(
+      next === normalizeAvatarStyle(currentStyle) ? currentSeed : deriveDefaultAvatarSeed(userId),
+    );
+  }
 
   async function handleSave() {
     setSaving(true);
     try {
-      await onSave(selected);
+      await onSave({ seed: selectedSeed, style });
       trackEvent("avatar_changed", {});
       onOpenChange(false);
     } catch {
@@ -51,23 +79,45 @@ export function AvatarPickerDialog({
     <Dialog open={open} onOpenChange={(o) => !saving && onOpenChange(o)}>
       <DialogContent className="max-w-[400px]">
         <DialogTitle className="text-heading-sm">Choose your avatar</DialogTitle>
-        <div className="mt-4 grid grid-cols-4 gap-2.5">
-          {candidates.map((variant) => (
+
+        <div className="mt-3 flex gap-1.5">
+          {AVATAR_STYLES.map((s) => (
             <button
-              key={variant}
+              key={s}
               type="button"
-              onClick={() => setSelected(variant)}
-              aria-pressed={selected === variant}
-              className={`flex items-center justify-center rounded-lg border p-2 transition-colors ${
-                selected === variant
-                  ? "border-[color:var(--text-primary)]"
-                  : "border-[color:var(--border-subtle)] hover:border-[color:var(--border-default)]"
-              }`}
+              onClick={() => pickStyle(s)}
+              aria-pressed={style === s}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors",
+                style === s
+                  ? "border-[color:var(--text-primary)] bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+                  : "border-[color:var(--border-default)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+              )}
             >
-              <DepiktAvatar variant={variant} size={44} />
+              {STYLE_LABEL[s]}
             </button>
           ))}
         </div>
+
+        <div className="mt-4 grid grid-cols-4 gap-2.5">
+          {seeds.map((seed) => (
+            <button
+              key={seed}
+              type="button"
+              onClick={() => setSelectedSeed(seed)}
+              aria-pressed={selectedSeed === seed}
+              className={cn(
+                "flex items-center justify-center rounded-lg border p-2 transition-colors",
+                selectedSeed === seed
+                  ? "border-[color:var(--text-primary)]"
+                  : "border-[color:var(--border-subtle)] hover:border-[color:var(--border-default)]",
+              )}
+            >
+              <DepiktAvatar seed={seed} style={style} size={44} />
+            </button>
+          ))}
+        </div>
+
         <DialogFooter className="mt-5 flex-row items-center justify-between sm:justify-between">
           <Button
             type="button"

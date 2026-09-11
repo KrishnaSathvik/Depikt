@@ -48,7 +48,9 @@ export function OverviewTab({
       <h1 className="text-heading-md">Account</h1>
 
       <div className="mt-5 flex items-center gap-3">
-        {profile && <DepiktAvatar variant={profile.avatarVariant} size={56} />}
+        {profile && (
+          <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={56} />
+        )}
         <div>
           <p className="text-heading-sm">{profile?.displayName ?? "Depikt Creator"}</p>
           {profile && (

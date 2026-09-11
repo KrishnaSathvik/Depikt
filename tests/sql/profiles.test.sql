@@ -13,8 +13,8 @@ BEGIN
   ASSERT p.display_name = 'Ada Lovelace', 'display_name comes from OAuth metadata';
   ASSERT p.username ~ '^[a-z]+-[a-z]+-[0-9]{4}$', format('username must match adjective-noun-suffix, got %s', p.username);
   ASSERT p.avatar_seed = u::text, 'avatar_seed defaults to the user id';
-  ASSERT p.avatar_variant ~ '^s[0-9]+-b[0-9]+-c[0-9]+$', 'avatar_variant must be well-formed';
-  ASSERT p.avatar_variant = public.default_avatar_variant(u), 'default avatar is deterministic from user id';
+  ASSERT p.avatar_variant = 'lorelei', 'default avatar style is Lorelei';
+  ASSERT p.avatar_variant = public.default_avatar_variant(u), 'default avatar style matches the function';
   -- calling ensure_profile again must be a no-op (idempotent)
   PERFORM public.ensure_profile(u, 'Someone Else');
   SELECT count(*) INTO n FROM public.profiles WHERE user_id = u;
@@ -109,6 +109,15 @@ BEGIN
   ASSERT public.is_reserved_username('Admin'), 'reserved check must be case-insensitive';
   ASSERT public.is_reserved_username('depikt'), 'depikt itself is reserved';
   ASSERT NOT public.is_reserved_username('quiet-orbit-4821'), 'a normal generated username is not reserved';
+
+  -- avatar_variant is restricted to the curated DiceBear style set.
+  rejected := false;
+  BEGIN
+    UPDATE public.profiles SET avatar_variant = 'bottts' WHERE user_id = u; -- not a curated style
+  EXCEPTION WHEN check_violation THEN rejected := true; END;
+  ASSERT rejected, 'avatar_variant must be one of the curated DiceBear styles';
+  UPDATE public.profiles SET avatar_variant = 'thumbs' WHERE user_id = u;
+  UPDATE public.profiles SET avatar_seed = 'quiet-orbit-4821:shuffle:1:3' WHERE user_id = u;
 END $$;
 
 -- 6. RLS: identity columns are locked; editable columns are not.
@@ -116,7 +125,7 @@ DO $$
 DECLARE u uuid := gen_random_uuid(); rejected boolean := false;
 BEGIN
   INSERT INTO auth.users (id, email) VALUES (u, 'lock@test.local');
-  UPDATE public.profiles SET display_name = 'New Name', avatar_variant = 's1-b1-c1' WHERE user_id = u;
+  UPDATE public.profiles SET display_name = 'New Name', avatar_variant = 'notionists' WHERE user_id = u;
   BEGIN
     UPDATE public.profiles SET user_id = gen_random_uuid() WHERE user_id = u;
   EXCEPTION WHEN OTHERS THEN rejected := true; END;

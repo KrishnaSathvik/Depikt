@@ -43,7 +43,12 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
         className="flex h-7 w-7 items-center justify-center rounded-full transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
       >
         {profile ? (
-          <DepiktAvatar variant={profile.avatarVariant} size={28} label={displayName} />
+          <DepiktAvatar
+            seed={profile.avatarSeed}
+            style={profile.avatarVariant}
+            size={28}
+            label={displayName}
+          />
         ) : (
           <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg)] text-[12px] font-semibold text-[color:var(--text-primary)]">
             {(user.email ?? "?").charAt(0).toUpperCase()}
@@ -54,7 +59,12 @@ export function AccountMenu({ user, onBuyCredits }: { user: User; onBuyCredits?:
         <DropdownMenuLabel className="font-normal">
           <div className="flex items-center gap-2.5">
             {profile && (
-              <DepiktAvatar variant={profile.avatarVariant} size={32} label={displayName} />
+              <DepiktAvatar
+                seed={profile.avatarSeed}
+                style={profile.avatarVariant}
+                size={32}
+                label={displayName}
+              />
             )}
             <div className="min-w-0">
               <p className="truncate text-[13px] font-medium text-[color:var(--text-primary)]">

@@ -126,7 +126,9 @@ export function ProfileTab() {
         <div>
           <p className="eyebrow">Profile picture</p>
           <div className="mt-3 flex items-center gap-4">
-            {profile && <DepiktAvatar variant={profile.avatarVariant} size={64} />}
+            {profile && (
+              <DepiktAvatar seed={profile.avatarSeed} style={profile.avatarVariant} size={64} />
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -209,9 +211,10 @@ export function ProfileTab() {
           open={avatarOpen}
           onOpenChange={setAvatarOpen}
           userId={user.id}
-          currentVariant={profile.avatarVariant}
-          onSave={async (variant) => {
-            await save({ avatarVariant: variant });
+          currentSeed={profile.avatarSeed}
+          currentStyle={profile.avatarVariant}
+          onSave={async ({ seed, style }) => {
+            await save({ avatarSeed: seed, avatarVariant: style });
           }}
         />
       )}

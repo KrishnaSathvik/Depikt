@@ -41,16 +41,19 @@ test("profile GET self-heals via ensure_profile instead of 404ing pre-migration 
   assert.match(src, /db\.rpc\("ensure_profile"/);
 });
 
-test("profile route never lets a caller change avatar_seed away from their own identity basis", () => {
+test("profile route validates the avatar style/seed before persisting either", () => {
   const src = read("src/routes/api/account/profile.ts");
-  // The PATCH body may only ever set displayName/username/avatarVariant --
-  // avatar_seed is read back in responses (the user's own identity basis)
-  // but never accepted as client input.
-  assert.ok(
-    !/body\.avatarSeed/.test(src),
-    "PATCH must not read an avatarSeed field from the client",
-  );
-  assert.ok(!/patch\.avatar_seed/.test(src), "PATCH must never write avatar_seed");
+  // avatarVariant must be one of the curated DiceBear styles (isAvatarStyle),
+  // never an arbitrary string -- the DB's own CHECK constraint is the
+  // authoritative backstop, but this API validates first for a clean error.
+  assert.match(src, /isAvatarStyle\(body\.avatarVariant\)/);
+  // avatarSeed is a free-form DiceBear seed (the picker's shuffle produces
+  // one), but still bounded and type-checked, and always written to the
+  // caller's own row only (patch applied via .eq("user_id", userId), see
+  // the update call below).
+  assert.match(src, /body\.avatarSeed\.length > AVATAR_SEED_MAX/);
+  assert.match(src, /patch\.avatar_seed = body\.avatarSeed/);
+  assert.match(src, /\.eq\("user_id", userId\)/);
 });
 
 test("creations route reads only image_versions/generation_jobs owned via RLS, never a service role", () => {
