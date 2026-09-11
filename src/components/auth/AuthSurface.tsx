@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import lovableMark from "@/assets/lovable-mark.jpeg";
 import { useAuth } from "@/lib/auth-context";
 import {
   enabledAuthProviders,
@@ -44,9 +45,10 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RESEND_COOLDOWN_S = 30;
 
 /** Real brand marks — Google's 4-color G, Apple's mark (single-color by
- * design), Microsoft's 4-square mark, an approximation of Lovable's pink
- * mark (no official asset shipped with this project), and a plain envelope
- * for email. Never a monochrome placeholder. */
+ * design), Microsoft's 4-square mark, Lovable's actual icon asset
+ * (src/assets/lovable-mark.jpeg — their gradient heart on its dark app-icon
+ * background, rounded like an app icon), and a plain envelope for email.
+ * Never a monochrome placeholder. */
 function ProviderMark({ id }: { id: AuthProviderId }) {
   if (id === "google")
     return (
@@ -81,23 +83,7 @@ function ProviderMark({ id }: { id: AuthProviderId }) {
         <rect x="12" y="12" width="10" height="10" fill="#FFB900" />
       </svg>
     );
-  // Lovable — approximated (no official brand asset in this project): a
-  // heart in Lovable's pink-to-red gradient, the closest safe match to
-  // their mark without reproducing a trademarked asset pixel-for-pixel.
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4">
-      <defs>
-        <linearGradient id="lovable-mark-gradient" x1="2" y1="4" x2="22" y2="21">
-          <stop offset="0" stopColor="#FF6FB3" />
-          <stop offset="1" stopColor="#FF5A3C" />
-        </linearGradient>
-      </defs>
-      <path
-        fill="url(#lovable-mark-gradient)"
-        d="M12 21s-7.8-4.6-10.1-9.3C.4 8.4 1.9 4.6 5.6 3.7c2-.5 4.1.3 5.3 2a1.3 1.3 0 0 0 2.2 0c1.2-1.7 3.3-2.5 5.3-2 3.7.9 5.2 4.7 3.7 8C19.8 16.4 12 21 12 21Z"
-      />
-    </svg>
-  );
+  return <img src={lovableMark} alt="" aria-hidden className="h-4 w-4 rounded-[4px]" />;
 }
 
 function EmailMark() {
