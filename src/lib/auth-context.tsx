@@ -137,8 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: provider });
-    const redirectUri =
-      redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+    const redirectUri = redirectTo ?? canonicalRedirectUri();
     // The managed client picks the right flow for the context (redirect in a
     // real tab, popup inside the Lovable preview iframe).
 
