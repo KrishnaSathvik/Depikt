@@ -106,7 +106,10 @@ async function signInWithProviderNewTab(
   try {
     response = await new Promise<OAuthBrokerResponse>((resolve, reject) => {
       const onMessage = (event: MessageEvent) => {
-        if (!OAUTH_MESSAGE_ORIGINS.includes(event.origin)) return;
+        // The broker posts from its own origin, but when the callback is served
+        // from this site's domain (apex/www variants) the message origin is ours.
+        if (!OAUTH_MESSAGE_ORIGINS.includes(event.origin) && !isTrustedAppOrigin(event.origin))
+          return;
         const data = event.data as { type?: string; response?: OAuthBrokerResponse } | null;
         if (!data || data.type !== "authorization_response" || !data.response) return;
         cleanup();
