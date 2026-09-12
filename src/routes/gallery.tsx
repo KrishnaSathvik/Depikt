@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Wand2, Sparkles, Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Pagination } from "@/components/Pagination";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
@@ -187,7 +186,6 @@ function GalleryPage() {
           )}
         </DialogContent>
       </Dialog>
-      <Footer />
     </div>
   );
 }

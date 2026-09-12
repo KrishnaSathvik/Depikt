@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { ScrollRow } from "@/components/ScrollRow";
-import { Footer } from "@/components/Footer";
 import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
 import { SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
@@ -232,8 +231,6 @@ function BlogIndex() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

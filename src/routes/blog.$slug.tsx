@@ -2,7 +2,6 @@ import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-route
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { getPostBySlug, getRelatedPosts, type PostFaqItem } from "@/data/posts";
 import { TOOL } from "@/lib/product";
@@ -112,7 +111,6 @@ function PostNotFound() {
           <Link to="/blog">Back to blog</Link>
         </Button>
       </main>
-      <Footer />
     </div>
   );
 }
@@ -341,7 +339,6 @@ function PostPage() {
           </div>
         </div>
       </article>
-      <Footer />
     </div>
   );
 }

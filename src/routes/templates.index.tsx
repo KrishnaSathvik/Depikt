@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { ScrollRow } from "@/components/ScrollRow";
 import { Button } from "@/components/ui/button";
 import { TemplateSetup } from "@/components/TemplateSetup";
@@ -196,7 +195,6 @@ function TemplatesIndex() {
           </Button>
         </aside>
       </main>
-      <Footer />
 
       <TemplateSetup
         template={selected}
