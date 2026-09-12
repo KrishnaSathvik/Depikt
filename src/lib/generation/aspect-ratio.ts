@@ -91,6 +91,12 @@ const KNOWN_FORMATS: readonly { pattern: RegExp; ratioLabel: string }[] = [
   { pattern: /instagram\s+(story|stories|reel)/i, ratioLabel: "9:16" },
   { pattern: /tiktok/i, ratioLabel: "9:16" },
   { pattern: /instagram\s+post/i, ratioLabel: "1:1" },
+  // A "hero image" (blog post, article, landing page, website banner) is
+  // unambiguously a wide banner — never square. Without this, a prompt
+  // like "blog post hero image" matched nothing below and fell all the
+  // way to the 1:1 fallback.
+  { pattern: /\bhero\s+image\b/i, ratioLabel: "16:9" },
+  { pattern: /\b(blog|article)\s+(banner|header)\b/i, ratioLabel: "16:9" },
 ];
 
 const EXPLICIT_RATIO_RE = /\b(\d{1,2})\s*:\s*(\d{1,2})\b/;

@@ -43,6 +43,27 @@ test("instagram story maps to 9:16", () => {
   assert.deepEqual([r.width, r.height], [864, 1536]);
 });
 
+// Regression: "blog post hero image" matched none of the rules above it
+// (no explicit ratio, no orientation word) and fell all the way to the
+// 1:1 fallback -- a hero image is unambiguously a wide banner, never
+// square. Confirmed live: this exact prompt text produced a square result.
+test("a blog post hero image maps to 16:9, not the square fallback", () => {
+  const r = resolveGenerationSize({
+    promptText: "edit this added reference image for blog post hero image, edit naturally",
+  });
+  assert.equal(r.source, "known_format");
+  assert.equal(r.orientation, "landscape");
+  assert.deepEqual([r.width, r.height], [1536, 864]);
+});
+
+test("a blog/article banner or header also maps to 16:9", () => {
+  assert.equal(
+    resolveGenerationSize({ promptText: "blog banner for the launch post" }).ratioLabel,
+    "16:9",
+  );
+  assert.equal(resolveGenerationSize({ promptText: "article header image" }).ratioLabel, "16:9");
+});
+
 test("priority 4: orientation word when no ratio or known format present", () => {
   const r = resolveGenerationSize({ promptText: "a landscape photo of mountains at sunrise" });
   assert.equal(r.source, "orientation");
