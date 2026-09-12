@@ -5,7 +5,7 @@
 
 import { MAX_REFERENCE_IMAGES_V1 } from "./models.ts";
 
-export const MAX_REFERENCE_BYTES = 10 * 1024 * 1024; // matches src/lib/reference-image.ts MAX_UPLOAD_BYTES
+export const MAX_REFERENCE_BYTES = 25 * 1024 * 1024; // matches src/lib/reference-image.ts MAX_UPLOAD_BYTES
 const ALLOWED_MIME: Record<string, "png" | "jpg" | "webp"> = {
   "image/png": "png",
   "image/jpeg": "jpg",
@@ -49,11 +49,11 @@ export function validateReferenceUploadRequest(body: unknown): ReferenceUploadVa
   // Reject before the (comparatively expensive) base64 decode: a
   // base64-encoded size check first, then the exact byte count.
   if (match[2].length > MAX_REFERENCE_BYTES * 1.4) {
-    return { ok: false, error: "Reference image is too large (max 10MB)" };
+    return { ok: false, error: "Reference image is too large (max 25MB)" };
   }
   const bytes = decodeBase64(match[2]);
   if (bytes.byteLength > MAX_REFERENCE_BYTES) {
-    return { ok: false, error: "Reference image is too large (max 10MB)" };
+    return { ok: false, error: "Reference image is too large (max 25MB)" };
   }
   if (bytes.byteLength === 0) {
     return { ok: false, error: "Reference image is empty" };

@@ -256,7 +256,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       return;
     }
     if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error("Image too large (max 10MB)");
+      toast.error("Image too large (max 25MB)");
       return;
     }
     const local = await fileToReferenceState(file, "auto");

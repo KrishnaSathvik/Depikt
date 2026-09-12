@@ -37,7 +37,7 @@ export function ReferenceImagePicker({
   const handleFile = async (file: File) => {
     if (!file.type.startsWith("image/")) return;
     if (file.size > MAX_UPLOAD_BYTES) {
-      toast.error("Image too large (max 10MB)");
+      toast.error("Image too large (max 25MB)");
       return;
     }
     setLoading(true);
