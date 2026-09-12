@@ -67,6 +67,19 @@ export function createGenerationJob(req: CreateJobRequest): Promise<CreateJobRes
   });
 }
 
+/**
+ * Kicks off the actual work. Long-lived on purpose: the server does the
+ * OpenAI call inside this request (no waitUntil/Queues available), so the
+ * caller must NOT await it — start it, then poll the job as usual.
+ */
+export function startGenerationJob(jobId: string, referencePaths: string[]): Promise<Response> {
+  return generationFetch(`/api/generation/jobs/${jobId}/run`, {
+    method: "POST",
+    body: JSON.stringify({ referencePaths }),
+  });
+}
+
+
 export interface JobStatusResponse {
   jobId: string;
   sessionId: string;
