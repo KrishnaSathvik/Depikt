@@ -81,7 +81,7 @@ const FEATURES = [
     to: "/library" as const,
     step: "Discover what works.",
     title: TOOL.library,
-    body: `${LIBRARY_PROMPT_COUNT} curated prompts, each with a note on why it works: the ${LEGACY_MODEL_NAME} collection plus ${TARGET_MODEL_NAME} recipes with reviewed results.`,
+    body: `${LIBRARY_PROMPT_COUNT} curated prompts, each with a note on why it works.`,
     cta: "Browse the library",
   },
   {
