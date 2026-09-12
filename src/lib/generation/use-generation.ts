@@ -344,12 +344,22 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     trackEvent("generate_submitted", { source: sourceContextRef.current.type });
     try {
       const idempotencyKey = input.idempotencyKey ?? crypto.randomUUID();
+      const referenceAssetIds = referencesRef.current
+        .map((r) => r.uploadedPath)
+        .filter((p): p is string => !!p);
+      // A "generate" operation calls OpenAI's images/generations endpoint,
+      // which has no concept of input images at all -- any attached
+      // reference would be uploaded, included in the request, and then
+      // silently dropped before the actual API call, producing an image
+      // unrelated to the reference. Attaching a reference (with or
+      // without an existing sourceVersionId) must route through "edit"
+      // (images/edits), the only endpoint that accepts image input; the
+      // server already supports and expects this (job-request.ts allows
+      // "edit" with referenceAssetIds alone, no sourceVersionId needed).
       const res = await createGenerationJob({
-        operation: input.sourceVersionId ? "edit" : "generate",
+        operation: input.sourceVersionId || referenceAssetIds.length > 0 ? "edit" : "generate",
         prompt: effectivePrompt,
-        referenceAssetIds: referencesRef.current
-          .map((r) => r.uploadedPath)
-          .filter((p): p is string => !!p),
+        referenceAssetIds,
         sourceVersionId: input.sourceVersionId ?? null,
         sourceContext: sourceContextRef.current,
         idempotencyKey,

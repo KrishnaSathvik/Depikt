@@ -286,11 +286,10 @@ test("privacy and terms cover the required subjects, invent no owner details, an
 
 // ---------- footer / header ----------
 
-test("footer has the three restrained columns and no stale tagline", () => {
+test("footer has the two restrained columns (Resources, Legal) and no stale tagline", () => {
   const src = read("src/components/Footer.tsx");
   for (const s of [
     "Resources",
-    "Account",
     "Legal",
     "ROUTES.pricing",
     "ROUTES.help",
@@ -304,11 +303,11 @@ test("footer has the three restrained columns and no stale tagline", () => {
   // No Product column: it only duplicated the header nav.
   assert.doesNotMatch(src, /title="Product"/);
   assert.doesNotMatch(src, /A workspace for better image prompts\./);
-  // Get Started carries Pricing + Sign up/Sign in while signed out, the
-  // one Account link once signed in.
-  assert.match(src, /Sign up/);
-  assert.match(src, /ROUTES\.signUp/);
-  assert.match(src, /useAuth\(\)/, "signed-in footer shows Account instead of Sign up/Sign in");
+  // No separate Sign up/Sign in/Account column -- the header avatar/"Sign
+  // in" link already cover that; Pricing lives under Resources instead.
+  assert.doesNotMatch(src, /label: "Sign up"/);
+  assert.doesNotMatch(src, /ROUTES\.signUp/);
+  assert.doesNotMatch(src, /ROUTES\.account/);
 });
 
 // ---------- SEO ----------

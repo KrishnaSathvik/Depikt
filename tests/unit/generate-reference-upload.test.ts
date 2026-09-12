@@ -57,3 +57,39 @@ test("a failed reference upload is flagged for retry, never filtered out of stat
   assert.match(g, /await uploadReference\(entry\);\s*\n\s*\}/);
   assert.match(g, /const ok = await uploadReference\(entry\);/);
 });
+
+// Regression: attaching a reference image on a *first* Generate submission
+// (no sourceVersionId yet -- that only exists once a job has already run)
+// was silently ignored. The reference uploaded fine and was included in
+// the request as referenceAssetIds, but submit() picked
+// `operation: input.sourceVersionId ? "edit" : "generate"`, and job-
+// pipeline.ts's "generate" branch calls OpenAI's images/generations
+// endpoint with no reference images at all -- only "edit" (images/edits)
+// accepts image input. Confirmed live: attaching a landscape reference and
+// asking to "edit this" produced a result with zero relation to it. The
+// server already anticipated this (job-request.ts allows "edit" with
+// referenceAssetIds alone, no sourceVersionId required) -- only the client
+// never asked for it.
+test("submit() routes through the edit operation whenever a reference is attached, not just when editing an existing version", () => {
+  const g = read("src/lib/generation/use-generation.ts");
+  const submitFn = g.slice(
+    g.indexOf("async function submit"),
+    g.indexOf("// Re-upload any references"),
+  );
+
+  // The old, buggy selection ignored attached references entirely.
+  assert.doesNotMatch(submitFn, /operation: input\.sourceVersionId \? "edit" : "generate"/);
+  assert.match(
+    submitFn,
+    /operation: input\.sourceVersionId \|\| referenceAssetIds\.length > 0 \? "edit" : "generate"/,
+  );
+
+  // job-pipeline.ts's "generate" branch never receives referenceImages --
+  // this is *why* the operation choice matters, not just cosmetic.
+  const pipeline = read("src/lib/generation/job-pipeline.ts");
+  const generateCall = pipeline.slice(
+    pipeline.indexOf('job.operation === "generate"'),
+    pipeline.indexOf(": await editImage("),
+  );
+  assert.doesNotMatch(generateCall, /referenceImages/);
+});
