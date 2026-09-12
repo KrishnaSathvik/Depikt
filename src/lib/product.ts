@@ -171,7 +171,7 @@ export const ANNOUNCEMENT: Announcement = {
   eyebrow: "New in Depikt",
   title: `See what works with ${TARGET_MODEL_NAME}.`,
   body: "Posters, edits, reference workflows, structured visuals, and more — generated, reviewed, and added to Depikt.",
-  meta: `${IMAGES_25_LIBRARY_COUNT} new tested recipes`,
+  
   primary: { label: "Explore Images 2.5", collection: "gpt-image-2.5" },
   secondary: { label: "Read what's new", slug: "chatgpt-images-2-5-whats-new" },
   images: [
