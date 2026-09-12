@@ -23,6 +23,7 @@ import { trackEvent } from "@/lib/analytics";
 import { SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
 const PAGE_URL = absoluteUrl("/templates");
@@ -31,7 +32,10 @@ type Category = "all" | TemplateGroup;
 
 export const Route = createFileRoute("/templates/")({
   head: () => {
-    const ogImage = getOgImageForPath("templates");
+    const { meta, links } = pageSeoHead(SEO.templates, {
+      url: PAGE_URL,
+      image: getOgImageForPath("templates"),
+    });
     const collectionJsonLd = {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
@@ -46,20 +50,8 @@ export const Route = createFileRoute("/templates/")({
       })),
     };
     return {
-      meta: [
-        { title: SEO.templates.title },
-        { name: "description", content: SEO.templates.description },
-        { property: "og:title", content: SEO.templates.title },
-        { property: "og:description", content: SEO.templates.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: ogImage },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.templates.title },
-        { name: "twitter:description", content: SEO.templates.description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
+      meta,
+      links,
       scripts: [{ type: "application/ld+json", children: JSON.stringify(collectionJsonLd) }],
     };
   },

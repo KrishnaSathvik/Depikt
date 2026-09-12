@@ -1,9 +1,9 @@
 # Depikt OG image prompts
 
-Eight route-level social cards for Depikt. All eight belong to one family and are generated with
+Route-level social cards for Depikt. They belong to one family and are generated with
 ChatGPT Images 2.5 (`gpt-image-2.5-sunburst`, quality `high`) using `public/logo.png` as the
 only reference image. Generation runs outside the product with
-`node scripts/og-images-run.ts [home|library|prompt|templates|gallery|blog|mcp|generate|all]`
+`node scripts/og-images-run.ts [home|library|prompt|templates|gallery|blog|mcp|generate|pricing|help|terms|privacy|signIn|signUp|all]`
 (needs `OPENAI_API_KEY` in `.env.local`). The model renders 1536×864 (16:9); the script
 center-crops to 1536×806 and resizes to 1200×630, so every prompt keeps a 5% top/bottom safe
 margin.
@@ -245,87 +245,37 @@ Designed specifically for social-link previews.
 ## 4. Templates (`public/og/templates.png`)
 
 ```text
-Create a premium 1200×630 Open Graph image for Depikt Templates.
-
-Use the attached Depikt logo as the exact brand reference. Preserve it exactly and do not redraw, reinterpret, distort, or embellish it.
-
-CONCEPT
-
-Templates are reusable structures for common image-making tasks — not finished prompt examples.
-
-DESIGN SYSTEM
-
-Pure white canvas.
-Near-black typography.
-Neutral-gray structural lines.
-Minimal editorial grid.
-Generous negative space.
-Intelligent and practical rather than decorative.
+Create the social card for Depikt's reusable image-prompt Templates.
 
 LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
 
-Place the Depikt logo in the upper-left.
+"Start with structure."
 
-Large headline:
+Below the headline, much smaller neutral-gray text:
 
-"Start with a structure."
+"Make the idea your own."
 
-Smaller line:
+On the right, show three thoughtfully arranged visual frameworks:
+a portrait poster layout, a landscape explanatory composition,
+and a square product-image layout.
 
-"Reusable templates for common image tasks."
+Use fine gray alignment rules, clean image regions, and simple geometric
+elements. Let one framework contain a small finished illustration while the
+others retain their open structure.
 
-On the right, create a refined visual system of partially completed creative frameworks.
+These are conceptual design frameworks, not screenshots or interactive forms.
+Do not render a wall of empty input fields or fake template-builder UI.
 
-Show several distinct structures suggesting:
-
-- poster
-- product photography
-- infographic
-- image edit
-- reference-based composition
-- storyboard
-
-Represent them using abstract labeled-field shapes, crop frames, image placeholders, typographic hierarchy blocks, and composition guides.
-
-They should feel like creative blueprints waiting to be filled in.
-
-Do NOT create six finished artworks.
-The idea should clearly be STRUCTURE BEFORE RESULT.
-
-Use thin lines, a restrained editorial grid, and perhaps one or two small color accents.
+The visual should make structure feel useful and creative rather than rigid.
+Keep lines crisp, white space generous, and accent color limited to one small
+muted-blue region.
 
 TEXT — EXACT
+"Start with structure."
+"Make the idea your own."
 
-Render only:
-
-"Start with a structure."
-
-"Reusable templates for common image tasks."
-
-Do not render template names or placeholder text inside the structures.
-No fake form labels.
-No URLs.
-No model names.
-No badges.
-
-STYLE RESTRICTIONS
-
-No dashboard UI.
-No browser window.
-No colorful card grid.
-No AI imagery.
-No glowing effects.
-No 3D elements.
-No background gradients.
-No excessive shadows.
-
-OUTPUT
-
-1200×630 pixels.
-Landscape.
-Crisp typography.
-Editorial information-design quality.
-Strong thumbnail readability.
+Do not render template names, field labels, or placeholder text inside the frameworks.
 ```
 
 ## 5. Gallery (`public/og/gallery.png`)
@@ -499,170 +449,268 @@ Designed specifically for X, LinkedIn, Slack, Messages, and other social-link pr
 ## 7. MCP (`public/og/mcp.png`)
 
 ```text
-Create a premium 1200×630 Open Graph image announcing Depikt's MCP integration.
-
-Use the attached Depikt logo as the exact brand reference. Preserve its exact shape and proportions. Do not redraw or alter the logo.
-
-CONCEPT
-
-Depikt's public prompt library, templates, and guides can now be accessed directly by MCP-compatible AI assistants.
-
-Do not make the image look like developer documentation or an API dashboard.
-
-DESIGN SYSTEM
-
-White canvas.
-Near-black typography.
-Thin neutral-gray lines.
-Minimal editorial information-design aesthetic.
-Generous whitespace.
-Technical but approachable.
+Create the social card for Depikt's public read-only MCP integration.
 
 LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
 
-Place the Depikt logo in the upper-left.
+"Depikt, in your assistant."
 
-Large headline:
+Below the headline, much smaller neutral-gray text:
 
-"Depikt, now through MCP."
+"Prompts. Templates. Guides."
 
-Smaller line:
+On the right, create a precise editorial connection diagram:
+three small document-like forms converge through fine lines into one
+abstract conversation-shaped form.
 
-"Prompts, templates, and guides — available to your assistant."
+The three source forms should visually suggest a prompt, a reusable structure,
+and a guide, using only geometry and short non-readable rules.
 
-On the right side, create an elegant information-flow visualization.
+Make the direction of information clear: published knowledge moving toward
+an assistant. Do not show image generation, private account access, payments,
+or write actions.
 
-Show one central Depikt source represented by a clean editorial stack of:
+No terminal window, JSON screenshot, robot, glowing network, or provider logos.
+The supplied Depikt logo is the only brand mark.
 
-- prompt
-- template
-- guide
-
-Represent these three layers with abstract symbols only (a page, a grid, an open book). Do not write the words "prompt", "template", or "guide" anywhere in the image; the stack must carry no legible text.
-
-From that central source, thin precise lines flow outward toward several abstract assistant endpoints.
-
-Do NOT use ChatGPT, Claude, OpenAI, Anthropic, or other company logos.
-
-Represent assistants only through neutral geometric conversation/workspace symbols.
-
-The visual should communicate:
-
-one public knowledge source
-→ multiple assistants
-→ read-only access
-
-Optionally use subtle tiny lock/open-book/reference symbols, but keep them abstract and minimal.
+Use near-black lines and one restrained muted-blue connection.
 
 TEXT — EXACT
-
-Render only:
-
-"Depikt, now through MCP."
-
-"Prompts, templates, and guides — available to your assistant."
-
-Do not add:
-"API"
-"server"
-"endpoint"
-"public"
-"read-only"
-URLs
-company names
-company logos
-technical code
-watermarks
-
-STYLE RESTRICTIONS
-
-No matrix graphics.
-No neon networking.
-No glowing nodes.
-No robots.
-No cloud diagrams.
-No terminal windows.
-No fake chat screenshots.
-No gradients in the background.
-
-OUTPUT
-
-1200×630 pixels.
-Landscape.
-Precise editorial composition.
-Crisp typography.
-Strong social-preview readability.
+"Depikt, in your assistant."
+"Prompts. Templates. Guides."
 ```
 
 ## 8. Generate (`public/og/generate.png`)
 
 ```text
-Create a premium 1200×630 Open Graph image for Depikt's new Generate page.
-
-Use the attached Depikt logo as the exact brand reference. Preserve its shape and proportions
-exactly; do not redraw, reinterpret, distort, embellish, recolor, or replace it. Place it small
-and understated in the upper-left.
-
-DESIGN SYSTEM
-
-Clean editorial product design. Pure white background. Near-black typography. A restrained,
-muted, desaturated processing-blue accent — not bright electric blue. Generous whitespace.
-Minimal and premium. It should feel consistent with a modern creative tool, not a generic AI
-SaaS banner.
+Create the social card for Depikt's Generate mode.
 
 LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
 
-Left 55–60% of the canvas: typography and whitespace, vertically centered.
+"From prompt to picture."
 
-Place the Depikt logo small in the upper-left.
+Below the headline, much smaller neutral-gray text:
 
-Large bold headline:
+"Create. Edit. Make it yours."
 
-"GENERATE"
+Use one dominant finished image on the right: an elegant cobalt-blue ceramic
+sculpture on a pale neutral pedestal, with sculptural natural light and a
+beautifully controlled shadow. The image should feel intentional and worth making.
 
-Below it, smaller clean sans-serif line:
+At one edge of that image, introduce a very restrained transition from a fine
+construction outline into the finished photographic form. Keep this transition
+subtle and localized, not a futuristic effect.
 
-"Prompt. Reference. Image."
+This is illustrative artwork, not a screenshot of the Depikt application.
 
-Strong hierarchy between the two lines. No decorative type. No extra copy beyond these two
-lines.
+Do not use a large loading-dot field as the main subject. The card should
+communicate a finished image, not waiting for one.
 
-Right 40–45% of the canvas: a static visual inspired by Depikt's processing / "ThinkingField"
-animation — a precise rectangular dot lattice contained within an approximately 4:5 portrait
-image area, roughly vertically centered.
-
-The dots sit on a strict fixed grid — do not let them drift off-grid. Dot size and opacity vary
-organically across the field: some regions have tiny faint dots, some have medium dots, and one
-or two soft concentrated areas have larger, darker dots, as if an image is gradually forming
-from information. There is no actual picture inside the field, only dots. The field's
-rectangular boundary should be implied by where the grid stops — no visible frame or border
-around it, and no border around the full OG image.
+No model selector, quality labels, credits, or technical controls.
 
 TEXT — EXACT
-
-Render only:
-
-"GENERATE"
-
-"Prompt. Reference. Image."
-
-Preserve the exact spelling, capitalization, and punctuation above. Do not add any other
-readable text, labels, URLs, model names, badges, captions, or watermarks anywhere in the image.
-
-STYLE RESTRICTIONS
-
-No arrows. No progress bar. No literal loading spinner. No blur or glow on the dot field. No
-gradients anywhere. No particles floating outside the grid. No connecting lines between dots.
-No OpenAI or ChatGPT logo. No "Flare" or "Sunburst" names anywhere in the image. No fake app
-interface, browser chrome, or mock dashboard. No generic AI sparkle iconography. No 3D objects.
-No photography. No heavy-shadow SaaS card design.
-
-The muted blue used in the dot field should feel integrated with Depikt's monochrome design
-system, not like a bright accent color borrowed from another brand.
-
-OUTPUT
-
-1200×630 pixels. Landscape. Crisp typography. Strong thumbnail readability. Communicate that
-Depikt has moved from prompts into image creation through restraint and the forming-dot visual,
-not by explaining it with more text.
+"From prompt to picture."
+"Create. Edit. Make it yours."
 ```
+
+## 9. Pricing (`public/og/pricing.png`)
+
+```text
+Create the social card for Depikt Pricing.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"More room to create."
+
+Below the headline, much smaller neutral-gray text:
+
+"Free · Pro · Max"
+
+On the right, create three precisely aligned editorial image frames with
+progressively more room inside them. Use one related abstract visual motif
+across the frames, with each composition becoming broader and more expressive.
+
+This is a conceptual illustration of different creation allowances,
+not a screenshot of pricing cards.
+
+Do not print dollar amounts, monthly allowances, percentages, discount claims,
+or "Most popular" badges. Do not imply unlimited image generation.
+
+The design should feel clear and approachable rather than aggressively
+promotional. No coins, money stacks, credit cards, charts, or sale graphics.
+
+Maintain the same white canvas and typographic hierarchy as the other Depikt cards.
+
+TEXT — EXACT
+"More room to create."
+"Free · Pro · Max"
+```
+
+## 10. Help (`public/og/help.png`)
+
+```text
+Create the social card for Depikt Help.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"How Depikt works."
+
+Below the headline, much smaller neutral-gray text:
+
+"Images, credits, and your account."
+
+On the right, create a crisp editorial illustration that moves from a simple
+question-shaped mark to an ordered sequence of three visual steps.
+
+Use fine rules, small geometric image-frame symbols, and clear spacing.
+The visual should suggest understanding a process, not talking to a support agent.
+
+Keep the question mark secondary to the headline and avoid turning it into
+an oversized generic help icon.
+
+No live-chat bubble interface, headset operator, support email, customer-service
+promise, chatbot mascot, or "24/7" language.
+
+Use black and gray with one small muted-blue point of emphasis.
+
+TEXT — EXACT
+"How Depikt works."
+"Images, credits, and your account."
+```
+
+## 11. Terms (`public/og/terms.png`)
+
+```text
+Create a restrained social card for Depikt's Terms of Service.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"Terms of Service"
+
+Below the headline, much smaller neutral-gray text:
+
+"Using Depikt, clearly explained."
+
+Keep typography dominant. On the right, use a minimal abstract document
+composition: one white page form with a few dark section rules and carefully
+aligned margins. A second fine outline may sit behind it for depth.
+
+The composition should communicate readable information, not intimidating
+legal machinery.
+
+Do not render legal paragraphs, dates, signatures, official stamps,
+certification marks, scales of justice, gavels, courthouses, or fabricated
+company details.
+
+Use white, near-black, and very light neutral gray only.
+This card should feel like part of the Depikt product family, not a law-firm ad.
+
+TEXT — EXACT
+"Terms of Service"
+"Using Depikt, clearly explained."
+```
+
+## 12. Privacy (`public/og/privacy.png`)
+
+```text
+Create a restrained social card for Depikt's Privacy Policy.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"Privacy Policy"
+
+Below the headline, much smaller neutral-gray text:
+
+"How your information is handled."
+
+On the right, create a minimal editorial composition using two neatly layered
+white information panels, precise boundaries, and a small abstract image frame.
+
+The visual should communicate care, clarity, and deliberate handling of
+information. Keep it abstract rather than suggesting a specific security feature.
+
+Do not use locks, shields, fingerprint scans, encryption graphics, compliance
+badges, or claims such as "completely private", "zero tracking", or "end-to-end
+encrypted".
+
+No personal information, names, email addresses, account screenshots, or dates.
+
+Use the same typography and logo placement as the Terms card, but a distinct
+arrangement of the visual elements.
+
+TEXT — EXACT
+"Privacy Policy"
+"How your information is handled."
+```
+
+## 13. Sign in (`public/og/sign-in.png`)
+
+```text
+Create the social card for signing in to Depikt.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"Welcome back."
+
+Below the headline, much smaller neutral-gray text:
+
+"Continue where you left off."
+
+On the right, create a small, elegant arrangement of two creative image prints
+and one understated bookmark-like marker, suggesting returning to ongoing work.
+
+Use an architectural photograph and an abstract print with coordinated tones.
+These are illustrative creative artifacts, not screenshots of a real account
+or claims about a particular user's saved work.
+
+Do not show login fields, provider buttons, personal avatars, email addresses,
+passwords, social-provider logos, or fake user names.
+
+Keep the mood calm and familiar. Use the same white background and near-black
+typography as the rest of the Depikt OG family.
+
+TEXT — EXACT
+"Welcome back."
+"Continue where you left off."
+```
+
+## 14. Sign up (`public/og/sign-up.png`)
+
+```text
+Create the social card for creating a Depikt account.
+
+LAYOUT
+Left 44% of the canvas: the Depikt logo upper-left. Below it, a large headline, left aligned:
+
+"Your next idea starts here."
+
+Below the headline, much smaller neutral-gray text:
+
+"Create your Depikt account."
+
+On the right, create a visual beginning: one clean portrait-format image frame
+containing an emerging abstract landscape composition, with a second small
+geometric element outside the frame suggesting another possibility.
+
+Make this feel inviting and creative, not like an empty loading placeholder.
+The artwork should already be visually satisfying.
+
+Do not use confetti, gift boxes, badges, free-credit banners, countdowns,
+fake testimonials, user counts, login fields, or provider logos.
+
+Keep subscription prices and credit quantities out of this artwork.
+The headline and composition should remain useful even if the starter allowance
+changes later.
+
+TEXT — EXACT
+"Your next idea starts here."
+"Create your Depikt account."
+```
+

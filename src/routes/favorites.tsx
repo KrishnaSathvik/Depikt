@@ -10,7 +10,7 @@ export const Route = createFileRoute("/favorites")({
     meta: [
       { title: SEO.favorites.title },
       { name: "description", content: SEO.favorites.description },
-      { name: "robots", content: "noindex, nofollow" },
+      { name: "robots", content: SEO.favorites.robots },
     ],
   }),
   component: FavoritesPage,

@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL, type PageMeta } from "@/lib/product";
+import { pageSeoHead } from "@/lib/seo";
 import { GenerateWorkspace } from "@/components/generate/GenerateWorkspace";
 import { BuildMode } from "@/components/prompt/BuildMode";
 import { CritiqueMode } from "@/components/prompt/CritiqueMode";
@@ -84,30 +85,19 @@ export const Route = createFileRoute("/prompt")({
     };
   },
   head: ({ match }) => {
-    const PROMPT_OG_IMAGE = getOgImageForPath("prompt");
     const requestedMode = parsePromptMode(match.search.mode);
     // Same fallback the component applies: a stale generate link/bookmark
     // while the feature flag is off falls back to Build metadata too.
     const mode =
       requestedMode === "generate" && !isNativeGenerationEnabled() ? "build" : requestedMode;
-    const meta = SEO_BY_MODE[mode];
-    const ogTitle = meta.ogTitle ?? meta.title;
-    const ogDescription = meta.ogDescription ?? meta.description;
+    const page = SEO_BY_MODE[mode];
+    const { meta, links } = pageSeoHead(page, {
+      url: PROMPT_URL,
+      image: getOgImageForPath(mode === "generate" ? "generate" : "prompt"),
+    });
     return {
-      meta: [
-        { title: meta.title },
-        { name: "description", content: meta.description },
-        { property: "og:title", content: ogTitle },
-        { property: "og:description", content: ogDescription },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PROMPT_URL },
-        { property: "og:image", content: PROMPT_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: ogTitle },
-        { name: "twitter:description", content: ogDescription },
-        { name: "twitter:image", content: PROMPT_OG_IMAGE },
-      ],
-      links: [{ rel: "canonical", href: PROMPT_URL }],
+      meta,
+      links,
       scripts: [{ type: "application/ld+json", children: JSON.stringify(PROMPT_JSONLD) }],
     };
   },

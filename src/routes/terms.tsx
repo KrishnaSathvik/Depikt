@@ -4,6 +4,7 @@ import { TERMS_MD } from "@/data/legal";
 import { ROUTES, SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl(ROUTES.terms);
 const TERMS_INTRO =
@@ -11,25 +12,11 @@ const TERMS_INTRO =
 
 export const Route = createFileRoute("/terms")({
   head: () => {
-    const ogImage = getOgImageForPath("home");
-    return {
-      meta: [
-        { title: SEO.terms.title },
-        { name: "description", content: SEO.terms.description },
-        { property: "og:title", content: SEO.terms.title },
-        { property: "og:description", content: SEO.terms.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.terms.title },
-        { name: "twitter:description", content: SEO.terms.description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
-    };
+    const { meta, links } = pageSeoHead(SEO.terms, {
+      url: PAGE_URL,
+      image: getOgImageForPath("terms"),
+    });
+    return { meta, links };
   },
   component: Page,
 });

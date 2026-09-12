@@ -9,6 +9,7 @@ import { outOfCreditsCopy } from "../../src/lib/billing/credit-state.ts";
 import { HELP_SECTIONS, PRIVACY_MD, TERMS_MD, LEGAL_LAST_UPDATED } from "../../src/data/legal.ts";
 import { PRICING_COPY, BUY_CREDITS_COPY } from "../../src/lib/billing/copy.ts";
 import { OG_ROUTE_IMAGES } from "../../src/lib/og-routes.ts";
+import { SEO } from "../../src/lib/product.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
@@ -156,7 +157,8 @@ test("/account confirms checkout server-side and stays noindex", () => {
   assert.match(src, /confirmCheckout\(/);
   assert.match(src, /checkout_completed/);
   assert.match(src, /credit_purchase_completed/);
-  assert.match(src, /noindex, nofollow/);
+  assert.equal(SEO.account.robots, "noindex, nofollow");
+  assert.match(src, /SEO\.account\.robots/);
   assert.doesNotMatch(src, /recharts|<Chart/);
 });
 

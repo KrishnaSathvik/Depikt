@@ -7,20 +7,22 @@ import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
 import { SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-const PAGE_TITLE = SEO.blog.title;
-const PAGE_DESCRIPTION = SEO.blog.description;
 const PAGE_URL = absoluteUrl("/blog");
 
 export const Route = createFileRoute("/blog/")({
   head: () => {
-    const BLOG_INDEX_OG_IMAGE = getOgImageForPath("blog");
+    const { meta, links } = pageSeoHead(SEO.blog, {
+      url: PAGE_URL,
+      image: getOgImageForPath("blog"),
+    });
     const blogJsonLd = {
       "@context": "https://schema.org",
       "@type": "Blog",
       name: "Depikt Blog",
-      description: PAGE_DESCRIPTION,
+      description: SEO.blog.description,
       url: PAGE_URL,
       blogPost: posts.map((p) => ({
         "@type": "BlogPosting",
@@ -33,21 +35,9 @@ export const Route = createFileRoute("/blog/")({
       })),
     };
     return {
-      meta: [
-        { title: PAGE_TITLE },
-        { name: "description", content: PAGE_DESCRIPTION },
-        { property: "og:title", content: PAGE_TITLE },
-        { property: "og:description", content: PAGE_DESCRIPTION },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: BLOG_INDEX_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: PAGE_TITLE },
-        { name: "twitter:description", content: PAGE_DESCRIPTION },
-        { name: "twitter:image", content: BLOG_INDEX_OG_IMAGE },
-      ],
+      meta,
       links: [
-        { rel: "canonical", href: PAGE_URL },
+        ...links,
         {
           rel: "alternate",
           type: "application/rss+xml",
@@ -170,8 +160,7 @@ function BlogIndex() {
 
   // "All" keeps the curated index (current-model feature + earlier guides).
   // A category chip filters to that category only.
-  const filtered =
-    category === "all" ? null : sorted.filter((p) => p.category === category);
+  const filtered = category === "all" ? null : sorted.filter((p) => p.category === category);
   const [featured, ...restCurrent] = current.length > 0 ? current : sorted;
   const rest = current.length > 0 ? restCurrent : older.slice(1);
 

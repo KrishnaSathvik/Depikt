@@ -74,7 +74,7 @@ test("new launch post: metadata, author/date, category, cover, FAQ, internal lin
   assert.equal(post!.category, "Product");
   assert.equal(post!.author, "Krishna");
   assert.equal(post!.published, "2026-09-10");
-  assert.equal(post!.cover_image, "/og/depikt-image-generation.png");
+  assert.equal(post!.cover_image, "/og/generate.png");
   assert.ok(post!.cover_alt && post!.cover_alt.length > 0);
   assert.ok(post!.faq && post!.faq.length > 0);
   const wordCount = post!.content.trim().split(/\s+/).length;

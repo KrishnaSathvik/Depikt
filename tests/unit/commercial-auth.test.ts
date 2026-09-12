@@ -88,9 +88,12 @@ test("auth and account routes are declared in product.ts", () => {
   assert.equal(ROUTES.signIn, "/sign-in");
   assert.equal(ROUTES.signUp, "/sign-up");
   assert.equal(ROUTES.account, "/account");
-  assert.equal(SEO.signIn.title, "Sign in | Depikt");
-  assert.equal(SEO.signUp.title, "Create account | Depikt");
+  assert.equal(SEO.signIn.title, "Sign in to Depikt");
+  assert.equal(SEO.signUp.title, "Create your Depikt account");
   assert.equal(SEO.account.title, "Account | Depikt");
+  assert.equal(SEO.signIn.robots, "noindex, follow");
+  assert.equal(SEO.signUp.robots, "noindex, follow");
+  assert.equal(SEO.account.robots, "noindex, nofollow");
 });
 
 test("/sign-in and /sign-up routes exist, are noindex, and share AuthSurface", () => {
@@ -100,7 +103,7 @@ test("/sign-in and /sign-up routes exist, are noindex, and share AuthSurface", (
   ] as const) {
     assert.ok(existsSync(resolve(ROOT, file)), `${file} missing`);
     const src = read(file);
-    assert.match(src, /name: "robots", content: "noindex/);
+    assert.match(src, /pageSeoHead\(SEO\.(signIn|signUp)/);
     assert.match(src, /<AuthSurface[\s\S]*mode="(sign-in|sign-up)"/);
     assert.match(src, new RegExp(`mode="${mode}"`));
     assert.match(src, /safeNextPath/);

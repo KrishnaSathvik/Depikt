@@ -13,12 +13,16 @@ import { HELP_SECTIONS, type HelpSection } from "@/data/legal";
 import { ROUTES, SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl(ROUTES.help);
 
 export const Route = createFileRoute("/help")({
   head: () => {
-    const ogImage = getOgImageForPath("home");
+    const { meta, links } = pageSeoHead(SEO.help, {
+      url: PAGE_URL,
+      image: getOgImageForPath("help"),
+    });
     const faqJsonLd = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -31,22 +35,8 @@ export const Route = createFileRoute("/help")({
       ),
     };
     return {
-      meta: [
-        { title: SEO.help.title },
-        { name: "description", content: SEO.help.description },
-        { property: "og:title", content: SEO.help.title },
-        { property: "og:description", content: SEO.help.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.help.title },
-        { name: "twitter:description", content: SEO.help.description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
+      meta,
+      links,
       scripts: [{ type: "application/ld+json", children: JSON.stringify(faqJsonLd) }],
     };
   },

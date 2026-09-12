@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { fetchLibrary } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 import {
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
@@ -51,22 +52,13 @@ export const Route = createFileRoute("/library")({
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
   head: () => {
-    const LIBRARY_OG_IMAGE = getOgImageForPath("library");
+    const { meta, links } = pageSeoHead(SEO.library, {
+      url: LIBRARY_URL,
+      image: getOgImageForPath("library"),
+    });
     return {
-      meta: [
-        { title: SEO.library.title },
-        { name: "description", content: SEO.library.description },
-        { property: "og:title", content: SEO.library.title },
-        { property: "og:description", content: SEO.library.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: LIBRARY_URL },
-        { property: "og:image", content: LIBRARY_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.library.title },
-        { name: "twitter:description", content: SEO.library.description },
-        { name: "twitter:image", content: LIBRARY_OG_IMAGE },
-      ],
-      links: [{ rel: "canonical", href: LIBRARY_URL }],
+      meta,
+      links,
       scripts: [
         {
           type: "application/ld+json",
@@ -236,7 +228,7 @@ function HomePage() {
         </div>
 
         {/* Collection chips — only once a second collection exists.
-            ScrollRow adds edge fade + chevron so overflow is obvious on mobile. */}
+            ScrollRow adds a chevron so overflow is obvious on mobile. */}
         {showCollections && (
           <div className="mx-auto max-w-[1400px] px-4 pb-2 sm:px-6 lg:px-12">
             <ScrollRow
@@ -269,11 +261,7 @@ function HomePage() {
 
         {/* Category chips */}
         <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
-          <ScrollRow
-            ariaLabel="Category"
-            activeKey={activeCategory}
-            innerClassName="gap-2 pb-1"
-          >
+          <ScrollRow ariaLabel="Category" activeKey={activeCategory} innerClassName="gap-2 pb-1">
             {CATEGORIES.map((c) => {
               const active = activeCategory === c;
               return (

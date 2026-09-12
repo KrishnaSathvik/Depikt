@@ -12,6 +12,7 @@ import { trackEvent } from "@/lib/analytics";
 import { ROUTES, SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl(ROUTES.pricing);
 
@@ -41,25 +42,11 @@ export const Route = createFileRoute("/pricing")({
       : {}),
   }),
   head: () => {
-    const ogImage = getOgImageForPath("pricing");
-    return {
-      meta: [
-        { title: SEO.pricing.title },
-        { name: "description", content: SEO.pricing.description },
-        { property: "og:title", content: SEO.pricing.title },
-        { property: "og:description", content: SEO.pricing.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.pricing.title },
-        { name: "twitter:description", content: SEO.pricing.description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
-    };
+    const { meta, links } = pageSeoHead(SEO.pricing, {
+      url: PAGE_URL,
+      image: getOgImageForPath("pricing"),
+    });
+    return { meta, links };
   },
   component: PricingPage,
 });

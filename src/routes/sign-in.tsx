@@ -7,24 +7,21 @@ import { useAuth } from "@/lib/auth-context";
 import { safeNextPath } from "@/lib/auth/next-param";
 import { SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
+import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl("/sign-in");
 
 export const Route = createFileRoute("/sign-in")({
   validateSearch: (search: Record<string, unknown>): { next?: string } =>
     typeof search.next === "string" ? { next: safeNextPath(search.next) } : {},
-  head: () => ({
-    meta: [
-      { title: SEO.signIn.title },
-      { name: "description", content: SEO.signIn.description },
-      { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: SEO.signIn.title },
-      { property: "og:description", content: SEO.signIn.description },
-      { property: "og:type", content: "website" },
-      { property: "og:url", content: PAGE_URL },
-    ],
-    links: [{ rel: "canonical", href: PAGE_URL }],
-  }),
+  head: () => {
+    const { meta, links } = pageSeoHead(SEO.signIn, {
+      url: PAGE_URL,
+      image: getOgImageForPath("signIn"),
+    });
+    return { meta, links };
+  },
   component: Page,
 });
 

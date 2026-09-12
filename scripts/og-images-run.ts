@@ -1,5 +1,5 @@
 /**
- * og-images-run.ts — generates the six route-level OG cards for Depikt.
+ * og-images-run.ts — generates route-level OG cards for Depikt.
  *
  * Runs OUTSIDE the product (Depikt does not generate images). Prompts live in
  * research/og-images/depikt-og-prompts.md (shared block + one block per route)
@@ -9,7 +9,8 @@
  *
  * Usage:
  *   node scripts/og-images-run.ts all
- *   node scripts/og-images-run.ts home|library|prompt|templates|gallery|blog|mcp|generate [--model sunburst] [--quality high] [--no-publish]
+ *   node scripts/og-images-run.ts home|library|prompt|templates|gallery|blog|mcp|generate|pricing|help|terms|privacy|signIn|signUp [--model sunburst] [--quality high] [--no-publish]
+ *   node scripts/og-images-run.ts templates,mcp,pricing,...   # comma-separated subset
  *
  * Needs OPENAI_API_KEY in .env.local (or .env). Post-processing uses macOS `sips`.
  */
@@ -72,6 +73,12 @@ const SECTION_TITLES: Record<OgRouteKey, string> = {
   blog: "## 6. Blog",
   mcp: "## 7. MCP",
   generate: "## 8. Generate",
+  pricing: "## 9. Pricing",
+  help: "## 10. Help",
+  terms: "## 11. Terms",
+  privacy: "## 12. Privacy",
+  signIn: "## 13. Sign in",
+  signUp: "## 14. Sign up",
 };
 
 function codeBlockAfter(md: string, heading: string): string {
@@ -156,9 +163,25 @@ async function runOne(key: OgRouteKey) {
 
 async function main() {
   const keys = Object.keys(OG_ROUTE_IMAGES) as OgRouteKey[];
-  if (!target || (target !== "all" && !keys.includes(target as OgRouteKey)))
-    throw new Error(`usage: og-images-run.ts all|${keys.join("|")}`);
-  for (const k of target === "all" ? keys : [target as OgRouteKey]) await runOne(k);
+  const requested =
+    !target || target === "all"
+      ? target === "all"
+        ? keys
+        : null
+      : target.split(",").map((k) => k.trim());
+  if (!requested || requested.some((k) => !keys.includes(k as OgRouteKey)))
+    throw new Error(`usage: og-images-run.ts all|${keys.join("|")}[,key…]`);
+  const failures: string[] = [];
+  for (const k of requested) {
+    try {
+      await runOne(k as OgRouteKey);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`${k} failed: ${msg}`);
+      failures.push(k);
+    }
+  }
+  if (failures.length) throw new Error(`failed: ${failures.join(", ")}`);
 }
 main().catch((e) => {
   console.error(e.message);

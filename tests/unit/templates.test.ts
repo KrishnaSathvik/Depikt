@@ -238,6 +238,6 @@ test("/templates has its own metadata", () => {
   assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
   assert.ok(SEO.templates.description.length <= 160);
   const page = read("src/routes/templates.index.tsx");
-  assert.match(page, /SEO\.templates\.title/);
-  assert.match(page, /rel: "canonical"/);
+  assert.match(page, /pageSeoHead\(SEO\.templates/);
+  assert.match(read("src/lib/seo.ts"), /rel: "canonical"/);
 });

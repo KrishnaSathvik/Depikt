@@ -8,13 +8,17 @@ import { Button } from "@/components/ui/button";
 import { JSONLD_NAMES, MCP, SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 
 const PAGE_URL = absoluteUrl(MCP.pagePath);
 const ENDPOINT_URL = absoluteUrl(MCP.endpointPath);
 
 export const Route = createFileRoute("/integrations/mcp")({
   head: () => {
-    const ogImage = getOgImageForPath("mcp");
+    const { meta, links } = pageSeoHead(SEO.mcp, {
+      url: PAGE_URL,
+      image: getOgImageForPath("mcp"),
+    });
     const jsonLd = {
       "@context": "https://schema.org",
       "@type": "WebPage",
@@ -30,22 +34,8 @@ export const Route = createFileRoute("/integrations/mcp")({
       },
     };
     return {
-      meta: [
-        { title: SEO.mcp.title },
-        { name: "description", content: SEO.mcp.description },
-        { property: "og:title", content: SEO.mcp.title },
-        { property: "og:description", content: SEO.mcp.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: PAGE_URL },
-        { property: "og:image", content: ogImage },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.mcp.title },
-        { name: "twitter:description", content: SEO.mcp.description },
-        { name: "twitter:image", content: ogImage },
-      ],
-      links: [{ rel: "canonical", href: PAGE_URL }],
+      meta,
+      links,
       scripts: [{ type: "application/ld+json", children: JSON.stringify(jsonLd) }],
     };
   },

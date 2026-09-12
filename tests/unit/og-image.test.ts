@@ -16,22 +16,27 @@ test("every ready OG card exists under public/ and is a 1200x630 PNG path", () =
 
 test("OG route map: one card per primary route, one shared Prompt card", () => {
   const files = Object.values(OG_ROUTE_IMAGES);
-  assert.equal(files.length, 9);
-  assert.equal(new Set(files).size, 9);
+  assert.equal(files.length, 14);
+  assert.equal(new Set(files).size, 14);
   assert.deepEqual(Object.keys(OG_ROUTE_IMAGES).sort(), [
     "blog",
     "gallery",
     "generate",
+    "help",
     "home",
     "library",
     "mcp",
     "pricing",
+    "privacy",
     "prompt",
+    "signIn",
+    "signUp",
     "templates",
+    "terms",
   ]);
-  // pricing has no generated card yet; it is intentionally excluded from
-  // OG_ROUTE_READY and must not be asserted to exist on disk here.
-  assert.equal(OG_ROUTE_READY.has("pricing"), false);
+  // Dedicated cards exist for every mapped route, including pricing and
+  // the help/legal/auth family.
+  assert.equal(OG_ROUTE_READY.size, 14);
   // Build and Critique share the Prompt card; no builder/critic cards remain.
   assert.equal(OG_ROUTE_IMAGES.prompt, "/og/prompt.png");
   assert.equal(existsSync(resolve(PUBLIC, "og/prompt-builder.png")), false);

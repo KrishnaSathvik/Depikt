@@ -40,7 +40,7 @@ test("the three canonical mode labels used for both tabs and the eyebrow are Gen
 // ---------- mode-aware SEO/OG ----------
 
 test("SEO.promptGenerate/promptBuild/promptCritique carry the locked per-mode copy", () => {
-  assert.equal(SEO.promptGenerate.title, "Generate Images | Depikt");
+  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
   assert.equal(
     SEO.promptGenerate.description,
     "Create and edit images from prompts and references with Depikt.",
@@ -78,23 +78,19 @@ test("/prompt's head() resolves metadata by the requested mode, falling back lik
     PROMPT_SRC,
     /requestedMode === "generate" && !isNativeGenerationEnabled\(\) \? "build" : requestedMode/,
   );
-  assert.match(PROMPT_SRC, /const meta = SEO_BY_MODE\[mode\]/);
-  // OG/twitter fall back to title/description when a mode has no ogTitle/ogDescription
-  // override, same convention as every other page in the app.
-  assert.match(PROMPT_SRC, /const ogTitle = meta\.ogTitle \?\? meta\.title/);
-  assert.match(PROMPT_SRC, /const ogDescription = meta\.ogDescription \?\? meta\.description/);
+  assert.match(PROMPT_SRC, /const page = SEO_BY_MODE\[mode\]/);
+  assert.match(PROMPT_SRC, /pageSeoHead\(page/);
 });
 
 test("the canonical URL for all three modes stays /prompt (no per-mode routes)", () => {
   assert.match(PROMPT_SRC, /const PROMPT_URL = absoluteUrl\("\/prompt"\)/);
-  assert.match(PROMPT_SRC, /property: "og:url", content: PROMPT_URL/);
-  assert.match(PROMPT_SRC, /rel: "canonical", href: PROMPT_URL/);
+  assert.match(PROMPT_SRC, /url: PROMPT_URL/);
+  assert.match(read("src/lib/seo.ts"), /rel: "canonical"/);
 });
 
 test("Generate is represented in SEO copy -- this must fail if Generate metadata disappears again", () => {
-  assert.match(SEO.promptGenerate.title, /Generate Images/);
+  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
   assert.doesNotMatch(SEO.promptGenerate.title, /Builder & Critic/);
-  assert.doesNotMatch(SEO.promptGenerate.title, /AI Image Generator/);
 });
 
 // ---------- stale "Improve in Prompt" CTA removed ----------

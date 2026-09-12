@@ -11,6 +11,7 @@ import { SampleImage } from "@/components/SampleImage";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { pageSeoHead } from "@/lib/seo";
 import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
@@ -29,22 +30,13 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/gallery")({
   validateSearch: zodValidator(searchSchema),
   head: () => {
-    const GALLERY_OG_IMAGE = getOgImageForPath("gallery");
+    const { meta, links } = pageSeoHead(SEO.gallery, {
+      url: GALLERY_URL,
+      image: getOgImageForPath("gallery"),
+    });
     return {
-      meta: [
-        { title: SEO.gallery.title },
-        { name: "description", content: SEO.gallery.description },
-        { property: "og:title", content: SEO.gallery.title },
-        { property: "og:description", content: SEO.gallery.description },
-        { property: "og:type", content: "website" },
-        { property: "og:url", content: GALLERY_URL },
-        { property: "og:image", content: GALLERY_OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.gallery.title },
-        { name: "twitter:description", content: SEO.gallery.description },
-        { name: "twitter:image", content: GALLERY_OG_IMAGE },
-      ],
-      links: [{ rel: "canonical", href: GALLERY_URL }],
+      meta,
+      links,
       scripts: [
         {
           type: "application/ld+json",

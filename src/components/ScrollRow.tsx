@@ -3,10 +3,9 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Horizontal scroll row with an overflow affordance: a soft fade on each
- * edge that still has content beyond it, plus a small chevron on the right
- * while more items exist. The cue disappears at the end of the row. Native
- * scrollbar hidden, momentum scrolling on, snap-to-item on touch.
+ * Horizontal scroll row with an overflow affordance: a small chevron on the
+ * right while more items exist. Native scrollbar hidden, momentum scrolling
+ * on, snap-to-item on touch.
  *
  * Pass `activeKey` (for example the current pathname) to scroll the active
  * item (`data-status="active"` from TanStack Link, or `data-active="true"`)
@@ -28,21 +27,31 @@ export function ScrollRow({
   as?: "div" | "nav";
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [edges, setEdges] = useState({ left: false, right: false });
+  const [overflowsRight, setOverflowsRight] = useState(false);
 
   const measure = useCallback(() => {
     const el = ref.current;
     if (!el) return;
     const max = el.scrollWidth - el.clientWidth;
-    setEdges({ left: el.scrollLeft > 2, right: max - el.scrollLeft > 2 });
+    // Ignore leftover snap/subpixel scroll so the start of the row stays clean.
+    setOverflowsRight(max - el.scrollLeft > 12);
   }, []);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+    const syncSnapPadding = () => {
+      const styles = getComputedStyle(el);
+      el.style.scrollPaddingInlineStart = styles.paddingInlineStart;
+      el.style.scrollPaddingInlineEnd = styles.paddingInlineEnd;
+    };
+    syncSnapPadding();
     measure();
     el.addEventListener("scroll", measure, { passive: true });
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => {
+      syncSnapPadding();
+      measure();
+    }) : null;
     ro?.observe(el);
     window.addEventListener("resize", measure);
     return () => {
@@ -61,10 +70,11 @@ export function ScrollRow({
     const active = el.querySelector<HTMLElement>('[data-status="active"], [data-active="true"]');
     if (!active) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const left = active.offsetLeft - 16;
-    const right = active.offsetLeft + active.offsetWidth + 16;
+    const pad = Number.parseFloat(getComputedStyle(el).paddingInlineStart) || 0;
+    const left = Math.max(0, active.offsetLeft - pad);
+    const right = active.offsetLeft + active.offsetWidth + pad;
     if (left < el.scrollLeft || right > el.scrollLeft + el.clientWidth) {
-      el.scrollTo({ left: Math.max(0, left), behavior: reduce ? "auto" : "smooth" });
+      el.scrollTo({ left, behavior: reduce ? "auto" : "smooth" });
     }
     measure();
   }, [activeKey, measure]);
@@ -74,28 +84,23 @@ export function ScrollRow({
       <div
         ref={ref}
         className={cn(
-          "no-scrollbar flex overflow-x-auto scroll-px-4 [-webkit-overflow-scrolling:touch] [scroll-snap-type:x_proximity]",
+          "no-scrollbar flex overflow-x-auto [-webkit-overflow-scrolling:touch] [scroll-snap-type:x_proximity]",
           innerClassName,
         )}
       >
         {children}
       </div>
-      {/* Edge cues: pointer-events none so they never block taps. */}
+      {/* Chevron only — a white gradient overlay reads as a veil on solid pills. */}
       <div
         aria-hidden="true"
         className={cn(
-          "pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-[color:var(--bg)] to-transparent transition-opacity duration-200",
-          edges.left ? "opacity-100" : "opacity-0",
-        )}
-      />
-      <div
-        aria-hidden="true"
-        className={cn(
-          "pointer-events-none absolute inset-y-0 right-0 flex w-12 items-center justify-end bg-gradient-to-l from-[color:var(--bg)] via-[color:var(--bg)]/80 to-transparent pr-1 transition-opacity duration-200",
-          edges.right ? "opacity-100" : "opacity-0",
+          "pointer-events-none absolute inset-y-0 right-0 flex items-center justify-end pr-1 transition-opacity duration-200",
+          overflowsRight ? "opacity-100" : "opacity-0",
         )}
       >
-        <ChevronRight className="h-3.5 w-3.5 text-[color:var(--text-tertiary)]" />
+        <span className="flex h-6 w-6 items-center justify-center rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg)] text-[color:var(--text-tertiary)]">
+          <ChevronRight className="h-3.5 w-3.5" />
+        </span>
       </div>
     </Tag>
   );

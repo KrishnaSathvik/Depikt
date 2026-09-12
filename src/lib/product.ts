@@ -8,10 +8,11 @@
 //
 // Depikt is a reference library and prompt workspace for ChatGPT Images that
 // also generates and edits images natively (behind the native-generation
-// feature flag — see lib/generation/feature-flag.ts). Never describe it as
-// a generic "AI image generator"; the differentiator is the connected
-// workflow (prompts, references, structure, generation, editing), not
-// generation alone.
+// feature flag — see lib/generation/feature-flag.ts). SEO titles may name
+// the library, generator, builder, and critic as features. Do not chase
+// model-name keywords (GPT, OpenAI, Images 2.5) in core page titles — those
+// belong in Library filters, templates, and Blog. Product chrome still
+// avoids "generator" / "image generator" as the product name.
 
 import type { TargetModel } from "./target-model";
 
@@ -171,7 +172,7 @@ export const ANNOUNCEMENT: Announcement = {
   eyebrow: "New in Depikt",
   title: `See what works with ${TARGET_MODEL_NAME}.`,
   body: "Posters, edits, reference workflows, structured visuals, and more — generated, reviewed, and added to Depikt.",
-  
+
   primary: { label: "Explore Images 2.5", collection: "gpt-image-2.5" },
   secondary: { label: "Read what's new", slug: "chatgpt-images-2-5-whats-new" },
   images: [
@@ -219,12 +220,16 @@ export const POSITIONING = {
 
 // ---------- SEO / metadata for current product pages ----------
 
+export type RobotsDirective = "index, follow" | "noindex, follow" | "noindex, nofollow";
+
 export interface PageMeta {
   title: string;
   description: string;
-  /** Falls back to `title`/`description` when omitted (every page but /prompt today). */
+  /** Falls back to `title`/`description` when omitted. */
   ogTitle?: string;
   ogDescription?: string;
+  /** Locked crawl directive. Public pages are index, follow. */
+  robots: RobotsDirective;
 }
 
 export const SEO: Record<
@@ -252,108 +257,162 @@ export const SEO: Record<
   PageMeta
 > = {
   root: {
-    title: "Depikt — Better Prompts, Better Images",
+    title: "AI Image Prompt Library & Generator | Depikt",
     description:
-      "Explore image prompts, build and improve your own, find visual references, and generate or edit images directly with Depikt.",
+      "Discover image prompts, build or critique your own, and generate images from prompts and references with Depikt.",
+    ogTitle: "Ideas into images. Better.",
+    ogDescription: "Discover prompts, improve them, and create images from one place.",
+    robots: "index, follow",
   },
   home: {
-    title: "Depikt — Better Prompts, Better Images",
+    title: "AI Image Prompt Library & Generator | Depikt",
     description:
-      "Explore image prompts, build and improve your own, find visual references, and generate or edit images directly with Depikt.",
+      "Discover image prompts, build or critique your own, and generate images from prompts and references with Depikt.",
+    ogTitle: "Ideas into images. Better.",
+    ogDescription: "Discover prompts, improve them, and create images from one place.",
+    robots: "index, follow",
   },
   /** Legacy fallback only — /prompt's head() always resolves one of the promptGenerate/promptBuild/promptCritique entries below by mode. */
   prompt: {
     title: "AI Image Prompt Builder & Critic | Depikt",
     description:
       "Build better image prompts from an idea or reference, or critique and improve an existing prompt with Depikt.",
+    robots: "index, follow",
   },
   promptGenerate: {
-    title: "Generate Images | Depikt",
+    title: "AI Image Generator | Depikt",
     description: "Create and edit images from prompts and references with Depikt.",
     ogTitle: "Generate with Depikt",
     ogDescription: "Turn a prompt and reference into an image.",
+    robots: "index, follow",
   },
   promptBuild: {
     title: "AI Image Prompt Builder | Depikt",
     description: "Turn an idea or reference into a stronger image prompt with Depikt.",
     ogTitle: "Build better image prompts",
     ogDescription: "Start with an idea. Leave with a production-ready image prompt.",
+    robots: "index, follow",
   },
   promptCritique: {
     title: "AI Image Prompt Critic | Depikt",
     description: "Review, score, and improve an existing image prompt with Depikt.",
     ogTitle: "Improve your image prompt",
     ogDescription: "Find what is weakening your prompt and get a stronger rewrite.",
+    robots: "index, follow",
   },
   library: {
-    title: `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,
-    description: `Explore ${LIBRARY_PROMPT_COUNT} curated image prompts for posters, photography, edits, infographics, UI concepts, products, illustrations, and more.`,
+    title: "AI Image Prompt Library | Depikt",
+    description:
+      "Browse curated AI image prompts by style, category, and use case. Search, save, and reuse prompts for your next image.",
+    ogTitle: "Explore the Depikt Prompt Library",
+    ogDescription: "Find a prompt, make it yours, and start creating.",
+    robots: "index, follow",
   },
   gallery: {
-    title: "AI Image Reference Gallery | Depikt",
+    title: "AI Image Gallery & Inspiration | Depikt",
     description:
-      "Explore visual references for image generation, then use them directly in Generate or bring them into Prompt to build a more precise instruction.",
+      "Explore images created with Depikt and discover prompts, styles, and ideas for your next generation.",
+    ogTitle: "Made with Depikt",
+    ogDescription: "Explore generated images, prompts, styles, and creative directions.",
+    robots: "index, follow",
   },
   blog: {
-    title: "AI Image Prompting & Generation Guides | Depikt",
+    title: "AI Image Generation Guides & Prompting Tips | Depikt",
     description:
-      "Field notes on image prompting, references, editing, generation, experiments, and practical workflows that actually work.",
+      "Learn image prompting, creative workflows, reference-image techniques, and practical ways to get better AI-generated images.",
+    ogTitle: "Learn to create better images",
+    ogDescription: "Guides, experiments, prompting techniques, and practical creative workflows.",
+    robots: "index, follow",
   },
-
   mcp: {
-    title: "Depikt MCP — Prompt Library for AI Assistants",
+    title: "Depikt MCP Integration | Connect Your AI Tools",
     description:
-      "Connect MCP-compatible assistants to Depikt's public prompts, templates, and image-generation guides through a read-only MCP server.",
+      "Connect Depikt to MCP-compatible AI tools and bring Depikt's image-prompt library into your workflow.",
+    ogTitle: "Depikt, wherever you work",
+    ogDescription: "Bring the Depikt prompt library into MCP-compatible AI tools.",
+    robots: "index, follow",
   },
   templates: {
     title: "AI Image Prompt Templates | Depikt",
     description:
-      "Start with a structured template for portraits, products, posters, infographics, edits, references, branding, and other image tasks.",
+      "Start faster with reusable AI image prompt templates for photography, products, design, illustration, and more.",
+    ogTitle: "Start with a better prompt",
+    ogDescription: "Reusable prompt templates for the images you want to create.",
+    robots: "index, follow",
   },
-  /** Behind the native-generation feature flag; live once GENERATION_ENABLED is on. */
+  /**
+   * Historical constant for the /generate 301. Canonical Generate metadata
+   * is SEO.promptGenerate on /prompt?mode=generate.
+   */
   generate: {
-    title: "AI Image Generator & Editor | Depikt",
-    description:
-      "Create and edit images from prompts and references with Depikt, with automatic format handling and intelligent GPT Image 2.5 model routing.",
+    title: "AI Image Generator | Depikt",
+    description: "Create and edit images from prompts and references with Depikt.",
+    ogTitle: "Generate with Depikt",
+    ogDescription: "Turn a prompt and reference into an image.",
+    robots: "index, follow",
   },
   pricing: {
-    title: "Pricing | Depikt",
+    title: "Depikt Pricing | Free, Pro & Max Image Credits",
     description:
-      "Start free with 5 image credits. Pro and Max include monthly image credits, with extra credit packs available anytime.",
+      "Start free with 5 image credits. Compare Depikt Free, Pro, and Max plans or buy extra image credits whenever you need them.",
+    ogTitle: "Simple image generation pricing",
+    ogDescription: "Start with 5 free credits. Upgrade when you need more.",
+    robots: "index, follow",
   },
   help: {
-    title: "Help | Depikt",
+    title: "Depikt Help Center | Prompts, Images, Credits & Account",
     description:
-      "Learn how image credits, generation, references, billing, and your Depikt account work.",
+      "Get help with Depikt prompts, image generation, references, credits, plans, billing, and account settings.",
+    ogTitle: "Depikt Help Center",
+    ogDescription: "Answers for creating images, using credits, managing plans, and your account.",
+    robots: "index, follow",
   },
   privacy: {
     title: "Privacy Policy | Depikt",
     description:
-      "How Depikt handles account data, prompts, reference images, generated images, billing, and analytics.",
+      "Learn how Depikt handles account information, generated content, payments, analytics, and other data used to provide the service.",
+    ogTitle: "Depikt Privacy Policy",
+    ogDescription: "How Depikt collects, uses, and protects information.",
+    robots: "index, follow",
   },
   terms: {
     title: "Terms of Service | Depikt",
-    description: "Terms for using Depikt, subscriptions, image credits, and generated images.",
+    description:
+      "Read the terms that apply when using Depikt, including accounts, image generation, credits, subscriptions, and acceptable use.",
+    ogTitle: "Depikt Terms of Service",
+    ogDescription: "Terms for using Depikt and its services.",
+    robots: "index, follow",
   },
-  /** noindex */
   signIn: {
-    title: "Sign in | Depikt",
-    description: "Sign in to Depikt to generate and edit images.",
+    title: "Sign in to Depikt",
+    description:
+      "Sign in to your Depikt account to access your creations, credits, saved prompts, and account settings.",
+    ogTitle: "Welcome back to Depikt",
+    ogDescription: "Sign in and continue creating.",
+    robots: "noindex, follow",
   },
-  /** noindex */
   signUp: {
-    title: "Create account | Depikt",
-    description: "Create a free Depikt account and get 5 image credits.",
+    title: "Create your Depikt account",
+    description:
+      "Create a free Depikt account and get 5 starter image credits to begin generating and saving your work.",
+    ogTitle: "Create with Depikt",
+    ogDescription: "Create a free account and get 5 starter image credits.",
+    robots: "noindex, follow",
   },
-  /** noindex, nofollow */
-  account: { title: "Account | Depikt", description: "Your Depikt plan, credits, and usage." },
+  account: {
+    title: "Account | Depikt",
+    description: "Your Depikt plan, credits, and usage.",
+    robots: "noindex, nofollow",
+  },
   favorites: {
     title: "Favorites | Depikt",
     description: "Prompts you've saved from the Library, stored on this device.",
+    robots: "noindex, nofollow",
   },
   history: {
     title: "History | Depikt",
     description: "Your recent Build and Critique drafts, stored on this device.",
+    robots: "noindex, nofollow",
   },
 };
 

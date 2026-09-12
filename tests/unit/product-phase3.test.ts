@@ -116,39 +116,25 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
 
 // ---------- positioning / SEO ----------
 
-test("current product SEO is unified, unique per route, and never markets Depikt as a generic AI image generator", () => {
-  for (const [key, m] of Object.entries(SEO)) {
-    // "generator"/"image generator" as a generic marketing label is banned
-    // on Library/Gallery/etc. Generate's legacy /generate SEO title still
-    // names the feature; /prompt?mode=generate uses "Generate Images".
-    if (key !== "generate") {
-      assert.equal(/generator/i.test(m.title), false, `${key} title`);
-      assert.equal(/image generator/i.test(m.description), false, `${key} description`);
-    }
-  }
+test("current product SEO is unique per route and uses the locked titles", () => {
   assert.equal("builder" in SEO, false);
   assert.equal("critic" in SEO, false);
-  assert.equal(SEO.home.title, "Depikt — Better Prompts, Better Images");
+  assert.equal(SEO.home.title, "AI Image Prompt Library & Generator | Depikt");
   assert.equal(SEO.root.title, SEO.home.title);
   assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
-  // /prompt's actual head() never uses the fallback above — it always
-  // resolves one of these three by mode (see prompt-modes.test.ts).
-  assert.equal(SEO.promptGenerate.title, "Generate Images | Depikt");
+  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
   assert.equal(SEO.promptBuild.title, "AI Image Prompt Builder | Depikt");
   assert.equal(SEO.promptCritique.title, "AI Image Prompt Critic | Depikt");
-  assert.equal(
-    SEO.library.title,
-    `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,
-  );
-  assert.equal(SEO.gallery.title, "AI Image Reference Gallery | Depikt");
+  assert.equal(SEO.library.title, "AI Image Prompt Library | Depikt");
+  assert.equal(SEO.gallery.title, "AI Image Gallery & Inspiration | Depikt");
   assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
-  assert.equal(SEO.blog.title, "AI Image Prompting & Generation Guides | Depikt");
-  assert.equal(SEO.generate.title, "AI Image Generator & Editor | Depikt");
+  assert.equal(SEO.blog.title, "AI Image Generation Guides & Prompting Tips | Depikt");
+  assert.equal(SEO.generate.title, SEO.promptGenerate.title);
   // Every route's title is unique (no duplicate <title>s across the site).
-  // "root" intentionally mirrors "home" (the error-boundary/fallback shell
-  // uses the same title as the real homepage), so it's excluded here.
+  // "root" mirrors "home"; "generate" mirrors "promptGenerate" (the /generate
+  // 301's historical constant — canonical metadata lives on /prompt).
   const titles = Object.entries(SEO)
-    .filter(([key]) => key !== "root")
+    .filter(([key]) => key !== "root" && key !== "generate")
     .map(([, m]) => m.title);
   assert.equal(new Set(titles).size, titles.length, "duplicate SEO title across routes");
   for (const m of Object.values(SEO)) assert.ok(m.title.length <= 70, m.title);
@@ -156,12 +142,8 @@ test("current product SEO is unified, unique per route, and never markets Depikt
   assert.equal(JSONLD_NAMES.generate, "Depikt Generate");
   assert.equal("builder" in JSONLD_NAMES, false);
   assert.equal("critic" in JSONLD_NAMES, false);
-  // No route claims outsourced generation ("...generates images for you"
-  // via a third party) or that Depikt is a bare image generator; Generate's
-  // own description is allowed to say what it does.
   assert.equal(/does not generate images/i.test(JSONLD_DESCRIPTIONS.app), false);
   assert.match(JSONLD_DESCRIPTIONS.generate, /generate/i);
-  // Model routing is described as automatic, never as a user choice.
   assert.equal(/choose (flare|sunburst)/i.test(JSONLD_DESCRIPTIONS.generate), false);
   assert.equal(POSITIONING.eyebrow, "Built for ChatGPT Images 2.5");
   assert.equal(POSITIONING.headline, "Better prompts. Better images.");

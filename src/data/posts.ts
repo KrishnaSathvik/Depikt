@@ -41,7 +41,7 @@ export const posts: Post[] = [
     seo_title: "Depikt Image Generation: Create & Edit with GPT Image 2.5",
     seo_description:
       "Depikt now connects prompts, references, generation, and editing in one workflow, with automatic GPT Image 2.5 model routing behind the scenes.",
-    cover_image: "/og/depikt-image-generation.png",
+    cover_image: "/og/generate.png",
     cover_alt: "Depikt Can Now Generate Images — a dot field resolving toward an image forming",
     faq: [
       {

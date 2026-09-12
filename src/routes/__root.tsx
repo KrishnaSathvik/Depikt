@@ -16,6 +16,8 @@ import appCss from "../styles.css?url";
 
 const DEFAULT_TITLE = SEO.root.title;
 const DEFAULT_DESCRIPTION = SEO.root.description;
+const DEFAULT_OG_TITLE = SEO.root.ogTitle ?? SEO.root.title;
+const DEFAULT_OG_DESCRIPTION = SEO.root.ogDescription ?? SEO.root.description;
 
 function NotFoundComponent() {
   return (
@@ -83,16 +85,16 @@ export const Route = createRootRoute({
         { name: "application-name", content: "Depikt" },
         { title: DEFAULT_TITLE },
         { name: "description", content: DEFAULT_DESCRIPTION },
-        { property: "og:title", content: DEFAULT_TITLE },
-        { property: "og:description", content: DEFAULT_DESCRIPTION },
+        { property: "og:title", content: DEFAULT_OG_TITLE },
+        { property: "og:description", content: DEFAULT_OG_DESCRIPTION },
         { property: "og:type", content: "website" },
         { property: "og:image", content: ROOT_OG_IMAGE },
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: ROOT_OG_IMAGE },
-        { name: "twitter:title", content: DEFAULT_TITLE },
-        { name: "twitter:description", content: DEFAULT_DESCRIPTION },
+        { name: "twitter:title", content: DEFAULT_OG_TITLE },
+        { name: "twitter:description", content: DEFAULT_OG_DESCRIPTION },
       ],
       links: [
         { rel: "stylesheet", href: appCss },

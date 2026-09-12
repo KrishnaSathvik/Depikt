@@ -31,7 +31,7 @@ export const Route = createFileRoute("/account")({
     meta: [
       { title: SEO.account.title },
       { name: "description", content: SEO.account.description },
-      { name: "robots", content: "noindex, nofollow" },
+      { name: "robots", content: SEO.account.robots },
     ],
   }),
   component: AccountPage,
