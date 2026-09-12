@@ -139,10 +139,10 @@ test("generation exposes creditState and hosts render the shared panel", () => {
 
 // ---------- account ----------
 
-// /account is now Creations/Account (identity lives at the top of the
-// Account tab, not repeated above both and not a Profile tab; Plan & Credits merged into Account alongside
-// sign-in details and deletion) rather than one long page or a three/four
-// tab set — see tests/unit/account-*.
+// /account has no tabs and no separate Account page anymore -- identity
+// and Plan & Credits (CreditsCard) sit above the Creations grid directly,
+// on both the full-page fallback and the AccountHub's home view — see
+// tests/unit/account-tabs.test.ts.
 test("/account confirms checkout server-side and stays noindex", () => {
   const src = read("src/routes/account.tsx");
   assert.match(src, /confirmCheckout\(/);
@@ -152,9 +152,9 @@ test("/account confirms checkout server-side and stays noindex", () => {
   assert.doesNotMatch(src, /recharts|<Chart/);
 });
 
-test("Account tab has the plan/credits sections and billing actions", () => {
-  const src = read("src/components/account/AccountPanels.tsx");
-  for (const s of ["PLAN", "CREDITS", "Manage billing", "Buy credits"]) {
+test("CreditsCard has the plan/credits sections and billing actions", () => {
+  const src = read("src/components/account/CreditsCard.tsx");
+  for (const s of ["PLAN_LABEL", "credits remaining", "Manage billing", "Buy credits"]) {
     assert.match(src, new RegExp(s), s);
   }
 });

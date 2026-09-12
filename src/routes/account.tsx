@@ -4,22 +4,21 @@ import { toast } from "sonner";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
-import { AccountNav } from "@/components/account/AccountNav";
+import { IdentityRow } from "@/components/account/IdentityRow";
+import { CreditsCard } from "@/components/account/CreditsCard";
 import { CreationsTab } from "@/components/account/CreationsTab";
-import { AccountTab } from "@/components/account/AccountTab";
+import { useAccountHub } from "@/components/account/AccountHubProvider";
 import { useAuth } from "@/lib/auth-context";
 import { confirmCheckout, getAccountSummary } from "@/lib/billing/client";
 import { CATALOG, isProductKey } from "@/lib/billing/plans";
 import { trackEvent } from "@/lib/analytics";
 import { ROUTES, SEO } from "@/lib/product";
-import { DEFAULT_ACCOUNT_TAB, isAccountTabId, type AccountTabId } from "@/lib/profile/account-tabs";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 export interface AccountSearch {
   buy?: string;
   checkout?: string;
   session_id?: string;
-  tab?: AccountTabId;
 }
 
 export const Route = createFileRoute("/account")({
@@ -27,7 +26,6 @@ export const Route = createFileRoute("/account")({
     ...(typeof search.buy === "string" ? { buy: search.buy } : {}),
     ...(typeof search.checkout === "string" ? { checkout: search.checkout } : {}),
     ...(typeof search.session_id === "string" ? { session_id: search.session_id } : {}),
-    ...(isAccountTabId(search.tab) ? { tab: search.tab } : {}),
   }),
   head: () => ({
     meta: [
@@ -39,21 +37,21 @@ export const Route = createFileRoute("/account")({
   component: AccountPage,
 });
 
+/**
+ * The full-page fallback for /account -- direct links, refresh, Stripe's
+ * return URL. Identity + Plan & Credits sit above Creations, no tabs:
+ * there is no separate Account page anymore (see [[CreditsCard]],
+ * [[AccountHub]]'s home view is the same layout in a modal/sheet). Avatar/
+ * pencil taps open the same AccountHub used everywhere else.
+ */
 function AccountPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const { buy, checkout, session_id: sessionId, tab } = Route.useSearch();
+  const { buy, checkout, session_id: sessionId } = Route.useSearch();
   const { openBuyCredits } = useBuyCredits();
+  const hub = useAccountHub();
   const [summary, setSummary] = useState<AccountSummaryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  // No tab in the URL (e.g. the header avatar's identity click) -> Account;
-  // an explicit ?tab= (e.g. "Creations" in the account menu) wins.
-  const activeTab: AccountTabId = tab ?? DEFAULT_ACCOUNT_TAB;
-  function setActiveTab(next: AccountTabId) {
-    trackEvent("account_tab_changed", {});
-    void navigate({ to: ROUTES.account, search: { tab: next }, replace: true });
-  }
 
   useEffect(() => {
     if (!loading && !user) {
@@ -108,7 +106,7 @@ function AccountPage() {
       } finally {
         if (!cancelled) {
           void load();
-          void navigate({ to: ROUTES.account, search: { tab: "account" }, replace: true });
+          void navigate({ to: ROUTES.account, replace: true });
         }
       }
     })();
@@ -120,9 +118,8 @@ function AccountPage() {
   useEffect(() => {
     if (user && buy === "1") {
       openBuyCredits("account_param");
-      void navigate({ to: ROUTES.account, search: { tab: activeTab }, replace: true });
+      void navigate({ to: ROUTES.account, replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, buy, openBuyCredits, navigate]);
 
   if (!user) {
@@ -139,11 +136,16 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
-        <AccountNav active={activeTab} onChange={setActiveTab} />
-        <div className="mt-8">
+        <IdentityRow
+          onAvatarClick={() => hub.pushView("avatar-picker")}
+          onEditClick={() => hub.pushView("edit-profile")}
+        />
+        <div className="mt-4">
+          <CreditsCard summary={summary} />
+        </div>
+        <div className="mt-10">
           {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
-          {activeTab === "creations" && <CreationsTab />}
-          {activeTab === "account" && <AccountTab summary={summary} />}
+          <CreationsTab />
         </div>
       </main>
       <Footer />

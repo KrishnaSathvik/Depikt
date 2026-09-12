@@ -4,9 +4,9 @@ import { ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { IdentityRow } from "@/components/account/IdentityRow";
+import { CreditsCard } from "@/components/account/CreditsCard";
 import { CreationsGrid } from "@/components/account/CreationsGrid";
 import { CreationDetailView } from "@/components/account/CreationDetailView";
-import { AccountPanels } from "@/components/account/AccountPanels";
 import { EditProfileForm } from "@/components/account/EditProfileForm";
 import { AvatarPickerBody } from "@/components/account/AvatarPickerBody";
 import { DeleteAccountAction } from "@/components/account/DeleteAccountAction";
@@ -14,30 +14,39 @@ import { useAccountHub, type HubView } from "@/components/account/AccountHubProv
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile/profile-context";
-import { useAccountSummary } from "@/lib/billing/use-account-summary";
-import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
 import { getAccountSummary } from "@/lib/billing/client";
-import { PLAN_LABEL } from "@/lib/billing/plans";
 import { AUTH_COPY, ROUTES } from "@/lib/product";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
+
+/** "google" -> "Google", "azure" -> "Microsoft" (Supabase's provider id for
+ *  it), missing/"email" -> "Email". Unknown ids fall back to Title Case. */
+function signedInWithLabel(raw: string | null | undefined): string {
+  if (!raw || raw === "email") return "Email";
+  const known: Record<string, string> = {
+    google: "Google",
+    apple: "Apple",
+    azure: "Microsoft",
+    microsoft: "Microsoft",
+    lovable: "Lovable",
+  };
+  return known[raw] ?? raw.charAt(0).toUpperCase() + raw.slice(1);
+}
 
 const TITLE: Record<HubView, string> = {
   home: "Profile",
   creations: "Creations",
   "creation-detail": "Creation",
-  account: "Account",
   "edit-profile": "Edit profile",
   "avatar-picker": "Choose your avatar",
 };
 
 // Desktop dialog width per view -- home/edit-profile/avatar-picker stay
-// compact, Account gets room for its two cards, Creations/its detail view
-// get the most (an image-first grid needs it).
+// compact, Creations/its detail view get the most room (an image-first
+// grid needs it).
 const DESKTOP_WIDTH: Record<HubView, string> = {
   home: "max-w-[460px]",
   creations: "max-w-[920px]",
   "creation-detail": "max-w-[560px]",
-  account: "max-w-[700px]",
   "edit-profile": "max-w-[460px]",
   "avatar-picker": "max-w-[440px]",
 };
@@ -76,27 +85,16 @@ function HubRow({
   );
 }
 
+/**
+ * Profile: identity, Plan & Credits (see [[CreditsCard]]), then
+ * navigation. There is no separate Account view -- Plan & Credits sits
+ * right here, above Creations, not behind another click; sign-in method,
+ * email, Sign out, and Delete account live at the bottom, in that order.
+ */
 function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const lightSummary = useAccountSummary(user);
-  const { openBuyCredits } = useBuyCredits();
   const hub = useAccountHub();
-
-  const planLabel = lightSummary.plan ? PLAN_LABEL[lightSummary.plan] : null;
-  const creditsLabel =
-    lightSummary.credits === null
-      ? "—"
-      : `${planLabel && lightSummary.plan !== "free" ? `${planLabel} · ` : ""}${lightSummary.credits} credit${lightSummary.credits === 1 ? "" : "s"}`;
-
-  // Included-this-month usage lives here (outside the Account view) so it's
-  // visible the moment the hub opens -- only meaningful for a paid plan
-  // with a monthly allocation, so it's absent for free/no-allocation plans.
-  const isPaid = summary && summary.plan !== "free";
-  const includedPct =
-    isPaid && summary.credits.allocation > 0
-      ? Math.min(100, Math.round((summary.credits.plan / summary.credits.allocation) * 100))
-      : null;
 
   return (
     <div>
@@ -104,29 +102,13 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
         onAvatarClick={() => hub.pushView("avatar-picker")}
         onEditClick={() => hub.pushView("edit-profile")}
       />
-      <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{creditsLabel}</p>
 
-      {isPaid && includedPct !== null && (
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
-            <span>Included</span>
-            <span className="tabular-nums text-[color:var(--text-primary)]">
-              {summary.credits.plan} / {summary.credits.allocation}
-            </span>
-          </div>
-          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
-            <div
-              className="h-full rounded-full bg-[color:var(--text-primary)]"
-              style={{ width: `${includedPct}%` }}
-            />
-          </div>
-        </div>
-      )}
+      <div className="mt-4">
+        <CreditsCard summary={summary} />
+      </div>
 
       <div className="mt-4 border-t border-[color:var(--border-subtle)] pt-1">
         <HubRow onClick={() => hub.pushView("creations")}>Creations</HubRow>
-        <HubRow onClick={() => hub.pushView("account")}>Account</HubRow>
-        <HubRow onClick={() => openBuyCredits("account_hub")}>Buy credits</HubRow>
       </div>
 
       <div className="mt-2 border-t border-[color:var(--border-subtle)] pt-1">
@@ -142,10 +124,15 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
       </div>
 
       <div className="mt-2 flex flex-col border-t border-[color:var(--border-subtle)] pt-2">
-        {summary?.email && (
-          <p className="px-1 pb-1 text-body-sm text-[color:var(--text-tertiary)]">
-            {summary.email}
-          </p>
+        {summary && (
+          <div className="px-1 pb-1">
+            <p className="text-body-sm text-[color:var(--text-secondary)]">
+              Signed in with {signedInWithLabel(summary.provider)}
+            </p>
+            {summary.email && (
+              <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
+            )}
+          </div>
         )}
         <button
           type="button"
@@ -187,14 +174,13 @@ export function AccountHub() {
         if (!cancelled) setSummary(r);
       })
       .catch(() => {
-        /* AccountPanels/HomeView show their own loading/absent state; nothing more to do here */
+        /* CreditsCard shows its own loading state; nothing more to do here */
       });
     return () => {
       cancelled = true;
     };
-    // Fetched once per hub session (on open), not per view -- both the home
-    // view (Included-usage line) and the account view (Plan & Credits card)
-    // read it.
+    // Fetched once per hub session (on open) -- the home view's
+    // CreditsCard is the only consumer now.
   }, [open, user]);
 
   let body: React.ReactNode = null;
@@ -207,9 +193,6 @@ export function AccountHub() {
       break;
     case "creation-detail":
       body = selectedCreation ? <CreationDetailView creation={selectedCreation} /> : null;
-      break;
-    case "account":
-      body = <AccountPanels summary={summary} />;
       break;
     case "edit-profile":
       body = <EditProfileForm onDone={back} />;

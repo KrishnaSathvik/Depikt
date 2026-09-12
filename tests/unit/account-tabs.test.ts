@@ -1,93 +1,54 @@
+// /account has no tabs and no separate Account view/page anymore --
+// identity + Plan & Credits (see CreditsCard) sit above the Creations
+// grid directly, on both the full-page /account fallback and the
+// AccountHub's home view. Same grep-on-source approach as
+// tests/unit/account-profile-api.test.ts (no React renderer in this
+// project -- see CLAUDE.md's "No test framework").
+
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import {
-  ACCOUNT_TABS,
-  DEFAULT_ACCOUNT_TAB,
-  isAccountTabId,
-} from "../../src/lib/profile/account-tabs.ts";
 
 function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
 }
 
-test("the two account tabs are Creations and Account, in order -- no Profile, no Plan & Credits, no Overview", () => {
-  assert.deepEqual(
-    ACCOUNT_TABS.map((t) => t.id),
-    ["creations", "account"],
-  );
-  const ids: readonly string[] = ACCOUNT_TABS.map((t) => t.id);
-  assert.ok(!ids.includes("overview"), "Overview must not exist");
-  assert.ok(!ids.includes("profile"), "identity lives in the Account tab, not a Profile tab");
-  assert.ok(!ids.includes("plan"), "Plan & Credits merged into the Account tab");
-  assert.ok(!ids.includes("favorites"), "Favorites is a public page, not an account tab");
-  assert.ok(!ids.includes("history"), "History is a public page, not an account tab");
-});
-
-test("isAccountTabId rejects anything not one of the two ids", () => {
-  for (const t of ACCOUNT_TABS) assert.ok(isAccountTabId(t.id));
-  assert.ok(!isAccountTabId("overview"));
-  assert.ok(!isAccountTabId("profile"));
-  assert.ok(!isAccountTabId("plan"));
-  assert.ok(!isAccountTabId("favorites"));
-  assert.ok(!isAccountTabId("history"));
-  assert.ok(!isAccountTabId("settings"));
-  assert.ok(!isAccountTabId(undefined));
-  assert.ok(!isAccountTabId(42));
-});
-
-test("Favorites and History are not linked anywhere in /account -- only from Library/Prompt", () => {
-  for (const file of [
-    "src/components/account/AccountNav.tsx",
-    "src/components/account/AccountTab.tsx",
-    "src/routes/account.tsx",
-  ]) {
-    const src = read(file);
-    assert.doesNotMatch(src, /ROUTES\.favorites/, `${file} must not link to /favorites`);
-    assert.doesNotMatch(src, /ROUTES\.history/, `${file} must not link to /history`);
+function exists(rel: string): boolean {
+  try {
+    readFileSync(resolve(import.meta.dirname, "../..", rel));
+    return true;
+  } catch {
+    return false;
   }
+}
+
+test("no separate public /creations route exists -- Creations lives on /account", () => {
+  assert.equal(exists("src/routes/creations.tsx"), false);
 });
 
-test("/account's validateSearch only accepts a known tab id, defaulting elsewhere to Account", () => {
-  assert.equal(DEFAULT_ACCOUNT_TAB, "account");
-  const src = read("src/routes/account.tsx");
-  assert.match(src, /isAccountTabId\(search\.tab\)/);
-  assert.match(src, /const activeTab: AccountTabId = tab \?\? DEFAULT_ACCOUNT_TAB/);
-});
-
-test("no separate public /creations route is created -- it's an /account tab", () => {
-  assert.equal(
-    (() => {
-      try {
-        readFileSync(resolve(import.meta.dirname, "../..", "src/routes/creations.tsx"));
-        return true;
-      } catch {
-        return false;
-      }
-    })(),
-    false,
-  );
-});
-
-test("no OverviewTab, ProfileTab, or PlanTab file survives the merge", () => {
+test("no OverviewTab, ProfileTab, PlanTab, AccountTab, AccountPanels, or AccountNav file survives", () => {
   for (const f of [
     "src/components/account/OverviewTab.tsx",
     "src/components/account/ProfileTab.tsx",
     "src/components/account/PlanTab.tsx",
+    "src/components/account/AccountTab.tsx",
+    "src/components/account/AccountPanels.tsx",
+    "src/components/account/AccountNav.tsx",
+    "src/components/account/AccountHeader.tsx",
+    "src/lib/profile/account-tabs.ts",
   ]) {
-    assert.equal(
-      (() => {
-        try {
-          readFileSync(resolve(import.meta.dirname, "../..", f));
-          return true;
-        } catch {
-          return false;
-        }
-      })(),
-      false,
-      `${f} must not exist`,
-    );
+    assert.equal(exists(f), false, `${f} must not exist`);
+  }
+});
+
+test("no standalone AvatarPickerDialog/EditProfileDialog/CreationDetailDialog survive -- AccountHub replaced all three", () => {
+  for (const f of [
+    "src/components/account/AvatarPickerDialog.tsx",
+    "src/components/account/EditProfileDialog.tsx",
+    "src/components/account/CreationDetailDialog.tsx",
+  ]) {
+    assert.equal(exists(f), false, `${f} must not exist`);
   }
 });
 
@@ -98,133 +59,97 @@ test("AccountMenu is just the avatar trigger -- no dropdown, no dialog of its ow
   assert.match(src, /hub\.openHub\("home"\)/);
 });
 
-test("AccountHub is the one canonical account/profile/creation surface -- home, creations, creation-detail, account, edit-profile, avatar-picker", () => {
+test("AccountHub has no separate account view -- home, creations, creation-detail, edit-profile, avatar-picker only", () => {
   const provider = read("src/components/account/AccountHubProvider.tsx");
   for (const view of [
     '"home"',
     '"creations"',
     '"creation-detail"',
-    '"account"',
     '"edit-profile"',
     '"avatar-picker"',
   ]) {
     assert.ok(provider.includes(view), `HubView must include ${view}`);
   }
+  assert.doesNotMatch(
+    provider,
+    /export type HubView =[^;]*"account"/,
+    "there is no separate account view anymore",
+  );
   const hub = read("src/components/account/AccountHub.tsx");
   assert.match(hub, /<CreationsGrid/);
   assert.match(hub, /<CreationDetailView/);
-  assert.match(hub, /<AccountPanels/);
+  assert.match(hub, /<CreditsCard/);
   assert.match(hub, /<EditProfileForm/);
   assert.match(hub, /<AvatarPickerBody/);
+  assert.doesNotMatch(hub, /<AccountPanels/);
   // Desktop dialog vs mobile sheet, same split as the rest of the account area.
   assert.match(hub, /useIsMobile\(/);
 });
 
-test("no standalone AvatarPickerDialog/EditProfileDialog/CreationDetailDialog survive -- AccountHub replaced all three", () => {
-  for (const f of [
-    "src/components/account/AvatarPickerDialog.tsx",
-    "src/components/account/EditProfileDialog.tsx",
-    "src/components/account/CreationDetailDialog.tsx",
-    "src/components/account/AccountHeader.tsx",
-  ]) {
-    assert.equal(
-      (() => {
-        try {
-          readFileSync(resolve(import.meta.dirname, "../..", f));
-          return true;
-        } catch {
-          return false;
-        }
-      })(),
-      false,
-      `${f} must not exist`,
-    );
-  }
-});
-
-test("one shared AccountNav (no separate desktop rail / mobile tab row); Creations doesn't repeat the identity block", () => {
-  const nav = read("src/components/account/AccountNav.tsx");
-  assert.match(nav, /ACCOUNT_TABS/);
+test("Plan & Credits (CreditsCard) sits above Creations on both /account and the Hub's home view -- not behind a separate click", () => {
   const page = read("src/routes/account.tsx");
-  assert.doesNotMatch(
-    page,
-    /<AccountHeader/,
-    "no page-level identity header repeated above both tabs -- Creations must not show it",
+  assert.match(page, /<IdentityRow/);
+  assert.match(page, /<CreditsCard/);
+  assert.match(page, /<CreationsTab \/>/);
+  // Identity+credits appear before Creations in source order.
+  assert.ok(page.indexOf("<CreditsCard") < page.indexOf("<CreationsTab"));
+
+  const hub = read("src/components/account/AccountHub.tsx");
+  const homeViewBlock = hub.slice(
+    hub.indexOf("function HomeView"),
+    hub.indexOf("export function AccountHub"),
   );
-  assert.match(page, /<AccountNav/);
-  // No permanent left sidebar for exactly two sections.
-  assert.doesNotMatch(page, /AccountRail/);
+  assert.match(homeViewBlock, /<IdentityRow/);
+  assert.match(homeViewBlock, /<CreditsCard/);
+  assert.ok(homeViewBlock.indexOf("<CreditsCard") < homeViewBlock.indexOf('"creations"'));
 });
 
-test("identity (avatar + name/username) is edited via the AccountHub, from both the Account tab and the Hub's home view", () => {
+test("CreditsCard shows a plan, a credit total, a progress bar, and Buy credits -- the one Plan & Credits surface", () => {
+  const src = read("src/components/account/CreditsCard.tsx");
+  assert.match(src, /credits remaining/);
+  assert.match(src, /Buy credits/);
+  assert.match(src, /Manage billing/);
+  assert.match(src, /STARTER_CREDITS/);
+  // A single progress bar, shared by the paid (included-this-month) and
+  // free (starter grant) cases rather than two different widgets.
+  assert.match(src, /bg-\[color:var\(--bg-subtle\)\]/);
+  assert.match(src, /width: `\$\{pct\}%`/);
+});
+
+test("identity (avatar + name/username) is edited via the AccountHub, from both /account and the Hub's home view", () => {
   const identityRow = read("src/components/account/IdentityRow.tsx");
   assert.match(identityRow, /<DepiktAvatar/);
   assert.match(identityRow, /useProfile\(/);
-  const account = read("src/components/account/AccountTab.tsx");
-  assert.match(account, /<IdentityRow/);
-  assert.match(account, /hub\.pushView\("avatar-picker"\)/);
-  assert.match(account, /hub\.pushView\("edit-profile"\)/);
+  const page = read("src/routes/account.tsx");
+  assert.match(page, /hub\.pushView\("avatar-picker"\)/);
+  assert.match(page, /hub\.pushView\("edit-profile"\)/);
   const hub = read("src/components/account/AccountHub.tsx");
   assert.match(hub, /<IdentityRow/);
   const editForm = read("src/components/account/EditProfileForm.tsx");
   assert.match(editForm, /useProfile\(/);
 });
 
-test("Sign out and Delete account live only in the AccountHub's home view, not in the Account panels or navigation", () => {
-  const panels = read("src/components/account/AccountPanels.tsx");
-  assert.doesNotMatch(
-    panels,
-    /AUTH_COPY\.signOut/,
-    "Sign out must not be duplicated in AccountPanels -- it's a profile-level action, home view only",
-  );
-  assert.doesNotMatch(
-    panels,
-    /confirmOpen|deleteAccount\(/,
-    "the delete-account confirm flow must not be duplicated in AccountPanels -- see DeleteAccountAction",
-  );
+test("Sign out and Delete account live only in the AccountHub's home view", () => {
   const hub = read("src/components/account/AccountHub.tsx");
   assert.match(hub, /AUTH_COPY\.signOut/);
   assert.match(hub, /<DeleteAccountAction/);
   const deleteAction = read("src/components/account/DeleteAccountAction.tsx");
   assert.match(deleteAction, /deleteAccount\(/);
   assert.match(deleteAction, /Type DELETE to confirm|type DELETE/i);
-  assert.doesNotMatch(
-    read("src/components/account/AccountNav.tsx"),
-    /signOut/i,
-    "AccountNav must not also offer sign out",
-  );
 });
 
-test("Account panels show Plan & Credits and sign-in details -- everything that isn't a creation, identity edit, sign out, or account deletion", () => {
-  const src = read("src/components/account/AccountPanels.tsx");
-  for (const s of [
-    "PLAN &amp; CREDITS",
-    "credits remaining",
-    "ACCOUNT ACCESS",
-    "signedInWithLabel",
-  ]) {
-    assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
+test("sign-in method and email sit next to Sign out in the AccountHub home view", () => {
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /Signed in with/);
+  assert.match(hub, /summary\.email/);
+});
+
+test("Favorites and History are not linked anywhere in /account -- only from Library/Prompt", () => {
+  for (const file of ["src/routes/account.tsx", "src/components/account/CreationsTab.tsx"]) {
+    const src = read(file);
+    assert.doesNotMatch(src, /ROUTES\.favorites/, `${file} must not link to /favorites`);
+    assert.doesNotMatch(src, /ROUTES\.history/, `${file} must not link to /history`);
   }
-  // Free plan calls its extra bucket "Starter credits" in the UI even
-  // though it's internally the same extra_credits bucket as purchased packs.
-  assert.match(src, /Starter credits/);
-  assert.match(src, /STARTER_CREDITS/);
-  // Included-this-month usage (the thin progress bar) lives in the
-  // AccountHub's home view now, not duplicated in the Account panels.
-  assert.doesNotMatch(src, /includedPct/);
-  const hub = read("src/components/account/AccountHub.tsx");
-  assert.match(hub, /includedPct/);
-});
-
-test("email lives next to Sign out in the AccountHub home view, not duplicated in the Account panels", () => {
-  const panels = read("src/components/account/AccountPanels.tsx");
-  assert.doesNotMatch(
-    panels,
-    /summary\.email/,
-    "email must not be shown in the Account panels -- see AccountHub.tsx's HomeView",
-  );
-  const hub = read("src/components/account/AccountHub.tsx");
-  assert.match(hub, /summary\?\.email/);
 });
 
 test("/favorites and /history are public routes, not gated by auth", () => {

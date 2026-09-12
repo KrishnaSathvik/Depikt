@@ -17,9 +17,8 @@ import { trackEvent } from "@/lib/analytics";
 /**
  * The one place account deletion lives: a red row (styled to match the
  * AccountHub home view's other bottom-row actions) that opens a typed-
- * confirmation dialog directly -- no detour through the Account view/tab
- * first. Not duplicated in AccountPanels; deleting your account is a
- * profile-level action, not something the Plan & Credits page owns.
+ * confirmation dialog directly, right on the profile -- there is no
+ * separate Account view/tab to detour through.
  */
 export function DeleteAccountAction() {
   const { signOut } = useAuth();
