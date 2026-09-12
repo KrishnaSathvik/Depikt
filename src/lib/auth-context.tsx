@@ -63,7 +63,6 @@ function readAuthStarted(): { provider: string } | null {
 // web_message when the request comes from the iframe flow, so a hand-opened
 // tab stalls on oauth.lovable.app/callback and never signs the user in.
 
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
