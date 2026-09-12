@@ -128,13 +128,17 @@ test("Upgrade and Buy credits both open inside the profile, never a navigation o
 
 test("CreditsCard shows a plan, a credit total, a progress bar, and Buy credits -- the one Plan & Credits surface", () => {
   const src = read("src/components/account/CreditsCard.tsx");
+  assert.match(src, /Plan & credits/);
   assert.match(src, /credits remaining/);
   assert.match(src, /Buy credits/);
   assert.match(src, /Manage billing/);
+  assert.match(src, /View plans/);
   assert.match(src, /STARTER_CREDITS/);
-  // A single progress bar, shared by the paid (included-this-month) and
-  // free (starter grant) cases rather than two different widgets.
-  assert.match(src, /bg-\[color:var\(--bg-subtle\)\]/);
+  // A single thin progress bar, shared by the paid (included-this-month) and
+  // free (starter grant) cases — extras stay out of the bar.
+  assert.match(src, /Included this month/);
+  assert.match(src, /Extra credits/);
+  assert.match(src, /bg-\[color:var\(--border-subtle\)\]/);
   assert.match(src, /width: `\$\{pct\}%`/);
 });
 

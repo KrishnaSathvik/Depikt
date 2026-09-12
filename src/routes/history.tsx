@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ArrowLeft } from "lucide-react";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { HistoryTab } from "@/components/account/HistoryTab";
 import { useAuth } from "@/lib/auth-context";
-import { ROUTES, SEO } from "@/lib/product";
+import { ROUTES, SEO, TOOL } from "@/lib/product";
 
 export const Route = createFileRoute("/history")({
   head: () => ({
@@ -29,6 +29,12 @@ function HistoryPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <main className="mx-auto w-full max-w-[960px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <Link
+          to={ROUTES.prompt}
+          className="mb-6 inline-flex items-center gap-1.5 text-mono-sm text-[color:var(--text-tertiary)] transition-colors hover:text-[color:var(--text-primary)]"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to {TOOL.prompt}
+        </Link>
         <HistoryTab />
         {!user && (
           <p className="mt-10 border-t border-[color:var(--border-subtle)] pt-6 text-body-sm text-[color:var(--text-tertiary)]">
@@ -43,7 +49,6 @@ function HistoryPage() {
           </p>
         )}
       </main>
-      <Footer />
     </div>
   );
 }

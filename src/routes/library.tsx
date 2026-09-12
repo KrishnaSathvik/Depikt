@@ -5,8 +5,8 @@ import { Search, Star, Wand2 } from "lucide-react";
 import { z } from "zod";
 import { zodValidator, fallback } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Pagination } from "@/components/Pagination";
+import { ScrollRow } from "@/components/ScrollRow";
 import { Button } from "@/components/ui/button";
 import { fetchLibrary } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
@@ -235,50 +235,65 @@ function HomePage() {
           </div>
         </div>
 
-        {/* Collection chips — only once a second collection exists */}
+        {/* Collection chips — only once a second collection exists.
+            ScrollRow adds edge fade + chevron so overflow is obvious on mobile. */}
         {showCollections && (
           <div className="mx-auto max-w-[1400px] px-4 pb-2 sm:px-6 lg:px-12">
-            <div
-              role="group"
-              aria-label="Collection"
-              className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            <ScrollRow
+              ariaLabel="Collection"
+              activeKey={activeCollection}
+              innerClassName="gap-2 pb-1"
             >
-              {collections.map((c) => (
-                <button
-                  key={c.value}
-                  onClick={() => setActiveCollection(c.value)}
-                  aria-pressed={activeCollection === c.value}
-                  className={`pill shrink-0 ${
-                    activeCollection === c.value
-                      ? "pill-solid"
-                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                  }`}
-                >
-                  {c.label} · {c.count}
-                </button>
-              ))}
-            </div>
+              {collections.map((c) => {
+                const active = activeCollection === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => setActiveCollection(c.value)}
+                    aria-pressed={active}
+                    data-active={active ? "true" : undefined}
+                    className={`pill shrink-0 snap-start ${
+                      active
+                        ? "pill-solid"
+                        : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
+                    }`}
+                  >
+                    {c.label} · {c.count}
+                  </button>
+                );
+              })}
+            </ScrollRow>
           </div>
         )}
 
         {/* Category chips */}
         <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
-          <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {CATEGORIES.map((c) => (
-              <button
-                key={c}
-                onClick={() => setCategory(c)}
-                aria-pressed={activeCategory === c}
-                className={`pill shrink-0 ${
-                  activeCategory === c
-                    ? "pill-solid"
-                    : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                }`}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
+          <ScrollRow
+            ariaLabel="Category"
+            activeKey={activeCategory}
+            innerClassName="gap-2 pb-1"
+          >
+            {CATEGORIES.map((c) => {
+              const active = activeCategory === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCategory(c)}
+                  aria-pressed={active}
+                  data-active={active ? "true" : undefined}
+                  className={`pill shrink-0 snap-start ${
+                    active
+                      ? "pill-solid"
+                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
+                  }`}
+                >
+                  {c}
+                </button>
+              );
+            })}
+          </ScrollRow>
         </div>
       </section>
 
@@ -337,7 +352,6 @@ function HomePage() {
       </section>
 
       <PromptDetailDialog prompt={selected} onClose={() => setSelected(null)} />
-      <Footer />
     </div>
   );
 }

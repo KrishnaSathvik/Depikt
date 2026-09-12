@@ -158,8 +158,18 @@ test("/account confirms checkout server-side and stays noindex", () => {
 
 test("CreditsCard has the plan/credits sections and billing actions", () => {
   const src = read("src/components/account/CreditsCard.tsx");
-  for (const s of ["PLAN_LABEL", "credits remaining", "Manage billing", "Buy credits"]) {
-    assert.match(src, new RegExp(s), s);
+  for (const s of [
+    "PLAN_LABEL",
+    "Plan & credits",
+    "credits remaining",
+    "Included this month",
+    "Starter credits",
+    "Extra credits",
+    "Manage billing",
+    "Buy credits",
+    "View plans",
+  ]) {
+    assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
   }
 });
 
@@ -171,15 +181,15 @@ test("CreditsCard shows the credit-refresh date and the annual renewal/end date 
   const src = read("src/components/account/CreditsCard.tsx");
   assert.match(src, /const isAnnual = summary\.billingInterval === "year"/);
   assert.match(src, /isAnnual \? summary\.nextCreditGrantAt : summary\.currentPeriodEnd/);
-  assert.match(
-    src,
-    /const renewalDate = isAnnual \? formatShortDate\(summary\.currentPeriodEnd\) : null/,
-  );
-  assert.match(src, /Refreshes \{refreshDate\}/);
-  assert.match(
-    src,
-    /summary\.cancelAtPeriodEnd \? `Ends \$\{renewalDate\}\.` : `Renews \$\{renewalDate\}\.`/,
-  );
+  // Annual uses the long date (with year) for subscription renew/end so it
+  // cannot be mistaken for the monthly credit-refresh short date.
+  assert.match(src, /formatLongDate\(summary\.currentPeriodEnd\)/);
+  assert.match(src, /Included credits refresh \{refreshDate\}/);
+  assert.match(src, /Credits refresh/);
+  assert.match(src, /Subscription renews/);
+  assert.match(src, /Subscription ends/);
+  // Free starter grant is one-time — never imply a refresh.
+  assert.match(src, /Starter credits do not refresh\./);
 });
 
 test("CreditsCard surfaces a payment-needs-attention banner for past_due/unpaid subscribers", () => {

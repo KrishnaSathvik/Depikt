@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { Header } from "@/components/Header";
 import { ScrollRow } from "@/components/ScrollRow";
@@ -6,6 +7,7 @@ import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
 import { SEO, TOOL } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
+import { cn } from "@/lib/utils";
 
 const PAGE_TITLE = SEO.blog.title;
 const PAGE_DESCRIPTION = SEO.blog.description;
@@ -139,18 +141,37 @@ function PostRow({ post }: { post: PostItem }) {
 }
 
 function BlogIndex() {
+  const [category, setCategory] = useState<string>("all");
   const sorted = getPostsByDate();
+
+  const categoryCounts = useMemo(
+    () =>
+      Array.from(
+        posts.reduce(
+          (acc, p) => acc.set(p.category, (acc.get(p.category) ?? 0) + 1),
+          new Map<string, number>(),
+        ),
+      ).sort((a, b) => b[1] - a[1]),
+    [],
+  );
+
+  const filters = useMemo(
+    () =>
+      [{ id: "all", label: "All", count: posts.length } as const].concat(
+        categoryCounts.map(([cat, count]) => ({ id: cat, label: cat, count })),
+      ),
+    [categoryCounts],
+  );
+
   const current = sorted.filter((p) => p.category === CURRENT_MODEL_CATEGORY);
   const older = sorted.filter((p) => p.category !== CURRENT_MODEL_CATEGORY);
+
+  // "All" keeps the curated index (current-model feature + earlier guides).
+  // A category chip filters to that category only.
+  const filtered =
+    category === "all" ? null : sorted.filter((p) => p.category === category);
   const [featured, ...restCurrent] = current.length > 0 ? current : sorted;
   const rest = current.length > 0 ? restCurrent : older.slice(1);
-
-  const categoryCounts = Array.from(
-    posts.reduce(
-      (acc, p) => acc.set(p.category, (acc.get(p.category) ?? 0) + 1),
-      new Map<string, number>(),
-    ),
-  ).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
@@ -169,64 +190,105 @@ function BlogIndex() {
           {/* Desktop: left rail. Mobile: one horizontal chip row above the articles. */}
           <aside aria-label="Categories" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
             <p className="eyebrow hidden lg:block">Categories</p>
-            <ScrollRow className="-mx-5 sm:-mx-6 lg:hidden" innerClassName="gap-2 px-5 sm:px-6">
-              {categoryCounts.map(([cat, count]) => (
-                <span
-                  key={cat}
-                  className={`pill shrink-0 snap-start ${
-                    cat === CURRENT_MODEL_CATEGORY ? "pill-solid" : ""
-                  }`}
-                >
-                  {cat} · {count}
-                </span>
-              ))}
+            <ScrollRow
+              className="-mx-5 sm:-mx-6 lg:hidden"
+              innerClassName="gap-2 px-5 sm:px-6"
+              activeKey={category}
+              ariaLabel="Categories"
+            >
+              {filters.map((f) => {
+                const active = category === f.id;
+                return (
+                  <button
+                    key={f.id}
+                    type="button"
+                    aria-pressed={active}
+                    data-active={active ? "true" : undefined}
+                    onClick={() => setCategory(f.id)}
+                    className={cn(
+                      "pill shrink-0 snap-start",
+                      active
+                        ? "pill-solid"
+                        : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]",
+                    )}
+                  >
+                    {f.label} · {f.count}
+                  </button>
+                );
+              })}
             </ScrollRow>
             <ul className="mt-4 hidden flex-col gap-y-2.5 lg:flex">
-              {categoryCounts.map(([cat, count]) => (
-                <li
-                  key={cat}
-                  className="flex items-baseline justify-between gap-2 text-body-sm text-[color:var(--text-secondary)]"
-                >
-                  <span
-                    className={
-                      cat === CURRENT_MODEL_CATEGORY ? "text-[color:var(--text-primary)]" : ""
-                    }
-                  >
-                    {cat}
-                  </span>
-                  <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
-                    {String(count).padStart(2, "0")}
-                  </span>
-                </li>
-              ))}
+              {filters.map((f) => {
+                const active = category === f.id;
+                return (
+                  <li key={f.id}>
+                    <button
+                      type="button"
+                      aria-pressed={active}
+                      onClick={() => setCategory(f.id)}
+                      className={cn(
+                        "flex w-full items-baseline justify-between gap-2 text-left text-body-sm transition-colors",
+                        active
+                          ? "text-[color:var(--text-primary)]"
+                          : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+                      )}
+                    >
+                      <span>{f.label}</span>
+                      <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
+                        {String(f.count).padStart(2, "0")}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </aside>
 
           <div className="min-w-0">
-            {featured && <FeaturedPost post={featured} />}
-
-            {rest.length > 0 && (
-              <section aria-label={`${CURRENT_MODEL_CATEGORY} guides`}>
-                {rest.map((post) => (
-                  <PostRow key={post.slug} post={post} />
-                ))}
+            {filtered ? (
+              <section aria-label={`${category} guides`}>
+                {filtered.length === 0 ? (
+                  <p className="border-t border-[color:var(--border-subtle)] py-10 text-body-md text-[color:var(--text-secondary)]">
+                    No guides in this category yet.
+                  </p>
+                ) : (
+                  filtered.map((post, i) =>
+                    i === 0 ? (
+                      <FeaturedPost key={post.slug} post={post} />
+                    ) : (
+                      <PostRow key={post.slug} post={post} />
+                    ),
+                  )
+                )}
               </section>
-            )}
+            ) : (
+              <>
+                {featured && <FeaturedPost post={featured} />}
 
-            {current.length > 0 && older.length > 0 && (
-              <section aria-label="Earlier guides" className="mt-16">
-                <div className="flex items-baseline justify-between border-t border-[color:var(--text-primary)] pt-4">
-                  <p className="eyebrow">Earlier guides · GPT Image 2 era</p>
-                  <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
-                    {older.length}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  {older.map((post) => (
-                    <PostRow key={post.slug} post={post} />
-                  ))}
-                </div>
-              </section>
+                {rest.length > 0 && (
+                  <section aria-label={`${CURRENT_MODEL_CATEGORY} guides`}>
+                    {rest.map((post) => (
+                      <PostRow key={post.slug} post={post} />
+                    ))}
+                  </section>
+                )}
+
+                {current.length > 0 && older.length > 0 && (
+                  <section aria-label="Earlier guides" className="mt-16">
+                    <div className="flex items-baseline justify-between border-t border-[color:var(--text-primary)] pt-4">
+                      <p className="eyebrow">Earlier guides · GPT Image 2 era</p>
+                      <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
+                        {older.length}
+                      </span>
+                    </div>
+                    <div className="mt-2">
+                      {older.map((post) => (
+                        <PostRow key={post.slug} post={post} />
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </>
             )}
           </div>
         </div>

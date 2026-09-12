@@ -144,10 +144,12 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
  * One canonical modal/sheet for account/profile interaction across the
  * whole app: the header avatar, the full-page /account route's own avatar/
  * pencil/thumbnail taps, all open this same shell at whichever view fits.
- * A single Dialog on desktop, a near-full-height bottom Sheet on mobile;
+ * A single Dialog on desktop, a full-viewport Sheet on mobile;
  * `stack` (from AccountHubProvider) is the current view's back-stack, so
  * a back arrow shows whenever there's somewhere to go back to and X always
- * closes the whole thing, however deep the stack is.
+ * closes the whole thing, however deep the stack is. Below md the desktop
+ * Dialog also goes full-bleed so a late/narrow measurement never leaves a
+ * floating card on phones.
  */
 export function AccountHub() {
   const { open, stack, selectedCreation, back, closeHub } = useAccountHub();
@@ -232,12 +234,32 @@ export function AccountHub() {
       <Sheet open={open} onOpenChange={(o) => !o && closeHub()}>
         <SheetContent
           side="bottom"
-          className="flex h-[92vh] flex-col rounded-t-2xl overflow-y-auto"
+          className="flex h-[100dvh] max-h-[100dvh] w-full flex-col gap-0 rounded-none border-0 p-0 shadow-none"
         >
           <SheetTitle className="sr-only">{title}</SheetTitle>
           <SheetDescription className="sr-only">Account and creations</SheetDescription>
-          {header}
-          <div className={unpadded ? "-mx-6 -mb-6 flex-1" : "flex-1"}>{body}</div>
+          <div className="flex shrink-0 items-center gap-2 border-b border-[color:var(--border-subtle)] px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] pr-12">
+            {canGoBack && (
+              <button
+                type="button"
+                onClick={back}
+                aria-label="Back"
+                className="flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </button>
+            )}
+            <span className="text-heading-sm text-[color:var(--text-primary)]">{title}</span>
+          </div>
+          <div
+            className={
+              unpadded
+                ? "min-h-0 flex-1 overflow-y-auto"
+                : "min-h-0 flex-1 overflow-y-auto px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]"
+            }
+          >
+            {body}
+          </div>
         </SheetContent>
       </Sheet>
     );
@@ -246,7 +268,7 @@ export function AccountHub() {
   return (
     <Dialog open={open} onOpenChange={(o) => !o && closeHub()}>
       <DialogContent
-        className={`${DESKTOP_WIDTH[view]} max-h-[85vh] overflow-y-auto transition-[max-width]`}
+        className={`${DESKTOP_WIDTH[view]} max-h-[85vh] overflow-y-auto transition-[max-width] max-md:inset-0 max-md:left-0 max-md:top-0 max-md:flex max-md:h-dvh max-md:max-h-dvh max-md:w-full max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none max-md:border-0`}
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         <DialogDescription className="sr-only">Account and creations</DialogDescription>
