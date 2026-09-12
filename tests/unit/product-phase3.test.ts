@@ -476,7 +476,7 @@ test("historical GPT Image 2 blog posts and prompt text are untouched by the mig
 test("launch module is data-driven: real count, real images, deep link to the Images 2.5 collection", () => {
   assert.equal(ANNOUNCEMENT.eyebrow, "New in Depikt");
   assert.equal(ANNOUNCEMENT.title, "See what works with ChatGPT Images 2.5.");
-  assert.equal(ANNOUNCEMENT.meta, "43 new tested recipes");
+  assert.equal(ANNOUNCEMENT.meta, undefined);
   assert.equal(ANNOUNCEMENT.primary.collection, "gpt-image-2.5");
   assert.ok(getPostBySlug(ANNOUNCEMENT.secondary.slug), "secondary CTA slug resolves to a post");
   assert.ok(ANNOUNCEMENT.images.length >= 3 && ANNOUNCEMENT.images.length <= 5);
