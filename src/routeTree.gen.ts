@@ -47,6 +47,7 @@ import { Route as ApiAccountUsernameAvailabilityRouteImport } from './routes/api
 import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
 import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
 import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/creations'
+import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 
@@ -242,6 +243,11 @@ const ApiAccountCreationsRoute = ApiAccountCreationsRouteImport.update({
   path: '/api/account/creations',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
+  id: '/api/public/billing/webhook',
+  path: '/api/public/billing/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
   id: '/api/generation/sessions/$id',
   path: '/api/generation/sessions/$id',
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -336,6 +343,7 @@ export interface FileRoutesByTo {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -379,6 +387,7 @@ export interface FileRoutesById {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -423,6 +432,7 @@ export interface FileRouteTypes {
     | '/api/public/generate-prompt'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
+    | '/api/public/billing/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -465,6 +475,7 @@ export interface FileRouteTypes {
     | '/api/public/generate-prompt'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
+    | '/api/public/billing/webhook'
   id:
     | '__root__'
     | '/'
@@ -507,6 +518,7 @@ export interface FileRouteTypes {
     | '/api/public/generate-prompt'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
+    | '/api/public/billing/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -549,6 +561,7 @@ export interface RootRouteChildren {
   ApiPublicCritiquePromptRoute: typeof ApiPublicCritiquePromptRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
   ApiGenerationSessionsIdRoute: typeof ApiGenerationSessionsIdRoute
+  ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -819,6 +832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAccountCreationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/billing/webhook': {
+      id: '/api/public/billing/webhook'
+      path: '/api/public/billing/webhook'
+      fullPath: '/api/public/billing/webhook'
+      preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/sessions/$id': {
       id: '/api/generation/sessions/$id'
       path: '/api/generation/sessions/$id'
@@ -888,6 +908,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCritiquePromptRoute: ApiPublicCritiquePromptRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,
   ApiGenerationSessionsIdRoute: ApiGenerationSessionsIdRoute,
+  ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
