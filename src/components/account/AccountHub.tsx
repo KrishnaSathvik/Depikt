@@ -42,14 +42,17 @@ const TITLE: Record<HubView, string> = {
   "buy-credits": "Buy credits",
 };
 
-/** Dialog width per view — same shell on mobile and desktop. */
+/** Dialog width per view — same shell on mobile and desktop. Profile,
+ *  creation detail, and buy credits stay one desktop size so the modal
+ *  doesn't shrink when you leave the home view. */
+const PROFILE_DIALOG_WIDTH = "max-w-[960px]";
 const DIALOG_WIDTH: Record<HubView, string> = {
-  home: "max-w-[960px]",
-  "creation-detail": "max-w-[560px]",
+  home: PROFILE_DIALOG_WIDTH,
+  "creation-detail": PROFILE_DIALOG_WIDTH,
   "edit-profile": "max-w-[460px]",
   "avatar-picker": "max-w-[440px]",
   upgrade: "max-w-[720px]",
-  "buy-credits": "max-w-[640px]",
+  "buy-credits": PROFILE_DIALOG_WIDTH,
 };
 
 function UpgradeView({ summary }: { summary: AccountSummaryResponse | null }) {

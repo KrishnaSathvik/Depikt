@@ -438,6 +438,19 @@
       transform: translateY(-3px);
     }
   }
+  /* Indeterminate hairline on ThinkingField — reads as "still working" on
+     long image jobs. Global reduced-motion rule above disables it. */
+  .thinking-sweep {
+    animation: dp-thinking-sweep 1.6s ease-in-out infinite;
+  }
+  @keyframes dp-thinking-sweep {
+    from {
+      transform: translateX(-120%);
+    }
+    to {
+      transform: translateX(280%);
+    }
+  }
   @keyframes dp-reveal {
     to {
       opacity: 1;

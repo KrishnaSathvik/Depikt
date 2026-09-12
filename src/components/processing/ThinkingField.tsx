@@ -144,7 +144,7 @@ export function ThinkingField({ variant, status, width, height, className }: Thi
     <div className={className}>
       <div
         ref={containerRef}
-        className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
+        className="relative mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]"
         // `width` is the intrinsic/preferred size resolved by the caller (it
         // already accounts for both a max-width and a max-height there, see
         // GenerationCanvas.resolveFrameBox); `maxWidth: 100%` + `aspectRatio`
@@ -157,6 +157,12 @@ export function ThinkingField({ variant, status, width, height, className }: Thi
         }
       >
         <canvas ref={canvasRef} aria-hidden="true" className="block h-full w-full" />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-[color:var(--border-subtle)]"
+        >
+          <div className="thinking-sweep h-full w-[40%] bg-[color:var(--accent-processing)]" />
+        </div>
       </div>
       <p role="status" aria-live="polite" className="sr-only">
         {status}

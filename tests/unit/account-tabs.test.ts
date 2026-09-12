@@ -128,6 +128,17 @@ test("Upgrade and Buy credits both open inside the profile, never a navigation o
   assert.match(hub, /onBuyCredits=\{\(\) => hub\.pushView\("buy-credits"\)\}/);
 });
 
+test("Buy credits and creation detail keep the profile dialog width on desktop", () => {
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /const PROFILE_DIALOG_WIDTH = "max-w-\[960px\]"/);
+  assert.match(hub, /home: PROFILE_DIALOG_WIDTH/);
+  assert.match(hub, /"creation-detail": PROFILE_DIALOG_WIDTH/);
+  assert.match(hub, /"buy-credits": PROFILE_DIALOG_WIDTH/);
+  const sheet = read("src/components/billing/BuyCreditsSheet.tsx");
+  assert.match(sheet, /max-w-\[960px\]/);
+  assert.match(sheet, /max-h-\[min\(90dvh,900px\)\]/);
+});
+
 test("CreditsCard shows a plan, a credit total, a progress bar, and Buy credits -- the one Plan & Credits surface", () => {
   const src = read("src/components/account/CreditsCard.tsx");
   assert.match(src, /Plan & credits/);

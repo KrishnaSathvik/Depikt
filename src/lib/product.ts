@@ -588,6 +588,51 @@ export const INTENT_STAGE_LABELS = {
   building: "Building your prompt…",
 } as const;
 
+/** Waiting copy for native image generation. One line, driven by real
+ *  job status (queued vs running) plus elapsed time — never a fake
+ *  multi-step pipeline or a percentage. Jobs often take 30–90s. */
+export const GENERATION_STAGE_LABELS = {
+  starting: "Starting your image…",
+  creating: "Creating your image…",
+  lingering: "Still working — this can take a couple of minutes",
+  expectation: "Usually about a minute",
+  keepOpen: "Keep this screen open",
+} as const;
+
+export type GenerationJobUiStatus = "queued" | "running" | null;
+
+export interface GenerationThinkingView {
+  headline: string;
+  hint: string;
+}
+
+export function formatGenerationElapsed(elapsedMs: number): string {
+  const seconds = Math.max(0, Math.round(elapsedMs / 1000));
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${String(remainder).padStart(2, "0")}s`;
+}
+
+/**
+ * One status line for Generate. queued → starting; running → creating;
+ * after 70s still running → lingering. Never invents pipeline steps or %.
+ */
+export function describeGenerationThinking(
+  elapsedMs: number,
+  status: GenerationJobUiStatus,
+): GenerationThinkingView {
+  let headline: string;
+  if (status === "queued") headline = GENERATION_STAGE_LABELS.starting;
+  else if (elapsedMs >= 70_000) headline = GENERATION_STAGE_LABELS.lingering;
+  else headline = GENERATION_STAGE_LABELS.creating;
+
+  const hint =
+    elapsedMs >= 45_000 ? GENERATION_STAGE_LABELS.keepOpen : GENERATION_STAGE_LABELS.expectation;
+
+  return { headline, hint };
+}
+
 /**
  * Turn the analyzer's intent object into a few short, true facts for the
  * waiting state ("Poster · Style reference · 4:5 · 3 panels"). Uses only

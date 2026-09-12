@@ -73,6 +73,13 @@ export function InlineGenerationPanel({
         imageUrl={gen.resultUrl}
         errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
         onRetry={() => gen.regenerate()}
+        jobStatus={
+          gen.job?.status === "queued" || gen.job?.status === "running"
+            ? gen.job.status
+            : gen.phase === "starting"
+              ? "queued"
+              : "running"
+        }
         actions={
           editing ? undefined : (
             <GenerationActions

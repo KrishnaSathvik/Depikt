@@ -18,7 +18,7 @@ export interface BuyCreditsSheetProps {
 export function BuyCreditsSheet({ open, onOpenChange, source }: BuyCreditsSheetProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[min(85dvh,720px)] w-[calc(100%-2rem)] max-w-[640px] gap-0 overflow-y-auto rounded-lg p-6 sm:w-full sm:p-8">
+      <DialogContent className="max-h-[min(90dvh,900px)] w-[calc(100%-2rem)] max-w-[960px] gap-0 overflow-y-auto rounded-lg p-5 sm:w-full sm:p-8">
         <DialogTitle className="pr-8 text-heading-md">{BUY_CREDITS_COPY.title}</DialogTitle>
         <DialogDescription className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
           {BUY_CREDITS_COPY.body}

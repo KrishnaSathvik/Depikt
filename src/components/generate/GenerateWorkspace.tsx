@@ -262,6 +262,13 @@ export function GenerateWorkspace() {
           imageUrl={gen.resultUrl}
           errorMessage={gen.errorMessage}
           onRetry={gen.reset}
+          jobStatus={
+            gen.job?.status === "queued" || gen.job?.status === "running"
+              ? gen.job.status
+              : gen.phase === "starting"
+                ? "queued"
+                : "running"
+          }
           actions={
             editing ? undefined : (
               <GenerationActions

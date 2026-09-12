@@ -22,9 +22,9 @@ const MAX_OPACITY = 0.9;
 
 /**
  * Global tempo for influence motion. ~1.0 felt near-static on long image
- * jobs; 2.6 keeps a readable pulse without looking frantic.
+ * jobs; 3.0 keeps a readable pulse without looking frantic.
  */
-export const THINKING_FIELD_TEMPO = 2.6;
+export const THINKING_FIELD_TEMPO = 3.0;
 
 function styleFromStrength(strength: number): DotStyle {
   const clamped = Math.max(0, Math.min(1, strength));

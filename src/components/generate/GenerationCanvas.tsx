@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThinkingField } from "@/components/processing/ThinkingField";
+import {
+  describeGenerationThinking,
+  formatGenerationElapsed,
+  type GenerationJobUiStatus,
+} from "@/lib/product";
 
 // No "ready" state: ThinkingField (and this canvas generally) is mounted
 // only once an image operation is actually running. /generate's idle
@@ -21,6 +26,8 @@ export interface GenerationCanvasProps {
   /** Rendered under the frame in "result" state — pass a <GenerationActions/>. */
   actions?: React.ReactNode;
   className?: string;
+  /** queued/running while generating — drives thinking-stage copy. */
+  jobStatus?: GenerationJobUiStatus;
 }
 
 /** Resolves a concrete pixel box for `ratioLabel` against the orientation-based
@@ -73,6 +80,7 @@ export function GenerationCanvas({
   onRetry,
   actions,
   className,
+  jobStatus,
 }: GenerationCanvasProps) {
   const box = resolveFrameBox(aspectRatio, orientation);
 
@@ -110,31 +118,58 @@ export function GenerationCanvas({
   // generating
   return (
     <div className={`space-y-3 text-center ${className ?? ""}`}>
-      <ThinkingField
-        variant="generate"
-        status="Creating your image"
+      <GenerationThinking
+        jobStatus={jobStatus ?? null}
+        ratioLabel={aspectRatio}
+        orientation={orientation}
         width={box.width}
         height={box.height}
-        className="[&>div]:transition-[width,aspect-ratio] [&>div]:duration-200 [&>div]:ease-out"
       />
-      <p className="text-body-md">Creating your image</p>
-      <ElapsedCaption ratioLabel={aspectRatio} orientation={orientation} />
     </div>
   );
 }
 
-function ElapsedCaption({ ratioLabel, orientation }: { ratioLabel: string; orientation?: string }) {
-  const [elapsed, setElapsed] = useState(0);
+function GenerationThinking({
+  jobStatus,
+  ratioLabel,
+  orientation,
+  width,
+  height,
+}: {
+  jobStatus: GenerationJobUiStatus;
+  ratioLabel: string;
+  orientation?: string;
+  width: number;
+  height: number;
+}) {
+  const [elapsedMs, setElapsedMs] = useState(0);
   useEffect(() => {
     const start = Date.now();
-    const id = setInterval(() => setElapsed(Math.round((Date.now() - start) / 1000)), 1000);
+    const id = setInterval(() => setElapsedMs(Date.now() - start), 1000);
     return () => clearInterval(id);
   }, []);
+
+  const view = describeGenerationThinking(elapsedMs, jobStatus);
+  const caption = [
+    view.hint,
+    elapsedMs >= 1000 ? formatGenerationElapsed(elapsedMs) : null,
+    ratioLabel,
+    orientation ?? null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+
   return (
-    <p className="text-body-sm text-[color:var(--text-secondary)]">
-      {ratioLabel}
-      {orientation ? ` · ${orientation}` : ""}
-      {elapsed > 0 ? ` · ${elapsed}s` : ""}
-    </p>
+    <>
+      <ThinkingField
+        variant="generate"
+        status={view.headline}
+        width={width}
+        height={height}
+        className="[&>div]:transition-[width,aspect-ratio] [&>div]:duration-200 [&>div]:ease-out"
+      />
+      <p className="text-body-md">{view.headline}</p>
+      <p className="text-body-sm text-[color:var(--text-secondary)]">{caption}</p>
+    </>
   );
 }
