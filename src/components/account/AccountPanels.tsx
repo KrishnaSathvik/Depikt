@@ -73,10 +73,6 @@ export function AccountPanels({ summary }: { summary: AccountSummaryResponse | n
   const isPaid = summary.plan !== "free";
   const pastDue =
     summary.subscriptionStatus === "past_due" || summary.subscriptionStatus === "unpaid";
-  const includedPct =
-    isPaid && summary.credits.allocation > 0
-      ? Math.min(100, Math.round((summary.credits.plan / summary.credits.allocation) * 100))
-      : 0;
   // Free: extra IS the starter grant (until they also buy a pack, at which
   // point the "/5" denominator stops meaning anything -- just drop it then).
   const starterFraction =
@@ -121,21 +117,10 @@ export function AccountPanels({ summary }: { summary: AccountSummaryResponse | n
 
             {isPaid ? (
               <>
-                <div className="mt-5">
-                  <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
-                    <span>Included this month</span>
-                    <span className="tabular-nums text-[color:var(--text-primary)]">
-                      {summary.credits.plan} / {summary.credits.allocation}
-                    </span>
-                  </div>
-                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
-                    <div
-                      className="h-full rounded-full bg-[color:var(--text-primary)]"
-                      style={{ width: `${includedPct}%` }}
-                    />
-                  </div>
-                </div>
-                <div className="mt-4 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+                {/* Included-this-month usage now lives in the AccountHub
+                    home view (visible the moment the hub opens), not
+                    duplicated here -- see AccountHub.tsx's HomeView. */}
+                <div className="mt-5 flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
                   <span>Extra credits</span>
                   <span className="tabular-nums text-[color:var(--text-primary)]">
                     {summary.credits.extra}
@@ -205,9 +190,8 @@ export function AccountPanels({ summary }: { summary: AccountSummaryResponse | n
           <p className="mt-3 text-body-sm text-[color:var(--text-secondary)]">
             Signed in with {signedInWithLabel(summary.provider)}
           </p>
-          {summary.email && (
-            <p className="text-body-sm text-[color:var(--text-tertiary)]">{summary.email}</p>
-          )}
+          {/* Email lives in the AccountHub's home view now, next to Sign
+              out, not duplicated here -- see AccountHub.tsx's HomeView. */}
         </section>
       </div>
     </div>

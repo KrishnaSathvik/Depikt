@@ -76,18 +76,27 @@ function HubRow({
   );
 }
 
-function HomeView() {
+function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
   const { user, signOut } = useAuth();
   const { profile } = useProfile();
-  const summary = useAccountSummary(user);
+  const lightSummary = useAccountSummary(user);
   const { openBuyCredits } = useBuyCredits();
   const hub = useAccountHub();
 
-  const planLabel = summary.plan ? PLAN_LABEL[summary.plan] : null;
+  const planLabel = lightSummary.plan ? PLAN_LABEL[lightSummary.plan] : null;
   const creditsLabel =
-    summary.credits === null
+    lightSummary.credits === null
       ? "—"
-      : `${planLabel && summary.plan !== "free" ? `${planLabel} · ` : ""}${summary.credits} credit${summary.credits === 1 ? "" : "s"}`;
+      : `${planLabel && lightSummary.plan !== "free" ? `${planLabel} · ` : ""}${lightSummary.credits} credit${lightSummary.credits === 1 ? "" : "s"}`;
+
+  // Included-this-month usage lives here (outside the Account view) so it's
+  // visible the moment the hub opens -- only meaningful for a paid plan
+  // with a monthly allocation, so it's absent for free/no-allocation plans.
+  const isPaid = summary && summary.plan !== "free";
+  const includedPct =
+    isPaid && summary.credits.allocation > 0
+      ? Math.min(100, Math.round((summary.credits.plan / summary.credits.allocation) * 100))
+      : null;
 
   return (
     <div>
@@ -96,6 +105,23 @@ function HomeView() {
         onEditClick={() => hub.pushView("edit-profile")}
       />
       <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{creditsLabel}</p>
+
+      {isPaid && includedPct !== null && (
+        <div className="mt-3">
+          <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+            <span>Included</span>
+            <span className="tabular-nums text-[color:var(--text-primary)]">
+              {summary.credits.plan} / {summary.credits.allocation}
+            </span>
+          </div>
+          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
+            <div
+              className="h-full rounded-full bg-[color:var(--text-primary)]"
+              style={{ width: `${includedPct}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 border-t border-[color:var(--border-subtle)] pt-1">
         <HubRow onClick={() => hub.pushView("creations")}>Creations</HubRow>
@@ -116,6 +142,11 @@ function HomeView() {
       </div>
 
       <div className="mt-2 flex flex-col border-t border-[color:var(--border-subtle)] pt-2">
+        {summary?.email && (
+          <p className="px-1 pb-1 text-body-sm text-[color:var(--text-tertiary)]">
+            {summary.email}
+          </p>
+        )}
         <button
           type="button"
           onClick={() => void signOut()}
@@ -149,24 +180,27 @@ export function AccountHub() {
   const canGoBack = stack.length > 1;
 
   useEffect(() => {
-    if (!open || !user || view !== "account") return;
+    if (!open || !user) return;
     let cancelled = false;
     getAccountSummary()
       .then((r) => {
         if (!cancelled) setSummary(r);
       })
       .catch(() => {
-        /* AccountPanels shows its own loading state; nothing more to do here */
+        /* AccountPanels/HomeView show their own loading/absent state; nothing more to do here */
       });
     return () => {
       cancelled = true;
     };
-  }, [open, user, view]);
+    // Fetched once per hub session (on open), not per view -- both the home
+    // view (Included-usage line) and the account view (Plan & Credits card)
+    // read it.
+  }, [open, user]);
 
   let body: React.ReactNode = null;
   switch (view) {
     case "home":
-      body = <HomeView />;
+      body = <HomeView summary={summary} />;
       break;
     case "creations":
       body = <CreationsGrid onSelect={openCreationDetail} />;

@@ -209,8 +209,22 @@ test("Account panels show Plan & Credits and sign-in details -- everything that 
   // though it's internally the same extra_credits bucket as purchased packs.
   assert.match(src, /Starter credits/);
   assert.match(src, /STARTER_CREDITS/);
-  // Paid plans show a thin progress bar for included/allocation.
-  assert.match(src, /includedPct/);
+  // Included-this-month usage (the thin progress bar) lives in the
+  // AccountHub's home view now, not duplicated in the Account panels.
+  assert.doesNotMatch(src, /includedPct/);
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /includedPct/);
+});
+
+test("email lives next to Sign out in the AccountHub home view, not duplicated in the Account panels", () => {
+  const panels = read("src/components/account/AccountPanels.tsx");
+  assert.doesNotMatch(
+    panels,
+    /summary\.email/,
+    "email must not be shown in the Account panels -- see AccountHub.tsx's HomeView",
+  );
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /summary\?\.email/);
 });
 
 test("/favorites and /history are public routes, not gated by auth", () => {
