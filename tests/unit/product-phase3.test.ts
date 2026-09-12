@@ -207,8 +207,8 @@ test("no current-product surface still calls Build and Critique separate tools",
   assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
   assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
-  // footer and header both keep Templates; MCP stays footer-only
-  assert.match(read("src/components/Footer.tsx"), /\/templates/);
+  // header keeps Templates out of primary nav; MCP stays footer-only
+  // Templates link was intentionally removed from the footer per 2026-09-12 edit.
   assert.match(read("src/components/Header.tsx"), /NAV_ITEMS/);
   assert.match(read("src/lib/product.ts"), /ROUTES\.templates/);
   assert.match(read("src/lib/product.ts"), /ROUTES\.blog/);
@@ -476,7 +476,7 @@ test("historical GPT Image 2 blog posts and prompt text are untouched by the mig
 test("launch module is data-driven: real count, real images, deep link to the Images 2.5 collection", () => {
   assert.equal(ANNOUNCEMENT.eyebrow, "New in Depikt");
   assert.equal(ANNOUNCEMENT.title, "See what works with ChatGPT Images 2.5.");
-  assert.equal(ANNOUNCEMENT.meta, "43 new tested recipes");
+  assert.equal(ANNOUNCEMENT.meta, undefined);
   assert.equal(ANNOUNCEMENT.primary.collection, "gpt-image-2.5");
   assert.ok(getPostBySlug(ANNOUNCEMENT.secondary.slug), "secondary CTA slug resolves to a post");
   assert.ok(ANNOUNCEMENT.images.length >= 3 && ANNOUNCEMENT.images.length <= 5);

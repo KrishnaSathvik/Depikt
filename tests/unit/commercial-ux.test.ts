@@ -339,7 +339,6 @@ test("footer has the two restrained columns (Resources, Legal) and no stale tagl
     "ROUTES.help",
     "ROUTES.privacy",
     "ROUTES.terms",
-    "/templates",
     "MCP.pagePath",
   ]) {
     assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
