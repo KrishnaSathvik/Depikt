@@ -157,8 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: "email" });
-    const emailRedirectTo =
-      opts.redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+    const emailRedirectTo = opts.redirectTo ?? canonicalRedirectUri();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo, shouldCreateUser: opts.shouldCreateUser },
