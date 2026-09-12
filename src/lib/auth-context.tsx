@@ -122,12 +122,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     trackEvent("auth_started", { method: provider });
     const redirectUri =
       redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
-    // In a top-level window, open the provider login in a NEW TAB and listen
-    // for the broker's postMessage, so the app stays put. In a preview iframe
-    // the managed client already handles the popup flow itself.
-    if (!isInIframe()) {
-      return signInWithProviderNewTab(provider, redirectUri);
-    }
+    // The managed client picks the right flow for the context (redirect in a
+    // real tab, popup inside the Lovable preview iframe).
+
     const result = await lovable.auth.signInWithOAuth(provider, { redirect_uri: redirectUri });
     if (result.error) return { ok: false, error: result.error.message };
     return { ok: true, redirected: Boolean(result.redirected) };
