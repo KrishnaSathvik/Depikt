@@ -272,8 +272,8 @@ export function PlanCards({
       <BillingAuthDialog
         open={authGate !== null}
         onOpenChange={(open) => !open && setAuthGate(null)}
-        headline={authGate ? planGateHeadline(authGate) : ""}
-        productKey={authGate ? planProduct(authGate, interval).key : null}
+        headline={authGateHeadline(authGate)}
+        productKey={authGate}
       />
     </div>
   );
