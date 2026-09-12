@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
 import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
-import { CTA, ROUTES } from "@/lib/product";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
-import { consumeGenerationHandoff, saveGenerationHandoff } from "@/lib/generation/handoff";
+import { consumeGenerationHandoff } from "@/lib/generation/handoff";
 import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
 import {
   useGeneration,
@@ -39,8 +37,6 @@ import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate"
  * prompt).
  */
 export function GenerateWorkspace() {
-  const navigate = useNavigate();
-
   const [prompt, setPrompt] = useState("");
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
@@ -149,17 +145,6 @@ export function GenerateWorkspace() {
     setEditPrompt("");
   }
 
-  function improveInPrompt() {
-    saveGenerationHandoff({
-      prompt,
-      references: gen.references.map((r) => ({ dataUrl: r.local.dataUrl })),
-      structuredAspectRatio: structuredRatio,
-      routingHints,
-      sourceType: "direct",
-    });
-    void navigate({ to: ROUTES.prompt, search: { mode: "build" } });
-  }
-
   // No generation visual before the user has actually started one — the
   // idle composer is a plain creation entry point, not half of a workspace.
   const isIdle = gen.phase === "idle" || (gen.phase === "error" && !gen.job);
@@ -199,9 +184,6 @@ export function GenerateWorkspace() {
               .join(" · ")}
           />
           <ComposerChips chips={GENERATE_CHIPS} onSelect={useChip} />
-          <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-            {CTA.improveInPrompt} →
-          </Button>
         </div>
       </>
     );
@@ -269,19 +251,12 @@ export function GenerateWorkspace() {
                 {resolvedSize.ratioLabel} · {resolvedSize.orientation}
               </p>
 
-              {gen.phase === "result" && (
-                <>
-                  {gen.versions.length > 1 && (
-                    <VersionStrip
-                      versions={gen.versions}
-                      activeId={gen.activeVersionId}
-                      onSelect={gen.setActiveVersionId}
-                    />
-                  )}
-                  <Button variant="ghost" size="sm" onClick={improveInPrompt}>
-                    {CTA.improveInPrompt} →
-                  </Button>
-                </>
+              {gen.phase === "result" && gen.versions.length > 1 && (
+                <VersionStrip
+                  versions={gen.versions}
+                  activeId={gen.activeVersionId}
+                  onSelect={gen.setActiveVersionId}
+                />
               )}
             </div>
           )}

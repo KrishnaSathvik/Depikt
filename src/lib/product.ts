@@ -63,7 +63,6 @@ export const CTA = {
   /** Behind the native-generation feature flag. */
   generateImage: "Generate image",
   generateRewrite: "Generate rewrite",
-  improveInPrompt: "Improve in Prompt",
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
@@ -195,12 +194,18 @@ export const POSITIONING = {
 export interface PageMeta {
   title: string;
   description: string;
+  /** Falls back to `title`/`description` when omitted (every page but /prompt today). */
+  ogTitle?: string;
+  ogDescription?: string;
 }
 
 export const SEO: Record<
   | "root"
   | "home"
   | "prompt"
+  | "promptGenerate"
+  | "promptBuild"
+  | "promptCritique"
   | "library"
   | "gallery"
   | "blog"
@@ -228,10 +233,29 @@ export const SEO: Record<
     description:
       "Explore image prompts, build and improve your own, find visual references, and generate or edit images directly with Depikt.",
   },
+  /** Legacy fallback only — /prompt's head() always resolves one of the promptGenerate/promptBuild/promptCritique entries below by mode. */
   prompt: {
     title: "AI Image Prompt Builder & Critic | Depikt",
     description:
       "Build better image prompts from an idea or reference, or critique and improve an existing prompt with Depikt.",
+  },
+  promptGenerate: {
+    title: "AI Image Generator | Depikt",
+    description: "Create and edit images from prompts and references with Depikt.",
+    ogTitle: "Generate with Depikt",
+    ogDescription: "Turn a prompt and reference into an image.",
+  },
+  promptBuild: {
+    title: "AI Image Prompt Builder | Depikt",
+    description: "Turn an idea or reference into a stronger image prompt with Depikt.",
+    ogTitle: "Build better image prompts",
+    ogDescription: "Start with an idea. Leave with a production-ready image prompt.",
+  },
+  promptCritique: {
+    title: "AI Image Prompt Critic | Depikt",
+    description: "Review, score, and improve an existing image prompt with Depikt.",
+    ogTitle: "Improve your image prompt",
+    ogDescription: "Find what is weakening your prompt and get a stronger rewrite.",
   },
   library: {
     title: `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,

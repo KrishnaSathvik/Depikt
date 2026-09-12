@@ -116,9 +116,10 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
 test("current product SEO is unified, unique per route, and never markets Depikt as a generic AI image generator", () => {
   for (const [key, m] of Object.entries(SEO)) {
     // "generator"/"image generator" as a generic marketing label is banned;
-    // Generate's own title ("AI Image Generator & Editor") is the one
-    // accurate, specific exception — it names what that page literally is.
-    if (key !== "generate") {
+    // Generate's own title ("AI Image Generator & Editor", and /prompt's
+    // promptGenerate mode metadata) is the one accurate, specific exception
+    // — it names what that page literally is.
+    if (key !== "generate" && key !== "promptGenerate") {
       assert.equal(/generator/i.test(m.title), false, `${key} title`);
       assert.equal(/image generator/i.test(m.description), false, `${key} description`);
     }
@@ -128,6 +129,11 @@ test("current product SEO is unified, unique per route, and never markets Depikt
   assert.equal(SEO.home.title, "Depikt — Better Prompts, Better Images");
   assert.equal(SEO.root.title, SEO.home.title);
   assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
+  // /prompt's actual head() never uses the fallback above — it always
+  // resolves one of these three by mode (see prompt-modes.test.ts).
+  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
+  assert.equal(SEO.promptBuild.title, "AI Image Prompt Builder | Depikt");
+  assert.equal(SEO.promptCritique.title, "AI Image Prompt Critic | Depikt");
   assert.equal(
     SEO.library.title,
     `AI Image Prompt Library — ${LIBRARY_PROMPT_COUNT} Examples | Depikt`,

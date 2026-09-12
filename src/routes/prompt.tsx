@@ -3,7 +3,7 @@ import { History } from "lucide-react";
 import { Header } from "@/components/Header";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
-import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
+import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL, type PageMeta } from "@/lib/product";
 import { GenerateWorkspace } from "@/components/generate/GenerateWorkspace";
 import { BuildMode } from "@/components/prompt/BuildMode";
 import { CritiqueMode } from "@/components/prompt/CritiqueMode";
@@ -35,6 +35,13 @@ const PROMPT_JSONLD = {
 };
 
 export type PromptMode = "generate" | "build" | "critique";
+
+/** Per-mode metadata for the unified /prompt workspace — canonical URL stays /prompt for all three. */
+const SEO_BY_MODE = {
+  generate: SEO.promptGenerate,
+  build: SEO.promptBuild,
+  critique: SEO.promptCritique,
+} as const satisfies Record<PromptMode, PageMeta>;
 
 export interface PromptSearch {
   mode?: PromptMode;
@@ -76,20 +83,28 @@ export const Route = createFileRoute("/prompt")({
       ref: typeof ref === "string" && ref.startsWith("/gallery/") ? ref : undefined,
     };
   },
-  head: () => {
+  head: ({ match }) => {
     const PROMPT_OG_IMAGE = getOgImageForPath("prompt");
+    const requestedMode = parsePromptMode(match.search.mode);
+    // Same fallback the component applies: a stale generate link/bookmark
+    // while the feature flag is off falls back to Build metadata too.
+    const mode =
+      requestedMode === "generate" && !isNativeGenerationEnabled() ? "build" : requestedMode;
+    const meta = SEO_BY_MODE[mode];
+    const ogTitle = meta.ogTitle ?? meta.title;
+    const ogDescription = meta.ogDescription ?? meta.description;
     return {
       meta: [
-        { title: SEO.prompt.title },
-        { name: "description", content: SEO.prompt.description },
-        { property: "og:title", content: SEO.prompt.title },
-        { property: "og:description", content: SEO.prompt.description },
+        { title: meta.title },
+        { name: "description", content: meta.description },
+        { property: "og:title", content: ogTitle },
+        { property: "og:description", content: ogDescription },
         { property: "og:type", content: "website" },
         { property: "og:url", content: PROMPT_URL },
         { property: "og:image", content: PROMPT_OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: SEO.prompt.title },
-        { name: "twitter:description", content: SEO.prompt.description },
+        { name: "twitter:title", content: ogTitle },
+        { name: "twitter:description", content: ogDescription },
         { name: "twitter:image", content: PROMPT_OG_IMAGE },
       ],
       links: [{ rel: "canonical", href: PROMPT_URL }],
@@ -115,6 +130,7 @@ function PromptWorkspace() {
   // mode=generate while it's off falls back to Build rather than showing an
   // empty tab with no matching panel.
   const mode = requestedMode === "generate" && !generationEnabled ? "build" : requestedMode;
+  const eyebrow = MODES.find((m) => m.id === mode)?.label ?? TOOL.prompt;
 
   /**
    * Drop consumed params (restore, prefill, seed, ref) but stay in this mode.
@@ -141,7 +157,7 @@ function PromptWorkspace() {
       <Header />
       <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
         <div className="flex items-center justify-between gap-4">
-          <p className="eyebrow">{generationEnabled ? TOOL.generate : TOOL.prompt}</p>
+          <p className="eyebrow">{eyebrow}</p>
           {/* Drafts pile up right here, so the link to past ones lives here
               too -- not buried in the footer or an auth-gated tab. Local
               (Dexie), no sign-in needed; see src/routes/history.tsx. */}
