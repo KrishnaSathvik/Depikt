@@ -59,6 +59,17 @@ function readAuthStarted(): { provider: string } | null {
 const OAUTH_INITIATE_PATH = "/~oauth/initiate";
 const OAUTH_MESSAGE_ORIGINS = ["https://oauth.lovable.app", "https://lovable.dev"];
 
+/** Same site as this page, ignoring an apex/www difference. */
+function isTrustedAppOrigin(origin: string): boolean {
+  try {
+    const here = window.location.hostname.replace(/^www\./, "");
+    const there = new URL(origin).hostname.replace(/^www\./, "");
+    return here === there;
+  } catch {
+    return false;
+  }
+}
+
 function isInIframe(): boolean {
   try {
     return window.self !== window.top;
