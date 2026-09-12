@@ -104,7 +104,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     provider: AuthProviderId,
     redirectTo?: string,
   ): Promise<SignInResult> => {
-    if (!isSupabaseConfigured()) return { ok: false, error: "Auth is not available" };
     try {
       sessionStorage.setItem(AUTH_STARTED_KEY, JSON.stringify({ provider }));
     } catch {
