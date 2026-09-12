@@ -6,7 +6,7 @@ import { AUTH_STARTED_KEY, type AuthProviderId } from "@/lib/auth/providers";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import { AUTH_COPY } from "@/lib/product";
-import { ALIAS_HOSTS, CANONICAL_HOST } from "@/lib/site";
+import { toCanonicalUrl } from "@/lib/site";
 
 export type SignInResult = { ok: true; redirected: boolean } | { ok: false; error: string };
 
@@ -67,16 +67,8 @@ function readAuthStarted(): { provider: string } | null {
 // The site answers on several hostnames (apex, the lovable.app alias) that all
 // redirect to the canonical www host. A session saved on one hostname is not
 // readable on another, so sign-in must always come back to the canonical one.
-function canonicalRedirectUri(): string | undefined {
-  if (typeof window === "undefined") return undefined;
-  try {
-    const url = new URL(window.location.href);
-    if (ALIAS_HOSTS.includes(url.hostname)) url.hostname = CANONICAL_HOST;
-    return url.toString();
-  } catch {
-    return window.location.href;
-  }
-}
+// Callers often pass window.location.origin; rewrite those too, otherwise
+// the fallback above never runs and tokens land on apex.
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -134,7 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: provider });
-    const redirectUri = redirectTo ?? canonicalRedirectUri();
+    const redirectUri = toCanonicalUrl(redirectTo);
     // The managed client picks the right flow for the context (redirect in a
     // real tab, popup inside the Lovable preview iframe).
 
@@ -154,7 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: "email" });
-    const emailRedirectTo = opts.redirectTo ?? canonicalRedirectUri();
+    const emailRedirectTo = toCanonicalUrl(opts.redirectTo);
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo, shouldCreateUser: opts.shouldCreateUser },

@@ -13,6 +13,7 @@ import {
   isEmailAuthEnabled,
 } from "../../src/lib/auth/providers.ts";
 import { ROUTES, SEO } from "../../src/lib/product.ts";
+import { toCanonicalUrl } from "../../src/lib/site.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
@@ -142,6 +143,18 @@ test("email sign-in never creates an account; sign-up does", () => {
   const ctx = read("src/lib/auth-context.tsx");
   assert.match(ctx, /signInWithOtp/);
   assert.match(ctx, /shouldCreateUser: opts\.shouldCreateUser/);
+});
+
+test("OAuth and magic-link returns are rewritten onto www, even when callers pass location.origin", () => {
+  assert.equal(toCanonicalUrl("https://depikt.app/sign-in"), "https://www.depikt.app/sign-in");
+  assert.equal(toCanonicalUrl("https://www.depikt.app/sign-in"), "https://www.depikt.app/sign-in");
+  assert.equal(
+    toCanonicalUrl("https://depikt.lovable.app/prompt?mode=generate"),
+    "https://www.depikt.app/prompt?mode=generate",
+  );
+  const ctx = read("src/lib/auth-context.tsx");
+  assert.match(ctx, /toCanonicalUrl\(redirectTo\)/);
+  assert.match(ctx, /toCanonicalUrl\(opts\.redirectTo\)/);
 });
 
 test("sign-in goes through auth-context, which wraps the Lovable OAuth client once", () => {
