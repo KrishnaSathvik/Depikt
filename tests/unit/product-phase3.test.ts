@@ -207,8 +207,8 @@ test("no current-product surface still calls Build and Critique separate tools",
   assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
   assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
-  // footer and header both keep Templates; MCP stays footer-only
-  assert.match(read("src/components/Footer.tsx"), /\/templates/);
+  // header keeps Templates out of primary nav; MCP stays footer-only
+  // Templates link was intentionally removed from the footer per 2026-09-12 edit.
   assert.match(read("src/components/Header.tsx"), /NAV_ITEMS/);
   assert.match(read("src/lib/product.ts"), /ROUTES\.templates/);
   assert.match(read("src/lib/product.ts"), /ROUTES\.blog/);
