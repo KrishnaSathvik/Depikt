@@ -54,115 +54,15 @@ function readAuthStarted(): { provider: string } | null {
   }
 }
 
-// Same broker + message protocol as @lovable.dev/cloud-auth-js's popup flow,
-// but always in a new tab so the app window never navigates away.
-const OAUTH_INITIATE_PATH = "/~oauth/initiate";
-const OAUTH_MESSAGE_ORIGINS = ["https://oauth.lovable.app", "https://lovable.dev"];
+// OAuth is handled entirely by @lovable.dev/cloud-auth-js: in a top-level
+// window it hands off to the broker and comes back to `redirect_uri` with the
+// tokens in the URL (detectSessionInUrl establishes the session); inside the
+// Lovable preview iframe it runs its own popup + web_message flow.
+//
+// Do NOT hand-roll a new-tab variant of this: the broker only answers with a
+// web_message when the request comes from the iframe flow, so a hand-opened
+// tab stalls on oauth.lovable.app/callback and never signs the user in.
 
-/** Same site as this page, ignoring an apex/www difference. */
-function isTrustedAppOrigin(origin: string): boolean {
-  try {
-    const here = window.location.hostname.replace(/^www\./, "");
-    const there = new URL(origin).hostname.replace(/^www\./, "");
-    return here === there;
-  } catch {
-    return false;
-  }
-}
-
-function isInIframe(): boolean {
-  try {
-    return window.self !== window.top;
-  } catch {
-    return true;
-  }
-}
-
-function generateOAuthState(): string {
-  if (typeof crypto !== "undefined" && crypto.getRandomValues) {
-    return [...crypto.getRandomValues(new Uint8Array(16))]
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
-  }
-  return Math.random().toString(36).substring(2) + Date.now().toString(36);
-}
-
-interface OAuthBrokerResponse {
-  state?: string;
-  error?: string;
-  error_description?: string;
-  access_token?: string;
-  refresh_token?: string;
-}
-
-async function signInWithProviderNewTab(
-  provider: AuthProviderId,
-  redirectUri: string | undefined,
-): Promise<SignInResult> {
-  const state = generateOAuthState();
-  const params = new URLSearchParams({
-    provider,
-    redirect_uri: redirectUri ?? window.location.href,
-    state,
-    response_mode: "web_message",
-  });
-  const url = `${window.location.origin}${OAUTH_INITIATE_PATH}?${params.toString()}`;
-  const tab = window.open(url, "_blank");
-  if (!tab) {
-    // Popup blocked — fall back to the classic full-page redirect.
-    window.location.href = url;
-    return { ok: true, redirected: true };
-  }
-  let response: OAuthBrokerResponse;
-  try {
-    response = await new Promise<OAuthBrokerResponse>((resolve, reject) => {
-      const onMessage = (event: MessageEvent) => {
-        // The broker posts from its own origin, but when the callback is served
-        // from this site's domain (apex/www variants) the message origin is ours.
-        if (!OAUTH_MESSAGE_ORIGINS.includes(event.origin) && !isTrustedAppOrigin(event.origin))
-          return;
-        const data = event.data as { type?: string; response?: OAuthBrokerResponse } | null;
-        if (!data || data.type !== "authorization_response" || !data.response) return;
-        cleanup();
-        resolve(data.response);
-      };
-      const closedTimer = window.setInterval(() => {
-        if (tab.closed) {
-          cleanup();
-          reject(new Error("Sign-in window was closed"));
-        }
-      }, 500);
-      const cleanup = () => {
-        window.removeEventListener("message", onMessage);
-        window.clearInterval(closedTimer);
-      };
-      window.addEventListener("message", onMessage);
-    });
-  } catch (error) {
-    try {
-      sessionStorage.removeItem(AUTH_STARTED_KEY);
-    } catch {
-      /* ignore */
-    }
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-  if (response.state !== state) return { ok: false, error: "State is invalid" };
-  if (response.error) {
-    return { ok: false, error: response.error_description ?? "Sign in failed" };
-  }
-  if (!response.access_token || !response.refresh_token) {
-    return { ok: false, error: "No tokens received" };
-  }
-  try {
-    await supabase.auth.setSession({
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-    });
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : String(error) };
-  }
-  return { ok: true, redirected: false };
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
