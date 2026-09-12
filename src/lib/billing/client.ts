@@ -18,6 +18,25 @@ async function billingJson<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
+/**
+ * Sends the browser to a Stripe-hosted URL. Inside an embedded preview
+ * iframe (the Lovable editor) a same-frame navigation is blocked, so try
+ * the top window first and fall back to a new tab.
+ */
+function gotoExternal(url: string): void {
+  const embedded = typeof window !== "undefined" && window.top && window.top !== window.self;
+  if (embedded) {
+    try {
+      window.top!.location.assign(url);
+      return;
+    } catch {
+      const opened = window.open(url, "_blank", "noopener");
+      if (opened) return;
+    }
+  }
+  gotoExternal(url);
+}
+
 /** Creates a hosted Checkout Session for a catalog key and navigates to it. */
 export async function startCheckout(productKey: ProductKey): Promise<void> {
   const product = CATALOG[productKey];
@@ -33,7 +52,7 @@ export async function startCheckout(productKey: ProductKey): Promise<void> {
     method: "POST",
     body: JSON.stringify({ productKey }),
   });
-  window.location.assign(url);
+  gotoExternal(url);
 }
 
 /** Opens the Stripe Customer Portal in the current tab. */
@@ -43,7 +62,7 @@ export async function openBillingPortal(): Promise<void> {
     method: "POST",
     body: "{}",
   });
-  window.location.assign(url);
+  gotoExternal(url);
 }
 
 export interface ConfirmCheckoutResponse {
