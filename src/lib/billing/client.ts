@@ -34,7 +34,7 @@ function gotoExternal(url: string): void {
       if (opened) return;
     }
   }
-  gotoExternal(url);
+  window.location.assign(url);
 }
 
 /** Creates a hosted Checkout Session for a catalog key and navigates to it. */
