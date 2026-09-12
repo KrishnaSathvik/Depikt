@@ -155,13 +155,15 @@ function BlogIndex() {
     [],
   );
 
-  const filters = useMemo(
-    () =>
-      [{ id: "all", label: "All", count: posts.length } as const].concat(
-        categoryCounts.map(([cat, count]) => ({ id: cat, label: cat, count })),
-      ),
-    [categoryCounts],
-  );
+  const filters = useMemo(() => {
+    const all = { id: "all" as const, label: "All", count: posts.length };
+    const cats = categoryCounts.map(([cat, count]) => ({
+      id: cat,
+      label: cat,
+      count,
+    }));
+    return [all, ...cats] as Array<{ id: string; label: string; count: number }>;
+  }, [categoryCounts]);
 
   const current = sorted.filter((p) => p.category === CURRENT_MODEL_CATEGORY);
   const older = sorted.filter((p) => p.category !== CURRENT_MODEL_CATEGORY);

@@ -88,8 +88,10 @@ test("AccountHub has no separate account view and no separate creations view -- 
   // Home no longer has a clickable "Creations" nav row -- the grid is
   // inline, just under a plain (non-interactive) heading.
   assert.doesNotMatch(hub, /pushView\("creations"\)/);
-  // Desktop dialog vs mobile sheet, same split as the rest of the account area.
-  assert.match(hub, /useIsMobile\(/);
+  // Same centered dialog shell on mobile and desktop (matches auth gates).
+  assert.doesNotMatch(hub, /useIsMobile\(/);
+  assert.doesNotMatch(hub, /from "@\/components\/ui\/sheet"/);
+  assert.doesNotMatch(hub, /side="bottom"/);
 });
 
 test("Plan & Credits (CreditsCard) and the full Creations grid sit on the profile directly -- no separate click for either", () => {

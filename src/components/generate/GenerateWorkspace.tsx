@@ -3,7 +3,8 @@ import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
+import { CreationComposer, ComposerChips, COMPOSER_TEXTAREA_CLASS } from "@/components/composer/CreationComposer";
+import { GENERATE_EXAMPLES } from "@/data/composer-examples";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff } from "@/lib/generation/handoff";
@@ -18,9 +19,12 @@ import type { SourceContextType } from "@/lib/generation/job-request";
 import type { SessionVersion } from "@/lib/generation/client";
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
+import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
 import { trackEvent } from "@/lib/analytics";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
+import { ModeHero } from "@/components/prompt/ModeHero";
+import { PROMPT_MODE_COPY } from "@/lib/product";
 
 /**
  * /generate — the direct creation workspace.
@@ -153,17 +157,15 @@ export function GenerateWorkspace() {
     return (
       <>
         <AuthGateDialog gen={gen} />
-        <h2 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
-          Create an image.
-        </h2>
-        <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
-          Describe what you want, optionally add a reference image, and generate.
-        </p>
+        <ModeHero
+          title={PROMPT_MODE_COPY.generate.title}
+          body={PROMPT_MODE_COPY.generate.body}
+        />
         <GenerationCreditGate gen={gen} className="mt-6" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mt-4 text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
-        <div className="mt-8 space-y-4">
+        <div className="mt-8 space-y-5">
           <ComposerSurface
             prompt={prompt}
             onPromptChange={setPrompt}
@@ -172,6 +174,7 @@ export function GenerateWorkspace() {
             onRemoveReference={gen.removeReference}
             onRetryReference={gen.retryReferenceUpload}
             onSubmit={submitComposer}
+            canSubmit={Boolean(prompt.trim())}
             caption={[
               resolvedSize.source !== "fallback"
                 ? `${resolvedSize.ratioLabel} · ${resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}`
@@ -183,7 +186,7 @@ export function GenerateWorkspace() {
               .filter(Boolean)
               .join(" · ")}
           />
-          <ComposerChips chips={GENERATE_CHIPS} onSelect={useChip} />
+          <ComposerChips chips={GENERATE_EXAMPLES} onSelect={useChip} />
         </div>
       </>
     );
@@ -204,33 +207,17 @@ export function GenerateWorkspace() {
         {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
         <div>
           <GenerationCreditGate gen={gen} className="mb-6" />
-          <p className="eyebrow mb-2">Prompt</p>
           {editing ? (
-            <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
-              <p className="text-body-sm font-medium">EDIT IMAGE</p>
-              <p className="text-body-sm text-[color:var(--text-secondary)]">What should change?</p>
-              <Textarea
-                value={editPrompt}
-                onChange={(e) => setEditPrompt(e.target.value)}
-                placeholder="Make the jacket dark blue and keep everything else unchanged."
-                rows={4}
-              />
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => {
-                    gen.applyEdit(editPrompt);
-                    setEditing(false);
-                    setEditPrompt("");
-                  }}
-                  disabled={!editPrompt.trim()}
-                >
-                  Apply edit → · 1 credit
-                </Button>
-                <Button variant="ghost" onClick={() => setEditing(false)}>
-                  Cancel
-                </Button>
-              </div>
-            </div>
+            <GenerationEditForm
+              value={editPrompt}
+              onChange={setEditPrompt}
+              onApply={() => {
+                gen.applyEdit(editPrompt);
+                setEditing(false);
+                setEditPrompt("");
+              }}
+              onCancel={() => setEditing(false)}
+            />
           ) : (
             <div className="space-y-3">
               <PromptSurface label="Prompt">{gen.job?.errorMessage ?? prompt}</PromptSurface>
@@ -239,9 +226,14 @@ export function GenerateWorkspace() {
                   {gen.references.map((r, i) => (
                     <div
                       key={i}
-                      className="h-10 w-10 overflow-hidden rounded border border-[color:var(--border-subtle)]"
+                      className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
                     >
-                      <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded">
+                        <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                      </div>
+                      <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+                        Reference image
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -286,15 +278,6 @@ export function GenerateWorkspace() {
   );
 }
 
-const GENERATE_CHIPS = [
-  { label: "editorial poster", text: "minimalist editorial poster, bold type, restrained palette" },
-  { label: "product shot", text: "clean studio product photo on white, soft shadow, square crop" },
-  {
-    label: "cinematic portrait",
-    text: "cinematic portrait, natural window light, shallow depth of field",
-  },
-] as const;
-
 function ComposerSurface({
   prompt,
   onPromptChange,
@@ -303,6 +286,7 @@ function ComposerSurface({
   onRemoveReference,
   onRetryReference,
   onSubmit,
+  canSubmit,
   caption,
 }: {
   prompt: string;
@@ -312,6 +296,7 @@ function ComposerSurface({
   onRemoveReference: (index: number) => void;
   onRetryReference: (index: number) => void;
   onSubmit: () => void;
+  canSubmit: boolean;
   caption: string;
 }) {
   return (
@@ -343,7 +328,7 @@ function ComposerSurface({
                 )}
               </div>
               <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
-                Reference
+                Reference image
               </span>
               <button
                 type="button"
@@ -377,9 +362,9 @@ function ComposerSurface({
         </>
       }
       submit={
-        <Button onClick={onSubmit} className="gap-1.5">
+        <Button onClick={onSubmit} disabled={!canSubmit} className="gap-2">
           <Sparkles className="h-4 w-4" />
-          Generate image →
+          Generate image → · 1 credit
         </Button>
       }
     >
@@ -389,6 +374,7 @@ function ComposerSurface({
         placeholder="Describe what you want to create..."
         rows={6}
         aria-label="Image prompt"
+        className={COMPOSER_TEXTAREA_CLASS}
       />
     </CreationComposer>
   );

@@ -35,8 +35,19 @@ function resolveFrameBox(
 ): { width: number; height: number } {
   const maxWidth = orientation === "landscape" ? 720 : 480;
   const maxHeight = 560;
-  const [w, h] = ratioLabel.split(":").map(Number);
-  const ratio = w && h ? w / h : 1;
+  const parts = ratioLabel.split(":").map(Number);
+  const w = parts[0];
+  const h = parts[1];
+  // Prefer the stated ratio; if the label is unparseable, fall back by
+  // orientation so a landscape job never flashes a square ThinkingField.
+  const ratio =
+    w && h && w > 0 && h > 0
+      ? w / h
+      : orientation === "landscape"
+        ? 3 / 2
+        : orientation === "portrait"
+          ? 2 / 3
+          : 1;
   let width = maxWidth;
   let height = Math.round(width / ratio);
   if (height > maxHeight) {

@@ -2,11 +2,8 @@ import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   Check,
   ChevronDown,
-  ChevronRight,
-  Code2,
   Copy,
   ExternalLink,
-  FileText,
   Loader2,
   Plus,
   ScanSearch,
@@ -15,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { CreationComposer } from "@/components/composer/CreationComposer";
+import { CreationComposer, COMPOSER_TEXTAREA_CLASS } from "@/components/composer/CreationComposer";
 import { toast } from "sonner";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
 import { readSSEStream } from "@/lib/sse";
@@ -25,7 +22,12 @@ import {
   MAX_UPLOAD_BYTES,
   type ReferenceImageState,
 } from "@/components/ReferenceImagePicker";
-import { CTA, IMAGO_URL } from "@/lib/product";
+import { ModeHero } from "@/components/prompt/ModeHero";
+import { CollapsedInput } from "@/components/prompt/CollapsedInput";
+import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
+import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
+import { ImagoPasteHint } from "@/components/ImagoPasteHint";
+import { CTA, IMAGO_URL, PROMPT_MODE_COPY } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
@@ -40,6 +42,7 @@ import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate"
  */
 export interface CritiqueSearch {
   restore?: string;
+  prefill?: string;
 }
 
 export interface CritiqueModeProps {
@@ -88,7 +91,7 @@ const DIMENSION_LABELS: Record<string, string> = {
 };
 
 export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps) {
-  const { restore } = search;
+  const { restore, prefill } = search;
   // One shared generation execution path — see docs/plans/2026-09-10-inline-
   // generation-workspace.md. "Generate rewrite" starts the job inline, right
   // here on /prompt; it never navigates to /generate.
@@ -142,6 +145,17 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restore]);
 
+  useEffect(() => {
+    if (!prefill || restore) return;
+    setInput(prefill);
+    setResult(null);
+    setSavedInput("");
+    setCollapsed(false);
+    clearSearch();
+    setTimeout(() => textareaRef.current?.focus(), 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefill]);
+
   const getEndpoint = (path: string) => {
     if (typeof window === "undefined") return path;
     const host = window.location.hostname;
@@ -173,6 +187,8 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
       return;
     }
     trackEvent("critique_submitted", { has_reference: Boolean(reference?.dataUrl) });
+    // Drop any prior inline image so a new critique never sits under a stale result.
+    gen.reset();
     setLoading(true);
     setResult(null);
     setSavedInput(text);
@@ -236,6 +252,8 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
   };
 
   const handleNewCritique = () => {
+    gen.reset();
+    gen.clearReferences();
     setInput("");
     setResult(null);
     setSavedInput("");
@@ -253,6 +271,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
       <div>
         {collapsed && savedInput ? (
           <CollapsedInput
+            label="Prompt"
             text={savedInput}
             onExpand={() => {
               setCollapsed(false);
@@ -262,14 +281,10 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
           />
         ) : (
           <div>
-            <h2 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
-              Find what is weakening your prompt.
-            </h2>
-            <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[60ch]">
-              Paste any image prompt. You get a score, a breakdown of what is working and what is
-              not, and a rewritten prompt. Attach the source or reference image if the prompt edits
-              or references one.
-            </p>
+            <ModeHero
+              title={PROMPT_MODE_COPY.critique.title}
+              body={PROMPT_MODE_COPY.critique.body}
+            />
 
             <div className="mt-8">
               <label htmlFor="critique-input" className="sr-only">
@@ -293,11 +308,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                       Processing image…
                     </div>
                   ) : (
-                    <ReferenceImagePicker
-                      value={reference}
-                      onChange={setReference}
-                      addLabel="Add source / reference image (optional)"
-                    />
+                    <ReferenceImagePicker value={reference} onChange={setReference} />
                   )
                 }
                 caption={
@@ -338,7 +349,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                     }
                   }}
                   placeholder="Paste a prompt to critique…"
-                  className="min-h-[240px] resize-y text-[16px] leading-[1.65] px-5 py-4 font-mono"
+                  className={`${COMPOSER_TEXTAREA_CLASS} font-mono text-[16px] sm:text-[16px]`}
                 />
               </CreationComposer>
             </div>
@@ -347,18 +358,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
 
         {(loading || result) && (
           <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
-            {loading && !result && (
-              <div
-                role="status"
-                aria-live="polite"
-                className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
-              >
-                <div className="flex items-center gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Reviewing your prompt…
-                </div>
-              </div>
-            )}
+            {loading && !result && <PromptLoadingState variant="critique" />}
             {result && (
               <CritiqueView
                 result={result}
@@ -379,6 +379,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
                   promptText={result.rewritten_prompt}
                   structuredAspectRatio={null}
                   gen={gen}
+                  showDivider={false}
                 />
               </>
             )}
@@ -386,26 +387,6 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
         )}
       </div>
     </div>
-  );
-}
-
-function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onExpand}
-      className="group w-full text-left rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-4 py-3 hover:border-[color:var(--border-strong)] transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <span className="shrink-0 text-[13px] font-medium text-[color:var(--text-tertiary)]">
-          Prompt
-        </span>
-        <span className="text-body-sm text-[color:var(--text-secondary)] truncate flex-1">
-          {text}
-        </span>
-        <ChevronRight className="h-4 w-4 text-[color:var(--text-tertiary)] group-hover:text-[color:var(--text-primary)] shrink-0 transition-colors" />
-      </div>
-    </button>
   );
 }
 
@@ -469,30 +450,13 @@ function CritiqueView({
       )}
 
       <div>
-        <div className="flex justify-end mb-4">
-          <div
-            role="tablist"
-            aria-label="Critique view"
-            className="flex items-center gap-0.5 rounded-md bg-[color:var(--bg-subtle)] p-0.5"
-          >
-            {(["text", "json"] as const).map((v) => (
-              <button
-                key={v}
-                type="button"
-                role="tab"
-                aria-selected={view === v}
-                onClick={() => setView(v)}
-                className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[12px] font-medium transition-colors ${
-                  view === v
-                    ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-sm-card"
-                    : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-                }`}
-              >
-                {v === "text" ? <FileText className="h-3 w-3" /> : <Code2 className="h-3 w-3" />}
-                {v === "text" ? "Report" : "JSON"}
-              </button>
-            ))}
-          </div>
+        <div className="mb-4 flex justify-end">
+          <PromptViewToggle
+            value={view}
+            onChange={setView}
+            ariaLabel="Critique view"
+            textLabel="Report"
+          />
         </div>
 
         {view === "json" ? (
@@ -640,52 +604,36 @@ function CritiqueView({
         <div className="border-t border-[color:var(--border-subtle)] pt-8">
           <h2 className="text-heading-md">Rewritten prompt</h2>
           <div className="mt-4">
-            <PromptSurface
-              label="Rewritten prompt"
-              actions={
-                <button
-                  type="button"
-                  onClick={handleCopyRewritten}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
-                  aria-label="Copy rewritten prompt"
-                >
-                  {rewrittenCopied ? (
-                    <Check className="h-3.5 w-3.5" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" />
-                  )}
-                  {rewrittenCopied ? "Copied" : "Copy"}
-                </button>
-              }
-            >
-              {result.rewritten_prompt}
-            </PromptSurface>
+            <PromptSurface label="Rewritten prompt">{result.rewritten_prompt}</PromptSurface>
           </div>
           <div className="mt-4 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               {onGenerate && (
-                <Button onClick={onGenerate} size="sm" className="gap-2">
+                <Button onClick={onGenerate} className="gap-2">
                   <Sparkles className="h-3.5 w-3.5" />
                   {CTA.generateRewrite} → · 1 credit
                 </Button>
               )}
               <Button
                 onClick={handleOpenInImago}
-                size="sm"
                 variant={onGenerate ? "outline" : "default"}
                 className="gap-2"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
                 {CTA.openImago}
               </Button>
+              <Button
+                onClick={handleCopyRewritten}
+                variant="outline"
+                className="gap-2"
+                aria-label="Copy rewritten prompt"
+              >
+                {rewrittenCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {rewrittenCopied ? "Copied" : "Copy"}
+              </Button>
             </div>
             {referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
-            <p className="text-[13px] text-[color:var(--text-tertiary)]">
-              Opens Imago with your prompt copied. Paste with{" "}
-              <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
-                {navigator.platform?.toUpperCase().includes("MAC") ? "⌘V" : "Ctrl+V"}
-              </kbd>
-            </p>
+            <ImagoPasteHint />
           </div>
         </div>
       )}

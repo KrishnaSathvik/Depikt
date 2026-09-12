@@ -138,18 +138,30 @@ export function resolveGenerationSize(input: ResolveSizeInput): ResolvedSize {
   const { promptText, structuredAspectRatio, referenceRatio } = input;
   const text = promptText ?? "";
 
-  // 1. Structured intent from Prompt.
+  // 1. Structured intent from Prompt — exact hit or nearest snap.
   if (structuredAspectRatio) {
-    const entry = RATIO_BY_LABEL.get(structuredAspectRatio.trim());
-    if (entry) return entryToResolved(entry, "structured");
+    const trimmed = structuredAspectRatio.trim();
+    const exact = RATIO_BY_LABEL.get(trimmed);
+    if (exact) return entryToResolved(exact, "structured");
+    const parts = trimmed.split(":").map(Number);
+    if (parts.length === 2 && parts[0]! > 0 && parts[1]! > 0) {
+      return entryToResolved(nearestRatioEntry(parts[0]!, parts[1]!), "structured");
+    }
   }
 
-  // 2. Explicit ratio in the prompt text.
+  // 2. Explicit ratio in the prompt text — exact table hit, else nearest snap
+  //    so "7:5" / "21:9" still produce a real OpenAI size instead of falling
+  //    through to orientation/fallback.
   const explicitMatch = text.match(EXPLICIT_RATIO_RE);
   if (explicitMatch) {
     const label = `${explicitMatch[1]}:${explicitMatch[2]}`;
-    const entry = RATIO_BY_LABEL.get(label);
-    if (entry) return entryToResolved(entry, "explicit_ratio");
+    const exact = RATIO_BY_LABEL.get(label);
+    if (exact) return entryToResolved(exact, "explicit_ratio");
+    const w = Number(explicitMatch[1]);
+    const h = Number(explicitMatch[2]);
+    if (w > 0 && h > 0) {
+      return entryToResolved(nearestRatioEntry(w, h), "explicit_ratio");
+    }
   }
 
   // 3. Known named format.

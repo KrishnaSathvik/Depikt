@@ -32,9 +32,9 @@ import { MCP, SEO } from "../../src/lib/product.ts";
 const ROOT = resolve(import.meta.dirname, "../..");
 const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 
-test("exactly 15 active templates", () => {
-  assert.equal(templates.length, 15);
-  assert.equal(activeTemplates.length, 15);
+test("exactly 30 active templates", () => {
+  assert.equal(templates.length, 30);
+  assert.equal(activeTemplates.length, 30);
 });
 
 test("ids, slugs, titles and sort orders are unique", () => {

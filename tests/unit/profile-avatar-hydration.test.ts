@@ -49,12 +49,14 @@ test("AccountMenu opens the one AccountHub instead of owning a dropdown or sheet
   assert.match(src, /hub\.openHub\(/);
 });
 
-test("AccountHub itself swaps a desktop dialog for a mobile bottom sheet", () => {
+test("AccountHub uses a centered dialog on every viewport (same shell as auth / buy credits)", () => {
   const src = read("src/components/account/AccountHub.tsx");
-  assert.match(src, /useIsMobile\(\)/);
-  assert.match(src, /from "@\/components\/ui\/sheet"/);
-  assert.match(src, /side="bottom"/);
-  assert.match(src, /if \(isMobile\) \{/);
+  assert.doesNotMatch(src, /useIsMobile\(\)/);
+  assert.doesNotMatch(src, /from "@\/components\/ui\/sheet"/);
+  assert.doesNotMatch(src, /side="bottom"/);
+  assert.match(src, /DialogContent/);
+  assert.match(src, /rounded-lg/);
+  assert.match(src, /w-\[calc\(100%-2rem\)\]/);
 });
 
 test("profile hydration cache is scoped by user id and never returns a mismatched row", () => {

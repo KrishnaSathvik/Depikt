@@ -62,6 +62,9 @@ test("one Prompt product: Build and Critique are modes, not separate tools", () 
   assert.equal(CTA.critiqueAnother, "Critique Another Prompt");
   assert.equal(CTA.newPrompt, "New Prompt");
   assert.equal(CTA.building, "Building prompt…");
+  assert.equal(CTA.rebuildPrompt, "Rebuild prompt");
+  assert.equal(CTA.regenerateImage, "Regenerate image");
+  assert.equal(CTA.critiqueThis, "Critique this prompt");
   assert.equal(CTA.remix, "Remix in Prompt");
   // The unified workspace's own header nav entry (labeled Generate or
   // Prompt depending on the native-generation flag) is inserted by
@@ -69,7 +72,7 @@ test("one Prompt product: Build and Critique are modes, not separate tools", () 
   // tests/unit/commercial-auth.test.ts / creation-composer.test.ts for that.
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Library", "Gallery"],
+    ["Library", "Gallery", "Templates", "Blog"],
   );
 });
 
@@ -80,7 +83,7 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
 
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/gallery"],
+    ["/library", "/gallery", "/templates", "/blog"],
   );
   assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
   // Both legacy routes redirect into /prompt with a mode; generate.tsx's
@@ -106,8 +109,8 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
   assert.match(read("src/lib/depikt.ts"), /value: "CRITIQUE"/);
   const rec = prepareHistoryRecord({ kind: "generate", roughIdea: "x", result: {} }, "id", 1);
   assert.equal(rec.kind, "generate");
-  assert.equal(historyKindLabel("generate"), "BUILDER");
-  assert.equal(historyKindLabel("critique"), "CRITIC");
+  assert.equal(historyKindLabel("generate"), "Build");
+  assert.equal(historyKindLabel("critique"), "Critique");
   assert.match(read("CLAUDE.md"), /kind: "generate"/);
 });
 
@@ -115,11 +118,10 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
 
 test("current product SEO is unified, unique per route, and never markets Depikt as a generic AI image generator", () => {
   for (const [key, m] of Object.entries(SEO)) {
-    // "generator"/"image generator" as a generic marketing label is banned;
-    // Generate's own title ("AI Image Generator & Editor", and /prompt's
-    // promptGenerate mode metadata) is the one accurate, specific exception
-    // — it names what that page literally is.
-    if (key !== "generate" && key !== "promptGenerate") {
+    // "generator"/"image generator" as a generic marketing label is banned
+    // on Library/Gallery/etc. Generate's legacy /generate SEO title still
+    // names the feature; /prompt?mode=generate uses "Generate Images".
+    if (key !== "generate") {
       assert.equal(/generator/i.test(m.title), false, `${key} title`);
       assert.equal(/image generator/i.test(m.description), false, `${key} description`);
     }
@@ -131,7 +133,7 @@ test("current product SEO is unified, unique per route, and never markets Depikt
   assert.equal(SEO.prompt.title, "AI Image Prompt Builder & Critic | Depikt");
   // /prompt's actual head() never uses the fallback above — it always
   // resolves one of these three by mode (see prompt-modes.test.ts).
-  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
+  assert.equal(SEO.promptGenerate.title, "Generate Images | Depikt");
   assert.equal(SEO.promptBuild.title, "AI Image Prompt Builder | Depikt");
   assert.equal(SEO.promptCritique.title, "AI Image Prompt Critic | Depikt");
   assert.equal(
@@ -205,13 +207,15 @@ test("no current-product surface still calls Build and Critique separate tools",
   assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
   assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
-  // footer keeps Templates; header does not
+  // footer and header both keep Templates; MCP stays footer-only
   assert.match(read("src/components/Footer.tsx"), /\/templates/);
-  assert.equal(/templates/.test(read("src/components/Header.tsx")), false);
-  // header inserts Generate (behind the feature flag), never Templates/MCP
+  assert.match(read("src/components/Header.tsx"), /NAV_ITEMS/);
+  assert.match(read("src/lib/product.ts"), /ROUTES\.templates/);
+  assert.match(read("src/lib/product.ts"), /ROUTES\.blog/);
+  // header inserts Generate (behind the feature flag); MCP is not a nav item
   const header = read("src/components/Header.tsx");
   assert.match(header, /TOOL\.generate/);
-  assert.equal(/\bmcp\b/i.test(header), false);
+  assert.doesNotMatch(header, /ROUTES\.mcp|TOOL\.mcp|\/integrations\/mcp/);
 });
 
 test("current product UI files carry no generator-era labels", () => {
@@ -308,13 +312,10 @@ test("intent-stage feedback uses real intent data and honest labels", () => {
   assert.equal(describeIntent({ category: "nonsense" }).length, 0);
   assert.equal(INTENT_STAGE_LABELS.understanding, "Understanding your request…");
   assert.equal(INTENT_STAGE_LABELS.building, "Building your prompt…");
-  const g = read("src/components/prompt/BuildMode.tsx");
-  assert.equal(
-    /\d+%/.test(g.slice(g.indexOf("function LoadingState"))),
-    false,
-    "no fake percentages",
-  );
+  const g = read("src/components/prompt/PromptLoadingState.tsx");
+  assert.equal(/\d+%/.test(g), false, "no fake percentages");
   assert.match(g, /role="status"/);
+  assert.match(read("src/components/prompt/BuildMode.tsx"), /PromptLoadingState/);
 });
 
 // ---------- reference selector labels ----------
@@ -411,7 +412,7 @@ test("history: v2.9 and v3 records restore under the new labels without migratio
     createdAt: 1,
   });
   assert.equal(old.kind, "generate");
-  assert.equal(historyKindLabel(old.kind), "BUILDER");
+  assert.equal(historyKindLabel(old.kind), "Build");
   const v3 = prepareHistoryRecord(
     {
       kind: "generate",

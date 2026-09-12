@@ -63,6 +63,12 @@ test("example chips (ComposerChips) render outside the composer, not inside its 
   }
 });
 
+test("Generate, Build, and Critique share COMPOSER_TEXTAREA_CLASS density", () => {
+  for (const f of SURFACES) {
+    assert.match(read(f), /COMPOSER_TEXTAREA_CLASS/, f);
+  }
+});
+
 test("reference attachment lives inside the composer's referencesSlot, not a separate block above the footer", () => {
   for (const f of SURFACES) {
     assert.match(read(f), /referencesSlot=\{/, f);
@@ -84,9 +90,10 @@ test("Generate is merged into /prompt as a third mode and shares its page chrome
     /className="eyebrow"/,
     "the eyebrow is the parent page's, not the mode's",
   );
-  // GenerateWorkspace still owns its own heading/subtitle, matching Build's
-  // <h2> pattern (each mode's own context under the shared eyebrow).
-  assert.match(gen, /text-display-md sm:text-display-lg/);
+  // GenerateWorkspace still owns its own heading/subtitle via shared ModeHero
+  // (each mode's own context under the shared eyebrow).
+  assert.match(gen, /ModeHero/);
+  assert.match(gen, /PROMPT_MODE_COPY\.generate/);
   assert.doesNotMatch(gen, /text-heading-lg/, "must not keep the old smaller centered heading");
   assert.doesNotMatch(
     gen,

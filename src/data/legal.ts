@@ -79,7 +79,7 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
       },
       {
         q: "What does Regenerate do?",
-        a: "Regenerate reruns the same prompt and references to produce a new version of the image -- useful when the idea is right but you want a different take. It costs one credit, like any other successful generation.",
+        a: "Regenerate image reruns the same prompt and references to produce a new version of the image -- useful when the idea is right but you want a different take. It costs one credit, like any other successful generation. In Build mode, Rebuild prompt rewrites the text prompt and does not use a credit.",
       },
       {
         q: "Where can I find my generated images?",

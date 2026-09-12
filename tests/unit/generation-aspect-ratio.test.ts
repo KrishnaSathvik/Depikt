@@ -12,12 +12,13 @@ test("priority 1: structured ratio from Prompt wins over everything else", () =>
   assert.equal(r.orientation, "portrait");
 });
 
-test("structured ratio is ignored when unrecognized, falling through", () => {
+test("structured ratio outside the table snaps to the nearest supported bucket", () => {
   const r = resolveGenerationSize({
     promptText: "wide banner",
     structuredAspectRatio: "7:2", // not in the supported table
   });
-  assert.equal(r.source, "orientation");
+  assert.equal(r.source, "structured");
+  assert.equal(r.ratioLabel, "16:9");
 });
 
 test("priority 2: explicit ratio in prompt text", () => {

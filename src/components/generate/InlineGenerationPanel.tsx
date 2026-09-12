@@ -1,35 +1,36 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { PromptSurface } from "@/components/PromptSurface";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { simplifyRatioLabel, type useGeneration } from "@/lib/generation/use-generation";
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
+import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
+import { cn } from "@/lib/utils";
 
 export interface InlineGenerationPanelProps {
-  /** "Your prompt" (Build) or "Rewritten prompt" (Critique). */
+  /** Kept for call-site clarity; the prompt itself stays in Build/Critique above. */
   promptLabel: string;
   promptText: string;
   structuredAspectRatio?: string | null;
   gen: ReturnType<typeof useGeneration>;
+  /** When false, skip the top border (parent already has an ink output divider). */
+  showDivider?: boolean;
 }
 
 /**
- * The inline image-generation region shown under Prompt Build's final
- * prompt / Critique's rewritten prompt once "Generate image"/"Generate
- * rewrite" has been pressed — never a navigation to /generate. Two panes at
- * lg+ (prompt left, GenerationCanvas right), one column below that. Reuses
- * the exact same GenerationCanvas/GenerationActions as /generate.
+ * Inline image generation under Prompt Build's final prompt / Critique's
+ * rewritten prompt once Generate has been pressed. Build and Critique already
+ * show that prompt above, so this panel is canvas + actions only — never a
+ * second copy of the same text. Reuses GenerationCanvas/GenerationActions.
  */
 export function InlineGenerationPanel({
-  promptLabel,
   promptText,
   structuredAspectRatio,
   gen,
+  showDivider = true,
 }: InlineGenerationPanelProps) {
   const [editing, setEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
+  const panelRef = useRef<HTMLDivElement>(null);
 
   if (gen.phase === "idle") return null;
 
@@ -51,66 +52,61 @@ export function InlineGenerationPanel({
         });
 
   return (
-    <div className="mt-8 border-t border-[color:var(--border-subtle)] pt-8">
-      <div className="space-y-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-8 lg:space-y-0">
-        <div className="space-y-3">
-          <PromptSurface label={promptLabel}>{promptText}</PromptSurface>
-          {gen.phase === "result" &&
-            (editing ? (
-              <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
-                <p className="text-body-sm text-[color:var(--text-secondary)]">
-                  What should change?
-                </p>
-                <Textarea
-                  value={editPrompt}
-                  onChange={(e) => setEditPrompt(e.target.value)}
-                  rows={3}
-                  placeholder="Make the jacket dark blue and keep everything else unchanged."
-                />
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    disabled={!editPrompt.trim()}
-                    onClick={() => {
-                      gen.applyEdit(editPrompt);
-                      setEditing(false);
-                      setEditPrompt("");
-                    }}
-                  >
-                    Apply edit → · 1 credit
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              </div>
-            ) : null)}
-        </div>
-
-        <GenerationCanvas
-          state={
-            gen.phase === "starting" || gen.phase === "polling"
-              ? "generating"
-              : gen.phase === "result"
-                ? "result"
-                : "error"
-          }
-          aspectRatio={resolvedSize.ratioLabel}
-          orientation={resolvedSize.orientation}
-          imageUrl={gen.resultUrl}
-          errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
-          onRetry={() => gen.regenerate()}
-          actions={
-            editing ? undefined : (
-              <GenerationActions
-                onDownload={gen.download}
-                onEdit={() => setEditing((e) => !e)}
-                onRegenerate={() => gen.regenerate()}
-              />
-            )
-          }
+    <div
+      ref={panelRef}
+      className={cn(
+        "mt-8 space-y-4 pt-8",
+        showDivider && "border-t border-[color:var(--border-subtle)]",
+      )}
+    >
+      <ScrollIntoViewOnMount targetRef={panelRef} />
+      <GenerationCanvas
+        state={
+          gen.phase === "starting" || gen.phase === "polling"
+            ? "generating"
+            : gen.phase === "result"
+              ? "result"
+              : "error"
+        }
+        aspectRatio={resolvedSize.ratioLabel}
+        orientation={resolvedSize.orientation}
+        imageUrl={gen.resultUrl}
+        errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
+        onRetry={() => gen.regenerate()}
+        actions={
+          editing ? undefined : (
+            <GenerationActions
+              onDownload={gen.download}
+              onEdit={() => setEditing((e) => !e)}
+              onRegenerate={() => gen.regenerate()}
+            />
+          )
+        }
+      />
+      {gen.phase === "result" && editing && (
+        <GenerationEditForm
+          value={editPrompt}
+          onChange={setEditPrompt}
+          onApply={() => {
+            gen.applyEdit(editPrompt);
+            setEditing(false);
+            setEditPrompt("");
+          }}
+          onCancel={() => setEditing(false)}
         />
-      </div>
+      )}
     </div>
   );
+}
+
+/** Scroll once when the panel mounts (generation just started). */
+function ScrollIntoViewOnMount({
+  targetRef,
+}: {
+  targetRef: RefObject<HTMLDivElement | null>;
+}) {
+  useEffect(() => {
+    targetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [targetRef]);
+  return null;
 }

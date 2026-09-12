@@ -56,6 +56,8 @@ export const CTA = {
   critique: "Critique Prompt",
   critiquing: "Critiquing…",
   critiqueAnother: "Critique Another Prompt",
+  /** Rebuild the text prompt (Build mode) — not image generation. */
+  rebuildPrompt: "Rebuild prompt",
   browse: `Browse ${LIBRARY_PROMPT_COUNT} Prompts`,
   browseShort: "Browse Prompts",
   remix: "Remix in Prompt",
@@ -63,6 +65,30 @@ export const CTA = {
   /** Behind the native-generation feature flag. */
   generateImage: "Generate image",
   generateRewrite: "Generate rewrite",
+  /** Image job re-run — distinct from rebuildPrompt. */
+  regenerateImage: "Regenerate image",
+  critiqueThis: "Critique this prompt",
+} as const;
+
+/**
+ * Idle heroes for the three /prompt modes. The page eyebrow already names
+ * the mode (Generate / Build / Critique), so these lines must not restate it.
+ * Parallel "From … to …" titles keep the workspace feeling like one tool.
+ */
+export const PROMPT_MODE_COPY = {
+  generate: {
+    title: "From prompt to picture.",
+    body: "Write what you want. Add a reference if identity or layout matters.",
+  },
+  build: {
+    title: "From idea to prompt.",
+    body: "Describe what you're after — we write the full prompt.",
+    bodyTemplate: "Your template answers are below. Add anything else, then build.",
+  },
+  critique: {
+    title: "From draft to sharper.",
+    body: "Paste a prompt for a score, what's weak, and a rewrite. Attach a source image if it edits one.",
+  },
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
@@ -97,12 +123,12 @@ export const ROUTES = {
 } as const;
 
 /**
- * Header nav. Blog lives in the footer only (Resources column), not here.
- * The unified Generate/Build/Critique workspace has no entry of its own
- * here — Header.tsx inserts one between Library and Gallery, labeled
+ * Header nav. The unified Generate/Build/Critique workspace has no entry of
+ * its own here — Header.tsx inserts one between Library and Gallery, labeled
  * Generate (-> ROUTES.legacyBuilder) when the native-generation feature
  * flag is on, or Prompt (-> ROUTES.prompt) when it's off (Build/Critique
- * predate the flag and must stay reachable without it).
+ * predate the flag and must stay reachable without it). Templates and Blog
+ * follow Gallery; MCP stays footer-only.
  */
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
@@ -111,6 +137,8 @@ export const NAV_ITEMS: ReadonlyArray<{
 }> = [
   { to: ROUTES.library, label: TOOL.library, exact: true },
   { to: ROUTES.gallery, label: TOOL.gallery },
+  { to: ROUTES.templates, label: TOOL.templates },
+  { to: ROUTES.blog, label: TOOL.blog },
 ];
 
 export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago";
@@ -240,7 +268,7 @@ export const SEO: Record<
       "Build better image prompts from an idea or reference, or critique and improve an existing prompt with Depikt.",
   },
   promptGenerate: {
-    title: "AI Image Generator | Depikt",
+    title: "Generate Images | Depikt",
     description: "Create and edit images from prompts and references with Depikt.",
     ogTitle: "Generate with Depikt",
     ogDescription: "Turn a prompt and reference into an image.",
@@ -533,5 +561,5 @@ export function describeIntent(intent: Record<string, unknown> | null | undefine
 // ---------- history (visible labels only; stored kind values unchanged) ----------
 
 export function historyKindLabel(kind: string): string {
-  return kind === "critique" ? "CRITIC" : "BUILDER";
+  return kind === "critique" ? "Critique" : "Build";
 }

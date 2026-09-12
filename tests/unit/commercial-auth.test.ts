@@ -220,15 +220,21 @@ test("welcome toast fires once on real first sign-in, quiet and specific", () =>
 
 // ---------- contextual generation auth gate ----------
 
-test("AuthGateDialog headline follows what the user already asked for, shows an excerpt/reference, and adapts to mobile", () => {
+test("AuthGateDialog headline follows what the user already asked for, shows an excerpt/reference, and uses a centered dialog on every viewport", () => {
   const src = read("src/components/auth/AuthGateDialog.tsx");
   assert.match(src, /generationGateHeadline\(/);
   assert.match(src, /promptExcerpt\(/);
-  assert.match(src, /useIsMobile\(/);
-  assert.match(src, /side="bottom"/, "mobile uses a bottom sheet, not a floating dialog");
+  assert.match(src, /AuthChooserDialog/);
+  assert.doesNotMatch(src, /useIsMobile\(/);
+  assert.doesNotMatch(src, /Sheet|side="bottom"/);
   assert.match(src, /authPromptContext/);
   assert.match(src, /busyLabel=\{AUTH_COPY\.signingIn\}/);
   assert.doesNotMatch(src, /Sign in to generate|Sign in required/i);
+
+  const shell = read("src/components/auth/AuthChooserDialog.tsx");
+  assert.match(shell, /DialogContent/);
+  assert.match(shell, /max-w-\[440px\]/);
+  assert.doesNotMatch(shell, /Sheet/);
 
   const gen = read("src/lib/generation/use-generation.ts");
   assert.match(gen, /authPromptContext/);
@@ -258,8 +264,9 @@ test("Pricing and Buy-credits keep the chosen plan/pack across auth instead of n
 
   const dialog = read("src/components/auth/BillingAuthDialog.tsx");
   assert.match(dialog, /savePendingCheckout\(/);
-  assert.match(dialog, /useIsMobile\(/);
-  assert.match(dialog, /side="bottom"/);
+  assert.match(dialog, /AuthChooserDialog/);
+  assert.doesNotMatch(dialog, /useIsMobile\(/);
+  assert.doesNotMatch(dialog, /Sheet|side="bottom"/);
 
   const resume = read("src/lib/billing/use-resume-checkout.ts");
   assert.match(resume, /readPendingCheckout\(\)/);

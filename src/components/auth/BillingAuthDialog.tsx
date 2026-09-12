@@ -1,7 +1,5 @@
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { AuthChooserDialog } from "@/components/auth/AuthChooserDialog";
 import { AuthSurface } from "@/components/auth/AuthSurface";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { savePendingCheckout } from "@/lib/billing/pending-intent";
 import type { ProductKey } from "@/lib/billing/plans";
 import { AUTH_COPY } from "@/lib/product";
@@ -20,6 +18,8 @@ export interface BillingAuthDialogProps {
  * (savePendingCheckout) before OAuth starts; useResumeCheckoutOnAuth sends
  * the user straight to Stripe Checkout once they're signed in, so picking a
  * plan is never lost to an auth detour.
+ *
+ * Centered dialog on every viewport (matches AuthGateDialog).
  */
 export function BillingAuthDialog({
   open,
@@ -27,14 +27,12 @@ export function BillingAuthDialog({
   headline,
   productKey,
 }: BillingAuthDialogProps) {
-  const isMobile = useIsMobile();
-
   function onStart() {
     if (productKey) savePendingCheckout(productKey);
   }
 
-  const body = (
-    <>
+  return (
+    <AuthChooserDialog open={open} onOpenChange={onOpenChange} title={headline}>
       <p className="text-body-sm text-[color:var(--text-secondary)]">
         Create a free account or sign in to continue.
       </p>
@@ -46,28 +44,6 @@ export function BillingAuthDialog({
         redirectTo={typeof window !== "undefined" ? window.location.href : undefined}
         onStart={onStart}
       />
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
-          <SheetTitle className="text-heading-sm">{headline}</SheetTitle>
-          <SheetDescription className="sr-only">{headline}</SheetDescription>
-          <div className="mt-4">{body}</div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-[440px] overflow-y-auto p-8">
-        <DialogTitle className="text-heading-sm">{headline}</DialogTitle>
-        <DialogDescription className="sr-only">{headline}</DialogDescription>
-        {body}
-      </DialogContent>
-    </Dialog>
+    </AuthChooserDialog>
   );
 }

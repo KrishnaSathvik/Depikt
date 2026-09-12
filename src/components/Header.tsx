@@ -14,14 +14,14 @@ interface NavItem {
   search?: { mode: "generate" };
 }
 
-// Visible labels come from product.ts (Library · Generate · Gallery). Blog
-// lives in the footer only, not the header.
+// Visible labels come from product.ts (Library · Generate · Gallery ·
+// Templates · Blog). MCP stays footer-only.
 // Generate, Build, and Critique are all modes inside one unified workspace
-// (/prompt), not separate nav items; Templates lives in the footer. The one
-// nav entry for that workspace is inserted here, between Library and
-// Gallery: labeled Generate when the native-generation feature flag is on,
-// or Prompt when it's off (Build/Critique predate the flag and must stay
-// reachable without it) — never part of the frozen NAV_ITEMS export itself.
+// (/prompt), not separate nav items. The one nav entry for that workspace
+// is inserted here, between Library and Gallery: labeled Generate when the
+// native-generation feature flag is on, or Prompt when it's off
+// (Build/Critique predate the flag and must stay reachable without it) —
+// never part of the frozen NAV_ITEMS export itself.
 //
 // White, translucent, hairline bottom border. The active route is marked
 // with a 1px ink underline rather than a pill or background.
@@ -35,7 +35,7 @@ export function Header() {
   const workspaceItem: NavItem = isNativeGenerationEnabled()
     ? { to: ROUTES.prompt, label: TOOL.generate, search: { mode: "generate" } }
     : { to: ROUTES.prompt, label: TOOL.prompt };
-  const items: NavItem[] = [NAV_ITEMS[0], workspaceItem, NAV_ITEMS[1]];
+  const items: NavItem[] = [NAV_ITEMS[0], workspaceItem, ...NAV_ITEMS.slice(1)];
   return (
     <header className="sticky top-0 z-40 w-full border-b border-[color:var(--border-subtle)] bg-[color:var(--bg)]/90 backdrop-blur-md">
       <div className="relative mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4 sm:px-6 lg:px-12">

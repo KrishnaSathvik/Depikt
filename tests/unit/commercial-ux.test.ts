@@ -106,6 +106,10 @@ test("BuyCreditsSheet lists the three packs from the catalog and starts hosted c
   assert.match(sheet, /BUY_CREDITS_COPY\.title/);
   assert.match(sheet, /BUY_CREDITS_COPY\.body/);
   assert.match(sheet, /<BuyCreditsBody/);
+  assert.match(sheet, /DialogContent/);
+  assert.doesNotMatch(sheet, /from "@\/components\/ui\/sheet"/);
+  assert.doesNotMatch(sheet, /useIsMobile/);
+  assert.doesNotMatch(sheet, /side="bottom"/);
   // The pack list, checkout call, and footer copy live in BuyCreditsBody --
   // shared with the AccountHub's own "buy-credits" view, not duplicated.
   const body = read("src/components/billing/BuyCreditsBody.tsx");

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import {
   Sparkles,
   Copy,
@@ -9,14 +10,17 @@ import {
   ExternalLink,
   Plus,
   ChevronDown,
-  ChevronRight,
-  Code2,
-  FileText,
+  ScanSearch,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { CreationComposer, ComposerChips } from "@/components/composer/CreationComposer";
+import {
+  CreationComposer,
+  ComposerChips,
+  COMPOSER_TEXTAREA_CLASS,
+} from "@/components/composer/CreationComposer";
+import { BUILD_EXAMPLES } from "@/data/composer-examples";
 import { toast } from "sonner";
 import { extractPartialString, extractPartialStringArray } from "@/lib/partial-json";
 import { addHistoryEntry, getHistoryById } from "@/lib/history-db";
@@ -32,10 +36,14 @@ import { trackEvent } from "@/lib/analytics";
 import {
   CTA,
   IMAGO_URL,
-  INTENT_STAGE_LABELS,
-  describeIntent,
+  PROMPT_MODE_COPY,
   needsReferenceReattach,
 } from "@/lib/product";
+import { ModeHero } from "@/components/prompt/ModeHero";
+import { CollapsedInput } from "@/components/prompt/CollapsedInput";
+import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
+import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
+import { ImagoPasteHint } from "@/components/ImagoPasteHint";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
@@ -95,44 +103,33 @@ interface PromptResult {
   intent?: Record<string, unknown>;
 }
 
-const EXAMPLE_CHIPS = [
-  {
-    label: "poster",
-    text: "minimalist event poster for a data engineering meetup in SF next month",
-  },
-  {
-    label: "app mockup",
-    text: "iPhone home screen mockup for a meditation app, soft gradient background",
-  },
-  { label: "infographic", text: "infographic explaining how RAG works, 3 steps, mono palette" },
-  {
-    label: "cinematic scene",
-    text: "cinematic shot of empty Tokyo street at dawn, neon reflections in puddles",
-  },
-];
-
 export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildModeProps) {
+  const navigate = useNavigate();
   const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
   // One shared generation execution path — see docs/plans/2026-09-10-inline-
   // generation-workspace.md. "Generate image" starts the job inline, right
   // here on /prompt; it never navigates to /generate.
   const gen = useGeneration({ sourceContext: { type: "prompt_build" } });
+  /** Prompt text last submitted to inline generation (may be a variation). */
+  const [activeGenPrompt, setActiveGenPrompt] = useState<string | null>(null);
   const handleGenerateImage = async (
+    promptText: string,
     result: PromptResult,
     reference: ReferenceImageState | null,
   ) => {
-    if (!result.prompt) return;
+    if (!promptText.trim()) return;
     trackEvent("generate_submitted_from_prompt_build", {});
     // Feed Depikt's Image Model Router the structured intent Prompt already
     // computed — there's no user model choice to carry through, Generate
     // decides Flare vs Sunburst on its own.
     const intent = result.intent as Record<string, unknown> | undefined;
     const exactText = intent?.exact_text;
+    setActiveGenPrompt(promptText);
     if (reference?.dataUrl && gen.references.length === 0) {
       await gen.addReferenceFromDataUrl(reference.dataUrl);
     }
     await gen.submit({
-      prompt: result.prompt,
+      prompt: promptText,
       structuredAspectRatio: result.aspect_ratio ?? null,
       routingHints: {
         category: typeof intent?.category === "string" ? intent.category : undefined,
@@ -285,6 +282,8 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
   };
 
   const generateFromSeed = async (seedInput: string) => {
+    gen.reset();
+    setActiveGenPrompt(null);
     setLoading(true);
     setStreaming(false);
     setResult(null);
@@ -359,6 +358,9 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
       has_reference: Boolean(reference?.dataUrl),
       template: templateCtx?.template.slug,
     });
+    // Drop any prior inline image so a rebuilt prompt never sits under a stale result.
+    gen.reset();
+    setActiveGenPrompt(null);
     setLoading(true);
     setStreaming(false);
     setResult(null);
@@ -468,6 +470,9 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
   };
 
   const handleNewPrompt = () => {
+    gen.reset();
+    gen.clearReferences();
+    setActiveGenPrompt(null);
     if (templateCtx) {
       clearTemplateValues();
       setTemplateCtx(null);
@@ -501,6 +506,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         {/* INPUT */}
         {inputCollapsed && savedRoughIdea ? (
           <CollapsedInput
+            label="Idea"
             text={savedRoughIdea}
             onExpand={() => {
               setInputCollapsed(false);
@@ -510,14 +516,14 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
           />
         ) : (
           <div>
-            <h2 className="text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
-              Build a prompt for your image.
-            </h2>
-            <p className="mt-4 text-body-lg text-[color:var(--text-secondary)] max-w-[56ch]">
-              {templateCtx
-                ? "Your template answers are below. Add anything else, then build the prompt."
-                : "Describe the image you have in mind. Add a reference if you have one."}
-            </p>
+            <ModeHero
+              title={PROMPT_MODE_COPY.build.title}
+              body={
+                templateCtx
+                  ? PROMPT_MODE_COPY.build.bodyTemplate
+                  : PROMPT_MODE_COPY.build.body
+              }
+            />
 
             {templateCtx && (
               <div className="mt-8">
@@ -616,14 +622,20 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                       ? "Add any extra direction, details, or constraints..."
                       : "Describe the image you want to create..."
                   }
-                  className={`resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px] ${
-                    templateCtx ? "min-h-[140px]" : "min-h-[220px]"
-                  }`}
+                  className={
+                    templateCtx
+                      ? `${COMPOSER_TEXTAREA_CLASS} !min-h-[140px]`
+                      : COMPOSER_TEXTAREA_CLASS
+                  }
                 />
               </CreationComposer>
 
               {!templateCtx && (
-                <ComposerChips chips={EXAMPLE_CHIPS} onSelect={handleChipClick} className="mt-3" />
+                <ComposerChips
+                  chips={BUILD_EXAMPLES}
+                  onSelect={handleChipClick}
+                  className="mt-4"
+                />
               )}
             </div>
           </div>
@@ -644,7 +656,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         {/* OUTPUT */}
         {showOutput && (
           <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
-            {loading && !result && <LoadingState intent={liveIntent} />}
+            {loading && !result && <PromptLoadingState variant="build" intent={liveIntent} />}
             {result && (
               <ResultView
                 result={result}
@@ -661,19 +673,29 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                 onNewPrompt={handleNewPrompt}
                 onGenerate={
                   isNativeGenerationEnabled()
-                    ? () => void handleGenerateImage(result, reference)
+                    ? (promptText) => void handleGenerateImage(promptText, result, reference)
                     : undefined
                 }
+                onCritique={(promptText) => {
+                  navigate({
+                    to: "/prompt",
+                    search: {
+                      mode: "critique",
+                      prefill: promptText.slice(0, 4000),
+                    },
+                  });
+                }}
               />
             )}
-            {result?.prompt && isNativeGenerationEnabled() && (
+            {(activeGenPrompt || result?.prompt) && isNativeGenerationEnabled() && (
               <>
                 <GenerationCreditGate gen={gen} className="mt-6" />
                 <InlineGenerationPanel
                   promptLabel="Your prompt"
-                  promptText={result.prompt}
-                  structuredAspectRatio={result.aspect_ratio ?? null}
+                  promptText={activeGenPrompt ?? result!.prompt!}
+                  structuredAspectRatio={result?.aspect_ratio ?? null}
                   gen={gen}
+                  showDivider={false}
                 />
               </>
             )}
@@ -727,66 +749,6 @@ async function streamPrompt(
   });
 }
 
-function CollapsedInput({ text, onExpand }: { text: string; onExpand: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onExpand}
-      className="group w-full text-left rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-4 py-3 hover:border-[color:var(--border-strong)] transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <span className="shrink-0 text-[13px] font-medium text-[color:var(--text-tertiary)]">
-          Idea
-        </span>
-        <span className="text-body-sm text-[color:var(--text-secondary)] truncate flex-1">
-          {text}
-        </span>
-        <ChevronRight className="h-4 w-4 text-[color:var(--text-tertiary)] group-hover:text-[color:var(--text-primary)] shrink-0 transition-colors" />
-      </div>
-    </button>
-  );
-}
-
-/**
- * Two honest stages, no fake progress: "Understanding your request…" until
- * the intent analyzer answers, then "Understood: Poster · Style reference · 4:5"
- * with "Building your prompt…" until the first streamed token arrives.
- */
-function LoadingState({ intent }: { intent?: Record<string, unknown> | null }) {
-  const facts = describeIntent(intent);
-  const understood = facts.length > 0;
-  return (
-    <div
-      role="status"
-      aria-live="polite"
-      className="rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6"
-    >
-      <div className="flex items-start gap-2.5 text-mono-sm text-[color:var(--text-secondary)]">
-        <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin" />
-        {understood ? (
-          <div className="min-w-0 space-y-1.5">
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-              <span className="text-[color:var(--text-tertiary)]">
-                {INTENT_STAGE_LABELS.understood}
-              </span>
-              <span className="text-[color:var(--text-primary)]">{facts.join(" · ")}</span>
-            </div>
-            <div>{INTENT_STAGE_LABELS.building}</div>
-          </div>
-        ) : (
-          <span>{INTENT_STAGE_LABELS.understanding}</span>
-        )}
-      </div>
-      <div className="mt-6 space-y-2.5">
-        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
-        <div className="h-2 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
-        <div className="h-2 w-4/5 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
-        <div className="h-2 w-3/4 rounded-sm bg-[color:var(--border-default)] animate-pulse" />
-      </div>
-    </div>
-  );
-}
-
 interface CodeBlockProps {
   text: string;
   jsonView?: object;
@@ -801,29 +763,12 @@ function CodeBlock({ text, jsonView, streaming = false, label = "Your prompt" }:
 
   const toggle =
     !streaming && jsonView ? (
-      <div
-        role="tablist"
-        aria-label="Prompt view"
-        className="flex items-center gap-0.5 rounded-md bg-[color:var(--bg-subtle)] p-0.5"
-      >
-        {(["text", "json"] as const).map((v) => (
-          <button
-            key={v}
-            type="button"
-            role="tab"
-            aria-selected={view === v}
-            onClick={() => setView(v)}
-            className={`inline-flex h-6 items-center gap-1 rounded px-2 text-[12px] font-medium transition-colors ${
-              view === v
-                ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-sm-card"
-                : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-            }`}
-          >
-            {v === "text" ? <FileText className="h-3 w-3" /> : <Code2 className="h-3 w-3" />}
-            {v === "text" ? "Text" : "JSON"}
-          </button>
-        ))}
-      </div>
+      <PromptViewToggle
+        value={view}
+        onChange={setView}
+        ariaLabel="Prompt view"
+        textLabel="Text"
+      />
     ) : undefined;
 
   return (
@@ -847,7 +792,9 @@ interface ResultViewProps {
   onMoreVariations: () => void;
   onNewPrompt: () => void;
   /** Only set when the native-generation feature flag is on. */
-  onGenerate?: () => void;
+  onGenerate?: (promptText: string) => void;
+  /** Hand off this prompt text to Critique mode. */
+  onCritique?: (promptText: string) => void;
 }
 
 function ResultView({
@@ -858,6 +805,7 @@ function ResultView({
   referenceThumb = null,
   onRegenerate,
   onGenerate,
+  onCritique,
   onMoreVariations,
   onNewPrompt,
 }: ResultViewProps) {
@@ -887,6 +835,8 @@ function ResultView({
                   promptText={p}
                   onRegenerate={onRegenerate}
                   referenceThumb={referenceThumb}
+                  onGenerate={onGenerate}
+                  onCritique={onCritique}
                 />
               )}
             </div>
@@ -938,6 +888,7 @@ function ResultView({
           onRegenerate={onRegenerate}
           referenceThumb={referenceThumb}
           onGenerate={onGenerate}
+          onCritique={onCritique}
         />
       )}
 
@@ -953,6 +904,8 @@ function ResultView({
                   promptText={p}
                   onRegenerate={onRegenerate}
                   referenceThumb={referenceThumb}
+                  onGenerate={onGenerate}
+                  onCritique={onCritique}
                   compact
                 />
               </div>
@@ -1034,6 +987,7 @@ function ActionRow({
   referenceThumb = null,
   compact = false,
   onGenerate,
+  onCritique,
 }: {
   promptText?: string;
   onRegenerate: () => void;
@@ -1041,7 +995,8 @@ function ActionRow({
   referenceThumb?: string | null;
   compact?: boolean;
   /** Only set when the native-generation feature flag is on; becomes the primary action. */
-  onGenerate?: () => void;
+  onGenerate?: (promptText: string) => void;
+  onCritique?: (promptText: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
   const handleOpenInImago = async () => {
@@ -1065,7 +1020,11 @@ function ActionRow({
     <div className="space-y-2">
       <div className="flex flex-wrap items-center gap-2">
         {promptText && onGenerate && (
-          <Button onClick={onGenerate} size={compact ? "sm" : "default"} className="gap-2">
+          <Button
+            onClick={() => onGenerate(promptText)}
+            size={compact ? "sm" : "default"}
+            className="gap-2"
+          >
             <Sparkles className="h-3.5 w-3.5" />
             {CTA.generateImage} → · 1 credit
           </Button>
@@ -1092,27 +1051,26 @@ function ActionRow({
             {copied ? "Copied" : "Copy"}
           </Button>
         )}
+        {promptText && onCritique && (
+          <Button
+            onClick={() => onCritique(promptText)}
+            variant="outline"
+            size={compact ? "sm" : "default"}
+            className="gap-2"
+          >
+            <ScanSearch className="h-3.5 w-3.5" />
+            {CTA.critiqueThis}
+          </Button>
+        )}
         {!compact && (
           <Button onClick={onRegenerate} variant="outline" size="default" className="gap-2">
             <RefreshCw className="h-3.5 w-3.5" />
-            Regenerate
+            {CTA.rebuildPrompt}
           </Button>
         )}
       </div>
       {promptText && referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
-      {promptText && (
-        <p className="text-[13px] text-[color:var(--text-tertiary)]">
-          <span className="hidden sm:inline">
-            Opens Imago with your prompt copied. Paste with{" "}
-            <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
-              {navigator.platform?.toUpperCase().includes("MAC") ? "⌘V" : "Ctrl+V"}
-            </kbd>
-          </span>
-          <span className="sm:hidden">
-            Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-          </span>
-        </p>
-      )}
+      {promptText && <ImagoPasteHint />}
     </div>
   );
 }

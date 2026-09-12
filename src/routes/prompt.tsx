@@ -134,11 +134,18 @@ function PromptWorkspace() {
 
   /**
    * Drop consumed params (restore, prefill, seed, ref) but stay in this mode.
-   * The template slug is kept: it is the shareable, refresh-safe form of the
-   * active template context; Build mode owns the answered values.
+   * Keep the template slug only while still in Build — it is the shareable,
+   * refresh-safe form of the active template context.
    */
   const clearSearch = (keep: PromptMode = mode) => {
-    navigate({ to: "/prompt", search: { mode: keep, template: search.template }, replace: true });
+    navigate({
+      to: "/prompt",
+      search: {
+        mode: keep,
+        ...(keep === "build" ? { template: search.template } : {}),
+      },
+      replace: true,
+    });
   };
 
   /** Remove the template context entirely (Build mode's "Remove"). */
@@ -149,7 +156,15 @@ function PromptWorkspace() {
   const switchMode = (next: PromptMode) => {
     if (next === mode) return;
     trackEvent("prompt_mode_switch", { mode: next });
-    navigate({ to: "/prompt", search: { mode: next, template: search.template }, replace: true });
+    navigate({
+      to: "/prompt",
+      search: {
+        mode: next,
+        // Templates only apply to Build; drop the slug when leaving that mode.
+        ...(next === "build" ? { template: search.template } : {}),
+      },
+      replace: true,
+    });
   };
 
   return (
@@ -244,7 +259,10 @@ function PromptWorkspace() {
         >
           <CritiqueMode
             active={mode === "critique"}
-            search={{ restore: mode === "critique" ? search.restore : undefined }}
+            search={{
+              restore: mode === "critique" ? search.restore : undefined,
+              prefill: mode === "critique" ? search.prefill : undefined,
+            }}
             clearSearch={() => clearSearch("critique")}
           />
         </div>

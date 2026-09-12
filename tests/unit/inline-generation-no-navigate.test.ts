@@ -54,14 +54,19 @@ test("both modes render InlineGenerationPanel, not a second Generate confirmatio
 
 test("Build's own prompt-building spinner is untouched — no ThinkingField for text generation", () => {
   const b = read("src/components/prompt/BuildMode.tsx");
-  assert.match(b, /function LoadingState\(\{ intent \}/);
+  assert.match(b, /PromptLoadingState/);
   assert.equal(/ThinkingField/.test(b), false);
+  assert.match(read("src/components/prompt/PromptLoadingState.tsx"), /variant === "build"/);
 });
 
 test("Critique's own critiquing spinner is untouched — no ThinkingField for text generation", () => {
   const c = read("src/components/prompt/CritiqueMode.tsx");
-  assert.match(c, /Reviewing your prompt…/);
+  assert.match(c, /PromptLoadingState/);
   assert.equal(/ThinkingField/.test(c), false);
+  const loading = read("src/components/prompt/PromptLoadingState.tsx");
+  assert.match(loading, /Reading your prompt/);
+  assert.match(loading, /Scoring against the rubric/);
+  assert.match(loading, /Drafting a rewrite/);
 });
 
 test('ThinkingField is used only by GenerationCanvas, with variant="generate"', () => {

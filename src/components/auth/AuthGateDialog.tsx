@@ -1,8 +1,6 @@
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
+import { AuthChooserDialog } from "@/components/auth/AuthChooserDialog";
 import { AuthSurface } from "@/components/auth/AuthSurface";
 import { PromptSurface } from "@/components/PromptSurface";
-import { useIsMobile } from "@/hooks/use-mobile";
 import type { useGeneration } from "@/lib/generation/use-generation";
 import { generationGateHeadline, promptExcerpt } from "@/lib/auth/gate-copy";
 import { AUTH_COPY } from "@/lib/product";
@@ -15,13 +13,9 @@ import { AUTH_COPY } from "@/lib/product";
  * submission on return — no second click, no "sign up or sign in" choice
  * (every method handles both).
  *
- * Desktop/tablet: centered dialog. Mobile: bottom sheet reaching about
- * two-thirds of the viewport, so the page underneath stays visibly there —
- * scrolling internally, since five sign-in methods need more room than one
- * OAuth button did.
+ * Centered dialog on every viewport (matches BillingAuthDialog).
  */
 export function AuthGateDialog({ gen }: { gen: ReturnType<typeof useGeneration> }) {
-  const isMobile = useIsMobile();
   const open = gen.authPrompt;
   const onOpenChange = (next: boolean) => !next && gen.dismissAuthPrompt();
 
@@ -31,8 +25,8 @@ export function AuthGateDialog({ gen }: { gen: ReturnType<typeof useGeneration> 
     : null;
   const referenceUrl = gen.authPromptContext?.referenceDataUrl ?? null;
 
-  const body = (
-    <>
+  return (
+    <AuthChooserDialog open={open} onOpenChange={onOpenChange} title={headline}>
       {excerpt && (
         <div className="mb-4 flex items-start gap-3">
           {referenceUrl && (
@@ -64,28 +58,6 @@ export function AuthGateDialog({ gen }: { gen: ReturnType<typeof useGeneration> 
           if (provider !== "email") gen.chooseAuthProvider(provider);
         }}
       />
-    </>
-  );
-
-  if (isMobile) {
-    return (
-      <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto rounded-t-2xl">
-          <SheetTitle className="text-heading-sm">{headline}</SheetTitle>
-          <SheetDescription className="sr-only">{headline}</SheetDescription>
-          <div className="mt-4">{body}</div>
-        </SheetContent>
-      </Sheet>
-    );
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[85vh] max-w-[440px] overflow-y-auto p-8">
-        <DialogTitle className="text-heading-sm">{headline}</DialogTitle>
-        <DialogDescription className="sr-only">{headline}</DialogDescription>
-        {body}
-      </DialogContent>
-    </Dialog>
+    </AuthChooserDialog>
   );
 }

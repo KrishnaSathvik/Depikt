@@ -1,6 +1,6 @@
 // Shared math for ThinkingField's dot lattice. Dot positions are fixed;
-// only radius/opacity are ever animated, driven by slowly moving
-// "influence" points. No physics, no dependencies.
+// only radius/opacity are ever animated, driven by moving "influence"
+// points. No physics, no dependencies.
 
 export type ThinkingVariant = "generate" | "build" | "critique";
 
@@ -16,9 +16,15 @@ export interface FieldPoint {
 }
 
 const MIN_RADIUS = 1.1;
-const MAX_RADIUS = 4.6;
-const MIN_OPACITY = 0.08;
-const MAX_OPACITY = 0.85;
+const MAX_RADIUS = 4.8;
+const MIN_OPACITY = 0.07;
+const MAX_OPACITY = 0.9;
+
+/**
+ * Global tempo for influence motion. ~1.0 felt near-static on long image
+ * jobs; 2.6 keeps a readable pulse without looking frantic.
+ */
+export const THINKING_FIELD_TEMPO = 2.6;
 
 function styleFromStrength(strength: number): DotStyle {
   const clamped = Math.max(0, Math.min(1, strength));
@@ -49,55 +55,53 @@ function hash2(nx: number, ny: number): number {
 }
 
 /**
- * Two organic influence points wandering a slow lissajous-ish path, plus a
- * subtle wave. The busiest and densest of the three — creation in progress.
+ * Two organic influence points on a lissajous-ish path, plus a soft wave.
+ * The busiest of the three — image creation in progress.
  */
 function generateField(nx: number, ny: number, t: number): number {
-  const ax = 0.5 + Math.sin(t * 0.18) * 0.34;
-  const ay = 0.5 + Math.cos(t * 0.13) * 0.3;
-  const bx = 0.5 + Math.cos(t * 0.11 + 1.4) * 0.32;
-  const by = 0.5 + Math.sin(t * 0.16 + 0.7) * 0.32;
+  const s = t * THINKING_FIELD_TEMPO;
+  const ax = 0.5 + Math.sin(s * 0.42) * 0.38;
+  const ay = 0.5 + Math.cos(s * 0.31) * 0.34;
+  const bx = 0.5 + Math.cos(s * 0.27 + 1.4) * 0.36;
+  const by = 0.5 + Math.sin(s * 0.38 + 0.7) * 0.36;
 
-  const a = gaussian(distance(nx, ny, ax, ay), 0.26);
-  const b = gaussian(distance(nx, ny, bx, by), 0.24);
-  const wave = 0.12 * Math.sin(nx * 6 + t * 0.5) * Math.sin(ny * 6 - t * 0.4);
+  const a = gaussian(distance(nx, ny, ax, ay), 0.24);
+  const b = gaussian(distance(nx, ny, bx, by), 0.22);
+  const wave = 0.18 * Math.sin(nx * 6.5 + s * 1.15) * Math.sin(ny * 6.5 - s * 0.95);
 
-  return a * 0.75 + b * 0.65 + wave;
+  return a * 0.8 + b * 0.7 + wave;
 }
 
 /**
- * True per-dot scatter (no influence points, no blob) crossfading into
- * crisp horizontal bands over a ~6s cycle — messy idea resolving into
- * structure, visually unrelated to generate's wandering blobs.
+ * True per-dot scatter crossfading into crisp horizontal bands — messy
+ * idea resolving into structure (Build text pipeline; unused for image gen).
  */
 function buildField(nx: number, ny: number, t: number): number {
-  const cycle = (Math.sin((t / 6) * Math.PI * 2) + 1) / 2; // 0..1, ~6s period
-  const organization = cycle; // how "organized" the field looks right now
+  const s = t * THINKING_FIELD_TEMPO;
+  const cycle = (Math.sin((s / 3.2) * Math.PI * 2) + 1) / 2;
+  const organization = cycle;
 
-  // Scattered: independent per-dot noise, gently flickering so it reads as
-  // alive rather than static.
   const n = hash2(nx, ny);
-  const flicker = 0.5 + 0.5 * Math.sin(n * 23 + t * 0.9);
+  const flicker = 0.5 + 0.5 * Math.sin(n * 23 + s * 1.6);
   const organicStrength = 0.1 + 0.55 * n * flicker;
 
-  // Structured: sharp on/off horizontal bands, every third row.
   const bandIndex = Math.floor(ny * 9);
   const inBand = bandIndex % 3 === 0;
-  const bandStrength = inBand ? 0.9 + 0.1 * Math.sin(nx * 14 + t * 1.2) : 0.03;
+  const bandStrength = inBand ? 0.9 + 0.1 * Math.sin(nx * 14 + s * 2.0) : 0.03;
 
   return organicStrength * (1 - organization) + bandStrength * organization;
 }
 
 /**
- * A narrow, soft region sweeping vertically through a mostly-quiet field —
- * inspection, not creation. Deliberately sparser/calmer than generate or
- * build: low ambient noise, no smooth traveling wave.
+ * A soft band sweeping vertically through a quiet field — inspection,
+ * not creation (Critique text pipeline; unused for image gen).
  */
 function critiqueField(nx: number, ny: number, t: number): number {
-  const scanY = (Math.sin(t * 0.22) + 1) / 2; // 0..1, slow vertical sweep
-  const band = gaussian(Math.abs(ny - scanY), 0.14);
+  const s = t * THINKING_FIELD_TEMPO;
+  const scanY = (Math.sin(s * 0.55) + 1) / 2;
+  const band = gaussian(Math.abs(ny - scanY), 0.13);
   const ambient = 0.04 + 0.05 * hash2(nx, ny);
-  return band * 0.85 + ambient;
+  return band * 0.9 + ambient;
 }
 
 /**
@@ -117,6 +121,12 @@ export function computeDotStyle(variant: ThinkingVariant, point: FieldPoint, t: 
     case "critique":
       strength = critiqueField(nx, ny, t);
       break;
+    default: {
+      const _exhaustive: never = variant;
+      void _exhaustive;
+      strength = 0.25;
+      break;
+    }
   }
   return styleFromStrength(strength);
 }

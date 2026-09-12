@@ -40,7 +40,7 @@ test("the three canonical mode labels used for both tabs and the eyebrow are Gen
 // ---------- mode-aware SEO/OG ----------
 
 test("SEO.promptGenerate/promptBuild/promptCritique carry the locked per-mode copy", () => {
-  assert.equal(SEO.promptGenerate.title, "AI Image Generator | Depikt");
+  assert.equal(SEO.promptGenerate.title, "Generate Images | Depikt");
   assert.equal(
     SEO.promptGenerate.description,
     "Create and edit images from prompts and references with Depikt.",
@@ -92,8 +92,9 @@ test("the canonical URL for all three modes stays /prompt (no per-mode routes)",
 });
 
 test("Generate is represented in SEO copy -- this must fail if Generate metadata disappears again", () => {
-  assert.match(SEO.promptGenerate.title, /Generator/);
+  assert.match(SEO.promptGenerate.title, /Generate Images/);
   assert.doesNotMatch(SEO.promptGenerate.title, /Builder & Critic/);
+  assert.doesNotMatch(SEO.promptGenerate.title, /AI Image Generator/);
 });
 
 // ---------- stale "Improve in Prompt" CTA removed ----------
@@ -110,8 +111,38 @@ test("Generate's real result actions (Download/Edit/Regenerate/New) are untouche
   const actionsSrc = read("src/components/generate/GenerationActions.tsx");
   assert.match(actionsSrc, /Download/);
   assert.match(actionsSrc, /Edit/);
-  assert.match(actionsSrc, /Regenerate/);
+  assert.match(actionsSrc, /Regenerate image/);
   assert.match(actionsSrc, /New/);
+});
+
+test("Build resets inline generation on New Prompt and Rebuild, and labels them distinctly from image Regenerate", () => {
+  const build = read("src/components/prompt/BuildMode.tsx");
+  const critique = read("src/components/prompt/CritiqueMode.tsx");
+  assert.match(build, /CTA\.rebuildPrompt/);
+  assert.match(build, /gen\.reset\(\)/);
+  assert.match(build, /handleNewPrompt[\s\S]*gen\.reset\(\)/);
+  assert.match(critique, /handleNewCritique[\s\S]*gen\.reset\(\)/);
+  assert.match(critique, /score = async[\s\S]*gen\.reset\(\)/);
+  assert.match(PROMPT_SRC, /next === "build" \? \{ template: search\.template \}/);
+});
+
+test("mode heroes share ModeHero + PROMPT_MODE_COPY and do not restate the tab hint as a third line", () => {
+  assert.doesNotMatch(
+    PROMPT_SRC,
+    /MODES\.find\(\(m\) => m\.id === mode\)\?\.hint/,
+    "visible hint under tabs duplicates the hero",
+  );
+  for (const f of [
+    "src/components/generate/GenerateWorkspace.tsx",
+    "src/components/prompt/BuildMode.tsx",
+    "src/components/prompt/CritiqueMode.tsx",
+  ]) {
+    assert.match(read(f), /ModeHero/, f);
+    assert.match(read(f), /PROMPT_MODE_COPY/, f);
+  }
+  assert.match(read("src/lib/product.ts"), /From prompt to picture/);
+  assert.match(read("src/lib/product.ts"), /From idea to prompt/);
+  assert.match(read("src/lib/product.ts"), /From draft to sharper/);
 });
 
 // ---------- hydration mismatch regression guard ----------

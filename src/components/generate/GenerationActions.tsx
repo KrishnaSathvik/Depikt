@@ -50,7 +50,7 @@ export function GenerationActions({
         disabled={disabled}
         className={`flex-1 sm:flex-none sm:basis-auto ${onNew ? "basis-[calc(50%-4px)]" : "basis-full"}`}
       >
-        <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate · 1 credit
+        <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate image · 1 credit
       </Button>
       {onNew && (
         <Button

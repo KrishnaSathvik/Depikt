@@ -93,7 +93,7 @@ export interface Template {
   updated_at: string;
 }
 
-const UPDATED = "2026-09-09";
+const UPDATED = "2026-09-12";
 
 export const templates: Template[] = [
   // ---------------------------------------------------------------- Create
@@ -104,8 +104,8 @@ export const templates: Template[] = [
     short_title: "Portrait",
     group: "Create",
     description:
-      "Create portraits, editorial photos and lifestyle scenes with control over the subject, setting, framing and light.",
-    best_for: "Editorial portraits, lifestyle scenes, people-first photography",
+      "Create portraits and lifestyle photos with clear control over the person, setting, framing and light.",
+    best_for: "Editorial portraits, lifestyle scenes, people photos",
     compatibility: "general",
     fields: [
       {
@@ -410,12 +410,12 @@ Use only the labels and facts given. Do not invent extra sections, numbers or so
   {
     id: "presentation-visual",
     slug: "presentation-visual",
-    title: "Presentation Visual",
-    short_title: "Slide visual",
+    title: "Slide / Presentation Visual",
+    short_title: "Slide",
     group: "Structure",
     description:
       "Make a slide visual or simple diagram that carries one point, with the title and labels you specify.",
-    best_for: "Deck hero images, concept diagrams, slide illustrations",
+    best_for: "Deck slides, simple diagrams, talk visuals",
     compatibility: "general",
     fields: [
       { key: "MESSAGE", label: "The slide's message", required: true },
@@ -787,8 +787,8 @@ Do not blend the roles: take identity only from the identity reference, product 
     short_title: "Brand & merch",
     group: "Brand",
     description:
-      "Create a logo or brand mark and see it applied to packaging, merch or other real-world items.",
-    best_for: "Logo concepts, packaging mockups, merch visualization",
+      "Create a logo or brand mark and see it applied to a real object like a bag, box or shirt.",
+    best_for: "Logo concepts, merch mockups, brand-on-product shots",
     compatibility: "general",
     fields: [
       { key: "BRAND", label: "Brand name", required: true },
@@ -824,8 +824,660 @@ Keep the mark simple enough to read small, spell the text exactly, and keep it c
       COLORS: "near-black on natural canvas, one signal orange accent",
       APPLICATION: "a folded canvas musette bag on a workbench",
     },
-    tags: ["logo", "brand", "merch", "packaging"],
+    tags: ["logo", "brand", "merch", "wordmark"],
     sort_order: 15,
+    active: true,
+    updated_at: UPDATED,
+  },
+
+  // -------------------------------------------------------- Create (batch 2)
+  {
+    id: "youtube-thumbnail",
+    slug: "youtube-thumbnail",
+    title: "YouTube / Video Thumbnail",
+    short_title: "Thumbnail",
+    group: "Create",
+    description:
+      "Make a clickable video thumbnail with a clear face or subject, one short headline, and strong contrast.",
+    best_for: "YouTube, Shorts, course and podcast video covers",
+    compatibility: "general",
+    fields: [
+      { key: "TOPIC", label: "What the video is about", required: true },
+      { key: "HEADLINE", label: "Exact headline on the thumbnail" },
+      { key: "SUBJECT", label: "Main face or subject" },
+      { key: "EXPRESSION", label: "Expression or gesture" },
+      { key: "BACKGROUND", label: "Background" },
+      { key: "STYLE", label: "Visual style" },
+      { key: "FORMAT", label: "Format", hint: "Usually 16:9" },
+    ],
+    template_prompt: `Create a [FORMAT] video thumbnail about [TOPIC].
+
+Exact headline on the image, spelled exactly:
+"[HEADLINE]"
+
+Main subject: [SUBJECT]
+Expression or gesture: [EXPRESSION]
+Background: [BACKGROUND]
+Visual style: [STYLE]
+
+Keep the headline large and readable at small sizes, high contrast, one clear focal point, and no extra text beyond what is written above.`,
+    example_input: {
+      TOPIC: "a beginner guide to home espresso",
+      HEADLINE: "STOP WASTING BEANS",
+      SUBJECT: "a barista holding a portafilter toward camera",
+      EXPRESSION: "surprised, eyebrows raised, looking at camera",
+      BACKGROUND: "blurred café counter with warm bokeh lights",
+      STYLE: "bold YouTube thumbnail, saturated colors, thick outline on text",
+      FORMAT: "16:9 landscape",
+    },
+    tags: ["youtube", "thumbnail", "video", "social"],
+    sort_order: 16,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "book-cover",
+    slug: "book-cover",
+    title: "Book / Ebook Cover",
+    short_title: "Book cover",
+    group: "Create",
+    description:
+      "Design a book or ebook cover with exact title and author text, a clear genre look, and room for the spine area if needed.",
+    best_for: "Novels, nonfiction, self-published ebooks, pitch mockups",
+    compatibility: "general",
+    fields: [
+      { key: "TITLE", label: "Exact book title", required: true },
+      { key: "AUTHOR", label: "Exact author name" },
+      { key: "GENRE", label: "Genre or category", required: true },
+      { key: "CONCEPT", label: "Cover concept or central image" },
+      { key: "MOOD", label: "Mood" },
+      { key: "PALETTE", label: "Palette" },
+      { key: "FORMAT", label: "Format", hint: "Usually portrait, e.g. 2:3" },
+    ],
+    template_prompt: `Design a [FORMAT] book cover for a [GENRE] book.
+
+Exact title, spelled exactly:
+"[TITLE]"
+
+Exact author name, spelled exactly:
+"[AUTHOR]"
+
+Central visual concept: [CONCEPT]
+Mood: [MOOD]
+Palette: [PALETTE]
+
+Keep the title dominant and fully legible, leave clean space for the typography, and do not invent extra subtitle or series text.`,
+    example_input: {
+      TITLE: "THE QUIET HARBOR",
+      AUTHOR: "Mira Ellison",
+      GENRE: "literary fiction",
+      CONCEPT: "a small wooden boat tied to a foggy pier at dawn",
+      MOOD: "hushed, melancholic, hopeful",
+      PALETTE: "slate blue, soft fog gray, one warm lantern amber",
+      FORMAT: "2:3 portrait",
+    },
+    tags: ["book", "ebook", "cover", "typography"],
+    sort_order: 17,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "album-podcast-cover",
+    slug: "album-podcast-cover",
+    title: "Album / Podcast Cover",
+    short_title: "Album cover",
+    group: "Create",
+    description:
+      "Make a square cover for an album, single or podcast episode with exact title text and a strong graphic identity.",
+    best_for: "Spotify/Apple covers, singles, podcast episode art",
+    compatibility: "general",
+    fields: [
+      { key: "SHOW_OR_ALBUM", label: "Album, show or episode name", required: true },
+      { key: "ARTIST", label: "Artist or host name" },
+      { key: "EXACT_TEXT", label: "Exact text on the cover" },
+      { key: "CONCEPT", label: "Visual concept", required: true },
+      { key: "STYLE", label: "Visual style" },
+      { key: "PALETTE", label: "Palette" },
+      { key: "FORMAT", label: "Format", hint: "Usually 1:1" },
+    ],
+    template_prompt: `Create a [FORMAT] cover for "[SHOW_OR_ALBUM]" by [ARTIST].
+
+Exact text on the cover, spelled exactly:
+"[EXACT_TEXT]"
+
+Visual concept: [CONCEPT]
+Style: [STYLE]
+Palette: [PALETTE]
+
+Keep it readable as a small square thumbnail, center the graphic idea, and do not add extra track lists or fake logos.`,
+    example_input: {
+      SHOW_OR_ALBUM: "Night Bus",
+      ARTIST: "Juniper Line",
+      EXACT_TEXT: "NIGHT BUS",
+      CONCEPT: "an empty city bus glowing from inside on a rainy street",
+      STYLE: "moody photo-illustration, soft grain",
+      PALETTE: "deep teal, sodium orange, wet asphalt black",
+      FORMAT: "1:1 square",
+    },
+    tags: ["album", "podcast", "cover", "music"],
+    sort_order: 18,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "email-header",
+    slug: "email-header",
+    title: "Email / Newsletter Header",
+    short_title: "Email header",
+    group: "Create",
+    description:
+      "Make a wide banner image for an email or newsletter with optional exact headline and clear brand mood.",
+    best_for: "Newsletter tops, promo emails, launch announcements",
+    compatibility: "general",
+    fields: [
+      { key: "PURPOSE", label: "What the email is about", required: true },
+      { key: "HEADLINE", label: "Exact headline (optional)" },
+      { key: "VISUAL", label: "Main visual", required: true },
+      { key: "BRAND_MOOD", label: "Brand mood" },
+      { key: "PALETTE", label: "Palette" },
+      { key: "FORMAT", label: "Format", hint: "Usually wide, e.g. 3:1 or 16:9" },
+    ],
+    template_prompt: `Create a [FORMAT] email header banner for [PURPOSE].
+
+Exact headline if any, spelled exactly:
+"[HEADLINE]"
+
+Main visual: [VISUAL]
+Brand mood: [BRAND_MOOD]
+Palette: [PALETTE]
+
+Keep the composition simple for a narrow banner, leave quiet space if text is present, and avoid tiny details that disappear when scaled down.`,
+    example_input: {
+      PURPOSE: "a spring sale email for a plant shop",
+      HEADLINE: "SPRING RESTOCK",
+      VISUAL: "three potted plants on a sunlit windowsill",
+      BRAND_MOOD: "friendly, fresh, unfussy",
+      PALETTE: "leaf green, cream, soft terracotta",
+      FORMAT: "3:1 landscape banner",
+    },
+    tags: ["email", "newsletter", "banner", "marketing"],
+    sort_order: 19,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "app-icon-set",
+    slug: "app-icon-set",
+    title: "App Icon Set",
+    short_title: "App icons",
+    group: "Create",
+    description:
+      "Design a simple app icon (and optional variants) that reads clearly at small sizes.",
+    best_for: "iOS/Android icons, PWA icons, pitch decks",
+    compatibility: "general",
+    fields: [
+      { key: "APP", label: "App name or purpose", required: true },
+      { key: "SYMBOL", label: "Symbol or metaphor", required: true },
+      { key: "STYLE", label: "Icon style" },
+      { key: "COLORS", label: "Colors" },
+      { key: "BACKGROUND", label: "Background shape or fill" },
+      { key: "VARIANTS", label: "Variants to show", hint: "e.g. light, dark, monochrome" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Design a [FORMAT] app icon for [APP].
+
+Symbol: [SYMBOL]
+Style: [STYLE]
+Colors: [COLORS]
+Background: [BACKGROUND]
+Variants to show on one sheet: [VARIANTS]
+
+Keep the symbol bold and simple enough to read at 32px, no tiny text inside the icon, and no fake OS chrome unless asked.`,
+    example_input: {
+      APP: "a habit tracker called Streak",
+      SYMBOL: "a single upward tick mark made of three rounded bars",
+      STYLE: "flat geometric, soft corners, no gradients",
+      COLORS: "white symbol on deep indigo",
+      BACKGROUND: "rounded square",
+      VARIANTS: "color, dark mode, monochrome",
+      FORMAT: "1:1 square sheet",
+    },
+    tags: ["app", "icon", "mobile", "brand"],
+    sort_order: 20,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "sticker-pack",
+    slug: "sticker-pack",
+    title: "Sticker / Emoji Pack",
+    short_title: "Stickers",
+    group: "Create",
+    description:
+      "Create a set of stickers or emoji-style characters with a consistent look on one sheet.",
+    best_for: "Chat stickers, emoji packs, merch stickers",
+    compatibility: "general",
+    fields: [
+      { key: "THEME", label: "Pack theme or character", required: true },
+      { key: "COUNT", label: "How many stickers", required: true },
+      { key: "EXPRESSIONS", label: "Expressions or poses", long: true },
+      { key: "STYLE", label: "Art style" },
+      { key: "OUTLINE", label: "Outline / cutline" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Create a [FORMAT] sticker sheet of [COUNT] stickers themed around [THEME].
+
+Expressions or poses, one per sticker:
+[EXPRESSIONS]
+
+Art style: [STYLE]
+Outline / cutline: [OUTLINE]
+
+Keep each sticker readable alone, consistent character design across the set, and leave clear white space between stickers.`,
+    example_input: {
+      THEME: "a round orange cat named Mochi",
+      COUNT: "six",
+      EXPRESSIONS: "1 waving 2 laughing 3 sleepy 4 shocked 5 coffee cup 6 heart eyes",
+      STYLE: "cute flat vector, soft shading, thick white die-cut outline",
+      OUTLINE: "white sticker border around each character",
+      FORMAT: "1:1 square sheet",
+    },
+    tags: ["sticker", "emoji", "character", "pack"],
+    sort_order: 21,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "meme-reaction",
+    slug: "meme-reaction",
+    title: "Meme / Reaction Image",
+    short_title: "Meme",
+    group: "Create",
+    description:
+      "Make a simple reaction or meme image with optional exact caption text and a clear punchline visual.",
+    best_for: "Reaction images, light memes, community posts",
+    compatibility: "general",
+    fields: [
+      { key: "SETUP", label: "The joke or reaction", required: true },
+      { key: "CAPTION", label: "Exact caption text" },
+      { key: "SUBJECT", label: "Subject or character", required: true },
+      { key: "STYLE", label: "Visual style" },
+      { key: "FORMAT", label: "Format" },
+      { key: "CONSTRAINTS", label: "What to avoid" },
+    ],
+    template_prompt: `Create a [FORMAT] meme or reaction image for: [SETUP].
+
+Exact caption if any, spelled exactly:
+"[CAPTION]"
+
+Subject: [SUBJECT]
+Style: [STYLE]
+Avoid: [CONSTRAINTS]
+
+Keep the idea instantly readable, one clear punchline, and do not add extra captions beyond what is written above.`,
+    example_input: {
+      SETUP: "the face you make when the build finally passes",
+      CAPTION: "SHIP IT",
+      SUBJECT: "a tired developer staring at a green checkmark on a laptop",
+      STYLE: "casual photo-meme, high contrast, slightly compressed jpeg feel",
+      FORMAT: "1:1 square",
+      CONSTRAINTS: "no logos of real companies, no tiny unreadable UI text",
+    },
+    tags: ["meme", "reaction", "social", "humor"],
+    sort_order: 22,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "before-after",
+    slug: "before-after",
+    title: "Before–After Comparison",
+    short_title: "Before–after",
+    group: "Create",
+    description:
+      "Show a clear before and after in one image — split, side-by-side or labeled panels.",
+    best_for: "Renovation, retouch, product results, transformations",
+    compatibility: "general",
+    fields: [
+      { key: "SUBJECT", label: "What is being compared", required: true },
+      { key: "BEFORE", label: "Before state", required: true },
+      { key: "AFTER", label: "After state", hint: "What changed" },
+      { key: "LAYOUT", label: "Layout", hint: "Split, side-by-side, stacked" },
+      { key: "LABELS", label: "Exact labels" },
+      { key: "STYLE", label: "Visual style" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Create a [FORMAT] before-and-after comparison of [SUBJECT].
+
+Before: [BEFORE]
+After: [AFTER]
+Layout: [LAYOUT]
+
+Exact labels, spelled exactly:
+"[LABELS]"
+
+Style: [STYLE]
+
+Keep both sides fair and comparable, spell labels exactly, and make the change obvious at a glance.`,
+    example_input: {
+      SUBJECT: "a small studio apartment living room",
+      BEFORE: "cluttered, dim, beige walls, mismatched furniture",
+      AFTER: "tidy, bright, soft white walls, one sofa and a plant",
+      LAYOUT: "vertical split down the middle",
+      LABELS: "BEFORE | AFTER",
+      STYLE: "clean interior photo, same camera angle both sides",
+      FORMAT: "4:5 portrait",
+    },
+    tags: ["before-after", "comparison", "transformation"],
+    sort_order: 23,
+    active: true,
+    updated_at: UPDATED,
+  },
+
+  // ----------------------------------------------------- Commerce (batch 2)
+  {
+    id: "food-photography",
+    slug: "food-photography",
+    title: "Food / Recipe Photography",
+    short_title: "Food",
+    group: "Create",
+    description:
+      "Shoot a dish or ingredient scene with appetizing light, styling and optional recipe-card text.",
+    best_for: "Recipe blogs, menus, cookbooks, food social posts",
+    compatibility: "general",
+    fields: [
+      { key: "DISH", label: "Dish or food", required: true },
+      { key: "STYLING", label: "Plating and props" },
+      { key: "SURFACE", label: "Surface or table" },
+      { key: "LIGHTING", label: "Lighting" },
+      { key: "ANGLE", label: "Camera angle" },
+      { key: "EXACT_TEXT", label: "Exact text on image (optional)" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `A food photograph of [DISH].
+
+Plating and props: [STYLING]
+Surface: [SURFACE]
+Lighting: [LIGHTING]
+Camera angle: [ANGLE]
+Format: [FORMAT]
+
+Exact text if any, spelled exactly:
+"[EXACT_TEXT]"
+
+Make the food look fresh and appetizing, keep textures believable, and do not invent brand labels on packaging.`,
+    example_input: {
+      DISH: "a bowl of creamy tomato soup with grilled cheese soldiers",
+      STYLING: "matte ceramic bowl, linen napkin, one spoon, soft steam",
+      SURFACE: "worn oak table",
+      LIGHTING: "soft window light from the left, gentle shadow",
+      ANGLE: "45-degree three-quarter view",
+      EXACT_TEXT: "(no text on the image)",
+      FORMAT: "4:5 portrait",
+    },
+    tags: ["food", "recipe", "editorial", "menu"],
+    sort_order: 24,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "packaging-mockup",
+    slug: "packaging-mockup",
+    title: "Packaging Mockup",
+    short_title: "Packaging",
+    group: "Create",
+    description:
+      "Show a product package — box, bottle, pouch or can — with exact label text and realistic materials.",
+    best_for: "CPG packaging concepts, label comps, shelf mockups",
+    compatibility: "general",
+    fields: [
+      { key: "PACKAGE", label: "Package type and product", required: true },
+      { key: "EXACT_TEXT", label: "Exact label text", required: true },
+      { key: "MATERIALS", label: "Materials and finish" },
+      { key: "SCENE", label: "Scene or surface" },
+      { key: "ANGLE", label: "Camera angle" },
+      { key: "LIGHTING", label: "Lighting" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Create a packaging mockup of [PACKAGE].
+
+Exact label text, spelled exactly:
+"[EXACT_TEXT]"
+
+Materials and finish: [MATERIALS]
+Scene: [SCENE]
+Camera angle: [ANGLE]
+Lighting: [LIGHTING]
+Format: [FORMAT]
+
+Keep the package geometry believable, spell every label word exactly, and do not invent extra claims or fake certifications.`,
+    example_input: {
+      PACKAGE: "a tall matte white coffee bag with a tin-tie top",
+      EXACT_TEXT: "NORTH ROAST · HOUSE BLEND · 12 OZ",
+      MATERIALS: "matte paper bag, soft touch, small kraft window",
+      SCENE: "marble counter with a ceramic cup nearby",
+      ANGLE: "three-quarter front, slightly above",
+      LIGHTING: "soft daylight from camera-left",
+      FORMAT: "4:5 portrait",
+    },
+    tags: ["packaging", "label", "cpg", "mockup"],
+    sort_order: 25,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "fashion-lookbook",
+    slug: "fashion-lookbook",
+    title: "Fashion Lookbook Shot",
+    short_title: "Lookbook",
+    group: "Create",
+    description:
+      "Create a fashion or lookbook photo with clear outfit details, pose, setting and editorial mood.",
+    best_for: "Lookbooks, apparel campaigns, style editorials",
+    compatibility: "general",
+    fields: [
+      { key: "OUTFIT", label: "Outfit and garments", required: true, long: true },
+      { key: "MODEL", label: "Model / subject" },
+      { key: "POSE", label: "Pose" },
+      { key: "SETTING", label: "Setting", required: true },
+      { key: "LIGHTING", label: "Lighting" },
+      { key: "MOOD", label: "Mood" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `A fashion lookbook photograph.
+
+Outfit (keep garment details accurate): [OUTFIT]
+Subject: [MODEL]
+Pose: [POSE]
+Setting: [SETTING]
+Lighting: [LIGHTING]
+Mood: [MOOD]
+Format: [FORMAT]
+
+Show the clothes clearly, keep fabric texture believable, and avoid inventing brand logos on the garments.`,
+    example_input: {
+      OUTFIT: "oversized olive trench, cream turtleneck, wide charcoal trousers, leather loafers",
+      MODEL: "a young man with short black hair",
+      POSE: "walking toward camera, one hand in pocket",
+      SETTING: "quiet European street with pale stone buildings",
+      LIGHTING: "overcast soft daylight",
+      MOOD: "calm, tailored, modern",
+      FORMAT: "3:4 portrait",
+    },
+    tags: ["fashion", "lookbook", "apparel", "editorial"],
+    sort_order: 26,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "flat-lay",
+    slug: "flat-lay",
+    title: "Flat-Lay / Tabletop Scene",
+    short_title: "Flat-lay",
+    group: "Create",
+    description:
+      "Arrange objects from above for a flat-lay or tabletop still life — products, desk setups or styled collections.",
+    best_for: "Product flat-lays, desk setups, gift guides, social still lifes",
+    compatibility: "general",
+    fields: [
+      { key: "OBJECTS", label: "Objects in the scene", required: true, long: true },
+      { key: "SURFACE", label: "Surface", required: true },
+      { key: "ARRANGEMENT", label: "Arrangement" },
+      { key: "LIGHTING", label: "Lighting" },
+      { key: "MOOD", label: "Mood" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `A top-down flat-lay photograph.
+
+Objects: [OBJECTS]
+Surface: [SURFACE]
+Arrangement: [ARRANGEMENT]
+Lighting: [LIGHTING]
+Mood: [MOOD]
+Format: [FORMAT]
+
+Keep the camera straight above the scene, even spacing, soft shadows, and no invented brand marks on the objects.`,
+    example_input: {
+      OBJECTS: "notebook, fountain pen, ceramic mug, small plant, wireless headphones",
+      SURFACE: "light oak desk",
+      ARRANGEMENT: "loose grid with breathing room, mug top-right",
+      LIGHTING: "soft overhead daylight, gentle shadows",
+      MOOD: "calm productivity",
+      FORMAT: "1:1 square",
+    },
+    tags: ["flat-lay", "still-life", "product", "tabletop"],
+    sort_order: 27,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "certificate-badge",
+    slug: "certificate-badge",
+    title: "Certificate / Badge",
+    short_title: "Certificate",
+    group: "Create",
+    description:
+      "Design a certificate, award or badge with exact names, dates and titles spelled correctly.",
+    best_for: "Course certificates, awards, membership badges",
+    compatibility: "general",
+    fields: [
+      { key: "TYPE", label: "Certificate or badge type", required: true },
+      { key: "RECIPIENT", label: "Exact recipient name", required: true },
+      { key: "TITLE_LINE", label: "Exact title or achievement" },
+      { key: "ORG", label: "Issuing organization" },
+      { key: "DATE", label: "Exact date text" },
+      { key: "STYLE", label: "Visual style" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Design a [FORMAT] [TYPE].
+
+Exact recipient name, spelled exactly:
+"[RECIPIENT]"
+
+Exact title or achievement, spelled exactly:
+"[TITLE_LINE]"
+
+Issued by: [ORG]
+Date text, spelled exactly: "[DATE]"
+Visual style: [STYLE]
+
+Keep all text fully legible, spell every name and date exactly, and avoid fake seals of real governments or universities.`,
+    example_input: {
+      TYPE: "course completion certificate",
+      RECIPIENT: "Alex Rivera",
+      TITLE_LINE: "Completed Prompt Craft for Images",
+      ORG: "Depikt Workshops",
+      DATE: "September 12, 2026",
+      STYLE: "clean modern certificate, thin border, minimal ornament",
+      FORMAT: "4:3 landscape",
+    },
+    tags: ["certificate", "badge", "award", "typography"],
+    sort_order: 28,
+    active: true,
+    updated_at: UPDATED,
+  },
+
+  // ----------------------------------------------- Structure / Brand (batch 2)
+  {
+    id: "map-diagram",
+    slug: "map-diagram",
+    title: "Map / Wayfinding Diagram",
+    short_title: "Map",
+    group: "Structure",
+    description:
+      "Make a simple map or wayfinding diagram with exact place labels and a clear path or regions.",
+    best_for: "Event maps, campus guides, simple transit or venue diagrams",
+    compatibility: "general",
+    fields: [
+      { key: "PURPOSE", label: "What the map is for", required: true },
+      { key: "PLACES", label: "Places to label", required: true, long: true },
+      { key: "PATH", label: "Route or highlight" },
+      { key: "STYLE", label: "Map style" },
+      { key: "PALETTE", label: "Palette" },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Create a [FORMAT] map diagram for [PURPOSE].
+
+Places to show, with exact labels spelled exactly:
+[PLACES]
+
+Route or highlight: [PATH]
+Style: [STYLE]
+Palette: [PALETTE]
+
+Keep labels readable, spell place names exactly, simplify geometry, and do not invent streets that contradict the listed places.`,
+    example_input: {
+      PURPOSE: "a weekend market site map",
+      PLACES: "Entrance · Food Court · Crafts Row · Stage · Restrooms · Exit",
+      PATH: "dashed visitor path from Entrance to Stage",
+      STYLE: "flat illustrated map, friendly icons, no satellite realism",
+      PALETTE: "cream paper, forest green paths, terracotta accents",
+      FORMAT: "1:1 square",
+    },
+    tags: ["map", "diagram", "wayfinding", "infographic"],
+    sort_order: 29,
+    active: true,
+    updated_at: UPDATED,
+  },
+  {
+    id: "brand-moodboard",
+    slug: "brand-moodboard",
+    title: "Brand Moodboard / Style Tile",
+    short_title: "Moodboard",
+    group: "Brand",
+    description:
+      "Assemble a brand moodboard or style tile — colors, textures, type direction and reference imagery on one board.",
+    best_for: "Brand kickoffs, pitch decks, creative direction",
+    compatibility: "general",
+    fields: [
+      { key: "BRAND", label: "Brand or project", required: true },
+      { key: "PERSONALITY", label: "Personality words", required: true },
+      { key: "COLORS", label: "Color directions" },
+      { key: "TEXTURES", label: "Textures and materials" },
+      { key: "TYPE_FEEL", label: "Typography feel" },
+      { key: "REFERENCES", label: "Image or scene references", long: true },
+      { key: "FORMAT", label: "Format" },
+    ],
+    template_prompt: `Create a [FORMAT] brand moodboard for [BRAND].
+
+Personality: [PERSONALITY]
+Color directions: [COLORS]
+Textures and materials: [TEXTURES]
+Typography feel: [TYPE_FEEL]
+Reference scenes or objects to include: [REFERENCES]
+
+Arrange as a clean style tile or collage with labels, keep the direction cohesive, and do not invent real competitor logos.`,
+    example_input: {
+      BRAND: "a small ceramic homeware studio",
+      PERSONALITY: "quiet, handmade, warm, precise",
+      COLORS: "clay, oat, soft black, pale sage",
+      TEXTURES: "unglazed ceramic, linen, raw wood",
+      TYPE_FEEL: "simple grotesque sans, generous tracking",
+      REFERENCES: "stacked bowls, kiln shelf, morning window light on a table",
+      FORMAT: "16:9 landscape board",
+    },
+    tags: ["moodboard", "brand", "style-tile", "direction"],
+    sort_order: 30,
     active: true,
     updated_at: UPDATED,
   },
