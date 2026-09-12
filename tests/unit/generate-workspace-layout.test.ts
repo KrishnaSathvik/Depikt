@@ -43,9 +43,9 @@ test("Versions render only when there is more than one", () => {
   assert.equal(/gen\.versions\.length >= 0/.test(g), false);
 });
 
-test("GenerationActions renders exactly Download, Edit, Regenerate in that order", () => {
+test("GenerationActions renders exactly Download, Edit, Regenerate, then optionally New, in that order", () => {
   const a = read("src/components/generate/GenerationActions.tsx");
-  const order = ["Download", "Edit", "Regenerate"];
+  const order = ["Download", "Edit", "Regenerate", "New"];
   let lastIndex = -1;
   for (const label of order) {
     const idx = a.indexOf(label);
@@ -53,4 +53,29 @@ test("GenerationActions renders exactly Download, Edit, Regenerate in that order
     assert.ok(idx > lastIndex, `"${label}" out of order`);
     lastIndex = idx;
   }
+  // New is opt-in (Build/Critique's inline result has no composer to
+  // return to) -- only rendered when the caller passes onNew.
+  assert.match(a, /onNew\?: \(\) => void/);
+  assert.match(a, /\{onNew && \(/);
+});
+
+// Regression: once a result existed on /generate there was no way back to
+// a blank composer to start a different image -- Download/Edit/Regenerate
+// all act on the current result, none of them clear it. GenerateWorkspace
+// is the only GenerationActions caller with a composer to return to, so
+// it's the only one that passes onNew.
+test("GenerateWorkspace wires a 'New' action that blanks the composer, not just gen.reset()", () => {
+  const g = read("src/components/generate/GenerateWorkspace.tsx");
+  assert.match(g, /onNew=\{startNew\}/);
+  const startNewFn = g.slice(g.indexOf("function startNew"), g.indexOf("// No generation visual"));
+  assert.match(startNewFn, /gen\.reset\(\)/);
+  assert.match(startNewFn, /gen\.clearReferences\(\)/);
+  assert.match(startNewFn, /setPrompt\(""\)/);
+
+  const panel = read("src/components/generate/InlineGenerationPanel.tsx");
+  assert.doesNotMatch(
+    panel,
+    /onNew=/,
+    "Build/Critique's inline result has no composer to return to -- must not pass onNew",
+  );
 });

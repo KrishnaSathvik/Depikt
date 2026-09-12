@@ -1,10 +1,14 @@
-import { Download, RefreshCw, Wand2 } from "lucide-react";
+import { Download, Plus, RefreshCw, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface GenerationActionsProps {
   onDownload: () => void;
   onEdit: () => void;
   onRegenerate: () => void;
+  /** "Create another" — a blank composer for a new, unrelated image. Only
+   *  /generate has a composer to return to, so this is opt-in; Build/
+   *  Critique's inline result panel doesn't pass it. */
+  onNew?: () => void;
   disabled?: boolean;
   className?: string;
 }
@@ -18,6 +22,7 @@ export function GenerationActions({
   onDownload,
   onEdit,
   onRegenerate,
+  onNew,
   disabled,
   className,
 }: GenerationActionsProps) {
@@ -43,10 +48,20 @@ export function GenerationActions({
         variant="outline"
         onClick={onRegenerate}
         disabled={disabled}
-        className="flex-1 basis-full sm:flex-none sm:basis-auto"
+        className={`flex-1 sm:flex-none sm:basis-auto ${onNew ? "basis-[calc(50%-4px)]" : "basis-full"}`}
       >
         <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate · 1 credit
       </Button>
+      {onNew && (
+        <Button
+          variant="outline"
+          onClick={onNew}
+          disabled={disabled}
+          className="flex-1 basis-[calc(50%-4px)] sm:flex-none sm:basis-auto"
+        >
+          <Plus className="mr-1.5 h-4 w-4" /> New
+        </Button>
+      )}
     </div>
   );
 }

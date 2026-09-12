@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthProviderId } from "@/lib/auth/providers";
 import { trackEvent } from "@/lib/analytics";
+import { downloadFile } from "@/lib/download-file";
 import {
   fileToReferenceState,
   MAX_UPLOAD_BYTES,
@@ -424,17 +425,21 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     const url = job?.result?.url ?? activeVersion?.url;
     if (!url) return;
     trackEvent("image_downloaded", {});
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `depikt-${new Date().toISOString().slice(0, 10)}-${(activeVersionId ?? "").slice(0, 8)}.png`;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.click();
+    const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(activeVersionId ?? "").slice(0, 8)}.png`;
+    void downloadFile(url, filename);
   }
 
   function reset() {
     setPhase("idle");
     setErrorMessage(null);
+  }
+
+  /** Blank composer for "create another image" -- unlike reset() (used for
+   *  error-retry, which must keep the same prompt/references so the user
+   *  can just try again), this clears everything so the next submission
+   *  starts from nothing. */
+  function clearReferences() {
+    setReferences([]);
   }
 
   /**
@@ -495,6 +500,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     addReference,
     addReferenceFromDataUrl,
     removeReference,
+    clearReferences,
     retryReferenceUpload,
     submit,
     regenerate,

@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PromptSurface } from "@/components/PromptSurface";
 import { simplifyRatioLabel } from "@/lib/generation/use-generation";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { downloadFile } from "@/lib/download-file";
 import type { CreationItem } from "@/lib/profile/client";
 import { ROUTES } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
@@ -31,12 +32,8 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
   function download() {
     if (!creation.url) return;
     trackEvent("creation_downloaded", {});
-    const a = document.createElement("a");
-    a.href = creation.url;
-    a.download = `depikt-${creation.createdAt.slice(0, 10)}-${creation.id.slice(0, 8)}.png`;
-    a.target = "_blank";
-    a.rel = "noopener";
-    a.click();
+    const filename = `depikt-${creation.createdAt.slice(0, 10)}-${creation.id.slice(0, 8)}.png`;
+    void downloadFile(creation.url, filename);
   }
 
   function openInGenerate() {

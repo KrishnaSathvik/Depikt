@@ -134,6 +134,21 @@ export function GenerateWorkspace() {
     setPrompt(text);
   }
 
+  // "New" on a finished result: unlike gen.reset() (error-retry, which
+  // must keep the same prompt/references so the user can just try again),
+  // this clears everything so the next submission starts from a blank
+  // composer -- there was previously no way back to one at all once a
+  // result existed.
+  function startNew() {
+    gen.reset();
+    gen.clearReferences();
+    setPrompt("");
+    setStructuredRatio(null);
+    setRoutingHints(null);
+    setEditing(false);
+    setEditPrompt("");
+  }
+
   function improveInPrompt() {
     saveGenerationHandoff({
       prompt,
@@ -286,6 +301,7 @@ export function GenerateWorkspace() {
                 onDownload={gen.download}
                 onEdit={() => setEditing((e) => !e)}
                 onRegenerate={gen.regenerate}
+                onNew={startNew}
               />
             )
           }
