@@ -163,6 +163,36 @@ test("CreditsCard has the plan/credits sections and billing actions", () => {
   }
 });
 
+// Phase 7 (Stripe test-mode) audit fix: annual plans grant credits monthly
+// but renew yearly -- two different dates that must never collapse into one
+// "Refreshes" line, and a past_due/unpaid subscriber must see a way to fix
+// billing on the card itself, not only when credits run out.
+test("CreditsCard shows the credit-refresh date and the annual renewal/end date separately", () => {
+  const src = read("src/components/account/CreditsCard.tsx");
+  assert.match(src, /const isAnnual = summary\.billingInterval === "year"/);
+  assert.match(src, /isAnnual \? summary\.nextCreditGrantAt : summary\.currentPeriodEnd/);
+  assert.match(
+    src,
+    /const renewalDate = isAnnual \? formatShortDate\(summary\.currentPeriodEnd\) : null/,
+  );
+  assert.match(src, /Refreshes \{refreshDate\}/);
+  assert.match(
+    src,
+    /summary\.cancelAtPeriodEnd \? `Ends \$\{renewalDate\}\.` : `Renews \$\{renewalDate\}\.`/,
+  );
+});
+
+test("CreditsCard surfaces a payment-needs-attention banner for past_due/unpaid subscribers", () => {
+  const src = read("src/components/account/CreditsCard.tsx");
+  assert.match(
+    src,
+    /summary\.subscriptionStatus === "past_due" \|\| summary\.subscriptionStatus === "unpaid"/,
+  );
+  assert.match(src, /Payment needs attention\./);
+  assert.match(src, /Update billing/);
+  assert.match(src, /openBillingPortal\(\)/);
+});
+
 test("Account tab has a deliberate, typed-confirmation delete flow", () => {
   const src = read("src/components/account/DeleteAccountAction.tsx");
   assert.match(src, /Delete account/);

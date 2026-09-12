@@ -35,9 +35,18 @@ export function CreditsCard({
 
   const isPaid = summary.plan !== "free";
   const planName = isPaid ? PLAN_LABEL[summary.plan] : "Free";
+  const isAnnual = summary.billingInterval === "year";
+  // Annual plans grant credits monthly but renew yearly -- two different
+  // dates that must never be shown as one (see Phase 23 of the commercial
+  // spec). Monthly plans have the same date for both, so one line is
+  // already accurate there.
   const refreshDate = formatShortDate(
-    summary.billingInterval === "year" ? summary.nextCreditGrantAt : summary.currentPeriodEnd,
+    isAnnual ? summary.nextCreditGrantAt : summary.currentPeriodEnd,
   );
+  const renewalDate = isAnnual ? formatShortDate(summary.currentPeriodEnd) : null;
+  const paymentNeedsAttention =
+    isPaid &&
+    (summary.subscriptionStatus === "past_due" || summary.subscriptionStatus === "unpaid");
 
   // Included-this-month for a paid plan; the starter grant for free (until
   // a pack purchase makes the "/5" denominator meaningless -- then there's
@@ -116,6 +125,27 @@ export function CreditsCard({
         <p className="mt-1 text-body-sm text-[color:var(--text-tertiary)]">
           Refreshes {refreshDate}.
         </p>
+      )}
+      {renewalDate && (
+        <p className="text-body-sm text-[color:var(--text-tertiary)]">
+          {summary.cancelAtPeriodEnd ? `Ends ${renewalDate}.` : `Renews ${renewalDate}.`}
+        </p>
+      )}
+
+      {paymentNeedsAttention && (
+        <div className="mt-4 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] p-3">
+          <p className="text-body-sm font-medium text-[color:var(--text-primary)]">
+            Payment needs attention.
+          </p>
+          <Button
+            size="sm"
+            variant="outline"
+            className="mt-2"
+            onClick={() => openBillingPortal().catch(() => toast.error("Could not open billing."))}
+          >
+            Update billing
+          </Button>
+        </div>
       )}
     </div>
   );
