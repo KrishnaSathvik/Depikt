@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/lib/theme-context";
 import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO } from "@/lib/product";
+import { supabasePublicEnvInlineScript } from "@/lib/supabase-public-env";
 
 import appCss from "../styles.css?url";
 
@@ -68,6 +69,7 @@ const STRUCTURED_DATA = [
 export const Route = createRootRoute({
   head: () => {
     const ROOT_OG_IMAGE = getOgImageForPath();
+    const supabaseBoot = supabasePublicEnvInlineScript();
     return {
       meta: [
         { charSet: "utf-8" },
@@ -112,6 +114,7 @@ export const Route = createRootRoute({
         },
       ],
       scripts: [
+        ...(supabaseBoot ? [{ children: supabaseBoot }] : []),
         // Google tag (gtag.js) — one per page, immediately in <head>.
         { src: GA_LOADER_SRC, async: true },
         { children: GA_INLINE_SCRIPT },

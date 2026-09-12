@@ -2,14 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "./types";
 import { brokeredPreviewStorage } from "./previewAuthStorage";
-
-function readEnv(name: string): string | undefined {
-  // import.meta.env for the client bundle (Vite build-time replacement),
-  // process.env for SSR.
-  const fromVite = (import.meta.env as Record<string, string | undefined>)[`VITE_${name}`];
-  if (fromVite) return fromVite;
-  return typeof process !== "undefined" ? process.env?.[name] : undefined;
-}
+import { getSupabasePublicConfig, isSupabasePublicConfigured } from "@/lib/supabase-public-env";
 
 /**
  * True when a Supabase URL and publishable key are available. Callers that
@@ -17,24 +10,24 @@ function readEnv(name: string): string | undefined {
  * so a build that ran without the variables still renders the public pages.
  */
 export function isSupabaseConfigured(): boolean {
-  return Boolean(readEnv("SUPABASE_URL") && readEnv("SUPABASE_PUBLISHABLE_KEY"));
+  return isSupabasePublicConfigured();
 }
 
 function createSupabaseClient() {
-  const SUPABASE_URL = readEnv("SUPABASE_URL");
-  const SUPABASE_PUBLISHABLE_KEY = readEnv("SUPABASE_PUBLISHABLE_KEY");
+  const config = getSupabasePublicConfig();
 
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  if (!isSupabasePublicConfigured(config)) {
     throw new Error(
       "Missing Supabase environment variables. Ensure SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY (or VITE_ prefixed versions) are set in your .env file.",
     );
   }
 
-  return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  return createClient<Database>(config.url, config.key, {
     auth: {
       storage: brokeredPreviewStorage(),
       persistSession: true,
       autoRefreshToken: true,
+      detectSessionInUrl: true,
     },
   });
 }
