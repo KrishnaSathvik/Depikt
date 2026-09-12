@@ -247,7 +247,7 @@ export function PlanCards({
             {CREDIT_PACKS.map((pack) => (
               <div
                 key={pack.key}
-                className="rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
+                className="flex flex-col rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
               >
                 <span className="block text-body-md font-medium text-[color:var(--text-primary)]">
                   {pack.credits} credits
@@ -260,6 +260,18 @@ export function PlanCards({
                     {pack.badge}
                   </span>
                 )}
+                <div className="mt-auto pt-4">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    size="lg"
+                    disabled={busy !== null}
+                    onClick={() => void choose(pack.key)}
+                    data-analytics-id={`pricing-${pack.key}`}
+                  >
+                    {busy === pack.key ? "Redirecting…" : "Buy credits"}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
