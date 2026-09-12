@@ -50,6 +50,7 @@ import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/cr
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
+import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -258,6 +259,11 @@ const ApiGenerationJobsIdRoute = ApiGenerationJobsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiGenerationJobsRoute,
 } as any)
+const ApiGenerationJobsIdRunRoute = ApiGenerationJobsIdRunRouteImport.update({
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => ApiGenerationJobsIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -298,9 +304,10 @@ export interface FileRoutesByFullPath {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
+  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -341,9 +348,10 @@ export interface FileRoutesByTo {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
+  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -385,9 +393,10 @@ export interface FileRoutesById {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
-  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRoute
+  '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -433,6 +442,7 @@ export interface FileRouteTypes {
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/jobs/$id/run'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -476,6 +486,7 @@ export interface FileRouteTypes {
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/jobs/$id/run'
   id:
     | '__root__'
     | '/'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/jobs/$id/run'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -853,15 +865,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsIdRouteImport
       parentRoute: typeof ApiGenerationJobsRoute
     }
+    '/api/generation/jobs/$id/run': {
+      id: '/api/generation/jobs/$id/run'
+      path: '/run'
+      fullPath: '/api/generation/jobs/$id/run'
+      preLoaderRoute: typeof ApiGenerationJobsIdRunRouteImport
+      parentRoute: typeof ApiGenerationJobsIdRoute
+    }
   }
 }
 
+interface ApiGenerationJobsIdRouteChildren {
+  ApiGenerationJobsIdRunRoute: typeof ApiGenerationJobsIdRunRoute
+}
+
+const ApiGenerationJobsIdRouteChildren: ApiGenerationJobsIdRouteChildren = {
+  ApiGenerationJobsIdRunRoute: ApiGenerationJobsIdRunRoute,
+}
+
+const ApiGenerationJobsIdRouteWithChildren =
+  ApiGenerationJobsIdRoute._addFileChildren(ApiGenerationJobsIdRouteChildren)
+
 interface ApiGenerationJobsRouteChildren {
-  ApiGenerationJobsIdRoute: typeof ApiGenerationJobsIdRoute
+  ApiGenerationJobsIdRoute: typeof ApiGenerationJobsIdRouteWithChildren
 }
 
 const ApiGenerationJobsRouteChildren: ApiGenerationJobsRouteChildren = {
-  ApiGenerationJobsIdRoute: ApiGenerationJobsIdRoute,
+  ApiGenerationJobsIdRoute: ApiGenerationJobsIdRouteWithChildren,
 }
 
 const ApiGenerationJobsRouteWithChildren =

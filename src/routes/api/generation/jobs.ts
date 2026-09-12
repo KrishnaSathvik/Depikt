@@ -4,15 +4,8 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateGenerationRequest } from "@/lib/generation/job-request";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
-import { runGenerationJob } from "@/lib/generation/job-pipeline";
-import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
-import {
-  createWaitUntilExecutor,
-  createInlineExecutor,
-  type WaitUntilContext,
-} from "@/lib/generation/job-executor";
 import { asGenerationClient } from "@/lib/generation/db-types";
-import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+
 
 /**
  * POST /api/generation/jobs — create a generation job.
@@ -110,90 +103,17 @@ export const Route = createFileRoute("/api/generation/jobs")({
           return jsonError("Not enough credits.", 402);
         }
 
-        const apiKey = process.env.OPENAI_API_KEY;
-        if (!apiKey) return jsonError("Generation is temporarily unavailable.", 503);
-
-        // The client sends the storage `path` it got back from
-        // POST /api/generation/references (not a bare asset id), so a
-        // reference resolves directly against private storage. Ownership is
-        // enforced by RLS (20260910140000_add_generation_storage.sql) — this
-        // download uses the same user-JWT-bound client as everything else
-        // here, so it can only ever succeed for that user's own paths.
-        const referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[] = [];
-
-        // An edit's source is the version being edited, not a
-        // user-attached reference — OpenAI's edits endpoint still needs it
-        // as an image[] entry, so fetch it here rather than relying on the
-        // caller to have also attached it via referenceAssetIds (it never
-        // does: the Edit composer only sends sourceVersionId). Without
-        // this, an edit request reaches OpenAI with zero images and is
-        // rejected outright.
-        if (req.operation === "edit" && req.sourceVersionId) {
-          const { data: sourceVersion, error: sourceError } = await supabase
-            .from("image_versions")
-            .select("storage_path")
-            .eq("id", req.sourceVersionId)
-            .single();
-          if (sourceError || !sourceVersion) {
-            return jsonError("Source image for this edit could not be found.", 400);
-          }
-          const { data: file, error: downloadError } = await authResult.auth.supabase.storage
-            .from(GENERATION_BUCKET)
-            .download(sourceVersion.storage_path);
-          if (downloadError || !file) {
-            return jsonError("Source image for this edit could not be used.", 400);
-          }
-          referenceImages.push({
-            bytes: new Uint8Array(await file.arrayBuffer()),
-            filename: sourceVersion.storage_path.split("/").pop() ?? "source.png",
-            mimeType: file.type || "image/png",
-          });
+        // Execution deliberately does NOT happen here. There is no
+        // Cloudflare ExecutionContext (waitUntil) reachable from a TanStack
+        // file route in this deployment, so anything fired-and-forgotten
+        // after this response dies with the isolate — that is exactly what
+        // left jobs stuck in `queued` with a credit reserved. The browser
+        // instead calls POST /api/generation/jobs/:id/run, a long-lived
+        // request that does the work while the platform keeps it alive.
+        if (!process.env.OPENAI_API_KEY) {
+          return jsonError("Generation is temporarily unavailable.", 503);
         }
 
-        for (const path of req.referenceAssetIds) {
-          const { data: file, error: downloadError } = await authResult.auth.supabase.storage
-            .from(GENERATION_BUCKET)
-            .download(path);
-          if (downloadError || !file) return jsonError("Reference image could not be used.", 400);
-          referenceImages.push({
-            bytes: new Uint8Array(await file.arrayBuffer()),
-            filename: path.split("/").pop() ?? "reference.png",
-            mimeType: file.type || "image/png",
-          });
-        }
-
-        const waitUntilCtx = (request as unknown as { cloudflare?: { ctx?: WaitUntilContext } })
-          .cloudflare?.ctx;
-        const executor = waitUntilCtx
-          ? createWaitUntilExecutor(waitUntilCtx)
-          : // Local dev (vite dev) has no Cloudflare ExecutionContext. Falling
-            // back to the inline executor means the job actually runs during
-            // local QA instead of sitting queued forever — real production
-            // behavior still requires waitUntilCtx (or Queues/Workflows) and
-            // must not silently rely on this path once deployed.
-            createInlineExecutor();
-        executor.schedule(() =>
-          runGenerationJob(
-            {
-              id: row.job_id,
-              userId,
-              sessionId: session.id,
-              operation: req.operation,
-              model,
-              prompt: req.prompt,
-              width: req.size.width,
-              height: req.size.height,
-              idempotencyKey: req.idempotencyKey,
-              referenceImages,
-            },
-            req.sourceVersionId,
-            {
-              data: createSupabaseDataAccess(authResult.auth.supabase),
-              apiKey,
-              decodeBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
-            },
-          ).then(() => undefined),
-        );
 
         return new Response(
           JSON.stringify({ jobId: row.job_id, sessionId: session.id, status: "queued" }),
