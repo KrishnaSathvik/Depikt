@@ -14,10 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
+      billing_accounts: {
+        Row: {
+          billing_interval: string | null
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          last_grant_period_key: string | null
+          last_payment_failed_at: string | null
+          monthly_credit_allocation: number
+          next_credit_grant_at: string | null
+          plan_key: string
+          stripe_customer_id: string | null
+          stripe_price_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          last_grant_period_key?: string | null
+          last_payment_failed_at?: string | null
+          monthly_credit_allocation?: number
+          next_credit_grant_at?: string | null
+          plan_key?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_interval?: string | null
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          last_grant_period_key?: string | null
+          last_payment_failed_at?: string | null
+          monthly_credit_allocation?: number
+          next_credit_grant_at?: string | null
+          plan_key?: string
+          stripe_customer_id?: string | null
+          stripe_price_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_accounts: {
         Row: {
           available_credits: number
           created_at: string
+          extra_credits: number
+          plan_credits: number
           reserved_credits: number
           updated_at: string
           user_id: string
@@ -25,6 +84,8 @@ export type Database = {
         Insert: {
           available_credits?: number
           created_at?: string
+          extra_credits?: number
+          plan_credits?: number
           reserved_credits?: number
           updated_at?: string
           user_id: string
@@ -32,6 +93,8 @@ export type Database = {
         Update: {
           available_credits?: number
           created_at?: string
+          extra_credits?: number
+          plan_credits?: number
           reserved_credits?: number
           updated_at?: string
           user_id?: string
@@ -41,32 +104,41 @@ export type Database = {
       credit_ledger: {
         Row: {
           amount: number
+          bucket: string | null
           created_at: string
           entry_type: string
           id: string
           idempotency_key: string | null
           job_id: string | null
+          metadata: Json | null
           reason: string | null
+          stripe_ref: string | null
           user_id: string
         }
         Insert: {
           amount: number
+          bucket?: string | null
           created_at?: string
           entry_type: string
           id?: string
           idempotency_key?: string | null
           job_id?: string | null
+          metadata?: Json | null
           reason?: string | null
+          stripe_ref?: string | null
           user_id: string
         }
         Update: {
           amount?: number
+          bucket?: string | null
           created_at?: string
           entry_type?: string
           id?: string
           idempotency_key?: string | null
           job_id?: string | null
+          metadata?: Json | null
           reason?: string | null
+          stripe_ref?: string | null
           user_id?: string
         }
         Relationships: [
@@ -78,6 +150,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      credit_purchases: {
+        Row: {
+          amount_cents: number
+          checkout_session_id: string
+          created_at: string
+          credits: number
+          currency: string
+          fulfilled_at: string | null
+          pack_key: string
+          status: string
+          stripe_customer_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          checkout_session_id: string
+          created_at?: string
+          credits: number
+          currency?: string
+          fulfilled_at?: string | null
+          pack_key: string
+          status?: string
+          stripe_customer_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          checkout_session_id?: string
+          created_at?: string
+          credits?: number
+          currency?: string
+          fulfilled_at?: string | null
+          pack_key?: string
+          status?: string
+          stripe_customer_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       curated_prompts: {
         Row: {
@@ -160,6 +271,30 @@ export type Database = {
           user_input?: string | null
           variants?: Json
           why_it_works?: string | null
+        }
+        Relationships: []
+      }
+      deleted_accounts: {
+        Row: {
+          deleted_at: string
+          email_hash: string | null
+          had_subscription: boolean
+          stripe_customer_id: string | null
+          user_id: string
+        }
+        Insert: {
+          deleted_at?: string
+          email_hash?: string | null
+          had_subscription?: boolean
+          stripe_customer_id?: string | null
+          user_id: string
+        }
+        Update: {
+          deleted_at?: string
+          email_hash?: string | null
+          had_subscription?: boolean
+          stripe_customer_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -368,6 +503,36 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_seed: string
+          avatar_variant: string
+          created_at: string
+          display_name: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          avatar_seed: string
+          avatar_variant: string
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          avatar_seed?: string
+          avatar_variant?: string
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       prompts: {
         Row: {
           category: string | null
@@ -413,11 +578,64 @@ export type Database = {
         }
         Relationships: []
       }
+      stripe_events: {
+        Row: {
+          created: string
+          error: string | null
+          id: string
+          processed_at: string | null
+          type: string
+        }
+        Insert: {
+          created?: string
+          error?: string | null
+          id: string
+          processed_at?: string | null
+          type: string
+        }
+        Update: {
+          created?: string
+          error?: string | null
+          id?: string
+          processed_at?: string | null
+          type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      adjust_credits: {
+        Args: {
+          p_bucket: string
+          p_delta: number
+          p_entry_type?: string
+          p_idempotency_key: string
+          p_reason: string
+          p_stripe_ref?: string
+          p_user_id: string
+        }
+        Returns: {
+          applied: boolean
+          available_credits: number
+          ledger_id: string
+        }[]
+      }
+      apply_top_up: {
+        Args: {
+          p_checkout_session_id: string
+          p_credits: number
+          p_pack_key?: string
+          p_user_id: string
+        }
+        Returns: {
+          applied: boolean
+          available_credits: number
+          ledger_id: string
+        }[]
+      }
       create_generation_job: {
         Args: {
           p_height: number
@@ -436,6 +654,25 @@ export type Database = {
           reserved: boolean
         }[]
       }
+      default_avatar_variant: { Args: { p_user_id: string }; Returns: string }
+      ensure_profile: {
+        Args: { p_display_name?: string; p_user_id: string }
+        Returns: {
+          avatar_seed: string
+          avatar_variant: string
+          created_at: string
+          display_name: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       finalize_generation_credits: {
         Args: {
           p_amount: number
@@ -449,6 +686,57 @@ export type Database = {
           ledger_id: string
         }[]
       }
+      generate_username_candidate: {
+        Args: { p_attempt?: number; p_user_id: string }
+        Returns: string
+      }
+      grant_due_subscription_credits: {
+        Args: never
+        Returns: {
+          available_credits: number
+          grants: number
+        }[]
+      }
+      grant_starter_credits: {
+        Args: { p_user_id: string }
+        Returns: {
+          available_credits: number
+          granted: boolean
+          ledger_id: string
+        }[]
+      }
+      grant_subscription_credits: {
+        Args: {
+          p_allocation: number
+          p_period_key: string
+          p_stripe_ref?: string
+          p_user_id: string
+        }
+        Returns: {
+          available_credits: number
+          granted: boolean
+          ledger_id: string
+        }[]
+      }
+      is_reserved_username: { Args: { p_username: string }; Returns: boolean }
+      lock_credit_account: {
+        Args: { p_user_id: string }
+        Returns: {
+          available_credits: number
+          created_at: string
+          extra_credits: number
+          plan_credits: number
+          reserved_credits: number
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "credit_accounts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       reserve_generation_credits: {
         Args: {
           p_amount: number
@@ -461,6 +749,15 @@ export type Database = {
           ledger_id: string
           reserved: boolean
         }[]
+      }
+      reset_plan_credits: {
+        Args: { p_idempotency_key: string; p_reason: string; p_user_id: string }
+        Returns: number
+      }
+      starter_credit_amount: { Args: never; Returns: number }
+      username_word_index: {
+        Args: { p_key: string; p_modulo: number }
+        Returns: number
       }
     }
     Enums: {
