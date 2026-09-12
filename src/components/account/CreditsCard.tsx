@@ -69,11 +69,9 @@ export function CreditsCard({
     isPaid &&
     (summary.subscriptionStatus === "past_due" || summary.subscriptionStatus === "unpaid");
 
-  // Bar = monthly allowance only (paid) or starter grant (free). Packs never
-  // enter the bar. Free balances above STARTER_CREDITS still show a full
-  // starter meter (capped at 5/5) with the remainder listed as Extra — hiding
-  // the bar entirely left pack-heavy free accounts looking like the meter
-  // was missing (see the 47-credit Free case).
+  // Included-this-month for a paid plan; the starter grant for free (until
+  // a pack purchase makes the "/5" denominator meaningless -- then there's
+  // no bar, just the balance). Packs never enter the bar.
   const bar = isPaid
     ? summary.credits.allocation > 0
       ? {
@@ -82,15 +80,10 @@ export function CreditsCard({
           denominator: summary.credits.allocation,
         }
       : null
-    : {
-        label: "Starter credits",
-        numerator: Math.min(summary.credits.extra, STARTER_CREDITS),
-        denominator: STARTER_CREDITS,
-      };
+    : summary.credits.extra <= STARTER_CREDITS
+      ? { label: "Starter credits", numerator: summary.credits.extra, denominator: STARTER_CREDITS }
+      : null;
   const pct = bar ? Math.min(100, Math.round((bar.numerator / bar.denominator) * 100)) : 0;
-  const packExtra = isPaid
-    ? summary.credits.extra
-    : Math.max(0, summary.credits.extra - STARTER_CREDITS);
 
   return (
     <div className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
@@ -142,10 +135,12 @@ export function CreditsCard({
         </div>
       )}
 
-      {packExtra > 0 && (
+      {isPaid && summary.credits.extra > 0 && (
         <div className="mt-4 flex items-baseline justify-between text-body-sm">
           <span className="text-[color:var(--text-secondary)]">Extra credits</span>
-          <span className="tabular-nums text-[color:var(--text-primary)]">{packExtra}</span>
+          <span className="tabular-nums text-[color:var(--text-primary)]">
+            {summary.credits.extra}
+          </span>
         </div>
       )}
 
