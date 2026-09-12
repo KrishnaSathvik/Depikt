@@ -63,6 +63,23 @@ function readAuthStarted(): { provider: string } | null {
 // web_message when the request comes from the iframe flow, so a hand-opened
 // tab stalls on oauth.lovable.app/callback and never signs the user in.
 
+// The site answers on several hostnames (apex, the lovable.app alias) that all
+// redirect to the canonical www host. A session saved on one hostname is not
+// readable on another, so sign-in must always come back to the canonical one.
+const CANONICAL_HOST = "www.depikt.app";
+const ALIAS_HOSTS = ["depikt.app", "depikt.lovable.app"];
+
+function canonicalRedirectUri(): string | undefined {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const url = new URL(window.location.href);
+    if (ALIAS_HOSTS.includes(url.hostname)) url.hostname = CANONICAL_HOST;
+    return url.toString();
+  } catch {
+    return window.location.href;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -119,8 +136,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: provider });
-    const redirectUri =
-      redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+    const redirectUri = redirectTo ?? canonicalRedirectUri();
     // The managed client picks the right flow for the context (redirect in a
     // real tab, popup inside the Lovable preview iframe).
 
@@ -140,8 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
     trackEvent("auth_started", { method: "email" });
-    const emailRedirectTo =
-      opts.redirectTo ?? (typeof window !== "undefined" ? window.location.href : undefined);
+    const emailRedirectTo = opts.redirectTo ?? canonicalRedirectUri();
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo, shouldCreateUser: opts.shouldCreateUser },
