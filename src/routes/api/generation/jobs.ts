@@ -4,15 +4,8 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateGenerationRequest } from "@/lib/generation/job-request";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
-import { runGenerationJob } from "@/lib/generation/job-pipeline";
-import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
-import {
-  createWaitUntilExecutor,
-  createInlineExecutor,
-  type WaitUntilContext,
-} from "@/lib/generation/job-executor";
 import { asGenerationClient } from "@/lib/generation/db-types";
-import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+
 
 /**
  * POST /api/generation/jobs — create a generation job.
