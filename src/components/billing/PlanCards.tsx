@@ -7,7 +7,7 @@ import { useAuth } from "@/lib/auth-context";
 import { BillingAuthDialog } from "@/components/auth/BillingAuthDialog";
 import { startCheckout } from "@/lib/billing/client";
 import { PRICING_COPY } from "@/lib/billing/copy";
-import { planGateHeadline } from "@/lib/auth/gate-copy";
+import { planGateHeadline, PACK_GATE_HEADLINE } from "@/lib/auth/gate-copy";
 import {
   CREDIT_PACKS,
   PLAN_CREDITS,
@@ -101,24 +101,30 @@ export function PlanCards({
 }: PlanCardsProps) {
   const { user } = useAuth();
   const [busy, setBusy] = useState<ProductKey | null>(null);
-  const [authGate, setAuthGate] = useState<PaidPlanKey | null>(null);
+  const [authGate, setAuthGate] = useState<ProductKey | null>(null);
 
-  async function choose(plan: PaidPlanKey) {
-    const product = planProduct(plan, interval);
+  async function choose(productKey: ProductKey) {
     if (!user) {
-      // Don't lose the plan to a navigation: the auth gate remembers it
+      // Don't lose the plan or pack to a navigation: the auth gate remembers it
       // (savePendingCheckout) and sends the user straight to Checkout once
-      // they're signed in — no re-selecting the plan.
-      setAuthGate(plan);
+      // they're signed in — no re-selecting.
+      setAuthGate(productKey);
       return;
     }
-    setBusy(product.key);
+    setBusy(productKey);
     try {
-      await startCheckout(product.key);
+      await startCheckout(productKey);
     } catch {
       setBusy(null);
       toast.error("Could not start checkout. Please try again.");
     }
+  }
+
+  function authGateHeadline(key: ProductKey | null): string {
+    if (!key) return "";
+    if (key.startsWith("pro_")) return planGateHeadline("pro");
+    if (key.startsWith("max_")) return planGateHeadline("max");
+    return PACK_GATE_HEADLINE;
   }
 
   function paidCard(plan: PaidPlanKey) {
@@ -177,7 +183,7 @@ export function PlanCards({
             size="lg"
             variant={plan === "pro" || isResume ? "default" : "outline"}
             disabled={busy !== null || isCurrent}
-            onClick={() => void choose(plan)}
+            onClick={() => void choose(product.key)}
             data-analytics-id={`pricing-${product.key}`}
           >
             {isCurrent
