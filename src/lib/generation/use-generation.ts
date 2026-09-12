@@ -19,7 +19,9 @@ import {
 } from "@/lib/reference-image";
 import {
   createGenerationJob,
+  startGenerationJob,
   getGenerationJob,
+
   getGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
@@ -367,7 +369,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         structuredAspectRatio: input.structuredAspectRatio ?? null,
         routingHints: input.routingHints ?? undefined,
       });
+      // Deliberately not awaited: this request stays open for the whole
+      // generation (that is what keeps the server-side work alive). Polling
+      // below is what drives the UI.
+      void startGenerationJob(res.jobId, referenceAssetIds).catch(() => {});
       pollJob(res.jobId);
+
     } catch (err) {
       setPhase("error");
       if (err instanceof GenerationApiError && err.status === 402) {
