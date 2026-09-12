@@ -1,68 +1,106 @@
 # Depikt
 
-**Learn what works. Build what you want.**
+**Discover · Build · Create**
 
-Depikt is a reference library and prompt workspace for ChatGPT Images. Describe what you want, or attach a reference image, and the **Prompt Builder** writes a precise prompt for ChatGPT Images 2.5. Paste an existing prompt into the **Prompt Critic** to find what is weakening it. Browse the **Library** of 500 curated GPT Image 2 prompt examples to learn from and remix. No account required.
+Depikt is a library, prompt workspace, and image generator for ChatGPT Images. Browse curated prompts, build or critique your own, generate and edit images from a prompt and references, and take the same library into ChatGPT or Claude through MCP.
 
-Depikt writes and reviews prompts. It does not generate images: you take the prompt to ChatGPT (the "Open in Imago" button copies it for you).
+**Live at [www.depikt.app](https://www.depikt.app)**
 
-**Live at [depikt.app](https://depikt.app)**
+The canonical host is `www.depikt.app`. `depikt.app` redirects there.
 
-## What you can do
+## Product
 
-### Prompt Builder (`/generate`)
-Rough idea or reference image → intent analysis → Prompt Builder → Images 2.5-ready prompt.
-
-1. **Intent analysis.** A short structured pass works out the task (create, edit, series, remix), the deliverable category, how an attached reference should be used (style, subject/identity, edit source, product, composition, sketch/layout), the aspect ratio (only when the user gave one or the format implies it), exact text to render, series counts, and facts that are missing and must become placeholders. Explicit user choices always win over the analysis.
-2. **Prompt writing.** The writer receives the confirmed intent, a short category playbook, and reference guidance, and streams one prompt plus a short "why this works" note. Reference-dependent prompts address "the attached reference image" explicitly, because the user re-attaches the same image in ChatGPT.
-3. **Handoff.** Copy the prompt or open it in Imago. When the prompt depends on a reference image, the UI reminds you to attach the same image there.
-
-### Prompt Critic (`/critique`)
-Prompt (+ optional source/reference image) → Images 2.5 rubric → dimensional feedback → improved prompt.
-
-Ten dimensions: intent fidelity, clarity, contradictions, composition control, reference handling, edit preservation, text and layout, style coherence, factual integrity, efficiency. Dimensions that do not apply are skipped, not zeroed. Essential dimensions cap the overall score when they fail (for example a bare edit request that never says what to preserve). The Critic returns a summary, the breakdown, weaknesses, concrete improvements, and a rewritten prompt.
+Header: Library · Generate · Gallery · Templates · Blog. MCP, Help, and Pricing live in the footer.
 
 ### Library (`/library`)
-500 curated prompts across 10 categories, each with a thumbnail and a "why it works" note. This is the **GPT Image 2 collection**: the prompts are kept exactly as written. Each prompt carries a `target_model` (`gpt-image-2` today) so a separate ChatGPT Images 2.5 collection can be added later without touching the existing rows. The collection filter appears automatically once a second collection exists.
 
-### Reference Gallery (`/gallery`)
-Hand-picked reference images. Send any of them to the Prompt Builder as a reference and choose how it is used.
+543 curated prompts: 500 GPT Image 2 examples kept as written, plus 43 reviewed ChatGPT Images 2.5 recipes. Each entry has a sample image, the full prompt, and a short note on why it works. Remix into Prompt, or generate from it directly.
 
-### Favorites and history
-Favorites and every Builder or Critic result are stored in the browser (IndexedDB). Restore any past result, including its reference image when it fit the storage budget.
+### Prompt (`/prompt`)
+
+One workspace with three modes. They stay mounted so each keeps its own draft. `/generate` and `/critique` 301 here.
+
+| Mode | URL | What it does |
+|------|-----|----------------|
+| Generate | `/prompt?mode=generate` | Create and edit images from a prompt and optional references. Aspect ratio is resolved from the prompt. Routing between GPT Image 2.5 Flare and Sunburst is internal — there is no model, quality, or size picker. Edit, regenerate, and keep versions. |
+| Build | `/prompt?mode=build` | Turn an idea or reference into a structured image prompt. |
+| Critique | `/prompt?mode=critique` | Score an existing prompt, name what is weak, and return a rewrite. |
+
+Build and Critique still produce a plain prompt you can copy. Generate is the step after, when you want the image inside Depikt.
+
+### Gallery (`/gallery`)
+
+Hand-picked reference images. Use one as a reference in Build, or generate with it directly.
+
+### Templates (`/templates`)
+
+30 reusable, model-neutral structures for common image jobs (create, layout, edit, references, brand). Fill in the fields and continue in Build.
+
+### Blog (`/blog`)
+
+Field notes: Images 2.5 guides, historical GPT Image 2 posts (kept as written), prompting technique, and product updates.
+
+### MCP (`/integrations/mcp`)
+
+Public, read-only tools for MCP-compatible assistants. Endpoint: `https://www.depikt.app/mcp`.
+
+- `search_prompts` / `get_prompt`
+- `list_templates` / `get_template`
+- `search_guides` / `get_guide`
+
+MCP only exposes published Library prompts, templates, and guides. No accounts, drafts, or image generation.
+
+## Accounts and credits
+
+Browsing, Build, and Critique do not require an account. Generate does.
+
+Sign in with email (magic link) or Google, Apple, Microsoft, or Lovable. A new account gets **5 starter image credits**. 1 credit = 1 successful generate, edit, or regenerate.
+
+| Plan | Credits | Price |
+|------|---------|-------|
+| Free | 5 starter (one-time) | $0 |
+| Pro | 40 / month | $19.99/mo or $199/yr |
+| Max | 100 / month | $39.99/mo or $399/yr |
+
+Credit packs (10 / 25 / 50) never expire while the account exists. Creations, plan, and credits live on the account hub. Favorites and Build/Critique history stay on-device (IndexedDB).
 
 ## Pages
 
-| Page | What it does |
-|------|-------------|
-| [/library](https://depikt.app/library) | Browse and search the 500-prompt GPT Image 2 collection |
-| [/generate](https://depikt.app/generate) | Prompt Builder for ChatGPT Images 2.5 |
-| [/critique](https://depikt.app/critique) | Prompt Critic for ChatGPT Images 2.5 |
-| [/gallery](https://depikt.app/gallery) | Reference images you can send to the Prompt Builder |
-| [/blog](https://depikt.app/blog) | Articles on prompting for image models (older posts are about GPT Image 2 and are kept as written) |
+| Page | Notes |
+|------|-------|
+| [Home](https://www.depikt.app/) | Product story and latest guides |
+| [Library](https://www.depikt.app/library) | 543 curated prompts |
+| [Generate](https://www.depikt.app/prompt?mode=generate) | Canonical workspace URL is `/prompt` |
+| [Gallery](https://www.depikt.app/gallery) | Reference images |
+| [Templates](https://www.depikt.app/templates) | Task structures |
+| [Blog](https://www.depikt.app/blog) | Field notes |
+| [MCP](https://www.depikt.app/integrations/mcp) | Connect an assistant |
+| [Pricing](https://www.depikt.app/pricing) | Free, Pro, Max, packs |
+| [Help](https://www.depikt.app/help) | How Depikt works |
+| [Sign in](https://www.depikt.app/sign-in) / [Sign up](https://www.depikt.app/sign-up) | `noindex` |
+| [Privacy](https://www.depikt.app/privacy) / [Terms](https://www.depikt.app/terms) | Legal |
 
-The `/generate` and `/critique` URLs are kept for compatibility and SEO; the visible tool names are Prompt Builder and Prompt Critic.
-
-## Prompt categories
-
-Cinematic Scene · Poster / Cover · Infographic / Diagram · UI Mockup · Social Post / Ad · Storyboard / Multi-panel · Interior / Food / Fashion / Product · Visual Summary · Image Edit · Open-Ended Creative
+`/sitemap.xml` and `/robots.txt` list the public pages on `https://www.depikt.app`. Account, favorites, and history are not in the sitemap.
 
 ## Development
 
 ```bash
 npm install
-npm run dev          # Vite dev server
+npm run dev          # Vite — http://localhost:8080/
 npm test             # unit tests (Node test runner)
 npm run typecheck    # tsc for src and tests
+npm run lint
 npm run build        # production build (Cloudflare Workers)
-npm run bench -- --config v3-luna --filter reference   # prompt-engine benchmark subset (needs OPENAI_API_KEY)
+npm run bench -- --config v3-luna --filter reference   # prompt-engine subset (needs OPENAI_API_KEY)
 ```
 
-The prompt engine lives in `src/lib/prompt-engine/` (intent analyzer, builder, critic, playbooks, reference guidance). Benchmarks and their cases live in `tests/bench/`.
+Copy `.env.example` to `.env.local`. OpenAI, Supabase, and Stripe keys are required for generation, the library, and billing. There is no service-role key in the browser; curated-prompt writes go through the Supabase SQL Editor.
+
+Shared product copy, routes, and SEO strings live in `src/lib/product.ts`. Canonical URLs come from `src/lib/site.ts` (`www.depikt.app`). The prompt engine is in `src/lib/prompt-engine/`. Generation is in `src/lib/generation/`. MCP tools are in `src/lib/mcp/`.
 
 ## Built with
 
-React 19, TanStack Start, Vite, Tailwind CSS 4, Radix UI, Supabase, OpenAI (Responses API), deployed on Cloudflare Workers.
+React 19, TanStack Start, Vite 7, Tailwind CSS 4, Radix UI, Supabase, Stripe, OpenAI, Dexie, Cloudflare Workers.
 
 ## License
 

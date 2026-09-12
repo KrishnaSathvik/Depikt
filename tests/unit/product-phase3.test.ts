@@ -177,12 +177,12 @@ test("no current-product surface still calls Build and Critique separate tools",
   const mcp = read("src/lib/mcp/index.ts");
   assert.match(mcp, /Build mode/);
   assert.match(mcp, /Critique mode/);
-  assert.match(mcp, /Generate \(https:\/\/depikt\.app\/generate\)/);
+  assert.match(mcp, /Generate \(https:\/\/www\.depikt\.app\/generate\)/);
   // llms.txt describes one workspace with two modes, plus Generate
   const llms = read("public/llms.txt");
   assert.match(llms, /Prompt workspace — Build mode/);
   assert.match(llms, /Prompt workspace — Critique mode/);
-  assert.match(llms, /\[Generate\]\(https:\/\/depikt\.app\/generate\)/);
+  assert.match(llms, /\[Generate\]\(https:\/\/www\.depikt\.app\/generate\)/);
   // sitemap: canonical /prompt only — /generate and /critique are both
   // pure redirects onto it now, neither gets its own sitemap entry.
   const sitemap = read("src/routes/sitemap[.]xml.tsx");

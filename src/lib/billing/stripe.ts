@@ -4,11 +4,12 @@
 
 import Stripe from "stripe";
 import type { CheckoutSessionLike, StripeReader, SubscriptionLike } from "./sync.ts";
+import { SITE_URL } from "@/lib/site";
 
 export function createStripeClient(secretKey: string): Stripe {
   return new Stripe(secretKey, {
     httpClient: Stripe.createFetchHttpClient(),
-    appInfo: { name: "Depikt", url: "https://depikt.app" },
+    appInfo: { name: "Depikt", url: SITE_URL },
   });
 }
 

@@ -6,7 +6,7 @@ import { MCP } from "@/lib/product";
 // Static "site shell last meaningfully changed" date — bump when you ship a
 // real content/structure change to a static route. Avoids advertising a fresh
 // lastmod every request.
-const STATIC_LASTMOD = "2026-09-10";
+const STATIC_LASTMOD = "2026-09-12";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {

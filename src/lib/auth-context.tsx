@@ -6,6 +6,7 @@ import { AUTH_STARTED_KEY, type AuthProviderId } from "@/lib/auth/providers";
 import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import { AUTH_COPY } from "@/lib/product";
+import { ALIAS_HOSTS, CANONICAL_HOST } from "@/lib/site";
 
 export type SignInResult = { ok: true; redirected: boolean } | { ok: false; error: string };
 
@@ -66,9 +67,6 @@ function readAuthStarted(): { provider: string } | null {
 // The site answers on several hostnames (apex, the lovable.app alias) that all
 // redirect to the canonical www host. A session saved on one hostname is not
 // readable on another, so sign-in must always come back to the canonical one.
-const CANONICAL_HOST = "www.depikt.app";
-const ALIAS_HOSTS = ["depikt.app", "depikt.lovable.app"];
-
 function canonicalRedirectUri(): string | undefined {
   if (typeof window === "undefined") return undefined;
   try {

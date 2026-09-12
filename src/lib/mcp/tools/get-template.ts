@@ -1,6 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { COMPATIBILITY_NOTE, activeTemplates, getTemplateBySlug } from "@/data/templates";
+import { absoluteUrl } from "@/lib/site";
 
 // Same canonical catalogue as /templates — one source, no hidden copy.
 export default defineTool({
@@ -46,7 +47,7 @@ export default defineTool({
       })),
       template_prompt: template.template_prompt,
       tags: template.tags,
-      url: "https://depikt.app/templates",
+      url: absoluteUrl("/templates"),
       usage:
         "Replace each [PLACEHOLDER] with the user's details. The structure is model-neutral: add model-specific parameters (aspect flags, quality settings) separately, not inside the prompt text.",
     };

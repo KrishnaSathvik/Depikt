@@ -145,7 +145,7 @@ None of that changes what shipped today: the prompt and the image are now part o
       {
         question: "Which assistants work with Depikt?",
         answer:
-          "Any client that supports remote MCP servers over HTTP, including Claude (Claude Desktop and Claude Code) and ChatGPT through custom connectors. Add https://depikt.app/mcp as a server and the six tools appear.",
+          "Any client that supports remote MCP servers over HTTP, including Claude (Claude Desktop and Claude Code) and ChatGPT through custom connectors. Add https://www.depikt.app/mcp as a server and the six tools appear.",
       },
       {
         question: "Does the integration expose private data?",

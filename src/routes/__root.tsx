@@ -8,7 +8,7 @@ import { DevAuthBanner } from "@/components/DevAuthBanner";
 import { BuyCreditsProvider } from "@/components/billing/BuyCreditsProvider";
 import { AccountHubProvider } from "@/components/account/AccountHubProvider";
 import { ThemeProvider } from "@/lib/theme-context";
-import { absoluteUrl } from "@/lib/site";
+import { SITE_URL, absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, SEO } from "@/lib/product";
 
@@ -46,14 +46,14 @@ const STRUCTURED_DATA = [
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "Depikt",
-    url: "https://depikt.app",
+    url: SITE_URL,
     description: DEFAULT_DESCRIPTION,
   },
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: JSONLD_NAMES.prompt,
-    url: "https://depikt.app/prompt",
+    url: absoluteUrl("/prompt"),
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
     description: JSONLD_DESCRIPTIONS.app,

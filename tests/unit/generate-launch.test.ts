@@ -46,7 +46,7 @@ test("robots.txt keeps public pages crawlable and blocks /api/", () => {
 
 test("llms.txt describes native generation and MCP stays read-only", () => {
   const llms = read("public/llms.txt");
-  assert.match(llms, /\[Generate\]\(https:\/\/depikt\.app\/generate\)/);
+  assert.match(llms, /\[Generate\]\(https:\/\/www\.depikt\.app\/generate\)/);
   assert.match(llms, /routes generation between GPT Image 2\.5 Flare and Sunburst/);
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(llms),
@@ -57,7 +57,7 @@ test("llms.txt describes native generation and MCP stays read-only", () => {
 
 test("MCP server instructions mention Generate but stay explicit about being read-only", () => {
   const mcp = read("src/lib/mcp/index.ts");
-  assert.match(mcp, /Generate \(https:\/\/depikt\.app\/generate\)/);
+  assert.match(mcp, /Generate \(https:\/\/www\.depikt\.app\/generate\)/);
   assert.match(mcp, /read-only and does not generate images itself/);
 });
 

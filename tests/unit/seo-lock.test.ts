@@ -171,8 +171,8 @@ test("core page titles and descriptions do not chase model-name keywords", () =>
 
 test("pageSeoHead emits title, og overrides, robots, and canonical", () => {
   const { meta, links } = pageSeoHead(SEO.home, {
-    url: "https://depikt.app/",
-    image: "https://depikt.app/og/home.png",
+    url: "https://www.depikt.app/",
+    image: "https://www.depikt.app/og/home.png",
   });
   const byName = Object.fromEntries(
     meta.filter((t) => "name" in t).map((t) => [t.name, t.content]),
@@ -186,13 +186,20 @@ test("pageSeoHead emits title, og overrides, robots, and canonical", () => {
   assert.equal(byName.robots, "index, follow");
   assert.equal(byProp["og:title"], SEO.home.ogTitle);
   assert.equal(byProp["og:description"], SEO.home.ogDescription);
-  assert.equal(byProp["og:image"], "https://depikt.app/og/home.png");
-  assert.deepEqual(links, [{ rel: "canonical", href: "https://depikt.app/" }]);
+  assert.equal(byProp["og:image"], "https://www.depikt.app/og/home.png");
+  assert.deepEqual(links, [{ rel: "canonical", href: "https://www.depikt.app/" }]);
+});
+
+test("canonical host is www; sitemap and robots emit that origin", () => {
+  assert.match(read("src/lib/site.ts"), /CANONICAL_HOST = "www\.depikt\.app"/);
+  assert.match(read("src/lib/auth-context.tsx"), /from "@\/lib\/site"/);
+  assert.match(read("src/routes/robots[.]txt.tsx"), /absoluteUrl\("\/sitemap\.xml"\)/);
+  assert.doesNotMatch(read("src/routes/__root.tsx"), /https:\/\/depikt\.app"/);
 });
 
 test("sign-in and sign-up emit noindex, follow (not nofollow)", () => {
   for (const page of [SEO.signIn, SEO.signUp]) {
-    const { meta } = pageSeoHead(page, { url: "https://depikt.app/sign-in" });
+    const { meta } = pageSeoHead(page, { url: "https://www.depikt.app/sign-in" });
     const robots = meta.find((t) => "name" in t && t.name === "robots");
     assert.ok(robots && "content" in robots);
     assert.equal(robots.content, "noindex, follow");
