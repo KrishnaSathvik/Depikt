@@ -102,14 +102,18 @@ test("BuyCreditsSheet lists the three packs from the catalog and starts hosted c
   assert.equal(BUY_CREDITS_COPY.body, "Keep creating without changing your plan.");
   assert.equal(BUY_CREDITS_COPY.footer, "Purchased credits don't expire.");
   assert.match(BUY_CREDITS_COPY.continue, /Continue to checkout/);
-  const src = read("src/components/billing/BuyCreditsSheet.tsx");
-  assert.match(src, /BUY_CREDITS_COPY\.title/);
-  assert.match(src, /BUY_CREDITS_COPY\.body/);
-  assert.match(src, /BUY_CREDITS_COPY\.footer/);
-  assert.match(src, /BUY_CREDITS_COPY\.continue/);
-  assert.match(src, /CREDIT_PACKS/);
-  assert.match(src, /startCheckout\(/);
-  assert.doesNotMatch(src, /\$6|\$12|\$22/, "prices come from the catalog, not literals");
+  const sheet = read("src/components/billing/BuyCreditsSheet.tsx");
+  assert.match(sheet, /BUY_CREDITS_COPY\.title/);
+  assert.match(sheet, /BUY_CREDITS_COPY\.body/);
+  assert.match(sheet, /<BuyCreditsBody/);
+  // The pack list, checkout call, and footer copy live in BuyCreditsBody --
+  // shared with the AccountHub's own "buy-credits" view, not duplicated.
+  const body = read("src/components/billing/BuyCreditsBody.tsx");
+  assert.match(body, /BUY_CREDITS_COPY\.footer/);
+  assert.match(body, /BUY_CREDITS_COPY\.continue/);
+  assert.match(body, /CREDIT_PACKS/);
+  assert.match(body, /startCheckout\(/);
+  assert.doesNotMatch(body, /\$6|\$12|\$22/, "prices come from the catalog, not literals");
   const root = read("src/routes/__root.tsx");
   assert.match(root, /BuyCreditsProvider/);
 });
@@ -282,21 +286,29 @@ test("privacy and terms cover the required subjects, invent no owner details, an
 
 // ---------- footer / header ----------
 
-test("footer has the two restrained columns, no stale tagline, no Help/Privacy/Terms (those live in the AccountHub now)", () => {
+test("footer has the three restrained columns and no stale tagline", () => {
   const src = read("src/components/Footer.tsx");
-  for (const s of ["Resources", "Account", "ROUTES.pricing", "/templates", "MCP.pagePath"]) {
+  for (const s of [
+    "Resources",
+    "Account",
+    "Legal",
+    "ROUTES.pricing",
+    "ROUTES.help",
+    "ROUTES.privacy",
+    "ROUTES.terms",
+    "/templates",
+    "MCP.pagePath",
+  ]) {
     assert.match(src, new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), s);
   }
   // No Product column: it only duplicated the header nav.
   assert.doesNotMatch(src, /title="Product"/);
   assert.doesNotMatch(src, /A workspace for better image prompts\./);
-  assert.doesNotMatch(src, /Sign up/);
-  // No Legal column -- Help/Privacy/Terms moved to the AccountHub home view.
-  assert.doesNotMatch(src, /title="Legal"/);
-  assert.doesNotMatch(src, /ROUTES\.help/);
-  assert.doesNotMatch(src, /ROUTES\.privacy/);
-  assert.doesNotMatch(src, /ROUTES\.terms/);
-  assert.match(src, /useAuth\(\)/, "signed-in footer shows Account instead of Sign in");
+  // Get Started carries Pricing + Sign up/Sign in while signed out, the
+  // one Account link once signed in.
+  assert.match(src, /Sign up/);
+  assert.match(src, /ROUTES\.signUp/);
+  assert.match(src, /useAuth\(\)/, "signed-in footer shows Account instead of Sign up/Sign in");
 });
 
 // ---------- SEO ----------

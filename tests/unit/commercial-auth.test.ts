@@ -249,10 +249,12 @@ test("Pricing and Buy-credits keep the chosen plan/pack across auth instead of n
     "no navigate-away on Get Pro/Max",
   );
 
-  const sheet = read("src/components/billing/BuyCreditsSheet.tsx");
-  assert.match(sheet, /<BillingAuthDialog/);
-  assert.match(sheet, /PACK_GATE_HEADLINE/);
-  assert.doesNotMatch(sheet, /ROUTES\.signUp/, "no navigate-away on Continue to checkout");
+  // The auth gate lives in BuyCreditsBody now -- shared by BuyCreditsSheet
+  // and the AccountHub's own "buy-credits" view.
+  const body = read("src/components/billing/BuyCreditsBody.tsx");
+  assert.match(body, /<BillingAuthDialog/);
+  assert.match(body, /PACK_GATE_HEADLINE/);
+  assert.doesNotMatch(body, /ROUTES\.signUp/, "no navigate-away on Continue to checkout");
 
   const dialog = read("src/components/auth/BillingAuthDialog.tsx");
   assert.match(dialog, /savePendingCheckout\(/);

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
+import { useAccountHub } from "@/components/account/AccountHubProvider";
 import { clearLocalUserData, deleteAccount } from "@/lib/billing/client";
 import { trackEvent } from "@/lib/analytics";
 
@@ -23,6 +24,7 @@ import { trackEvent } from "@/lib/analytics";
 export function DeleteAccountAction() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const hub = useAccountHub();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
   const [deleting, setDeleting] = useState(false);
@@ -36,6 +38,10 @@ export function DeleteAccountAction() {
       await clearLocalUserData();
       await signOut();
       toast.success("Your account has been deleted.");
+      // Close the hub itself -- navigating away doesn't unmount it (it's
+      // a global provider), so without this it would sit there open,
+      // still trying to show a now-signed-out profile.
+      hub.closeHub();
       void navigate({ to: "/", replace: true });
     } catch {
       setDeleting(false);

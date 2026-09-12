@@ -3,14 +3,22 @@ import { AccountHub } from "@/components/account/AccountHub";
 import type { CreationItem } from "@/lib/profile/client";
 
 /**
- * The AccountHub's five views. "home" is always the bottom of the stack --
- * every other view is reached either from home (Creations/avatar/pencil)
- * or from another view (a Creations thumbnail -> creation-detail). There
- * is no separate "account" view: Plan & Credits (see [[CreditsCard]]) and
- * sign-in/deletion live directly on home, not behind another click. See
+ * The AccountHub's six views. "home" is always the bottom of the stack --
+ * it shows identity, Plan & Credits (see [[CreditsCard]]), and the full
+ * Creations grid all at once (no separate Creations click); the other
+ * views are reached from home (avatar/pencil, Upgrade, Buy credits, a
+ * Creations thumbnail -> creation-detail). "upgrade" and "buy-credits"
+ * both stay inside the hub -- never a navigation to /pricing, and never a
+ * second, separate dialog stacked on top of the profile. See
  * AccountHub.tsx for the shell that renders whichever view is on top.
  */
-export type HubView = "home" | "creations" | "creation-detail" | "edit-profile" | "avatar-picker";
+export type HubView =
+  | "home"
+  | "creation-detail"
+  | "edit-profile"
+  | "avatar-picker"
+  | "upgrade"
+  | "buy-credits";
 
 interface AccountHubContextValue {
   open: boolean;

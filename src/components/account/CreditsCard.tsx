@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
 import { openBillingPortal } from "@/lib/billing/client";
 import { formatShortDate } from "@/lib/billing/credit-state";
 import { PLAN_LABEL, STARTER_CREDITS } from "@/lib/billing/plans";
@@ -12,11 +11,20 @@ import type { AccountSummaryResponse } from "@/routes/api/billing/account";
  * free), and Buy credits front and centre -- no separate Account page to
  * visit for any of this. Used above the Creations grid on both the
  * AccountHub's home view and the full-page /account fallback, so it's
- * always "outside", never behind another click.
+ * always "outside", never behind another click. `onUpgrade` and
+ * `onBuyCredits` both open a view inside the same AccountHub (plans,
+ * credit packs) -- never a navigation to /pricing and never a second,
+ * separate dialog stacked on top of the profile.
  */
-export function CreditsCard({ summary }: { summary: AccountSummaryResponse | null }) {
-  const { openBuyCredits } = useBuyCredits();
-
+export function CreditsCard({
+  summary,
+  onUpgrade,
+  onBuyCredits,
+}: {
+  summary: AccountSummaryResponse | null;
+  onUpgrade: () => void;
+  onBuyCredits: () => void;
+}) {
   if (!summary) {
     return (
       <div className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
@@ -58,9 +66,16 @@ export function CreditsCard({ summary }: { summary: AccountSummaryResponse | nul
           <p className="text-body-sm text-[color:var(--text-tertiary)]">credits remaining</p>
         </div>
         <div className="flex flex-col items-end gap-2">
-          <Button size="sm" onClick={() => openBuyCredits("credits_card")}>
-            Buy credits
-          </Button>
+          <div className="flex gap-2">
+            {summary.plan !== "max" && (
+              <Button variant="outline" size="sm" onClick={onUpgrade}>
+                Upgrade
+              </Button>
+            )}
+            <Button size="sm" onClick={onBuyCredits}>
+              Buy credits
+            </Button>
+          </div>
           {summary.hasStripeCustomer && (
             <button
               type="button"

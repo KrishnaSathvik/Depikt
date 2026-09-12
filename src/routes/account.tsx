@@ -141,7 +141,11 @@ function AccountPage() {
           onEditClick={() => hub.pushView("edit-profile")}
         />
         <div className="mt-4">
-          <CreditsCard summary={summary} />
+          <CreditsCard
+            summary={summary}
+            onUpgrade={() => hub.pushView("upgrade")}
+            onBuyCredits={() => hub.pushView("buy-credits")}
+          />
         </div>
         <div className="mt-10">
           {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}

@@ -59,34 +59,40 @@ test("AccountMenu is just the avatar trigger -- no dropdown, no dialog of its ow
   assert.match(src, /hub\.openHub\("home"\)/);
 });
 
-test("AccountHub has no separate account view -- home, creations, creation-detail, edit-profile, avatar-picker only", () => {
+test("AccountHub has no separate account view and no separate creations view -- Creations is inline on home", () => {
   const provider = read("src/components/account/AccountHubProvider.tsx");
   for (const view of [
     '"home"',
-    '"creations"',
     '"creation-detail"',
     '"edit-profile"',
     '"avatar-picker"',
+    '"upgrade"',
+    '"buy-credits"',
   ]) {
     assert.ok(provider.includes(view), `HubView must include ${view}`);
   }
-  assert.doesNotMatch(
-    provider,
-    /export type HubView =[^;]*"account"/,
-    "there is no separate account view anymore",
+  const hubViewDecl = provider.slice(
+    provider.indexOf("export type HubView ="),
+    provider.indexOf(";", provider.indexOf("export type HubView =")),
   );
+  assert.doesNotMatch(hubViewDecl, /"account"(?!-)/, "there is no separate account view anymore");
   const hub = read("src/components/account/AccountHub.tsx");
   assert.match(hub, /<CreationsGrid/);
   assert.match(hub, /<CreationDetailView/);
   assert.match(hub, /<CreditsCard/);
   assert.match(hub, /<EditProfileForm/);
   assert.match(hub, /<AvatarPickerBody/);
+  assert.match(hub, /<PlanCards/, "Upgrade opens PlanCards inside the hub, not /pricing");
+  assert.match(hub, /<BuyCreditsBody/, "Buy credits opens inside the hub, not a separate dialog");
   assert.doesNotMatch(hub, /<AccountPanels/);
+  // Home no longer has a clickable "Creations" nav row -- the grid is
+  // inline, just under a plain (non-interactive) heading.
+  assert.doesNotMatch(hub, /pushView\("creations"\)/);
   // Desktop dialog vs mobile sheet, same split as the rest of the account area.
   assert.match(hub, /useIsMobile\(/);
 });
 
-test("Plan & Credits (CreditsCard) sits above Creations on both /account and the Hub's home view -- not behind a separate click", () => {
+test("Plan & Credits (CreditsCard) and the full Creations grid sit on the profile directly -- no separate click for either", () => {
   const page = read("src/routes/account.tsx");
   assert.match(page, /<IdentityRow/);
   assert.match(page, /<CreditsCard/);
@@ -97,11 +103,27 @@ test("Plan & Credits (CreditsCard) sits above Creations on both /account and the
   const hub = read("src/components/account/AccountHub.tsx");
   const homeViewBlock = hub.slice(
     hub.indexOf("function HomeView"),
-    hub.indexOf("export function AccountHub"),
+    hub.indexOf("/**\n * One canonical"),
   );
   assert.match(homeViewBlock, /<IdentityRow/);
   assert.match(homeViewBlock, /<CreditsCard/);
-  assert.ok(homeViewBlock.indexOf("<CreditsCard") < homeViewBlock.indexOf('"creations"'));
+  assert.match(homeViewBlock, /<CreationsGrid/);
+  assert.ok(homeViewBlock.indexOf("<CreditsCard") < homeViewBlock.indexOf("<CreationsGrid"));
+});
+
+test("Upgrade and Buy credits both open inside the profile, never a navigation or a second stacked dialog", () => {
+  const card = read("src/components/account/CreditsCard.tsx");
+  assert.match(card, /onUpgrade: \(\) => void/);
+  assert.match(card, /onBuyCredits: \(\) => void/);
+  assert.doesNotMatch(card, /ROUTES\.pricing/, "Upgrade must not navigate to /pricing");
+  assert.doesNotMatch(
+    card,
+    /useBuyCredits\(/,
+    "Buy credits must not open the global BuyCreditsSheet from here",
+  );
+  const hub = read("src/components/account/AccountHub.tsx");
+  assert.match(hub, /onUpgrade=\{\(\) => hub\.pushView\("upgrade"\)\}/);
+  assert.match(hub, /onBuyCredits=\{\(\) => hub\.pushView\("buy-credits"\)\}/);
 });
 
 test("CreditsCard shows a plan, a credit total, a progress bar, and Buy credits -- the one Plan & Credits surface", () => {
@@ -136,6 +158,25 @@ test("Sign out and Delete account live only in the AccountHub's home view", () =
   const deleteAction = read("src/components/account/DeleteAccountAction.tsx");
   assert.match(deleteAction, /deleteAccount\(/);
   assert.match(deleteAction, /Type DELETE to confirm|type DELETE/i);
+});
+
+test("Sign out and Delete account both close the hub -- signOut()/deleteAccount() clearing the session doesn't self-close the modal", () => {
+  const hub = read("src/components/account/AccountHub.tsx");
+  const handleSignOutBlock = hub.slice(
+    hub.indexOf("async function handleSignOut"),
+    hub.indexOf("return (", hub.indexOf("async function handleSignOut")),
+  );
+  assert.match(handleSignOutBlock, /await signOut\(\)/);
+  assert.match(handleSignOutBlock, /hub\.closeHub\(\)/);
+  assert.match(hub, /onClick=\{\(\) => void handleSignOut\(\)\}/);
+
+  const deleteAction = read("src/components/account/DeleteAccountAction.tsx");
+  const handleDeleteBlock = deleteAction.slice(
+    deleteAction.indexOf("async function handleDelete"),
+    deleteAction.indexOf("return (", deleteAction.indexOf("async function handleDelete")),
+  );
+  assert.match(handleDeleteBlock, /await signOut\(\)/);
+  assert.match(handleDeleteBlock, /hub\.closeHub\(\)/);
 });
 
 test("sign-in method and email sit next to Sign out in the AccountHub home view", () => {

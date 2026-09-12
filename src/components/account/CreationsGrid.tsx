@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getCreations, type CreationItem } from "@/lib/profile/client";
+import { readCreationsCache, writeCreationsCache } from "@/lib/profile/creations-cache";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
 
@@ -17,28 +18,45 @@ function formatShort(iso: string): string {
 
 /**
  * Filter pills + the image-first masonry grid + load more. No heading and
- * no detail dialog of its own -- the Creations tab supplies the heading,
- * and a tapped thumbnail is reported via `onSelect` to whoever's hosting
- * this (the full-page Creations tab and the AccountHub's "creations" view
- * both forward it to the same AccountHub creation-detail view).
+ * no detail dialog of its own -- whoever's hosting this supplies the
+ * heading (the full-page Creations tab and the AccountHub's home view
+ * both do), and a tapped thumbnail is reported via `onSelect` to open the
+ * AccountHub's creation-detail view.
+ *
+ * Hydrates synchronously from a per-filter in-memory cache (see
+ * creations-cache.ts) so re-opening the profile shows the same images
+ * immediately instead of a "Loading…" flash -- this component mounts
+ * fresh every time the AccountHub's home view opens. The server fetch
+ * still runs every time in the background and overwrites the cache; the
+ * cache is never treated as authoritative.
  */
 export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => void }) {
   const [filter, setFilter] = useState<Filter>("all");
-  const [items, setItems] = useState<CreationItem[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<CreationItem[]>(() => readCreationsCache("all")?.items ?? []);
+  const [cursor, setCursor] = useState<string | null>(
+    () => readCreationsCache("all")?.nextCursor ?? null,
+  );
+  const [loading, setLoading] = useState(() => !readCreationsCache("all"));
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
 
   const load = useCallback(async (f: Filter) => {
-    setLoading(true);
+    const cached = readCreationsCache(f);
+    if (cached) {
+      setItems(cached.items);
+      setCursor(cached.nextCursor);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     setError(false);
     try {
       const page = await getCreations({ type: f });
       setItems(page.items);
       setCursor(page.nextCursor);
+      writeCreationsCache(f, page);
     } catch {
-      setError(true);
+      if (!cached) setError(true);
     } finally {
       setLoading(false);
     }
