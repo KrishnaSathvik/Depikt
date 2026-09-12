@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { BillingAuthDialog } from "@/components/auth/BillingAuthDialog";
 import { useAuth } from "@/lib/auth-context";
-import { startCheckout } from "@/lib/billing/client";
+import { startCheckout, checkoutErrorMessage } from "@/lib/billing/client";
 import { BUY_CREDITS_COPY } from "@/lib/billing/copy";
 import { PACK_GATE_HEADLINE } from "@/lib/auth/gate-copy";
 import { CREDIT_PACKS, formatUsd, type PackProduct } from "@/lib/billing/plans";
@@ -35,9 +35,9 @@ export function BuyCreditsBody({ source }: { source?: string }) {
     setBusy(true);
     try {
       await startCheckout(selected);
-    } catch {
+    } catch (err) {
       setBusy(false);
-      toast.error("Could not start checkout. Please try again.");
+      toast.error(checkoutErrorMessage(err));
     }
   }
 

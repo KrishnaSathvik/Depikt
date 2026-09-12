@@ -3,6 +3,7 @@ import { jsonError } from "@/lib/api/public-route";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { ensureStripeCustomer } from "@/lib/billing/customer";
 import { getBillingContext, requestOrigin } from "@/lib/billing/server";
+import { stripeCustomerCreator } from "@/lib/billing/stripe";
 import { ROUTES } from "@/lib/product";
 
 /**
@@ -24,16 +25,7 @@ export const Route = createFileRoute("/api/billing/portal")({
 
         const { data: userData } = await authResult.auth.supabase.auth.getUser();
         const customerId = await ensureStripeCustomer(
-          {
-            store: sync.store,
-            stripe: {
-              createCustomer: (input) =>
-                stripe.customers.create({
-                  email: input.email ?? undefined,
-                  metadata: input.metadata,
-                }),
-            },
-          },
+          { store: sync.store, stripe: stripeCustomerCreator(stripe) },
           { id: userId, email: userData.user?.email ?? null },
         );
 

@@ -4,6 +4,8 @@ import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { CATALOG, isProductKey } from "@/lib/billing/plans";
 import { ensureStripeCustomer } from "@/lib/billing/customer";
 import { getBillingContext, requestOrigin } from "@/lib/billing/server";
+import { stripeCustomerCreator } from "@/lib/billing/stripe";
+import { publicCheckoutError } from "@/lib/billing/stripe-errors";
 import { ROUTES } from "@/lib/product";
 
 /**
@@ -39,16 +41,7 @@ export const Route = createFileRoute("/api/billing/checkout")({
         const { data: userData } = await authResult.auth.supabase.auth.getUser();
         const email = userData.user?.email ?? null;
         const customerId = await ensureStripeCustomer(
-          {
-            store: sync.store,
-            stripe: {
-              createCustomer: (input) =>
-                stripe.customers.create({
-                  email: input.email ?? undefined,
-                  metadata: input.metadata,
-                }),
-            },
-          },
+          { store: sync.store, stripe: stripeCustomerCreator(stripe) },
           { id: userId, email },
         );
 
@@ -90,7 +83,7 @@ export const Route = createFileRoute("/api/billing/checkout")({
           return Response.json({ url: session.url, sessionId: session.id });
         } catch (err) {
           console.error("billing: checkout session failed", err);
-          return jsonError("Could not start checkout", 502);
+          return jsonError(publicCheckoutError(err), 502);
         }
       },
     },

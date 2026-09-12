@@ -55,6 +55,12 @@ export async function startCheckout(productKey: ProductKey): Promise<void> {
   gotoExternal(url);
 }
 
+export function checkoutErrorMessage(err: unknown): string {
+  return err instanceof Error && err.message
+    ? err.message
+    : "Could not start checkout. Please try again.";
+}
+
 /** Opens the Stripe Customer Portal in the current tab. */
 export async function openBillingPortal(): Promise<void> {
   trackEvent("billing_portal_opened", {});

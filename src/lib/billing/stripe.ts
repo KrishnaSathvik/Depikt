@@ -4,6 +4,7 @@
 
 import Stripe from "stripe";
 import type { CheckoutSessionLike, StripeReader, SubscriptionLike } from "./sync.ts";
+import type { CustomerCreator } from "./customer.ts";
 import { SITE_URL } from "@/lib/site";
 
 export function createStripeClient(secretKey: string): Stripe {
@@ -11,6 +12,25 @@ export function createStripeClient(secretKey: string): Stripe {
     httpClient: Stripe.createFetchHttpClient(),
     appInfo: { name: "Depikt", url: SITE_URL },
   });
+}
+
+export function stripeCustomerCreator(stripe: Stripe): CustomerCreator {
+  return {
+    async createCustomer(input) {
+      const customer = await stripe.customers.create({
+        email: input.email ?? undefined,
+        metadata: input.metadata,
+      });
+      return { id: customer.id };
+    },
+    async retrieveCustomer(id) {
+      const customer = await stripe.customers.retrieve(id);
+      if ("deleted" in customer && customer.deleted) {
+        return { id: customer.id, deleted: true };
+      }
+      return { id: customer.id };
+    },
+  };
 }
 
 /**

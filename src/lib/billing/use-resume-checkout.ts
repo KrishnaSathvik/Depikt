@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
+import { toast } from "sonner";
 import { readPendingCheckout, clearPendingCheckout } from "./pending-intent";
-import { startCheckout } from "./client";
+import { checkoutErrorMessage, startCheckout } from "./client";
 
 /**
  * Mounted once at the app root (BuyCreditsProvider). Fires whenever `user`
@@ -16,6 +17,8 @@ export function useResumeCheckoutOnAuth(user: User | null): void {
     const pending = readPendingCheckout();
     if (!pending) return;
     clearPendingCheckout();
-    void startCheckout(pending);
+    void startCheckout(pending).catch((err) => {
+      toast.error(checkoutErrorMessage(err));
+    });
   }, [user]);
 }

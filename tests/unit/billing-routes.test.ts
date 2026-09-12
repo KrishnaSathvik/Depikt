@@ -51,6 +51,8 @@ test("checkout route accepts only catalog keys and resolves prices server-side",
   assert.match(src, /mode: "payment"/);
   assert.doesNotMatch(src, /body\.price/);
   assert.doesNotMatch(src, /body\.credits/);
+  assert.match(src, /stripeCustomerCreator\(stripe\)/);
+  assert.match(src, /publicCheckoutError\(err\)/);
 });
 
 test("webhook route verifies the raw body signature asynchronously and has no CORS / rate limiter", () => {
@@ -70,6 +72,7 @@ test("webhook route verifies the raw body signature asynchronously and has no CO
 test("service role is confined to server billing modules", () => {
   const server = read("src/lib/billing/server.ts");
   assert.match(server, /createServiceClient\(/);
+  assert.match(server, /Object\.values\(read\.env\.priceIds\)/);
   for (const file of [
     "src/lib/billing/client.ts",
     "src/lib/billing/use-account-summary.ts",

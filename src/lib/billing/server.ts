@@ -27,7 +27,14 @@ export function getBillingContext(): BillingContextResult {
     console.error(`billing: missing configuration: ${read.missing.join(", ")}`);
     return { ok: false, response: jsonError("Billing is not available.", 503) };
   }
-  const key = `${read.env.stripeSecretKey.slice(-6)}:${read.env.supabaseUrl}`;
+  // Price IDs and tax must be in the key: swapping test → live prices while
+  // keeping the same secret would otherwise keep serving the cached test ids.
+  const key = [
+    read.env.stripeSecretKey.slice(-8),
+    read.env.supabaseUrl,
+    Object.values(read.env.priceIds).join(","),
+    read.env.automaticTax ? "1" : "0",
+  ].join("|");
   if (cached && cached.key === key) return { ok: true, ctx: cached.ctx };
   const stripe = createStripeClient(read.env.stripeSecretKey);
   const db = createServiceClient(read.env.supabaseUrl, read.env.supabaseServiceRoleKey);

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
 import { BillingAuthDialog } from "@/components/auth/BillingAuthDialog";
-import { startCheckout } from "@/lib/billing/client";
+import { startCheckout, checkoutErrorMessage } from "@/lib/billing/client";
 import { PRICING_COPY } from "@/lib/billing/copy";
 import { planGateHeadline, PACK_GATE_HEADLINE } from "@/lib/auth/gate-copy";
 import {
@@ -114,9 +114,9 @@ export function PlanCards({
     setBusy(productKey);
     try {
       await startCheckout(productKey);
-    } catch {
+    } catch (err) {
       setBusy(null);
-      toast.error("Could not start checkout. Please try again.");
+      toast.error(checkoutErrorMessage(err));
     }
   }
 
