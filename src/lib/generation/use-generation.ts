@@ -328,6 +328,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     const tick = async () => {
       try {
         const session = await getGenerationSession(sessionId);
+        const referenceAssetIds = referencesRef.current
+          .map((reference) => reference.uploadedPath)
+          .filter((path): path is string => !!path);
+        for (const jobId of jobsNeedingStart(session.jobs)) {
+          void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+        }
         const detailed = await Promise.all(
           session.jobs.map(async (child): Promise<GenerationChildJob> => {
             const detail = await getGenerationJob(child.id);

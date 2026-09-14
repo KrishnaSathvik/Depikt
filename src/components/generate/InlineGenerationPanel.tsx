@@ -4,6 +4,7 @@ import { simplifyRatioLabel, type useGeneration } from "@/lib/generation/use-gen
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
+import { SeriesJobsGrid } from "@/components/generate/SeriesJobsGrid";
 import { cn } from "@/lib/utils";
 
 export interface InlineGenerationPanelProps {
@@ -62,37 +63,41 @@ export function InlineGenerationPanel({
       )}
     >
       <ScrollIntoViewOnMount targetRef={panelRef} />
-      <GenerationCanvas
-        state={
-          gen.phase === "starting" || gen.phase === "polling"
-            ? "generating"
-            : gen.phase === "result"
-              ? "result"
-              : "error"
-        }
-        aspectRatio={resolvedSize.ratioLabel}
-        orientation={resolvedSize.orientation}
-        imageUrl={gen.resultUrl}
-        errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
-        onRetry={() => gen.regenerate()}
-        jobStatus={
-          gen.job?.status === "queued" || gen.job?.status === "running"
-            ? gen.job.status
-            : gen.phase === "starting"
-              ? "queued"
-              : "running"
-        }
-        actions={
-          editing ? undefined : (
-            <GenerationActions
-              onDownload={gen.download}
-              onEdit={() => setEditing((e) => !e)}
-              onRegenerate={() => gen.regenerate()}
-            />
-          )
-        }
-      />
-      {gen.phase === "result" && editing && (
+      {gen.jobs.length > 1 ? (
+        <SeriesJobsGrid jobs={gen.jobs} />
+      ) : (
+        <GenerationCanvas
+          state={
+            gen.phase === "starting" || gen.phase === "polling"
+              ? "generating"
+              : gen.phase === "result"
+                ? "result"
+                : "error"
+          }
+          aspectRatio={resolvedSize.ratioLabel}
+          orientation={resolvedSize.orientation}
+          imageUrl={gen.resultUrl}
+          errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
+          onRetry={() => gen.regenerate()}
+          jobStatus={
+            gen.job?.status === "queued" || gen.job?.status === "running"
+              ? gen.job.status
+              : gen.phase === "starting"
+                ? "queued"
+                : "running"
+          }
+          actions={
+            editing ? undefined : (
+              <GenerationActions
+                onDownload={gen.download}
+                onEdit={() => setEditing((e) => !e)}
+                onRegenerate={() => gen.regenerate()}
+              />
+            )
+          }
+        />
+      )}
+      {gen.jobs.length <= 1 && gen.phase === "result" && editing && (
         <GenerationEditForm
           value={editPrompt}
           onChange={setEditPrompt}

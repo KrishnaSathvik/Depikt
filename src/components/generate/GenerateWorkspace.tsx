@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, ImagePlus, X, RefreshCw, Loader2 } from "lucide-react";
+import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
@@ -12,7 +12,6 @@ import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
 import {
   useGeneration,
   simplifyRatioLabel,
-  type GenerationChildJob,
   type ReferenceEntry,
 } from "@/lib/generation/use-generation";
 import type { RoutingHints } from "@/lib/generation/model-router";
@@ -22,12 +21,12 @@ import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
 import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
+import { SeriesJobsGrid } from "@/components/generate/SeriesJobsGrid";
 import { trackEvent } from "@/lib/analytics";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { ModeHero } from "@/components/prompt/ModeHero";
-import { PROMPT_MODE_COPY, GENERATION_STAGE_LABELS } from "@/lib/product";
-import { cn } from "@/lib/utils";
+import { PROMPT_MODE_COPY } from "@/lib/product";
 
 /**
  * /generate — the direct creation workspace.
@@ -307,59 +306,6 @@ export function GenerateWorkspace() {
         )}
       </div>
     </>
-  );
-}
-
-/** A confirmed series' child jobs — label + image (once succeeded) or a
- *  spinner (queued/running), reusing the shared thinking copy. No per-job
- *  edit/regenerate here; "New" above still blanks the whole composer. */
-function SeriesJobsGrid({ jobs }: { jobs: GenerationChildJob[] }) {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {jobs.map((job, i) => (
-        <SeriesJobSlot key={job.jobId} job={job} index={i} />
-      ))}
-    </div>
-  );
-}
-
-function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number }) {
-  const label = job.label || `Image ${index + 1}`;
-
-  if (job.status === "succeeded" && job.result) {
-    return (
-      <div className="space-y-1.5">
-        <img
-          src={job.result.url}
-          alt={label}
-          className="aspect-square w-full rounded-md border border-[color:var(--border-subtle)] object-cover"
-        />
-        <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
-      </div>
-    );
-  }
-
-  const failed = job.status === "failed" || job.status === "cancelled";
-  return (
-    <div
-      className={cn(
-        "flex aspect-square flex-col items-center justify-center gap-2 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-3",
-      )}
-    >
-      {failed ? (
-        <p className="text-body-sm text-red-600">{job.errorMessage ?? "Failed"}</p>
-      ) : (
-        <Loader2 className="h-5 w-5 animate-spin text-[color:var(--text-tertiary)]" />
-      )}
-      <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
-      {!failed && (
-        <p className="text-[11px] text-[color:var(--text-tertiary)]">
-          {job.status === "queued"
-            ? GENERATION_STAGE_LABELS.starting
-            : GENERATION_STAGE_LABELS.creating}
-        </p>
-      )}
-    </div>
   );
 }
 

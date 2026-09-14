@@ -107,3 +107,18 @@ has ~3550 pre-existing findings unrelated to this task and was left alone.
 ## Report path
 
 `/Users/krishnasathvikmantripragada/depikt/.superpowers/sdd/task-9-report.md`
+
+## Review fixes
+
+- `pollSession()` now calls `jobsNeedingStart(session.jobs)` on every tick and
+  dispatches `startGenerationJob` for each queued child using the currently
+  uploaded paths from `referencesRef`. Mount resume enters the same poll path,
+  so refresh recovery and dropped `/run` requests restart queued reservations.
+- Extracted `SeriesJobsGrid` into a shared component. `GenerateWorkspace` and
+  `InlineGenerationPanel` both render it for `gen.jobs.length > 1`; inline
+  Build/Critique generation keeps its existing single-job canvas otherwise.
+- Expanded `generate-job-resume.test.ts` to source-check queued-child restart,
+  current reference paths, mount's shared poll path, and shared inline grid use.
+- Verification after review fixes: focused resume/series tests pass (8/8),
+  `npm test` passes (516/516), and `npm run typecheck` is clean.
+- No Critic Intent object or Task 10 telemetry was added.

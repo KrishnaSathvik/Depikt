@@ -46,6 +46,15 @@ test("the active generation session id survives a refresh and is resumed on moun
   assert.match(pollSessionFn, /saveActiveSession\(sessionId\)/);
   assert.match(pollSessionFn, /clearActiveSession\(\)/);
   assert.match(pollSessionFn, /detailed\.every\(\(j\) => isTerminalStatus\(j\.status\)\)/);
+  // Every tick must restart children still queued. This covers both normal
+  // polling after a dropped /run request and mount resume, because the mount
+  // effect enters this same pollSession path.
+  assert.match(pollSessionFn, /jobsNeedingStart\(session\.jobs\)/);
+  assert.match(pollSessionFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
+  assert.match(
+    pollSessionFn,
+    /referencesRef\.current\s*\.map\(\(reference\) => reference\.uploadedPath\)/,
+  );
 
   // A dedicated mount effect resumes any session left active from a
   // previous load, separate from the one-shot Library/Gallery/Prompt
@@ -71,6 +80,17 @@ test("the active generation session id survives a refresh and is resumed on moun
     read("src/components/generate/InlineGenerationPanel.tsx"),
     /gen\.job\?\.width && gen\.job\?\.height/,
   );
+});
+
+test("Build and Critique inline generation renders every series child", () => {
+  const inline = read("src/components/generate/InlineGenerationPanel.tsx");
+  const workspace = read("src/components/generate/GenerateWorkspace.tsx");
+
+  assert.match(inline, /import \{ SeriesJobsGrid \} from/);
+  assert.match(inline, /gen\.jobs\.length > 1 \?/);
+  assert.match(inline, /<SeriesJobsGrid jobs=\{gen\.jobs\} \/>/);
+  assert.match(workspace, /import \{ SeriesJobsGrid \} from/);
+  assert.match(workspace, /<SeriesJobsGrid jobs=\{gen\.jobs\} \/>/);
 });
 
 test("jobs from a session are given full per-job detail, not just id/status", () => {
