@@ -7,7 +7,7 @@ import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import type { ModelAlias } from "@/lib/generation/models";
-import { duplicateStartResponse } from "@/lib/generation/series-resume";
+import { classifyJobClaimResult, duplicateStartResponse } from "@/lib/generation/series-resume";
 
 /**
  * POST /api/generation/jobs/:id/run — execute a queued job.
@@ -57,15 +57,25 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (!job) return jsonError("Not found", 404);
 
         // Claim it. Anything other than `queued` means someone else is on it.
-        const { data: claimed } = await supabase
+        const claimResult = await supabase
           .from("generation_jobs")
           .update({ status: "running", started_at: new Date().toISOString() })
           .eq("id", job.id)
           .eq("status", "queued")
           .select("id")
           .maybeSingle();
-        if (!claimed) {
-          return duplicateStartResponse(job.status as string, corsHeaders);
+        const claimOutcome = classifyJobClaimResult(claimResult);
+        switch (claimOutcome) {
+          case "error":
+            return jsonError("Could not claim the job", 500);
+          case "duplicate":
+            return duplicateStartResponse(job.status as string, corsHeaders);
+          case "claimed":
+            break;
+          default: {
+            const _exhaustive: never = claimOutcome;
+            return _exhaustive;
+          }
         }
 
         const apiKey = process.env.OPENAI_API_KEY;

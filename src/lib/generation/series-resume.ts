@@ -11,3 +11,12 @@ export function duplicateStartResponse(
     headers: { "Content-Type": "application/json", ...headers },
   });
 }
+
+export function classifyJobClaimResult(result: {
+  data: unknown;
+  error: unknown;
+}): "error" | "duplicate" | "claimed" {
+  if (result.error) return "error";
+  if (!result.data) return "duplicate";
+  return "claimed";
+}

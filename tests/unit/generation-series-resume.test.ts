@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  classifyJobClaimResult,
   duplicateStartResponse,
   jobsNeedingStart,
 } from "../../src/lib/generation/series-resume.ts";
@@ -48,4 +49,10 @@ test("claimed false is a successful duplicate start response", async () => {
 
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { claimed: false, status: "running" });
+});
+
+test("classifyJobClaimResult distinguishes error, duplicate, and claimed", () => {
+  assert.equal(classifyJobClaimResult({ data: null, error: { message: "fail" } }), "error");
+  assert.equal(classifyJobClaimResult({ data: null, error: null }), "duplicate");
+  assert.equal(classifyJobClaimResult({ data: { id: "job-1" }, error: null }), "claimed");
 });
