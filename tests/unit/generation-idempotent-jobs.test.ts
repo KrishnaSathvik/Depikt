@@ -6,9 +6,24 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  generationJobIdempotencyKeys,
   toExistingJobsResult,
   type ExistingJobRow,
 } from "../../src/lib/generation/idempotent-jobs.ts";
+
+test("single replay uses the exact idempotency key", () => {
+  assert.deepEqual(generationJobIdempotencyKeys("submit_%_literal", false, 1), [
+    "submit_%_literal",
+  ]);
+});
+
+test("series replay builds exact child keys without LIKE wildcard semantics", () => {
+  assert.deepEqual(generationJobIdempotencyKeys("series_%_literal", true, 3), [
+    "series_%_literal:1",
+    "series_%_literal:2",
+    "series_%_literal:3",
+  ]);
+});
 
 test("no matching rows means no replay -- the caller proceeds to create a new session", () => {
   assert.equal(toExistingJobsResult([]), null);

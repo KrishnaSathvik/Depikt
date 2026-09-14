@@ -12,7 +12,11 @@ import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/ref
 import type { Intent } from "@/lib/prompt-engine/intent";
 import { asGenerationClient } from "@/lib/generation/db-types";
 import { buildExecutionPlanJson } from "@/lib/generation/execution-plan";
-import { toExistingJobsResult, type ExistingJobRow } from "@/lib/generation/idempotent-jobs";
+import {
+  generationJobIdempotencyKeys,
+  toExistingJobsResult,
+  type ExistingJobRow,
+} from "@/lib/generation/idempotent-jobs";
 
 // Reference intents where the image must be reproduced faithfully, not just
 // used for inspiration — see reference.ts. A prompt built for one of these
@@ -117,24 +121,27 @@ export const Route = createFileRoute("/api/generation/jobs")({
           return jsonError("This plan has expired. Please try again.", 400);
         }
 
-        // Idempotent replay (retry, double-submit, a second tab): a single
-        // job matches this exact key; a series matches the `key:1..N`
-        // prefix create_generation_jobs assigns each child. Check before
-        // doing anything else so a replay never inserts a second session
-        // for jobs that already exist -- see idempotent-jobs.ts.
+        let selected: number;
+        try {
+          selected = resolveSelectedCount(payload.plan, req.selectedCount ?? undefined);
+        } catch (e) {
+          return jsonError((e as Error).message, 400);
+        }
+
+        // Idempotent replay (retry, double-submit, a second tab). Use the
+        // exact key(s) create_generation_job(s) assigns rather than LIKE:
+        // idempotency keys may legally contain `%` or `_`.
         const isSeriesPlan = payload.plan.mode === "series";
-        const existingJobsQuery = isSeriesPlan
-          ? supabase
-              .from("generation_jobs")
-              .select("id, session_id, status, series_index, series_label")
-              .eq("user_id", userId)
-              .like("idempotency_key", `${req.idempotencyKey}:%`)
-          : supabase
-              .from("generation_jobs")
-              .select("id, session_id, status, series_index, series_label")
-              .eq("user_id", userId)
-              .eq("idempotency_key", req.idempotencyKey);
-        const { data: existingJobRows, error: existingJobsError } = await existingJobsQuery;
+        const expectedIdempotencyKeys = generationJobIdempotencyKeys(
+          req.idempotencyKey,
+          isSeriesPlan,
+          selected,
+        );
+        const { data: existingJobRows, error: existingJobsError } = await supabase
+          .from("generation_jobs")
+          .select("id, session_id, status, series_index, series_label")
+          .eq("user_id", userId)
+          .in("idempotency_key", expectedIdempotencyKeys);
         if (existingJobsError) {
           return jsonError("Could not check for an existing generation job", 500);
         }
@@ -144,13 +151,6 @@ export const Route = createFileRoute("/api/generation/jobs")({
             status: 202,
             headers: { "Content-Type": "application/json", ...corsHeaders },
           });
-        }
-
-        let selected: number;
-        try {
-          selected = resolveSelectedCount(payload.plan, req.selectedCount ?? undefined);
-        } catch (e) {
-          return jsonError((e as Error).message, 400);
         }
 
         // Annual subscribers receive credits monthly: settle anything due
@@ -212,24 +212,69 @@ export const Route = createFileRoute("/api/generation/jobs")({
           sourceVersionId: payload.sourceVersionId,
           children,
         });
-        const { data: session, error: sessionError } = await supabase
+        const { data: insertedSession, error: sessionError } = await supabase
           .from("generation_sessions")
           .insert({
             user_id: userId,
             source_type: req.sourceContextType,
             source_id: req.sourceContextId,
             plan_json: executionPlan,
+            create_idempotency_key: req.idempotencyKey,
           })
           .select("id")
           .single();
-        if (sessionError || !session) return jsonError("Could not start a generation session", 500);
+
+        let sessionId: string;
+        if (!sessionError && insertedSession) {
+          sessionId = insertedSession.id;
+        } else if (sessionError?.code === "23505") {
+          // A concurrent submit won the session insert. Its insert commits
+          // just before its job RPC, so wait briefly for those jobs and
+          // return only that session's replay. The losing request must never
+          // create jobs from a different token against the winner's stored
+          // plan_json.
+          const { data: existingSession, error: existingSessionError } = await supabase
+            .from("generation_sessions")
+            .select("id")
+            .eq("user_id", userId)
+            .eq("create_idempotency_key", req.idempotencyKey)
+            .single();
+          if (existingSessionError || !existingSession) {
+            return jsonError("Could not replay the generation session", 500);
+          }
+
+          for (let attempt = 0; attempt < 20; attempt += 1) {
+            const { data: concurrentJobRows, error: concurrentJobsError } = await supabase
+              .from("generation_jobs")
+              .select("id, session_id, status, series_index, series_label")
+              .eq("user_id", userId)
+              .eq("session_id", existingSession.id)
+              .in("idempotency_key", expectedIdempotencyKeys);
+            if (concurrentJobsError) {
+              return jsonError("Could not replay the generation jobs", 500);
+            }
+            const concurrentResult = toExistingJobsResult(
+              (concurrentJobRows ?? []) as ExistingJobRow[],
+            );
+            if (concurrentResult) {
+              return new Response(JSON.stringify(concurrentResult), {
+                status: 202,
+                headers: { "Content-Type": "application/json", ...corsHeaders },
+              });
+            }
+            await new Promise((resolve) => setTimeout(resolve, 100));
+          }
+          return jsonError("Generation is still being prepared. Please retry.", 409);
+        } else {
+          return jsonError("Could not start a generation session", 500);
+        }
 
         if (children.length === 1) {
           const { data: created, error: createError } = await supabase.rpc(
             "create_generation_job",
             {
               p_user_id: userId,
-              p_session_id: session.id,
+              p_session_id: sessionId,
               p_operation: operation,
               p_model: model,
               p_prompt: children[0].prompt,
@@ -245,7 +290,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
 
           return new Response(
             JSON.stringify({
-              sessionId: session.id,
+              sessionId,
               jobs: [{ id: row.job_id, label: null, index: null, status: "queued" }],
             }),
             { status: 202, headers: { "Content-Type": "application/json", ...corsHeaders } },
@@ -254,7 +299,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
 
         const { data: created, error: createError } = await supabase.rpc("create_generation_jobs", {
           p_user_id: userId,
-          p_session_id: session.id,
+          p_session_id: sessionId,
           p_operation: operation,
           p_model: model,
           p_prompts: children.map((c) => c.prompt),
@@ -271,7 +316,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         const jobIds = (row.job_ids ?? []) as string[];
         return new Response(
           JSON.stringify({
-            sessionId: session.id,
+            sessionId,
             jobs: jobIds.map((id, index) => ({
               id,
               label: children[index]?.label ?? null,

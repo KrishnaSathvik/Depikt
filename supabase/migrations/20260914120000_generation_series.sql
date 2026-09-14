@@ -5,7 +5,45 @@ ALTER TABLE public.generation_jobs
   ADD COLUMN IF NOT EXISTS series_label text;
 
 ALTER TABLE public.generation_sessions
-  ADD COLUMN IF NOT EXISTS plan_json jsonb;
+  ADD COLUMN IF NOT EXISTS plan_json jsonb,
+  ADD COLUMN IF NOT EXISTS create_idempotency_key text;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+      FROM pg_constraint
+     WHERE conname = 'generation_sessions_user_create_idempotency_key_key'
+       AND conrelid = 'public.generation_sessions'::regclass
+  ) THEN
+    ALTER TABLE public.generation_sessions
+      ADD CONSTRAINT generation_sessions_user_create_idempotency_key_key
+      UNIQUE (user_id, create_idempotency_key);
+  END IF;
+END $$;
+
+-- The owner policy permits UPDATE, but the signed plan's verified reference
+-- assets are persisted in plan_json and later trusted by /run. Keep that
+-- execution identity, its owner, and its submit key immutable after insert.
+CREATE OR REPLACE FUNCTION public.prevent_generation_session_identity_change()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.user_id IS DISTINCT FROM OLD.user_id
+     OR NEW.plan_json IS DISTINCT FROM OLD.plan_json
+     OR NEW.create_idempotency_key IS DISTINCT FROM OLD.create_idempotency_key
+  THEN
+    RAISE EXCEPTION 'generation_sessions: user_id, plan_json, and create_idempotency_key are immutable after creation';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS generation_sessions_identity_lock ON public.generation_sessions;
+CREATE TRIGGER generation_sessions_identity_lock
+  BEFORE UPDATE ON public.generation_sessions
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_generation_session_identity_change();
 
 -- Atomically reserves one credit per child and creates the complete series.
 -- A replay returns the existing jobs; a partial replay is rejected.

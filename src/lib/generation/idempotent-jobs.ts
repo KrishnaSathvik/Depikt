@@ -24,6 +24,19 @@ export interface ExistingJobsResult {
   jobs: Array<{ id: string; label: string | null; index: number | null; status: string }>;
 }
 
+/**
+ * Exact keys assigned by create_generation_job(s). Keeping this as a list
+ * avoids treating user-controlled `%` and `_` characters as LIKE wildcards.
+ */
+export function generationJobIdempotencyKeys(
+  idempotencyKey: string,
+  isSeries: boolean,
+  selectedCount: number,
+): string[] {
+  if (!isSeries) return [idempotencyKey];
+  return Array.from({ length: selectedCount }, (_, index) => `${idempotencyKey}:${index + 1}`);
+}
+
 /** Same `{ sessionId, jobs }` shape a fresh create returns, from previously matched rows. */
 export function toExistingJobsResult(rows: ExistingJobRow[]): ExistingJobsResult | null {
   if (rows.length === 0) return null;
