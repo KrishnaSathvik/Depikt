@@ -20,6 +20,26 @@ export interface StaleJobResult {
   safe_error_message: string | null;
 }
 
+export async function settleSucceededJobCredits(
+  supabase: UntypedSupabaseClient,
+  job: Pick<StaleJob, "id" | "user_id" | "idempotency_key" | "status">,
+): Promise<void> {
+  if (job.status !== "succeeded") return;
+
+  try {
+    const { error } = await supabase.rpc("finalize_generation_credits", {
+      p_user_id: job.user_id,
+      p_amount: 1,
+      p_idempotency_key: job.idempotency_key,
+      p_outcome: "charged",
+      p_job_id: job.id,
+    });
+    if (error) return;
+  } catch {
+    return;
+  }
+}
+
 export function applyStaleFailure(
   job: Pick<StaleJob, "status" | "created_at">,
   now: Date,

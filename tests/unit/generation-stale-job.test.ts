@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { UntypedSupabaseClient } from "../../src/lib/generation/db-types.ts";
-import { failAndRefundStaleJob, type StaleJob } from "../../src/lib/generation/stale-job.ts";
+import {
+  failAndRefundStaleJob,
+  settleSucceededJobCredits,
+  type StaleJob,
+} from "../../src/lib/generation/stale-job.ts";
 
 interface FakeOptions {
   updateData: { id: string } | null;
@@ -62,6 +66,41 @@ const staleJob: StaleJob = {
   safe_error_message: null,
 };
 const now = new Date("2026-09-14T12:07:00.000Z");
+
+test("settles a succeeded job as charged", async () => {
+  const calls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const client = {
+    rpc: async (name: string, args: Record<string, unknown>) => {
+      calls.push({ name, args });
+      return { data: null, error: null };
+    },
+  } as unknown as UntypedSupabaseClient;
+
+  await settleSucceededJobCredits(client, { ...staleJob, status: "succeeded" });
+
+  assert.deepEqual(calls, [
+    {
+      name: "finalize_generation_credits",
+      args: {
+        p_user_id: "user-1",
+        p_amount: 1,
+        p_idempotency_key: "series:0",
+        p_outcome: "charged",
+        p_job_id: "job-1",
+      },
+    },
+  ]);
+});
+
+test("swallows charge settlement RPC errors", async () => {
+  const client = {
+    rpc: async () => ({ data: null, error: new Error("charge unavailable") }),
+  } as unknown as UntypedSupabaseClient;
+
+  await assert.doesNotReject(() =>
+    settleSucceededJobCredits(client, { ...staleJob, status: "succeeded" }),
+  );
+});
 
 test("refunds once when the stale failure transition succeeds", async () => {
   const fake = createFakeSupabase({ updateData: { id: staleJob.id } });

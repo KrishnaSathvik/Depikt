@@ -6,6 +6,7 @@ import { asGenerationClient } from "@/lib/generation/db-types";
 import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 import {
   failAndRefundStaleJob,
+  settleSucceededJobCredits,
   STALE_ERROR_MESSAGE,
   type StaleJob,
 } from "@/lib/generation/stale-job";
@@ -48,6 +49,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         } else if (staleResult.status === "failed") {
           job.safe_error_message = staleResult.safe_error_message;
         }
+
+        await settleSucceededJobCredits(supabase, job as StaleJob);
 
         let version: { id: string; storage_path: string; width: number; height: number } | null =
           null;

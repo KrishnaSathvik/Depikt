@@ -159,3 +159,23 @@ Verification:
 
 Concern: charge failures are intentionally returned as successful job outcomes;
 the persistent settlement retry mechanism remains future work.
+
+## Important finding follow-up: charge settlement retry
+
+Added `settleSucceededJobCredits(...)`, which retries the idempotent
+`finalize_generation_credits` RPC with `p_outcome: "charged"` and swallows RPC
+errors so a later poll can retry. Both the job GET route and every succeeded job
+in the session GET route invoke it after stale handling. Succeeded jobs are never
+refunded, and the pipeline charge/catch split is unchanged.
+
+Verification:
+
+- `node --test tests/unit/generation-stale-job.test.ts tests/unit/generation-job-pipeline.test.ts`:
+  pass, 20 tests, 0 failures.
+- `npm test`: pass, 481 tests, 0 failures.
+- `npm run typecheck`: pass.
+- Focused IDE lint diagnostics: clean.
+- `git diff --check`: pass.
+
+Concern: settlement remains poll-driven, so a succeeded job is charged when its
+job or session endpoint is next polled.

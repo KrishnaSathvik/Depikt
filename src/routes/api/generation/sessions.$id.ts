@@ -4,7 +4,11 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asGenerationClient } from "@/lib/generation/db-types";
 import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
-import { failAndRefundStaleJob, type StaleJob } from "@/lib/generation/stale-job";
+import {
+  failAndRefundStaleJob,
+  settleSucceededJobCredits,
+  type StaleJob,
+} from "@/lib/generation/stale-job";
 
 /**
  * GET /api/generation/sessions/:id — every version in one creative thread,
@@ -45,6 +49,10 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
         const sessionJobs = await Promise.all(
           (jobs ?? []).map(async (job) => {
             const staleResult = await failAndRefundStaleJob(supabase, job as StaleJob);
+            await settleSucceededJobCredits(supabase, {
+              ...job,
+              status: staleResult.status,
+            } as StaleJob);
             return {
               id: job.id,
               status: staleResult.status,
