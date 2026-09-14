@@ -7,6 +7,7 @@ import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import type { ModelAlias } from "@/lib/generation/models";
+import { duplicateStartResponse } from "@/lib/generation/series-resume";
 
 /**
  * POST /api/generation/jobs/:id/run — execute a queued job.
@@ -64,10 +65,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           .select("id")
           .maybeSingle();
         if (!claimed) {
-          return new Response(JSON.stringify({ claimed: false, status: job.status }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          });
+          return duplicateStartResponse(job.status as string, corsHeaders);
         }
 
         const apiKey = process.env.OPENAI_API_KEY;

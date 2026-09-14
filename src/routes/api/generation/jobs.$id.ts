@@ -4,6 +4,11 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asGenerationClient } from "@/lib/generation/db-types";
 import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+import {
+  failAndRefundStaleJob,
+  STALE_ERROR_MESSAGE,
+  type StaleJob,
+} from "@/lib/generation/stale-job";
 
 /**
  * GET /api/generation/jobs/:id — poll a job's status.
@@ -36,41 +41,10 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         if (error) return jsonError("Could not load the job", 500);
         if (!job) return jsonError("Not found", 404);
 
-        // Give up on a job that can never finish. The worker running it can
-        // die (deploy, isolate eviction, a dropped run request) leaving the
-        // row `queued`/`running` forever with a credit still reserved — the
-        // UI would then poll indefinitely. Past the cap, fail it and refund.
-        const STALE_MS = 6 * 60 * 1000;
-        if (
-          (job.status === "queued" || job.status === "running") &&
-          Date.now() - new Date(job.created_at as string).getTime() > STALE_MS
-        ) {
-          await supabase
-            .from("generation_jobs")
-            .update({
-              status: "failed",
-              completed_at: new Date().toISOString(),
-              error_code: "timed_out",
-              safe_error_message: "Generation timed out. Your credit was returned.",
-            })
-            .eq("id", job.id)
-            .in("status", ["queued", "running"]);
-          await supabase
-            .rpc("finalize_generation_credits", {
-              p_user_id: job.user_id as string,
-              p_amount: 1,
-              p_idempotency_key: job.idempotency_key as string,
-              p_outcome: "refunded",
-              p_job_id: job.id as string,
-            })
-            .then(
-              () => undefined,
-              () => undefined,
-            );
+        if (await failAndRefundStaleJob(supabase, job as StaleJob)) {
           job.status = "failed";
-          job.safe_error_message = "Generation timed out. Your credit was returned.";
+          job.safe_error_message = STALE_ERROR_MESSAGE;
         }
-
 
         let version: { id: string; storage_path: string; width: number; height: number } | null =
           null;
