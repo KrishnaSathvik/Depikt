@@ -60,32 +60,37 @@ test("a failed reference upload is flagged for retry, never filtered out of stat
 
 // Regression: attaching a reference image on a *first* Generate submission
 // (no sourceVersionId yet -- that only exists once a job has already run)
-// was silently ignored. The reference uploaded fine and was included in
-// the request as referenceAssetIds, but submit() picked
-// `operation: input.sourceVersionId ? "edit" : "generate"`, and job-
-// pipeline.ts's "generate" branch calls OpenAI's images/generations
-// endpoint with no reference images at all -- only "edit" (images/edits)
-// accepts image input. Confirmed live: attaching a landscape reference and
-// asking to "edit this" produced a result with zero relation to it. The
-// server already anticipated this (job-request.ts allows "edit" with
-// referenceAssetIds alone, no sourceVersionId required) -- only the client
-// never asked for it.
-test("submit() routes through the edit operation whenever a reference is attached, not just when editing an existing version", () => {
+// was silently ignored, because submit() picked the OpenAI operation
+// client-side from `input.sourceVersionId` alone and ignored referenceAssetIds
+// entirely. job-pipeline.ts's "generate" branch calls OpenAI's
+// images/generations endpoint with no reference images at all -- only "edit"
+// (images/edits) accepts image input. Confirmed live: attaching a landscape
+// reference and asking to "edit this" produced a result with zero relation
+// to it.
+//
+// Depikt VNext 1 (plan-token cutover) removed the client-side operation
+// choice altogether: submit() no longer decides generate vs edit at all --
+// it always forwards referenceAssetIds (and sourceVersionId, if any) to
+// POST /plans, and the server derives the real operation from the plan's
+// own analysis of the request (see plans.ts / jobs.ts). The original
+// regression -- a reference silently dropped from the request -- is now
+// structurally impossible: referenceAssetIds always reaches the plan.
+test("submit() never decides generate vs edit itself, and always forwards attached references to the plan", () => {
   const g = read("src/lib/generation/use-generation.ts");
   const submitFn = g.slice(
     g.indexOf("async function submit"),
     g.indexOf("// Re-upload any references"),
   );
 
-  // The old, buggy selection ignored attached references entirely.
-  assert.doesNotMatch(submitFn, /operation: input\.sourceVersionId \? "edit" : "generate"/);
-  assert.match(
-    submitFn,
-    /operation: input\.sourceVersionId \|\| referenceAssetIds\.length > 0 \? "edit" : "generate"/,
-  );
+  // The old, buggy client-side operation choice must be gone entirely --
+  // there is no "operation" field in a plan or jobs request at all.
+  assert.doesNotMatch(submitFn, /operation:/);
+  assert.match(submitFn, /createGenerationPlan\(\{/);
+  assert.match(submitFn, /referenceAssetIds,/);
 
   // job-pipeline.ts's "generate" branch never receives referenceImages --
-  // this is *why* the operation choice matters, not just cosmetic.
+  // this is *why* the server's own operation choice matters, not just
+  // cosmetic.
   const pipeline = read("src/lib/generation/job-pipeline.ts");
   const generateCall = pipeline.slice(
     pipeline.indexOf('job.operation === "generate"'),

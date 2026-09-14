@@ -18,10 +18,10 @@ import {
   type ReferenceImageState,
 } from "@/lib/reference-image";
 import {
-  createGenerationJob,
+  createGenerationPlan,
+  createGenerationJobs,
   startGenerationJob,
   getGenerationJob,
-
   getGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
@@ -350,31 +350,39 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       const referenceAssetIds = referencesRef.current
         .map((r) => r.uploadedPath)
         .filter((p): p is string => !!p);
-      // A "generate" operation calls OpenAI's images/generations endpoint,
-      // which has no concept of input images at all -- any attached
-      // reference would be uploaded, included in the request, and then
-      // silently dropped before the actual API call, producing an image
-      // unrelated to the reference. Attaching a reference (with or
-      // without an existing sourceVersionId) must route through "edit"
-      // (images/edits), the only endpoint that accepts image input; the
-      // server already supports and expects this (job-request.ts allows
-      // "edit" with referenceAssetIds alone, no sourceVersionId needed).
-      const res = await createGenerationJob({
-        operation: input.sourceVersionId || referenceAssetIds.length > 0 ? "edit" : "generate",
+      // Depikt decides generate vs edit server-side, from the plan's own
+      // analysis of the request (task / reference_intent) -- see plans.ts
+      // and jobs.ts. The browser never chooses an operation; it only
+      // forwards what it actually has (prompt, attached references, an
+      // existing source version if any) and always via the plan/jobs pair,
+      // so a reference attached on a first submission is never dropped --
+      // see generate-reference-upload.test.ts.
+      const planRes = await createGenerationPlan({
         prompt: effectivePrompt,
         referenceAssetIds,
         sourceVersionId: input.sourceVersionId ?? null,
         sourceContext: sourceContextRef.current,
+        structuredAspectRatio: input.structuredAspectRatio ?? null,
+      });
+      // Smallest viable wiring: always take the plan's auto-count with no
+      // confirmation step, even when the plan itself would ask for one
+      // (requiresCountConfirmation). Confirm-before-create UI (planPreview /
+      // confirmSeriesCount) is a follow-up; this still generates a real,
+      // credit-correct batch today.
+      const res = await createGenerationJobs({
+        planToken: planRes.planToken,
+        selectedCount: planRes.plan.autoCount,
         idempotencyKey,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
-        routingHints: input.routingHints ?? undefined,
+        sourceContext: sourceContextRef.current,
       });
+      const firstJob = res.jobs[0];
+      if (!firstJob) throw new GenerationApiError("Could not create the generation job", 500);
       // Deliberately not awaited: this request stays open for the whole
       // generation (that is what keeps the server-side work alive). Polling
       // below is what drives the UI.
-      void startGenerationJob(res.jobId, referenceAssetIds).catch(() => {});
-      pollJob(res.jobId);
-
+      void startGenerationJob(firstJob.id, referenceAssetIds).catch(() => {});
+      pollJob(firstJob.id);
     } catch (err) {
       setPhase("error");
       if (err instanceof GenerationApiError && err.status === 402) {

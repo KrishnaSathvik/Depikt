@@ -35,6 +35,7 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
 import { Route as ApiPublicCritiquePromptRouteImport } from './routes/api/public/critique-prompt'
 import { Route as ApiGenerationReferencesRouteImport } from './routes/api/generation/references'
+import { Route as ApiGenerationPlansRouteImport } from './routes/api/generation/plans'
 import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
 import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
 import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
@@ -183,6 +184,11 @@ const ApiGenerationReferencesRoute = ApiGenerationReferencesRouteImport.update({
   path: '/api/generation/references',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerationPlansRoute = ApiGenerationPlansRouteImport.update({
+  id: '/api/generation/plans',
+  path: '/api/generation/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationJobsRoute = ApiGenerationJobsRouteImport.update({
   id: '/api/generation/jobs',
   path: '/api/generation/jobs',
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
@@ -345,6 +352,7 @@ export interface FileRoutesByTo {
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
@@ -390,6 +398,7 @@ export interface FileRoutesById {
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
+    | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
@@ -480,6 +490,7 @@ export interface FileRouteTypes {
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
+    | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
@@ -524,6 +535,7 @@ export interface FileRouteTypes {
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
     | '/api/generation/jobs'
+    | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
@@ -569,6 +581,7 @@ export interface RootRouteChildren {
   ApiBlogRssDotxmlRoute: typeof ApiBlogRssDotxmlRoute
   ApiGenerationCreditsRoute: typeof ApiGenerationCreditsRoute
   ApiGenerationJobsRoute: typeof ApiGenerationJobsRouteWithChildren
+  ApiGenerationPlansRoute: typeof ApiGenerationPlansRoute
   ApiGenerationReferencesRoute: typeof ApiGenerationReferencesRoute
   ApiPublicCritiquePromptRoute: typeof ApiPublicCritiquePromptRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
@@ -760,6 +773,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationReferencesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generation/plans': {
+      id: '/api/generation/plans'
+      path: '/api/generation/plans'
+      fullPath: '/api/generation/plans'
+      preLoaderRoute: typeof ApiGenerationPlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/jobs': {
       id: '/api/generation/jobs'
       path: '/api/generation/jobs'
@@ -934,6 +954,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBlogRssDotxmlRoute: ApiBlogRssDotxmlRoute,
   ApiGenerationCreditsRoute: ApiGenerationCreditsRoute,
   ApiGenerationJobsRoute: ApiGenerationJobsRouteWithChildren,
+  ApiGenerationPlansRoute: ApiGenerationPlansRoute,
   ApiGenerationReferencesRoute: ApiGenerationReferencesRoute,
   ApiPublicCritiquePromptRoute: ApiPublicCritiquePromptRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,

@@ -6,12 +6,16 @@
 // models.ts and aspect-ratio.ts. As of the Image Model Router, `model` is
 // no longer a client-submitted field at all: the client never asks the
 // user to choose Flare or Sunburst, so there's nothing to validate or
-// trust there — see model-router.ts, called separately by the route
-// handler with this validated request's operation/prompt/reference count.
+// trust there — see model-router.ts.
+//
+// As of the plan-token cutover (Depikt VNext 1), the browser never submits
+// an executable plan: POST /plans turns a prompt (+ optional pre-computed
+// intent) into a signed, opaque planToken; POST /jobs accepts only that
+// token plus an optional selectedCount for series confirmation. There is no
+// client-submitted `operation`, `mode`, `count`, `children`, or raw `plan`
+// object anywhere in this file — see plan.ts and plan-token.ts.
 
 import { MAX_REFERENCE_IMAGES_V1 } from "./models.ts";
-import { resolveGenerationSize, type ResolvedSize } from "./aspect-ratio.ts";
-import type { RoutingHints } from "./model-router.ts";
 
 export type SourceContextType =
   | "direct"
@@ -21,7 +25,7 @@ export type SourceContextType =
   | "prompt_critique"
   | "template";
 
-const SOURCE_CONTEXT_TYPES: readonly SourceContextType[] = [
+export const SOURCE_CONTEXT_TYPES: readonly SourceContextType[] = [
   "direct",
   "library",
   "gallery",
@@ -32,58 +36,77 @@ const SOURCE_CONTEXT_TYPES: readonly SourceContextType[] = [
 
 export const MAX_PROMPT_CHARS = 4000;
 
-export interface ValidatedGenerationRequest {
-  operation: "generate" | "edit";
-  prompt: string;
-  referenceAssetIds: string[];
-  sourceVersionId: string | null;
-  sourceContextType: SourceContextType;
-  sourceContextId: string | null;
-  idempotencyKey: string;
-  size: ResolvedSize;
-  /** Optional structured signal from Prompt's Intent Analyzer, fed to the model router. Never used to pick a raw model id directly. */
-  routingHints: RoutingHints | null;
-}
-
-export type ValidationResult =
-  | { ok: true; request: ValidatedGenerationRequest }
-  | { ok: false; error: string };
-
 function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0;
 }
 
-function parseRoutingHints(value: unknown): RoutingHints | null {
-  if (typeof value !== "object" || value === null) return null;
-  const v = value as Record<string, unknown>;
-  const hints: RoutingHints = {};
-  if (isNonEmptyString(v.category)) hints.category = v.category;
-  if (typeof v.exactTextCount === "number" && v.exactTextCount >= 0)
-    hints.exactTextCount = v.exactTextCount;
-  if (isNonEmptyString(v.referenceIntent)) hints.referenceIntent = v.referenceIntent;
-  return Object.keys(hints).length > 0 ? hints : null;
+interface ParsedSourceContext {
+  sourceContextType: SourceContextType;
+  sourceContextId: string | null;
 }
 
+/** Shared by both request bodies below: `{ type, id? }`, defaulting to "direct". */
+function parseSourceContext(value: unknown): ParsedSourceContext | { error: string } {
+  if (value === undefined || value === null) {
+    return { sourceContextType: "direct", sourceContextId: null };
+  }
+  if (typeof value !== "object") return { error: "sourceContext must be an object" };
+  const sc = value as Record<string, unknown>;
+  if (!SOURCE_CONTEXT_TYPES.includes(sc.type as SourceContextType)) {
+    return { error: "sourceContext.type is invalid" };
+  }
+  return {
+    sourceContextType: sc.type as SourceContextType,
+    sourceContextId: isNonEmptyString(sc.id) ? sc.id : null,
+  };
+}
+
+// ---------- POST /api/generation/plans ----------
+
+export interface ValidatedCreatePlanRequest {
+  /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
+  prompt: string;
+  /** The original human request, when different from `prompt` (Build/Critique). Series decomposition must use this — see decompose-series.ts. */
+  userInput: string | null;
+  /** Pre-computed Intent from Build/Critique, when available. Unvalidated here — the route parses it with IntentSchema. */
+  intent: unknown;
+  referenceAssetIds: string[];
+  sourceVersionId: string | null;
+  sourceContextType: SourceContextType;
+  sourceContextId: string | null;
+  structuredAspectRatio: string | null;
+}
+
+export type CreatePlanValidationResult =
+  | { ok: true; request: ValidatedCreatePlanRequest }
+  | { ok: false; error: string };
+
 /**
- * Validates a raw, untrusted request body for POST /api/generation/jobs.
- * Never trusts quality or credit cost from the client. Model choice is not
- * a request field at all — see model-router.ts.
+ * Validates a raw, untrusted request body for POST /api/generation/plans.
+ * This is the only route that ever sees a free-form prompt/intent — its
+ * whole job is to turn that into an opaque, signed plan the browser cannot
+ * forge or edit. See plans.ts.
  */
-export function validateGenerationRequest(body: unknown): ValidationResult {
+export function validateCreatePlanBody(body: unknown): CreatePlanValidationResult {
   if (typeof body !== "object" || body === null)
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
-
-  const operation = b.operation;
-  if (operation !== "generate" && operation !== "edit") {
-    return { ok: false, error: "operation must be 'generate' or 'edit'" };
-  }
 
   if (!isNonEmptyString(b.prompt)) {
     return { ok: false, error: "prompt is required" };
   }
   if (b.prompt.length > MAX_PROMPT_CHARS) {
     return { ok: false, error: `prompt too long (max ${MAX_PROMPT_CHARS} chars)` };
+  }
+
+  let userInput: string | null = null;
+  if (b.userInput !== undefined && b.userInput !== null) {
+    if (!isNonEmptyString(b.userInput)) return { ok: false, error: "userInput must be a string" };
+    userInput = b.userInput;
+  }
+
+  if (b.intent !== undefined && b.intent !== null && typeof b.intent !== "object") {
+    return { ok: false, error: "intent must be an object" };
   }
 
   let referenceAssetIds: string[] = [];
@@ -103,14 +126,6 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
     }
   }
 
-  if (
-    operation === "edit" &&
-    referenceAssetIds.length === 0 &&
-    !isNonEmptyString(b.sourceVersionId)
-  ) {
-    return { ok: false, error: "edit requires a sourceVersionId or at least one reference image" };
-  }
-
   let sourceVersionId: string | null = null;
   if (b.sourceVersionId !== undefined && b.sourceVersionId !== null) {
     if (!isNonEmptyString(b.sourceVersionId))
@@ -118,20 +133,79 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
     sourceVersionId = b.sourceVersionId;
   }
 
-  let sourceContextType: SourceContextType = "direct";
-  if (b.sourceContext !== undefined && b.sourceContext !== null) {
-    if (typeof b.sourceContext !== "object")
-      return { ok: false, error: "sourceContext must be an object" };
-    const sc = b.sourceContext as Record<string, unknown>;
-    if (!SOURCE_CONTEXT_TYPES.includes(sc.type as SourceContextType)) {
-      return { ok: false, error: "sourceContext.type is invalid" };
+  const sourceContext = parseSourceContext(b.sourceContext);
+  if ("error" in sourceContext) return { ok: false, error: sourceContext.error };
+
+  const structuredAspectRatio = isNonEmptyString(b.structuredAspectRatio)
+    ? b.structuredAspectRatio
+    : null;
+
+  return {
+    ok: true,
+    request: {
+      prompt: b.prompt,
+      userInput,
+      intent: b.intent ?? null,
+      referenceAssetIds,
+      sourceVersionId,
+      sourceContextType: sourceContext.sourceContextType,
+      sourceContextId: sourceContext.sourceContextId,
+      structuredAspectRatio,
+    },
+  };
+}
+
+// ---------- POST /api/generation/jobs ----------
+
+export interface ValidatedCreateJobsFromPlanRequest {
+  planToken: string;
+  /** Only meaningful when the plan requires series-count confirmation; otherwise the plan's autoCount is used. */
+  selectedCount: number | null;
+  idempotencyKey: string;
+  structuredAspectRatio: string | null;
+  sourceContextType: SourceContextType;
+  sourceContextId: string | null;
+}
+
+export type CreateJobsFromPlanValidationResult =
+  | { ok: true; request: ValidatedCreateJobsFromPlanRequest }
+  | { ok: false; error: string };
+
+// Fields that belonged to the old, pre-token request shape (or would let a
+// client hand-assemble an executable plan) are rejected outright rather
+// than silently ignored, so a stale/crafted client fails loudly instead of
+// quietly losing the protection the token provides.
+const FORBIDDEN_FIELDS = ["plan", "count", "children", "prompt", "operation", "mode"] as const;
+
+/**
+ * Validates a raw, untrusted request body for POST /api/generation/jobs.
+ * The browser may submit only a previously issued planToken plus the count
+ * it confirmed — never a prompt, a mode, child briefs, or a raw plan
+ * object. See plans.ts (the only place a plan is computed) and
+ * plan-token.ts (the signature that makes this token unforgeable).
+ */
+export function validateCreateJobsFromPlanBody(body: unknown): CreateJobsFromPlanValidationResult {
+  if (typeof body !== "object" || body === null)
+    return { ok: false, error: "Invalid request body" };
+  const b = body as Record<string, unknown>;
+
+  for (const field of FORBIDDEN_FIELDS) {
+    if (b[field] !== undefined) {
+      return { ok: false, error: `${field} is not a valid field; submit a planToken instead` };
     }
-    sourceContextType = sc.type as SourceContextType;
   }
-  const sourceContextId =
-    b.sourceContext && isNonEmptyString((b.sourceContext as Record<string, unknown>).id)
-      ? ((b.sourceContext as Record<string, unknown>).id as string)
-      : null;
+
+  if (!isNonEmptyString(b.planToken)) {
+    return { ok: false, error: "planToken is required" };
+  }
+
+  let selectedCount: number | null = null;
+  if (b.selectedCount !== undefined) {
+    if (typeof b.selectedCount !== "number" || !Number.isFinite(b.selectedCount)) {
+      return { ok: false, error: "selectedCount must be a number" };
+    }
+    selectedCount = b.selectedCount;
+  }
 
   if (!isNonEmptyString(b.idempotencyKey)) {
     return { ok: false, error: "idempotencyKey is required" };
@@ -140,32 +214,19 @@ export function validateGenerationRequest(body: unknown): ValidationResult {
   const structuredAspectRatio = isNonEmptyString(b.structuredAspectRatio)
     ? b.structuredAspectRatio
     : null;
-  const referenceRatio =
-    b.referenceRatio &&
-    typeof b.referenceRatio === "object" &&
-    typeof (b.referenceRatio as Record<string, unknown>).width === "number" &&
-    typeof (b.referenceRatio as Record<string, unknown>).height === "number"
-      ? (b.referenceRatio as { width: number; height: number })
-      : null;
 
-  const size = resolveGenerationSize({
-    promptText: b.prompt,
-    structuredAspectRatio,
-    referenceRatio,
-  });
+  const sourceContext = parseSourceContext(b.sourceContext);
+  if ("error" in sourceContext) return { ok: false, error: sourceContext.error };
 
   return {
     ok: true,
     request: {
-      operation,
-      prompt: b.prompt,
-      referenceAssetIds,
-      sourceVersionId,
-      sourceContextType,
-      sourceContextId,
+      planToken: b.planToken,
+      selectedCount,
       idempotencyKey: b.idempotencyKey,
-      size,
-      routingHints: parseRoutingHints(b.routingHints),
+      structuredAspectRatio,
+      sourceContextType: sourceContext.sourceContextType,
+      sourceContextId: sourceContext.sourceContextId,
     },
   };
 }
