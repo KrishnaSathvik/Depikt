@@ -38,6 +38,19 @@ export interface PendingGeneration {
 
 const KEY = "depikt:pending-generation";
 
+const DIRECT_HANDOFF_SOURCES: readonly SourceContextType[] = ["library", "gallery", "template"];
+
+/** Whether this mounted generation surface owns resuming a persisted OAuth submission. */
+export function pendingGenerationMatchesSource(
+  hookType: SourceContextType,
+  pendingType: SourceContextType,
+): boolean {
+  return (
+    hookType === pendingType ||
+    (hookType === "direct" && DIRECT_HANDOFF_SOURCES.includes(pendingType))
+  );
+}
+
 export function savePendingGeneration(p: PendingGeneration): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(p));

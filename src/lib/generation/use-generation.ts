@@ -41,6 +41,7 @@ import {
   savePendingGeneration,
   readPendingGeneration,
   clearPendingGeneration,
+  pendingGenerationMatchesSource,
 } from "./pending-generation";
 
 export type GenerationPhase =
@@ -219,13 +220,17 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // If a submission was persisted before an OAuth round trip (see
   // submit()'s auth gate below and pending-generation.ts), resume it now
   // that we have a session — even across a hard navigation that remounted
-  // this hook entirely. Only the hook instance whose sourceContext matches
-  // the pending payload resumes it (Build/Critique/Generate can all be
-  // mounted at once, each with its own hook instance).
+  // this hook entirely. Generate's direct hook also owns handoffs from
+  // Library/Gallery/Templates; Build and Critique remain exact-match-only
+  // so they cannot steal those pending submissions.
   useEffect(() => {
     if (!user) return;
     const pending = readPendingGeneration();
-    if (!pending || pending.sourceContext.type !== sourceContextRef.current.type) return;
+    if (
+      !pending ||
+      !pendingGenerationMatchesSource(sourceContextRef.current.type, pending.sourceContext.type)
+    )
+      return;
     clearPendingGeneration();
     void resumePendingGeneration(pending);
     // eslint-disable-next-line react-hooks/exhaustive-deps

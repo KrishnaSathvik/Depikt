@@ -139,3 +139,19 @@ has ~3550 pre-existing findings unrelated to this task and was left alone.
 - Verification: `npm test` passes (519/519), `npm run typecheck` is clean,
   `git diff --check` is clean, and edited-file IDE diagnostics report no errors.
 - Task 10 was not started.
+
+## Review fix: OAuth resume ownership
+
+- Added `pendingGenerationMatchesSource`, a pure matcher that keeps exact source
+  matches and lets only the direct Generate hook resume pending Library,
+  Gallery, or Template submissions.
+- Build and Critique remain exact-match-only, so neither can consume a pending
+  Library handoff.
+- Resume still submits `pending.sourceContext`, preserving Library's
+  forced-single planning behavior.
+- Added unit coverage for accepted and rejected ownership combinations plus a
+  source-read regression asserting the resume guard uses the matcher instead of
+  raw type inequality.
+- Verification: `npm test` passes (520/520), `npm run typecheck` is clean,
+  `git diff --check` is clean, and edited-file IDE diagnostics report no errors.
+- Task 10 was not started.
