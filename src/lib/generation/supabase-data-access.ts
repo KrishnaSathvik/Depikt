@@ -24,11 +24,14 @@ export function createSupabaseDataAccess(
   const supabase = asGenerationClient(supabaseIn);
   return {
     async markJobRunning(jobId) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("generation_jobs")
         .update({ status: "running", started_at: new Date().toISOString() })
-        .eq("id", jobId);
-      if (error) throw error;
+        .eq("id", jobId)
+        .in("status", ["queued", "running"])
+        .select("id")
+        .maybeSingle();
+      return !!data && !error;
     },
 
     async markJobSucceeded(jobId, patch) {

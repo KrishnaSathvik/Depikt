@@ -133,3 +133,29 @@ Concern: a worker that loses the final success CAS may already have uploaded an
 image and inserted its version before learning that stale-fail won. This fix
 prevents the incorrect charge and terminal-state overwrite; artifact cleanup is
 outside Task 7.
+
+## Final Critical findings follow-up
+
+The worker's running transition now conditionally updates only `queued` or
+`running` jobs and returns whether it found an eligible row. A worker that loses
+this transition to stale-fail returns `timed_out` before generation and performs
+no charge or refund.
+
+Charge settlement now runs only after the generation failure catch is no longer
+reachable. Once the success CAS wins, a charge error preserves the succeeded
+job and never marks it failed or refunds it; the same idempotency key can be
+retried later.
+
+Added pipeline coverage proving both invariants.
+
+Verification:
+
+- `node --test tests/unit/generation-job-pipeline.test.ts tests/unit/generation-stale-job.test.ts`:
+  pass, 18 tests, 0 failures.
+- `npm test`: pass, 479 tests, 0 failures.
+- `npm run typecheck`: pass.
+- Focused IDE lint diagnostics: clean.
+- `git diff --check`: pass.
+
+Concern: charge failures are intentionally returned as successful job outcomes;
+the persistent settlement retry mechanism remains future work.

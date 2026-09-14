@@ -23,7 +23,7 @@ export interface GenerationJobRecord {
 }
 
 export interface GenerationDataAccess {
-  markJobRunning(jobId: string): Promise<void>;
+  markJobRunning(jobId: string): Promise<boolean>;
   markJobSucceeded(
     jobId: string,
     patch: { usage: unknown; estimatedApiCostUsd: number | null; openaiRequestId?: string },
@@ -96,9 +96,13 @@ export async function runGenerationJob(
   deps: RunJobDeps,
 ): Promise<RunJobOutcome> {
   const { data } = deps;
+  let versionId: string;
 
   try {
-    await data.markJobRunning(job.id);
+    const running = await data.markJobRunning(job.id);
+    if (!running) {
+      return { outcome: "failed", errorCode: "timed_out" };
+    }
 
     const result =
       job.operation === "generate"
@@ -121,7 +125,7 @@ export async function runGenerationJob(
           });
 
     const bytes = deps.decodeBase64(result.b64);
-    const versionId = data.newVersionId();
+    versionId = data.newVersionId();
     const storagePath = data.buildStoragePath(job.userId, job.sessionId, versionId);
 
     await data.uploadImage(storagePath, bytes, "image/png");
@@ -145,9 +149,6 @@ export async function runGenerationJob(
     if (!succeeded) {
       return { outcome: "failed", errorCode: "timed_out" };
     }
-    await data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id);
-
-    return { outcome: "succeeded", versionId };
   } catch (err) {
     const { errorCode, safeErrorMessage } = categorizeError(err);
     // Never let a failure in the failure path leave the reservation stuck:
@@ -158,4 +159,15 @@ export async function runGenerationJob(
       .catch(() => {});
     return { outcome: "failed", errorCode };
   }
+
+  // The job is terminally succeeded. Credit settlement is charge-only from
+  // here: an idempotent retry may finish it later, but this path must never
+  // mark the job failed or refund its reservation.
+  try {
+    await data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id);
+  } catch {
+    // Keep the succeeded outcome; a later settlement retry can use the same key.
+  }
+
+  return { outcome: "succeeded", versionId };
 }
