@@ -41,6 +41,28 @@ DECLARE
   v_available integer;
   i integer;
 BEGIN
+  IF auth.uid() IS NULL OR auth.uid() <> p_user_id THEN
+    RAISE EXCEPTION 'create_generation_jobs: authenticated user does not match p_user_id';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+      FROM public.generation_sessions gs
+     WHERE gs.id = p_session_id
+       AND gs.user_id = p_user_id
+  ) THEN
+    RAISE EXCEPTION 'create_generation_jobs: session does not belong to user';
+  END IF;
+
+  IF p_source_version_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1
+      FROM public.image_versions iv
+     WHERE iv.id = p_source_version_id
+       AND iv.user_id = p_user_id
+  ) THEN
+    RAISE EXCEPTION 'create_generation_jobs: source version does not belong to user';
+  END IF;
+
   IF v_count < 1 THEN
     RAISE EXCEPTION 'create_generation_jobs: at least one prompt is required';
   END IF;
