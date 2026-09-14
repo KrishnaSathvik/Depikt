@@ -34,6 +34,8 @@ DECLARE
   v_count integer := COALESCE(array_length(p_prompts, 1), 0);
   v_existing_count integer;
   v_existing_job_ids uuid[];
+  v_existing_mismatch boolean;
+  v_extra_child_exists boolean;
   v_account public.credit_accounts;
   v_reservation RECORD;
   v_job_ids uuid[] := ARRAY[]::uuid[];
@@ -71,22 +73,43 @@ BEGIN
     RAISE EXCEPTION 'create_generation_jobs: prompts and labels must have equal lengths';
   END IF;
 
-  SELECT count(*), array_agg(gj.id ORDER BY child.i)
-    INTO v_existing_count, v_existing_job_ids
+  SELECT
+    count(*),
+    array_agg(gj.id ORDER BY child.i),
+    COALESCE(bool_or(
+      gj.session_id IS DISTINCT FROM p_session_id
+      OR gj.operation IS DISTINCT FROM p_operation
+      OR gj.model IS DISTINCT FROM p_model
+      OR gj.prompt IS DISTINCT FROM p_prompts[child.i]
+      OR gj.source_version_id IS DISTINCT FROM p_source_version_id
+      OR gj.width IS DISTINCT FROM p_width
+      OR gj.height IS DISTINCT FROM p_height
+      OR gj.series_label IS DISTINCT FROM p_labels[child.i]
+    ), false)
+    INTO v_existing_count, v_existing_job_ids, v_existing_mismatch
     FROM generate_series(1, v_count) AS child(i)
     JOIN public.generation_jobs gj
       ON gj.user_id = p_user_id
      AND gj.idempotency_key = p_idempotency_prefix || ':' || child.i;
 
-  IF v_existing_count = v_count THEN
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.generation_jobs gj
+     WHERE gj.user_id = p_user_id
+       AND gj.idempotency_key = p_idempotency_prefix || ':' || (v_count + 1)
+  ) INTO v_extra_child_exists;
+
+  IF v_existing_count = v_count
+     AND NOT v_extra_child_exists
+     AND NOT v_existing_mismatch THEN
     SELECT ca.available_credits
       INTO v_available
       FROM public.credit_accounts ca
      WHERE ca.user_id = p_user_id;
     RETURN QUERY SELECT v_existing_job_ids, true, COALESCE(v_available, 0);
     RETURN;
-  ELSIF v_existing_count > 0 THEN
-    RAISE EXCEPTION 'create_generation_jobs: partial series exists for prefix %',
+  ELSIF v_existing_count > 0 OR v_extra_child_exists THEN
+    RAISE EXCEPTION 'create_generation_jobs: existing series does not match requested batch for prefix %',
       p_idempotency_prefix;
   END IF;
 
@@ -94,19 +117,40 @@ BEGIN
 
   -- Recheck after taking the account lock so concurrent calls with the same
   -- prefix cannot both reserve and insert the series.
-  SELECT count(*), array_agg(gj.id ORDER BY child.i)
-    INTO v_existing_count, v_existing_job_ids
+  SELECT
+    count(*),
+    array_agg(gj.id ORDER BY child.i),
+    COALESCE(bool_or(
+      gj.session_id IS DISTINCT FROM p_session_id
+      OR gj.operation IS DISTINCT FROM p_operation
+      OR gj.model IS DISTINCT FROM p_model
+      OR gj.prompt IS DISTINCT FROM p_prompts[child.i]
+      OR gj.source_version_id IS DISTINCT FROM p_source_version_id
+      OR gj.width IS DISTINCT FROM p_width
+      OR gj.height IS DISTINCT FROM p_height
+      OR gj.series_label IS DISTINCT FROM p_labels[child.i]
+    ), false)
+    INTO v_existing_count, v_existing_job_ids, v_existing_mismatch
     FROM generate_series(1, v_count) AS child(i)
     JOIN public.generation_jobs gj
       ON gj.user_id = p_user_id
      AND gj.idempotency_key = p_idempotency_prefix || ':' || child.i;
 
-  IF v_existing_count = v_count THEN
+  SELECT EXISTS (
+    SELECT 1
+      FROM public.generation_jobs gj
+     WHERE gj.user_id = p_user_id
+       AND gj.idempotency_key = p_idempotency_prefix || ':' || (v_count + 1)
+  ) INTO v_extra_child_exists;
+
+  IF v_existing_count = v_count
+     AND NOT v_extra_child_exists
+     AND NOT v_existing_mismatch THEN
     RETURN QUERY
       SELECT v_existing_job_ids, true, v_account.available_credits;
     RETURN;
-  ELSIF v_existing_count > 0 THEN
-    RAISE EXCEPTION 'create_generation_jobs: partial series exists for prefix %',
+  ELSIF v_existing_count > 0 OR v_extra_child_exists THEN
+    RAISE EXCEPTION 'create_generation_jobs: existing series does not match requested batch for prefix %',
       p_idempotency_prefix;
   END IF;
 
