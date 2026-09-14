@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
             supabase
               .from("generation_jobs")
               .select(
-                "id, user_id, idempotency_key, status, series_index, series_label, created_at",
+                "id, user_id, idempotency_key, status, error_code, safe_error_message, series_index, series_label, created_at",
               )
               .eq("session_id", params.id)
               .order("series_index", { ascending: true }),

@@ -6,7 +6,13 @@ import { failAndRefundStaleJob, type StaleJob } from "../../src/lib/generation/s
 interface FakeOptions {
   updateData: { id: string } | null;
   updateError?: Error;
-  liveStatus?: string;
+  liveJob?: {
+    status: string;
+    error_code: string | null;
+    safe_error_message: string | null;
+  };
+  refundError?: Error;
+  refundReject?: Error;
 }
 
 function createFakeSupabase(options: FakeOptions): {
@@ -30,7 +36,7 @@ function createFakeSupabase(options: FakeOptions): {
           updating
             ? { data: options.updateData, error: options.updateError ?? null }
             : {
-                data: options.liveStatus ? { status: options.liveStatus } : null,
+                data: options.liveJob ?? null,
                 error: null,
               },
       };
@@ -38,7 +44,8 @@ function createFakeSupabase(options: FakeOptions): {
     },
     rpc: async () => {
       refunds += 1;
-      return { data: null, error: null };
+      if (options.refundReject) throw options.refundReject;
+      return { data: null, error: options.refundError ?? null };
     },
   } as unknown as UntypedSupabaseClient;
 
@@ -51,6 +58,8 @@ const staleJob: StaleJob = {
   idempotency_key: "series:0",
   status: "running",
   created_at: "2026-09-14T12:00:00.000Z",
+  error_code: null,
+  safe_error_message: null,
 };
 const now = new Date("2026-09-14T12:07:00.000Z");
 
@@ -59,17 +68,88 @@ test("refunds once when the stale failure transition succeeds", async () => {
 
   const result = await failAndRefundStaleJob(fake.client, staleJob, now);
 
-  assert.deepEqual(result, { applied: true, status: "failed" });
+  assert.deepEqual(result, {
+    applied: true,
+    status: "failed",
+    safe_error_message: "Generation timed out. Your credit was returned.",
+  });
   assert.equal(fake.refundCalls(), 1);
 });
 
 test("reports live success without refund when the stale failure loses the race", async () => {
-  const fake = createFakeSupabase({ updateData: null, liveStatus: "succeeded" });
+  const fake = createFakeSupabase({
+    updateData: null,
+    liveJob: { status: "succeeded", error_code: null, safe_error_message: null },
+  });
 
   const result = await failAndRefundStaleJob(fake.client, staleJob, now);
 
-  assert.deepEqual(result, { applied: false, status: "succeeded" });
+  assert.deepEqual(result, {
+    applied: false,
+    status: "succeeded",
+    safe_error_message: null,
+  });
   assert.equal(fake.refundCalls(), 0);
+});
+
+test("retries refund when another poll already stale-failed the job", async () => {
+  const fake = createFakeSupabase({
+    updateData: null,
+    liveJob: {
+      status: "failed",
+      error_code: "timed_out",
+      safe_error_message: "Generation timed out. Your credit was returned.",
+    },
+  });
+
+  const result = await failAndRefundStaleJob(fake.client, staleJob, now);
+
+  assert.equal(result.status, "failed");
+  assert.equal(result.safe_error_message, "Generation timed out. Your credit was returned.");
+  assert.equal(fake.refundCalls(), 1);
+});
+
+test("retries refund from an already terminal timed-out snapshot", async () => {
+  const fake = createFakeSupabase({ updateData: null });
+  const result = await failAndRefundStaleJob(fake.client, {
+    ...staleJob,
+    status: "failed",
+    error_code: "timed_out",
+    safe_error_message: "timeout copy",
+  });
+
+  assert.deepEqual(result, {
+    applied: false,
+    status: "failed",
+    safe_error_message: "timeout copy",
+  });
+  assert.equal(fake.refundCalls(), 1);
+});
+
+test("still reports an applied timeout when refund RPC returns an error", async () => {
+  const fake = createFakeSupabase({
+    updateData: { id: staleJob.id },
+    refundError: new Error("refund unavailable"),
+  });
+
+  const result = await failAndRefundStaleJob(fake.client, staleJob, now);
+
+  assert.equal(result.applied, true);
+  assert.equal(result.status, "failed");
+  assert.equal(fake.refundCalls(), 1);
+});
+
+test("still reports an applied timeout when refund RPC rejects", async () => {
+  const fake = createFakeSupabase({
+    updateData: { id: staleJob.id },
+    refundReject: new Error("network unavailable"),
+  });
+
+  const result = await failAndRefundStaleJob(fake.client, staleJob, now);
+
+  assert.equal(result.applied, true);
+  assert.equal(result.status, "failed");
+  assert.equal(fake.refundCalls(), 1);
 });
 
 test("does not refund or report failure when the conditional update errors", async () => {
@@ -80,6 +160,10 @@ test("does not refund or report failure when the conditional update errors", asy
 
   const result = await failAndRefundStaleJob(fake.client, staleJob, now);
 
-  assert.deepEqual(result, { applied: false, status: "running" });
+  assert.deepEqual(result, {
+    applied: false,
+    status: "running",
+    safe_error_message: null,
+  });
   assert.equal(fake.refundCalls(), 0);
 });

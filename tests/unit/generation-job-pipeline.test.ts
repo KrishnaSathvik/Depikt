@@ -10,7 +10,7 @@ import { OpenAIImageError } from "../../src/lib/generation/openai-images.ts";
 // In-memory fake standing in for the Supabase-backed implementation. Every
 // call is recorded so tests can assert on the exact sequence of effects —
 // this is where "never charge and refund the same job" gets proven.
-function makeFakeDataAccess() {
+function makeFakeDataAccess(options: { succeedTransition?: boolean } = {}) {
   const calls: string[] = [];
   const uploaded: Record<string, Uint8Array> = {};
   const versions: unknown[] = [];
@@ -25,7 +25,9 @@ function makeFakeDataAccess() {
     },
     async markJobSucceeded(jobId) {
       calls.push(`succeeded:${jobId}`);
+      if (options.succeedTransition === false) return false;
       jobStatus = "succeeded";
+      return true;
     },
     async markJobFailed(jobId, patch) {
       calls.push(`failed:${jobId}:${patch.errorCode}`);
@@ -96,6 +98,26 @@ test("successful generate: uploads, creates a version, and charges exactly once 
   ]);
   assert.equal(finalizeCalls.length, 1);
   assert.equal(finalizeCalls[0].outcome, "charged");
+});
+
+test("does not charge when stale failure wins the success transition", async () => {
+  const { access, calls, finalizeCalls } = makeFakeDataAccess({ succeedTransition: false });
+  const fetchImpl = (async () =>
+    new Response(JSON.stringify({ data: [{ b64_json: "AAAA" }], usage: {} }), {
+      status: 200,
+    })) as unknown as typeof fetch;
+
+  const result = await runGenerationJob(baseJob(), null, {
+    data: access,
+    apiKey: "sk-test",
+    fetchImpl,
+    decodeBase64: () => new Uint8Array([1]),
+  });
+
+  assert.deepEqual(result, { outcome: "failed", errorCode: "timed_out" });
+  assert.equal(finalizeCalls.length, 0);
+  assert.equal(calls.some((call) => call.startsWith("failed:")), false);
+  assert.equal(calls.includes("finalize:charged:job-1"), false);
 });
 
 test("failed generate (OpenAI rejects): marks failed, refunds exactly once, never charges", async () => {

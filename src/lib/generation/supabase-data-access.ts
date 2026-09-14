@@ -32,7 +32,7 @@ export function createSupabaseDataAccess(
     },
 
     async markJobSucceeded(jobId, patch) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("generation_jobs")
         .update({
           status: "succeeded",
@@ -41,8 +41,11 @@ export function createSupabaseDataAccess(
           estimated_api_cost_usd: patch.estimatedApiCostUsd,
           openai_request_id: patch.openaiRequestId ?? null,
         })
-        .eq("id", jobId);
-      if (error) throw error;
+        .eq("id", jobId)
+        .eq("status", "running")
+        .select("id")
+        .maybeSingle();
+      return !!data && !error;
     },
 
     async markJobFailed(jobId, patch) {
@@ -54,7 +57,8 @@ export function createSupabaseDataAccess(
           error_code: patch.errorCode,
           safe_error_message: patch.safeErrorMessage,
         })
-        .eq("id", jobId);
+        .eq("id", jobId)
+        .eq("status", "running");
       if (error) throw error;
     },
 

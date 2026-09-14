@@ -10,11 +10,14 @@ export interface StaleJob {
   idempotency_key: string;
   status: string;
   created_at: string;
+  error_code?: string | null;
+  safe_error_message?: string | null;
 }
 
 export interface StaleJobResult {
   applied: boolean;
   status: string;
+  safe_error_message: string | null;
 }
 
 export function applyStaleFailure(
@@ -33,8 +36,36 @@ export async function failAndRefundStaleJob(
   job: StaleJob,
   now = new Date(),
 ): Promise<StaleJobResult> {
+  const refund = async (): Promise<void> => {
+    try {
+      const { error } = await supabase.rpc("finalize_generation_credits", {
+        p_user_id: job.user_id,
+        p_amount: 1,
+        p_idempotency_key: job.idempotency_key,
+        p_outcome: "refunded",
+        p_job_id: job.id,
+      });
+      if (error) return;
+    } catch {
+      return;
+    }
+  };
+
+  if (job.status === "failed" && job.error_code === "timed_out") {
+    await refund();
+    return {
+      applied: false,
+      status: job.status,
+      safe_error_message: job.safe_error_message ?? STALE_ERROR_MESSAGE,
+    };
+  }
+
   if (!applyStaleFailure(job, now, STALE_MS)) {
-    return { applied: false, status: job.status };
+    return {
+      applied: false,
+      status: job.status,
+      safe_error_message: job.safe_error_message ?? null,
+    };
   }
 
   const { data, error } = await supabase
@@ -51,34 +82,39 @@ export async function failAndRefundStaleJob(
     .maybeSingle();
 
   if (error) {
-    return { applied: false, status: job.status };
+    return {
+      applied: false,
+      status: job.status,
+      safe_error_message: job.safe_error_message ?? null,
+    };
   }
 
   if (!data) {
     const { data: liveJob, error: liveError } = await supabase
       .from("generation_jobs")
-      .select("status")
+      .select("status, error_code, safe_error_message")
       .eq("id", job.id)
       .maybeSingle();
+
+    if (!liveError && liveJob?.status === "failed" && liveJob.error_code === "timed_out") {
+      await refund();
+    }
 
     return {
       applied: false,
       status: liveError || !liveJob ? job.status : liveJob.status,
+      safe_error_message:
+        liveError || !liveJob
+          ? (job.safe_error_message ?? null)
+          : (liveJob.safe_error_message ?? null),
     };
   }
 
-  await supabase
-    .rpc("finalize_generation_credits", {
-      p_user_id: job.user_id,
-      p_amount: 1,
-      p_idempotency_key: job.idempotency_key,
-      p_outcome: "refunded",
-      p_job_id: job.id,
-    })
-    .then(
-      () => undefined,
-      () => undefined,
-    );
+  await refund();
 
-  return { applied: true, status: "failed" };
+  return {
+    applied: true,
+    status: "failed",
+    safe_error_message: STALE_ERROR_MESSAGE,
+  };
 }

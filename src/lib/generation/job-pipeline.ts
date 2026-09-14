@@ -27,7 +27,7 @@ export interface GenerationDataAccess {
   markJobSucceeded(
     jobId: string,
     patch: { usage: unknown; estimatedApiCostUsd: number | null; openaiRequestId?: string },
-  ): Promise<void>;
+  ): Promise<boolean>;
   markJobFailed(
     jobId: string,
     patch: { errorCode: string; safeErrorMessage: string },
@@ -138,10 +138,13 @@ export async function runGenerationJob(
       model: job.model,
     });
 
-    await data.markJobSucceeded(job.id, {
+    const succeeded = await data.markJobSucceeded(job.id, {
       usage: result.usage,
       estimatedApiCostUsd: estimateApiCostUsd(result.usage),
     });
+    if (!succeeded) {
+      return { outcome: "failed", errorCode: "timed_out" };
+    }
     await data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id);
 
     return { outcome: "succeeded", versionId };

@@ -43,8 +43,10 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
 
         const staleResult = await failAndRefundStaleJob(supabase, job as StaleJob);
         job.status = staleResult.status;
-        if (staleResult.status === "failed") {
+        if (staleResult.applied) {
           job.safe_error_message = STALE_ERROR_MESSAGE;
+        } else if (staleResult.status === "failed") {
+          job.safe_error_message = staleResult.safe_error_message;
         }
 
         let version: { id: string; storage_path: string; width: number; height: number } | null =
