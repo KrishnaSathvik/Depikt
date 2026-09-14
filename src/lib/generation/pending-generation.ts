@@ -15,9 +15,13 @@
 
 import type { SourceContextType } from "./job-request";
 import type { RoutingHints } from "./model-router";
+import type { Intent } from "../prompt-engine/intent";
 
 export interface PendingGeneration {
   prompt: string;
+  /** Original Build/Critique request. Series planning must use this, not `prompt`. */
+  userInput?: string | null;
+  intent?: Intent | null;
   /** Raw reference data URLs — re-uploaded on resume, since an unauthenticated
    * upload attempt 401s and a hard navigation may not have kept the in-memory
    * ReferenceEntry state that a retry would otherwise patch. */
