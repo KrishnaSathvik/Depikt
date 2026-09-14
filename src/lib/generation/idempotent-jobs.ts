@@ -14,6 +14,7 @@
 export interface ExistingJobRow {
   id: string;
   session_id: string;
+  idempotency_key: string;
   status: string;
   series_index: number | null;
   series_label: string | null;
@@ -37,12 +38,28 @@ export function generationJobIdempotencyKeys(
   return Array.from({ length: selectedCount }, (_, index) => `${idempotencyKey}:${index + 1}`);
 }
 
-/** Same `{ sessionId, jobs }` shape a fresh create returns, from previously matched rows. */
-export function toExistingJobsResult(rows: ExistingJobRow[]): ExistingJobsResult | null {
-  if (rows.length === 0) return null;
+/** Same `{ sessionId, jobs }` shape a fresh create returns, from a complete exact replay. */
+export function toExistingJobsResult(
+  rows: ExistingJobRow[],
+  expectedIdempotencyKeys: string[],
+): ExistingJobsResult | null {
+  if (rows.length !== expectedIdempotencyKeys.length || rows.length === 0) return null;
+
+  const expectedKeys = new Set(expectedIdempotencyKeys);
+  const actualKeys = new Set(rows.map((row) => row.idempotency_key));
+  if (
+    actualKeys.size !== expectedKeys.size ||
+    [...expectedKeys].some((key) => !actualKeys.has(key))
+  ) {
+    return null;
+  }
+
+  const sessionId = rows[0]!.session_id;
+  if (rows.some((row) => row.session_id !== sessionId)) return null;
+
   const sorted = [...rows].sort((a, b) => (a.series_index ?? -1) - (b.series_index ?? -1));
   return {
-    sessionId: sorted[0]!.session_id,
+    sessionId,
     jobs: sorted.map((r) => ({
       id: r.id,
       label: r.series_label,

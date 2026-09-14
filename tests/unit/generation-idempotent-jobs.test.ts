@@ -26,7 +26,7 @@ test("series replay builds exact child keys without LIKE wildcard semantics", ()
 });
 
 test("no matching rows means no replay -- the caller proceeds to create a new session", () => {
-  assert.equal(toExistingJobsResult([]), null);
+  assert.equal(toExistingJobsResult([], ["submit-1"]), null);
 });
 
 test("a single matched row replays as one job under its real session", () => {
@@ -34,12 +34,13 @@ test("a single matched row replays as one job under its real session", () => {
     {
       id: "job-1",
       session_id: "session-1",
+      idempotency_key: "submit-1",
       status: "running",
       series_index: null,
       series_label: null,
     },
   ];
-  assert.deepEqual(toExistingJobsResult(rows), {
+  assert.deepEqual(toExistingJobsResult(rows, ["submit-1"]), {
     sessionId: "session-1",
     jobs: [{ id: "job-1", label: null, index: null, status: "running" }],
   });
@@ -47,17 +48,32 @@ test("a single matched row replays as one job under its real session", () => {
 
 test("a series' matched rows replay sorted by series_index, all under the shared session", () => {
   const rows: ExistingJobRow[] = [
-    { id: "job-c", session_id: "session-9", status: "queued", series_index: 2, series_label: "C" },
+    {
+      id: "job-c",
+      session_id: "session-9",
+      idempotency_key: "series-1:3",
+      status: "queued",
+      series_index: 2,
+      series_label: "C",
+    },
     {
       id: "job-a",
       session_id: "session-9",
+      idempotency_key: "series-1:1",
       status: "succeeded",
       series_index: 0,
       series_label: "A",
     },
-    { id: "job-b", session_id: "session-9", status: "queued", series_index: 1, series_label: "B" },
+    {
+      id: "job-b",
+      session_id: "session-9",
+      idempotency_key: "series-1:2",
+      status: "queued",
+      series_index: 1,
+      series_label: "B",
+    },
   ];
-  assert.deepEqual(toExistingJobsResult(rows), {
+  assert.deepEqual(toExistingJobsResult(rows, ["series-1:1", "series-1:2", "series-1:3"]), {
     sessionId: "session-9",
     jobs: [
       { id: "job-a", label: "A", index: 0, status: "succeeded" },
@@ -65,4 +81,62 @@ test("a series' matched rows replay sorted by series_index, all under the shared
       { id: "job-c", label: "C", index: 2, status: "queued" },
     ],
   });
+});
+
+test("a partial series is not a replay", () => {
+  const rows: ExistingJobRow[] = [
+    {
+      id: "job-a",
+      session_id: "session-9",
+      idempotency_key: "series-1:1",
+      status: "queued",
+      series_index: 0,
+      series_label: "A",
+    },
+  ];
+  assert.equal(toExistingJobsResult(rows, ["series-1:1", "series-1:2"]), null);
+});
+
+test("the wrong key set is not a replay even when the row count matches", () => {
+  const rows: ExistingJobRow[] = [
+    {
+      id: "job-a",
+      session_id: "session-9",
+      idempotency_key: "series-1:1",
+      status: "queued",
+      series_index: 0,
+      series_label: "A",
+    },
+    {
+      id: "job-c",
+      session_id: "session-9",
+      idempotency_key: "series-1:3",
+      status: "queued",
+      series_index: 2,
+      series_label: "C",
+    },
+  ];
+  assert.equal(toExistingJobsResult(rows, ["series-1:1", "series-1:2"]), null);
+});
+
+test("jobs split across sessions are not a replay", () => {
+  const rows: ExistingJobRow[] = [
+    {
+      id: "job-a",
+      session_id: "session-9",
+      idempotency_key: "series-1:1",
+      status: "queued",
+      series_index: 0,
+      series_label: "A",
+    },
+    {
+      id: "job-b",
+      session_id: "session-10",
+      idempotency_key: "series-1:2",
+      status: "queued",
+      series_index: 1,
+      series_label: "B",
+    },
+  ];
+  assert.equal(toExistingJobsResult(rows, ["series-1:1", "series-1:2"]), null);
 });

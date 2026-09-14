@@ -10,7 +10,7 @@ import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
 import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
 import type { Intent } from "@/lib/prompt-engine/intent";
-import { asGenerationClient } from "@/lib/generation/db-types";
+import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { buildExecutionPlanJson } from "@/lib/generation/execution-plan";
 import {
   generationJobIdempotencyKeys,
@@ -45,6 +45,22 @@ function withFidelityPreamble(prompt: string, intent: Intent): string {
 interface JobChild {
   prompt: string;
   label: string | null;
+}
+
+async function deleteSessionIfEmpty(
+  supabase: UntypedSupabaseClient,
+  userId: string,
+  sessionId: string,
+): Promise<void> {
+  const { data: jobs, error: jobsError } = await supabase
+    .from("generation_jobs")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("session_id", sessionId)
+    .limit(1);
+  if (jobsError || (jobs?.length ?? 0) > 0) return;
+
+  await supabase.from("generation_sessions").delete().eq("user_id", userId).eq("id", sessionId);
 }
 
 async function resolveChildren(payload: PlanTokenPayload, selected: number): Promise<JobChild[]> {
@@ -139,13 +155,16 @@ export const Route = createFileRoute("/api/generation/jobs")({
         );
         const { data: existingJobRows, error: existingJobsError } = await supabase
           .from("generation_jobs")
-          .select("id, session_id, status, series_index, series_label")
+          .select("id, session_id, idempotency_key, status, series_index, series_label")
           .eq("user_id", userId)
           .in("idempotency_key", expectedIdempotencyKeys);
         if (existingJobsError) {
           return jsonError("Could not check for an existing generation job", 500);
         }
-        const existingResult = toExistingJobsResult((existingJobRows ?? []) as ExistingJobRow[]);
+        const existingResult = toExistingJobsResult(
+          (existingJobRows ?? []) as ExistingJobRow[],
+          expectedIdempotencyKeys,
+        );
         if (existingResult) {
           return new Response(JSON.stringify(existingResult), {
             status: 202,
@@ -246,7 +265,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
           for (let attempt = 0; attempt < 20; attempt += 1) {
             const { data: concurrentJobRows, error: concurrentJobsError } = await supabase
               .from("generation_jobs")
-              .select("id, session_id, status, series_index, series_label")
+              .select("id, session_id, idempotency_key, status, series_index, series_label")
               .eq("user_id", userId)
               .eq("session_id", existingSession.id)
               .in("idempotency_key", expectedIdempotencyKeys);
@@ -255,6 +274,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
             }
             const concurrentResult = toExistingJobsResult(
               (concurrentJobRows ?? []) as ExistingJobRow[],
+              expectedIdempotencyKeys,
             );
             if (concurrentResult) {
               return new Response(JSON.stringify(concurrentResult), {
@@ -284,9 +304,15 @@ export const Route = createFileRoute("/api/generation/jobs")({
               p_idempotency_key: req.idempotencyKey,
             },
           );
-          if (createError) return jsonError("Could not create the generation job", 500);
+          if (createError) {
+            await deleteSessionIfEmpty(supabase, userId, sessionId);
+            return jsonError("Could not create the generation job", 500);
+          }
           const row = Array.isArray(created) ? created[0] : created;
-          if (!row?.reserved) return jsonError("Not enough credits.", 402);
+          if (!row?.reserved) {
+            await deleteSessionIfEmpty(supabase, userId, sessionId);
+            return jsonError("Not enough credits.", 402);
+          }
 
           return new Response(
             JSON.stringify({
@@ -309,9 +335,15 @@ export const Route = createFileRoute("/api/generation/jobs")({
           p_source_version_id: payload.sourceVersionId,
           p_idempotency_prefix: req.idempotencyKey,
         });
-        if (createError) return jsonError("Could not create the generation jobs", 500);
+        if (createError) {
+          await deleteSessionIfEmpty(supabase, userId, sessionId);
+          return jsonError("Could not create the generation jobs", 500);
+        }
         const row = Array.isArray(created) ? created[0] : created;
-        if (!row?.reserved) return jsonError("Not enough credits.", 402);
+        if (!row?.reserved) {
+          await deleteSessionIfEmpty(supabase, userId, sessionId);
+          return jsonError("Not enough credits.", 402);
+        }
 
         const jobIds = (row.job_ids ?? []) as string[];
         return new Response(

@@ -29,3 +29,16 @@ test("jobs route keys the session insert and never uses LIKE for replay", () => 
   assert.match(route, /generationJobIdempotencyKeys\(/);
   assert.doesNotMatch(route, /\.like\("idempotency_key"/);
 });
+
+test("job creation failures delete only a session confirmed to have no jobs", () => {
+  const route = read("src/routes/api/generation/jobs.ts");
+
+  assert.match(route, /async function deleteSessionIfEmpty\(/);
+  assert.match(route, /\.from\("generation_jobs"\)[\s\S]*?\.eq\("session_id", sessionId\)/);
+  assert.match(route, /if \(jobsError \|\| \(jobs\?\.length \?\? 0\) > 0\) return/);
+  assert.match(route, /\.from\("generation_sessions"\)[\s\S]*?\.delete\(\)/);
+  assert.equal(
+    route.match(/await deleteSessionIfEmpty\(supabase, userId, sessionId\)/g)?.length,
+    4,
+  );
+});
