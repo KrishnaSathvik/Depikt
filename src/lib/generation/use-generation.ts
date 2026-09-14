@@ -119,6 +119,8 @@ export interface SubmitInput {
   userInput?: string | null;
   /** Pre-computed Intent from Build/Critique, when available — skips a redundant analyzeIntent call on /plans. */
   intent?: Intent | null;
+  /** Overrides the hook's rendered source for submissions fired in the same tick as a source change. */
+  sourceContext?: { type: SourceContextType; id?: string | null };
   structuredAspectRatio?: string | null;
   routingHints?: RoutingHints | null;
   sourceVersionId?: string | null;
@@ -177,6 +179,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     idempotencyKey: string;
     referenceAssetIds: string[];
     structuredAspectRatio: string | null;
+    sourceContext: { type: SourceContextType; id?: string | null };
   } | null>(null);
 
   const job = jobs[0] ?? null;
@@ -380,7 +383,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       toast.error("Describe what you want to create");
       return;
     }
-    lastParamsRef.current = input;
+    const effectiveSourceContext = input.sourceContext ?? sourceContextRef.current;
+    lastParamsRef.current = { ...input, sourceContext: effectiveSourceContext };
 
     if (!user) {
       savePendingGeneration({
@@ -390,26 +394,26 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         referenceDataUrls: referencesRef.current.map((r) => r.local.dataUrl),
         structuredAspectRatio: input.structuredAspectRatio ?? null,
         routingHints: input.routingHints ?? null,
-        sourceContext: sourceContextRef.current,
+        sourceContext: effectiveSourceContext,
         sourceVersionId: input.sourceVersionId ?? null,
         idempotencyKey: input.idempotencyKey ?? crypto.randomUUID(),
       });
       // Open the shared provider chooser; chooseAuthProvider() starts OAuth
       // and the pending-generation effect above resumes on return.
       setAuthPromptContext({
-        sourceType: sourceContextRef.current.type,
+        sourceType: effectiveSourceContext.type,
         prompt: effectivePrompt,
         referenceDataUrl: referencesRef.current[0]?.local.dataUrl ?? null,
       });
       setAuthPrompt(true);
-      trackEvent("generate_auth_requested", { source: sourceContextRef.current.type });
+      trackEvent("generate_auth_requested", { source: effectiveSourceContext.type });
       return;
     }
 
     // Pre-empt: a signed-in user with a known zero balance never hits the API.
     if (credits === 0) {
       setCreditState("exhausted");
-      trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "preempt" });
+      trackEvent("credits_exhausted", { source: effectiveSourceContext.type, via: "preempt" });
       return;
     }
 
@@ -417,7 +421,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setErrorMessage(null);
     setCreditState("ok");
     setPlanPreview(null);
-    trackEvent("generate_submitted", { source: sourceContextRef.current.type });
+    trackEvent("generate_submitted", { source: effectiveSourceContext.type });
     try {
       const idempotencyKey = input.idempotencyKey ?? crypto.randomUUID();
       const referenceAssetIds = referencesRef.current
@@ -436,7 +440,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         intent: input.intent ?? null,
         referenceAssetIds,
         sourceVersionId: input.sourceVersionId ?? null,
-        sourceContext: sourceContextRef.current,
+        sourceContext: effectiveSourceContext,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
 
@@ -449,6 +453,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
           idempotencyKey,
           referenceAssetIds,
           structuredAspectRatio: input.structuredAspectRatio ?? null,
+          sourceContext: effectiveSourceContext,
         };
         setPlanPreview(planRes.plan);
         setPhase("confirm");
@@ -461,7 +466,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       if (credits !== null && credits < planRes.plan.autoCount) {
         setPhase("idle");
         setCreditState("exhausted");
-        trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "preempt" });
+        trackEvent("credits_exhausted", { source: effectiveSourceContext.type, via: "preempt" });
         return;
       }
 
@@ -471,6 +476,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         idempotencyKey,
         referenceAssetIds,
         input.structuredAspectRatio ?? null,
+        effectiveSourceContext,
       );
     } catch (err) {
       applyPlanOrJobError(err);
@@ -509,6 +515,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       intent: pending.intent ?? null,
       structuredAspectRatio: pending.structuredAspectRatio,
       routingHints: pending.routingHints,
+      sourceContext: pending.sourceContext,
       sourceVersionId: pending.sourceVersionId,
       idempotencyKey: pending.idempotencyKey,
     });
@@ -524,6 +531,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     idempotencyKey: string,
     referenceAssetIds: string[],
     structuredAspectRatio: string | null,
+    sourceContext: { type: SourceContextType; id?: string | null },
   ): Promise<void> {
     setPhase("starting");
     try {
@@ -532,7 +540,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         selectedCount,
         idempotencyKey,
         structuredAspectRatio,
-        sourceContext: sourceContextRef.current,
+        sourceContext,
       });
       if (res.jobs.length === 0) {
         throw new GenerationApiError("Could not create the generation job", 500);
@@ -574,6 +582,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       pending.idempotencyKey,
       pending.referenceAssetIds,
       pending.structuredAspectRatio,
+      pending.sourceContext,
     );
   }
 

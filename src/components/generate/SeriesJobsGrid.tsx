@@ -19,12 +19,10 @@ function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number 
   if (job.status === "succeeded" && job.result) {
     return (
       <div className="space-y-1.5">
-        <img
-          src={job.result.url}
-          alt={label}
-          className="aspect-square w-full rounded-md border border-[color:var(--border-subtle)] object-cover"
-        />
-        <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
+        <div className="overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]">
+          <img src={job.result.url} alt={label} className="block w-full object-contain" />
+        </div>
+        <p className="label-mono truncate">{label}</p>
       </div>
     );
   }
@@ -33,13 +31,13 @@ function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number 
   return (
     <div className="flex aspect-square flex-col items-center justify-center gap-2 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-3">
       {failed ? (
-        <p className="text-body-sm text-red-600">{job.errorMessage ?? "Failed"}</p>
+        <p className="text-body-sm text-destructive">{job.errorMessage ?? "Failed"}</p>
       ) : (
         <Loader2 className="h-5 w-5 animate-spin text-[color:var(--text-tertiary)]" />
       )}
-      <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
+      <p className="label-mono truncate">{label}</p>
       {!failed && (
-        <p className="text-[11px] text-[color:var(--text-tertiary)]">
+        <p className="text-body-sm text-[color:var(--text-tertiary)]">
           {job.status === "queued"
             ? GENERATION_STAGE_LABELS.starting
             : GENERATION_STAGE_LABELS.creating}

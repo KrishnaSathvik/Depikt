@@ -30,6 +30,21 @@ test("GenerateWorkspace auto-submits only a library-sourced handoff with a real 
   );
   assert.match(handoffEffect, /handoff\.sourceType === "library" && handoff\.prompt\.trim\(\)/);
   assert.match(handoffEffect, /gen\.submit\(\{/);
+  assert.match(
+    handoffEffect,
+    /sourceContext: \{ type: "library", id: handoff\.sourceId \?\? null \}/,
+  );
+});
+
+test("useGeneration carries a submit source override through plans and pending auth", () => {
+  const hook = read("src/lib/generation/use-generation.ts");
+  const submit = hook.slice(
+    hook.indexOf("async function submit(input: SubmitInput)"),
+    hook.indexOf("function applyPlanOrJobError"),
+  );
+  assert.match(submit, /input\.sourceContext \?\? sourceContextRef\.current/);
+  assert.match(submit, /lastParamsRef\.current = \{ \.\.\.input, sourceContext: effectiveSourceContext \}/);
+  assert.match(submit, /sourceContext: effectiveSourceContext/g);
 });
 
 test("Gallery's handoff carries no prompt, so it can never auto-submit", () => {

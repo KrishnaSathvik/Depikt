@@ -122,3 +122,20 @@ has ~3550 pre-existing findings unrelated to this task and was left alone.
 - Verification after review fixes: focused resume/series tests pass (8/8),
   `npm test` passes (516/516), and `npm run typecheck` is clean.
 - No Critic Intent object or Task 10 telemetry was added.
+
+## Review fixes: library source race and series presentation
+
+- `SubmitInput` now accepts an optional `sourceContext`. `submit()` resolves it
+  once and carries that source through `lastParamsRef`, pending-auth storage,
+  `/plans`, count-confirmation state, and `/jobs`, so a same-tick source state
+  update cannot change the request provenance.
+- Library auto-submit passes
+  `{ type: "library", id: handoff.sourceId ?? null }` directly.
+- Series result images now use a subtle, non-cropping `object-contain` frame.
+  Labels, status text, and failures use design-system typography and color
+  tokens (`label-mono`, `text-body-sm`, and `text-destructive`).
+- Added source-read coverage for the library handoff and hook override, plus
+  series-grid crop/token regression coverage.
+- Verification: `npm test` passes (519/519), `npm run typecheck` is clean,
+  `git diff --check` is clean, and edited-file IDE diagnostics report no errors.
+- Task 10 was not started.

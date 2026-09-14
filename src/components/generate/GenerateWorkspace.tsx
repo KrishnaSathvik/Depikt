@@ -90,6 +90,7 @@ export function GenerateWorkspace() {
       if (handoff.sourceType === "library" && handoff.prompt.trim()) {
         void gen.submit({
           prompt: handoff.prompt,
+          sourceContext: { type: "library", id: handoff.sourceId ?? null },
           structuredAspectRatio: handoff.structuredAspectRatio ?? null,
           routingHints: handoff.routingHints ?? null,
         });
