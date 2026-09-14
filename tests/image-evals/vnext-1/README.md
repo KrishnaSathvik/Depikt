@@ -11,6 +11,8 @@ Frozen prompts and fixture Intents for `buildGenerationPlan()` regression tests.
 
 Ship bar: **11/11** on both gates. 10/11 is investigate-not-ship.
 
+If the live gate fails, add a **generic** rule in `src/lib/generation/plan.ts` (no case ids or domain names), rerun `npm test` and `npm run test:vnext-1-live`. Only if still blocked after plan rules, consider `INTENT_INSTRUCTIONS`.
+
 ## Contents
 
 - `cases.json` — 11 frozen prompts, expected plan fields, and fixture Intents
