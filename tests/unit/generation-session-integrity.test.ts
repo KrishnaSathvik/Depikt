@@ -28,6 +28,8 @@ test("jobs route keys the session insert and never uses LIKE for replay", () => 
   assert.match(route, /sessionError\?\.code === "23505"/);
   assert.match(route, /generationJobIdempotencyKeys\(/);
   assert.doesNotMatch(route, /\.like\("idempotency_key"/);
+  assert.match(route, /\.select\("id, plan_json"\)/);
+  assert.match(route, /executionPlanIdentityMatches\(existingSession\.plan_json/);
 });
 
 test("job creation failures delete only a session confirmed to have no jobs", () => {

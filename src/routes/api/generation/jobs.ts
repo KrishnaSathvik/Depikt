@@ -11,7 +11,10 @@ import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompo
 import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
 import type { Intent } from "@/lib/prompt-engine/intent";
 import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
-import { buildExecutionPlanJson } from "@/lib/generation/execution-plan";
+import {
+  buildExecutionPlanJson,
+  executionPlanIdentityMatches,
+} from "@/lib/generation/execution-plan";
 import {
   decideExistingSession,
   generationJobIdempotencyKeys,
@@ -253,7 +256,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
           // partial/unexpected sets rather than splicing in new jobs.
           const { data: existingSession, error: existingSessionError } = await supabase
             .from("generation_sessions")
-            .select("id")
+            .select("id, plan_json")
             .eq("user_id", userId)
             .eq("create_idempotency_key", req.idempotencyKey)
             .single();
@@ -281,6 +284,16 @@ export const Route = createFileRoute("/api/generation/jobs")({
                 headers: { "Content-Type": "application/json", ...corsHeaders },
               });
             case "reuse":
+              if (
+                !executionPlanIdentityMatches(existingSession.plan_json, {
+                  plan: payload.plan,
+                  selectedCount: selected,
+                  referenceAssetIds: payload.referenceAssetIds,
+                  sourceVersionId: payload.sourceVersionId,
+                })
+              ) {
+                return jsonError("Generation is still being prepared. Please retry.", 409);
+              }
               sessionId = existingSession.id;
               break;
             case "invalid":

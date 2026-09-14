@@ -55,3 +55,66 @@ export function extractStoredReferenceAssetIds(planJson: unknown): string[] {
   if (!Array.isArray(ids)) return [];
   return ids.filter((id): id is string => typeof id === "string");
 }
+
+/** Fields that define whether a stored session may be reused for a new token. */
+export interface ExecutionPlanIdentity {
+  plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
+  selectedCount: number;
+  referenceAssetIds: string[];
+  sourceVersionId: string | null;
+}
+
+function sameStringSet(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const setA = new Set(a);
+  if (setA.size !== a.length) return false;
+  for (const id of b) {
+    if (!setA.has(id)) return false;
+  }
+  return true;
+}
+
+function parseStoredExecutionPlanIdentity(stored: unknown): ExecutionPlanIdentity | null {
+  if (!stored || typeof stored !== "object") return null;
+  const root = stored as Record<string, unknown>;
+  const plan = root.plan;
+  if (!plan || typeof plan !== "object") return null;
+  const planFields = plan as Record<string, unknown>;
+  if (typeof planFields.mode !== "string") return null;
+  if (typeof planFields.desiredCount !== "number") return null;
+  if (typeof planFields.autoCount !== "number") return null;
+  if (typeof root.selectedCount !== "number") return null;
+  const sourceVersionId = root.sourceVersionId;
+  if (sourceVersionId !== null && typeof sourceVersionId !== "string") return null;
+
+  return {
+    plan: {
+      mode: planFields.mode as GenerationPlan["mode"],
+      desiredCount: planFields.desiredCount,
+      autoCount: planFields.autoCount,
+    },
+    selectedCount: root.selectedCount,
+    referenceAssetIds: extractStoredReferenceAssetIds(stored),
+    sourceVersionId,
+  };
+}
+
+/**
+ * A zero-job session may only be reused when its immutable plan_json matches
+ * the verified token that is trying to create jobs now.
+ */
+export function executionPlanIdentityMatches(
+  stored: unknown,
+  current: ExecutionPlanIdentity,
+): boolean {
+  const parsed = parseStoredExecutionPlanIdentity(stored);
+  if (!parsed) return false;
+  return (
+    parsed.plan.mode === current.plan.mode &&
+    parsed.plan.desiredCount === current.plan.desiredCount &&
+    parsed.plan.autoCount === current.plan.autoCount &&
+    parsed.selectedCount === current.selectedCount &&
+    parsed.sourceVersionId === current.sourceVersionId &&
+    sameStringSet(parsed.referenceAssetIds, current.referenceAssetIds)
+  );
+}
