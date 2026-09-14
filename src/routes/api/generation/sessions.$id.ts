@@ -44,10 +44,10 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
 
         const sessionJobs = await Promise.all(
           (jobs ?? []).map(async (job) => {
-            const staleFailed = await failAndRefundStaleJob(supabase, job as StaleJob);
+            const staleResult = await failAndRefundStaleJob(supabase, job as StaleJob);
             return {
               id: job.id,
-              status: staleFailed ? "failed" : job.status,
+              status: staleResult.status,
               series_index: job.series_index,
               series_label: job.series_label,
               created_at: job.created_at,

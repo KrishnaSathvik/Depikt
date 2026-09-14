@@ -12,6 +12,11 @@ export interface StaleJob {
   created_at: string;
 }
 
+export interface StaleJobResult {
+  applied: boolean;
+  status: string;
+}
+
 export function applyStaleFailure(
   job: Pick<StaleJob, "status" | "created_at">,
   now: Date,
@@ -27,10 +32,12 @@ export async function failAndRefundStaleJob(
   supabase: UntypedSupabaseClient,
   job: StaleJob,
   now = new Date(),
-): Promise<boolean> {
-  if (!applyStaleFailure(job, now, STALE_MS)) return false;
+): Promise<StaleJobResult> {
+  if (!applyStaleFailure(job, now, STALE_MS)) {
+    return { applied: false, status: job.status };
+  }
 
-  await supabase
+  const { data, error } = await supabase
     .from("generation_jobs")
     .update({
       status: "failed",
@@ -39,7 +46,26 @@ export async function failAndRefundStaleJob(
       safe_error_message: STALE_ERROR_MESSAGE,
     })
     .eq("id", job.id)
-    .in("status", ["queued", "running"]);
+    .in("status", ["queued", "running"])
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return { applied: false, status: job.status };
+  }
+
+  if (!data) {
+    const { data: liveJob, error: liveError } = await supabase
+      .from("generation_jobs")
+      .select("status")
+      .eq("id", job.id)
+      .maybeSingle();
+
+    return {
+      applied: false,
+      status: liveError || !liveJob ? job.status : liveJob.status,
+    };
+  }
 
   await supabase
     .rpc("finalize_generation_credits", {
@@ -54,5 +80,5 @@ export async function failAndRefundStaleJob(
       () => undefined,
     );
 
-  return true;
+  return { applied: true, status: "failed" };
 }

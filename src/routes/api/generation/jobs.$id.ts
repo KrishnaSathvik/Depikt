@@ -41,8 +41,9 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         if (error) return jsonError("Could not load the job", 500);
         if (!job) return jsonError("Not found", 404);
 
-        if (await failAndRefundStaleJob(supabase, job as StaleJob)) {
-          job.status = "failed";
+        const staleResult = await failAndRefundStaleJob(supabase, job as StaleJob);
+        job.status = staleResult.status;
+        if (staleResult.status === "failed") {
           job.safe_error_message = STALE_ERROR_MESSAGE;
         }
 
