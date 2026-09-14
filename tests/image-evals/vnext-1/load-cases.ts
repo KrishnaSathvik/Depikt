@@ -2,9 +2,10 @@ import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Intent } from "../../../src/lib/prompt-engine/intent.ts";
+import type { OutputMode } from "../../../src/lib/generation/plan.ts";
 
 export interface Vnext1Expected {
-  mode: "single" | "series" | "collage" | "contact_sheet" | "edit";
+  mode: OutputMode;
   desiredCount: number;
   autoCount: number;
   search_needed: boolean;
