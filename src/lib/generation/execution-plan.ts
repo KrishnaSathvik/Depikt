@@ -17,8 +17,14 @@ export interface ExecutionPlanChild {
 }
 
 export interface ExecutionPlanJson {
-  plan: GenerationPlan;
+  /** Flat telemetry/evidence fields — see vnext-1 design §6. */
+  mode: GenerationPlan["mode"];
+  desiredCount: number;
+  autoCount: number;
   selectedCount: number;
+  searchNeeded: boolean;
+  childLabels: Array<string | null>;
+  plan: GenerationPlan;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
   children: ExecutionPlanChild[];
@@ -31,9 +37,15 @@ export function buildExecutionPlanJson(args: {
   sourceVersionId: string | null;
   children: Array<{ label: string | null; prompt: string }>;
 }): ExecutionPlanJson {
+  const childLabels = args.children.map((c) => c.label);
   return {
-    plan: args.plan,
+    mode: args.plan.mode,
+    desiredCount: args.plan.desiredCount,
+    autoCount: args.plan.autoCount,
     selectedCount: args.selectedCount,
+    searchNeeded: args.plan.searchNeeded,
+    childLabels,
+    plan: args.plan,
     referenceAssetIds: args.referenceAssetIds,
     sourceVersionId: args.sourceVersionId,
     children: args.children.map((c) => ({ label: c.label, promptLength: c.prompt.length })),

@@ -31,8 +31,13 @@ test("buildExecutionPlanJson carries selectedCount, references, sourceVersionId,
     ],
   });
 
-  assert.deepEqual(executionPlan.plan, plan);
+  assert.equal(executionPlan.mode, "series");
+  assert.equal(executionPlan.desiredCount, 3);
+  assert.equal(executionPlan.autoCount, 3);
   assert.equal(executionPlan.selectedCount, 3);
+  assert.equal(executionPlan.searchNeeded, false);
+  assert.deepEqual(executionPlan.childLabels, ["Scene 1", "Scene 2"]);
+  assert.deepEqual(executionPlan.plan, plan);
   assert.deepEqual(executionPlan.referenceAssetIds, ["user-1/a.png", "user-1/b.png"]);
   assert.equal(executionPlan.sourceVersionId, "version-9");
   assert.deepEqual(executionPlan.children, [

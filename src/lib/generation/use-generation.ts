@@ -165,6 +165,10 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStart = useRef<number>(0);
+  // Per-session child status baseline so generation_series_child_done fires
+  // on terminal transitions during poll, not on resume of already-finished jobs.
+  const pollChildStatusRef = useRef<Map<string, GenerationChildJob["status"]>>(new Map());
+  const pollBaselineRef = useRef<{ sessionId: string; seeded: boolean } | null>(null);
   const sourceContextRef = useRef(sourceContext);
   sourceContextRef.current = sourceContext;
   // Remembers the params of the last submit() so regenerate()/applyEdit() can
@@ -333,6 +337,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   function pollSession(sessionId: string) {
     saveActiveSession(sessionId);
     pollStart.current = Date.now();
+    pollChildStatusRef.current = new Map();
+    pollBaselineRef.current = { sessionId, seeded: false };
     const tick = async () => {
       try {
         const session = await getGenerationSession(sessionId);
@@ -352,6 +358,30 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
             };
           }),
         );
+        const seeding =
+          pollBaselineRef.current?.sessionId === sessionId && !pollBaselineRef.current.seeded;
+        for (const child of detailed) {
+          if (seeding) {
+            pollChildStatusRef.current.set(child.jobId, child.status);
+            continue;
+          }
+          const prev = pollChildStatusRef.current.get(child.jobId);
+          pollChildStatusRef.current.set(child.jobId, child.status);
+          if (
+            detailed.length > 1 &&
+            child.index !== null &&
+            prev !== undefined &&
+            !isTerminalStatus(prev) &&
+            isTerminalStatus(child.status)
+          ) {
+            trackEvent("generation_series_child_done", {
+              index: child.index,
+              success: child.status === "succeeded",
+            });
+          }
+        }
+        if (seeding && pollBaselineRef.current) pollBaselineRef.current.seeded = true;
+
         setJobs(detailed);
         setVersions(session.versions);
         if (detailed.length > 0 && detailed.every((j) => isTerminalStatus(j.status))) {
@@ -447,6 +477,14 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         sourceVersionId: input.sourceVersionId ?? null,
         sourceContext: effectiveSourceContext,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
+      });
+      trackEvent("generation_planned", {
+        mode: planRes.plan.mode,
+        desiredCount: planRes.plan.desiredCount,
+        autoCount: planRes.plan.autoCount,
+        searchNeeded: planRes.plan.searchNeeded,
+        requiresCountConfirmation: planRes.plan.requiresCountConfirmation,
+        source: effectiveSourceContext.type,
       });
 
       // A series over the auto cap needs the user to pick a count before
@@ -549,6 +587,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       });
       if (res.jobs.length === 0) {
         throw new GenerationApiError("Could not create the generation job", 500);
+      }
+      if (res.jobs.length > 1) {
+        trackEvent("generation_series_started", { selectedCount });
       }
       // A series reserves credits and creates a queued job for every child
       // up front (see jobs.ts) -- every one of them needs its own /run
