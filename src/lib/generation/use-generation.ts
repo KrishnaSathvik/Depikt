@@ -28,11 +28,13 @@ import {
   nextPollDelayMs,
   isTerminalStatus,
   GenerationApiError,
+  type DisplayPlan,
   type JobStatusResponse,
   type SessionVersion,
 } from "./client";
 import type { RoutingHints } from "./model-router";
 import type { SourceContextType } from "./job-request";
+import type { Intent } from "@/lib/prompt-engine/intent";
 import { MAX_REFERENCE_IMAGES_V1 } from "./models";
 import { jobsNeedingStart } from "./series-resume";
 import {
@@ -41,7 +43,20 @@ import {
   clearPendingGeneration,
 } from "./pending-generation";
 
-export type GenerationPhase = "idle" | "starting" | "polling" | "result" | "error";
+export type GenerationPhase =
+  | "idle"
+  | "starting"
+  /** A plan came back with `requiresCountConfirmation` — waiting on confirmSeriesCount(). */
+  | "confirm"
+  | "polling"
+  | "result"
+  | "error";
+
+/** One child job of a generation session, with its own status/result — see pollSession. */
+export interface GenerationChildJob extends JobStatusResponse {
+  label: string | null;
+  index: number | null;
+}
 
 export interface ReferenceEntry {
   local: ReferenceImageState;
@@ -59,30 +74,31 @@ export const ERROR_COPY: Record<string, string> = {
   unknown: "Generation failed.",
 };
 
-// A generation job (especially Sunburst) can run well past a typical page
-// load; a refresh or accidental close must not lose track of it. The active
-// job id is the only thing that needs to survive — pollJob's first tick
-// re-fetches everything else (status, result, model) from the job itself.
-// Tab-scoped on purpose: resuming a job left running in a different,
-// still-open tab would race two pollers against one job.
-const ACTIVE_JOB_KEY = "depikt.generate.activeJobId";
-function saveActiveJob(jobId: string) {
+// A generation session (especially a Sunburst child, or a multi-image
+// series) can run well past a typical page load; a refresh or accidental
+// close must not lose track of it. The active session id is the only thing
+// that needs to survive — pollSession's first tick re-fetches everything
+// else (every child job's status/result, plus versions) from the session
+// itself. Tab-scoped on purpose: resuming a session left running in a
+// different, still-open tab would race two pollers against the same jobs.
+const ACTIVE_SESSION_KEY = "depikt.generate.activeSessionId";
+function saveActiveSession(sessionId: string) {
   try {
-    sessionStorage.setItem(ACTIVE_JOB_KEY, jobId);
+    sessionStorage.setItem(ACTIVE_SESSION_KEY, sessionId);
   } catch {
     /* private-mode/storage-blocked: resume just won't work, generation itself still does */
   }
 }
-function clearActiveJob() {
+function clearActiveSession() {
   try {
-    sessionStorage.removeItem(ACTIVE_JOB_KEY);
+    sessionStorage.removeItem(ACTIVE_SESSION_KEY);
   } catch {
-    /* see saveActiveJob */
+    /* see saveActiveSession */
   }
 }
-function readActiveJob(): string | null {
+function readActiveSession(): string | null {
   try {
-    return sessionStorage.getItem(ACTIVE_JOB_KEY);
+    return sessionStorage.getItem(ACTIVE_SESSION_KEY);
   } catch {
     return null;
   }
@@ -99,6 +115,10 @@ export function simplifyRatioLabel(width: number, height: number): string {
 
 export interface SubmitInput {
   prompt: string;
+  /** Original human request, when different from `prompt` (Build/Critique's finished writer output). Series planning must use this, not the writer's PAGE-block output — see decompose-series.ts. */
+  userInput?: string | null;
+  /** Pre-computed Intent from Build/Critique, when available — skips a redundant analyzeIntent call on /plans. */
+  intent?: Intent | null;
   structuredAspectRatio?: string | null;
   routingHints?: RoutingHints | null;
   sourceVersionId?: string | null;
@@ -129,9 +149,16 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const [credits, setCredits] = useState<number | null>(null);
   const [phase, setPhase] = useState<GenerationPhase>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [job, setJob] = useState<JobStatusResponse | null>(null);
+  // Every child job of the current session, each with its own status/result
+  // — length 1 for the overwhelming majority of submissions (single/edit),
+  // length > 1 only for a confirmed series. `job` below is jobs[0], kept for
+  // every existing single-job consumer (GenerateWorkspace, InlineGenerationPanel).
+  const [jobs, setJobs] = useState<GenerationChildJob[]>([]);
   const [versions, setVersions] = useState<SessionVersion[]>([]);
   const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
+  // Set only when a plan comes back with requiresCountConfirmation — the
+  // display-safe plan shown to the user while phase is "confirm".
+  const [planPreview, setPlanPreview] = useState<DisplayPlan | null>(null);
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStart = useRef<number>(0);
@@ -142,14 +169,26 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const lastParamsRef = useRef<SubmitInput | null>(null);
   const referencesRef = useRef<ReferenceEntry[]>([]);
   referencesRef.current = references;
+  // Everything confirmSeriesCount() needs to finish a plan that required
+  // confirmation — set right before phase becomes "confirm", read (and
+  // cleared) the moment the user picks a count.
+  const pendingPlanRef = useRef<{
+    planToken: string;
+    idempotencyKey: string;
+    referenceAssetIds: string[];
+    structuredAspectRatio: string | null;
+  } | null>(null);
 
-  // Resume a job left running across a refresh/reopen — see ACTIVE_JOB_KEY.
-  // pollJob's own first tick fetches the job's current status (it may
-  // already be done) and clears the key once terminal, so this only ever
-  // fires the network request an in-flight job actually needs.
+  const job = jobs[0] ?? null;
+
+  // Resume a session left running across a refresh/reopen — see
+  // ACTIVE_SESSION_KEY. pollSession's own first tick fetches every child
+  // job's current status (they may already be done) and clears the key
+  // once all are terminal, so this only ever fires the network requests an
+  // in-flight session actually needs.
   useEffect(() => {
-    const activeJobId = readActiveJob();
-    if (activeJobId) pollJob(activeJobId);
+    const activeSessionId = readActiveSession();
+    if (activeSessionId) pollSession(activeSessionId);
   }, []);
 
   // Load the authoritative balance once signed in.
@@ -275,24 +314,48 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setReferences((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function pollJob(jobId: string) {
-    saveActiveJob(jobId);
+  // Polls the whole session, not one job — a confirmed series creates
+  // several queued children on one session (see jobs.ts's
+  // create_generation_jobs), and every one of them needs its own status
+  // tracked until it's terminal, not just the first. getGenerationSession
+  // gives the current child list (id/status/label/index) and every
+  // succeeded version; each child's own richer detail (width/height/model/
+  // errorMessage/signed result URL) still comes from getGenerationJob,
+  // exactly as the single-job path always fetched it.
+  function pollSession(sessionId: string) {
+    saveActiveSession(sessionId);
     pollStart.current = Date.now();
     const tick = async () => {
       try {
-        const res = await getGenerationJob(jobId);
-        setJob(res);
-        if (isTerminalStatus(res.status)) {
-          clearActiveJob();
-          if (res.status === "succeeded") {
+        const session = await getGenerationSession(sessionId);
+        const detailed = await Promise.all(
+          session.jobs.map(async (child): Promise<GenerationChildJob> => {
+            const detail = await getGenerationJob(child.id);
+            return {
+              ...detail,
+              label: child.series_label ?? null,
+              index: child.series_index ?? null,
+            };
+          }),
+        );
+        setJobs(detailed);
+        setVersions(session.versions);
+        if (detailed.length > 0 && detailed.every((j) => isTerminalStatus(j.status))) {
+          clearActiveSession();
+          const succeeded = detailed.filter((j) => j.status === "succeeded");
+          if (succeeded.length > 0) {
             setPhase("result");
-            setActiveVersionId(res.result?.versionId ?? null);
-            void getGenerationSession(res.sessionId).then((s) => setVersions(s.versions));
-            trackEvent("generation_succeeded", { model: res.model, operation: res.operation });
+            setActiveVersionId(succeeded[0].result?.versionId ?? null);
+            trackEvent("generation_succeeded", {
+              model: succeeded[0].model,
+              operation: succeeded[0].operation,
+            });
           } else {
             setPhase("error");
-            setErrorMessage(res.errorMessage ?? "Generation failed. Your credit was returned.");
-            trackEvent("generation_failed", { model: res.model });
+            setErrorMessage(
+              detailed[0]?.errorMessage ?? "Generation failed. Your credit was returned.",
+            );
+            trackEvent("generation_failed", { model: detailed[0]?.model });
           }
           return;
         }
@@ -316,6 +379,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     if (!user) {
       savePendingGeneration({
         prompt: effectivePrompt,
+        userInput: input.userInput ?? null,
+        intent: input.intent ?? null,
         referenceDataUrls: referencesRef.current.map((r) => r.local.dataUrl),
         structuredAspectRatio: input.structuredAspectRatio ?? null,
         routingHints: input.routingHints ?? null,
@@ -345,6 +410,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setPhase("starting");
     setErrorMessage(null);
     setCreditState("ok");
+    setPlanPreview(null);
     trackEvent("generate_submitted", { source: sourceContextRef.current.type });
     try {
       const idempotencyKey = input.idempotencyKey ?? crypto.randomUUID();
@@ -360,50 +426,65 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       // see generate-reference-upload.test.ts.
       const planRes = await createGenerationPlan({
         prompt: effectivePrompt,
+        userInput: input.userInput ?? null,
+        intent: input.intent ?? null,
         referenceAssetIds,
         sourceVersionId: input.sourceVersionId ?? null,
         sourceContext: sourceContextRef.current,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
-      // Smallest viable wiring: always take the plan's auto-count with no
-      // confirmation step, even when the plan itself would ask for one
-      // (requiresCountConfirmation). Confirm-before-create UI (planPreview /
-      // confirmSeriesCount) is a follow-up; this still generates a real,
-      // credit-correct batch today.
-      const res = await createGenerationJobs({
-        planToken: planRes.planToken,
-        selectedCount: planRes.plan.autoCount,
-        idempotencyKey,
-        structuredAspectRatio: input.structuredAspectRatio ?? null,
-        sourceContext: sourceContextRef.current,
-      });
-      const firstJob = res.jobs[0];
-      if (!firstJob) throw new GenerationApiError("Could not create the generation job", 500);
-      // A series reserves a credit and creates a queued job for every
-      // child up front (see jobs.ts) -- every one of them needs its own
-      // /run request to actually execute, or the siblings just sit queued
-      // forever with credits already spent. Deliberately not awaited: each
-      // /run request stays open for the whole generation (that is what
-      // keeps the server-side work alive). Polling below only follows the
-      // first job; full multi-job progress/confirm UI is a follow-up.
-      for (const jobId of jobsNeedingStart(res.jobs)) {
-        void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+
+      // A series over the auto cap needs the user to pick a count before
+      // any job (and any credit reservation) exists -- see
+      // confirmSeriesCount below. Nothing is created yet.
+      if (planRes.plan.requiresCountConfirmation) {
+        pendingPlanRef.current = {
+          planToken: planRes.planToken,
+          idempotencyKey,
+          referenceAssetIds,
+          structuredAspectRatio: input.structuredAspectRatio ?? null,
+        };
+        setPlanPreview(planRes.plan);
+        setPhase("confirm");
+        return;
       }
-      pollJob(firstJob.id);
-    } catch (err) {
-      setPhase("error");
-      if (err instanceof GenerationApiError && err.status === 402) {
-        // Authoritative: the server refused the reservation.
+
+      // Known balance beats the auto-count: never let a signed-in user with
+      // too few credits reach the (also enforced, but less friendly) server
+      // 402 for a batch they could see coming.
+      if (credits !== null && credits < planRes.plan.autoCount) {
         setPhase("idle");
         setCreditState("exhausted");
-        setCredits(0);
-        trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "server" });
+        trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "preempt" });
         return;
-      } else if (err instanceof GenerationApiError && err.status === 401) {
-        setErrorMessage(ERROR_COPY.auth);
-      } else {
-        setErrorMessage("Generation is temporarily unavailable.");
       }
+
+      await executePlan(
+        planRes.planToken,
+        planRes.plan.autoCount,
+        idempotencyKey,
+        referenceAssetIds,
+        input.structuredAspectRatio ?? null,
+      );
+    } catch (err) {
+      applyPlanOrJobError(err);
+    }
+  }
+
+  /** Shared by submit() (plan step) and executePlan() (jobs step) -- same server errors, same handling. */
+  function applyPlanOrJobError(err: unknown): void {
+    setPhase("error");
+    if (err instanceof GenerationApiError && err.status === 402) {
+      // Authoritative: the server refused the reservation.
+      setPhase("idle");
+      setCreditState("exhausted");
+      setCredits(0);
+      trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "server" });
+      return;
+    } else if (err instanceof GenerationApiError && err.status === 401) {
+      setErrorMessage(ERROR_COPY.auth);
+    } else {
+      setErrorMessage("Generation is temporarily unavailable.");
     }
   }
 
@@ -418,11 +499,76 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     }
     await submit({
       prompt: pending.prompt,
+      userInput: pending.userInput ?? null,
+      intent: pending.intent ?? null,
       structuredAspectRatio: pending.structuredAspectRatio,
       routingHints: pending.routingHints,
       sourceVersionId: pending.sourceVersionId,
       idempotencyKey: pending.idempotencyKey,
     });
+  }
+
+  // POST /jobs from an already-issued planToken: create the real job(s),
+  // start every queued child in parallel, and switch to session polling.
+  // Called directly from submit() (auto count, no confirmation needed) or
+  // from confirmSeriesCount() once the user has picked a count.
+  async function executePlan(
+    planToken: string,
+    selectedCount: number,
+    idempotencyKey: string,
+    referenceAssetIds: string[],
+    structuredAspectRatio: string | null,
+  ): Promise<void> {
+    setPhase("starting");
+    try {
+      const res = await createGenerationJobs({
+        planToken,
+        selectedCount,
+        idempotencyKey,
+        structuredAspectRatio,
+        sourceContext: sourceContextRef.current,
+      });
+      if (res.jobs.length === 0) {
+        throw new GenerationApiError("Could not create the generation job", 500);
+      }
+      // A series reserves credits and creates a queued job for every child
+      // up front (see jobs.ts) -- every one of them needs its own /run
+      // request to actually execute, or the siblings just sit queued
+      // forever with credits already spent. Deliberately not awaited: each
+      // /run request stays open for the whole generation (that is what
+      // keeps the server-side work alive).
+      for (const jobId of jobsNeedingStart(res.jobs)) {
+        void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+      }
+      pollSession(res.sessionId);
+    } catch (err) {
+      applyPlanOrJobError(err);
+    }
+  }
+
+  /**
+   * The user picked a count from the "confirm" phase (see submit() above).
+   * Re-checks the credit gate against the *chosen* count -- a plan's
+   * autoCount was already known-affordable when submit() first checked,
+   * but "Generate all N" can ask for more than the user actually has.
+   */
+  function confirmSeriesCount(selectedCount: number): void {
+    const pending = pendingPlanRef.current;
+    if (!pending) return;
+    if (credits !== null && credits < selectedCount) {
+      setCreditState("exhausted");
+      trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "preempt" });
+      return;
+    }
+    pendingPlanRef.current = null;
+    setPlanPreview(null);
+    void executePlan(
+      pending.planToken,
+      selectedCount,
+      pending.idempotencyKey,
+      pending.referenceAssetIds,
+      pending.structuredAspectRatio,
+    );
   }
 
   function regenerate() {
@@ -454,6 +600,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   function reset() {
     setPhase("idle");
     setErrorMessage(null);
+    setPlanPreview(null);
+    pendingPlanRef.current = null;
   }
 
   /** Blank composer for "create another image" -- unlike reset() (used for
@@ -471,6 +619,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
    * Generate" action.
    */
   function hydrateVersion(version: SessionVersion) {
+    setJobs([]);
     setVersions([version]);
     setActiveVersionId(version.id);
     setPhase("result");
@@ -513,6 +662,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     user,
     phase,
     job,
+    jobs,
+    planPreview,
     versions,
     activeVersionId,
     setActiveVersionId,
@@ -525,6 +676,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     clearReferences,
     retryReferenceUpload,
     submit,
+    confirmSeriesCount,
     regenerate,
     applyEdit,
     download,

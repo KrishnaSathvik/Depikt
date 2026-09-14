@@ -143,9 +143,17 @@ export interface SessionVersion {
   url: string | null;
 }
 
+export interface SessionJobSummary {
+  id: string;
+  status: string;
+  series_index: number | null;
+  series_label: string | null;
+  created_at: string;
+}
+
 export function getGenerationSession(
   sessionId: string,
-): Promise<{ sessionId: string; versions: SessionVersion[] }> {
+): Promise<{ sessionId: string; versions: SessionVersion[]; jobs: SessionJobSummary[] }> {
   return generationJson(`/api/generation/sessions/${sessionId}`);
 }
 

@@ -26,22 +26,38 @@ test("queued children are started; running and succeeded are not", () => {
 // the first one was ever actually run -- the rest sat "queued" forever
 // with their credits already spent. jobsNeedingStart (above) exists
 // specifically so every queued sibling gets its own /run request.
-test("submit() starts every queued job from createGenerationJobs, not just the first", () => {
+//
+// VNext 1 Task 9 moved job creation out of submit() itself and into
+// executePlan() (called either directly, for an auto-count plan, or from
+// confirmSeriesCount() once the user picks a count for a plan that needed
+// confirmation) -- but the "start every queued child, then poll the whole
+// session" invariant this test protects is unchanged.
+test("executePlan starts every queued job from createGenerationJobs, not just the first, then polls the session", () => {
   const g = readFileSync(
     resolve(import.meta.dirname, "../../src/lib/generation/use-generation.ts"),
     "utf8",
   );
   assert.match(g, /import \{ jobsNeedingStart \} from "\.\/series-resume"/);
 
+  const executePlanFn = g.slice(
+    g.indexOf("async function executePlan"),
+    g.indexOf("/**\n   * The user picked a count"),
+  );
+  assert.match(executePlanFn, /for \(const jobId of jobsNeedingStart\(res\.jobs\)\) \{/);
+  assert.match(executePlanFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
+  // Polling covers every child on the session, not just the first -- see
+  // generate-job-resume.test.ts for pollSession's own coverage.
+  assert.match(executePlanFn, /pollSession\(res\.sessionId\);/);
+
+  // submit() only ever creates jobs through executePlan (auto count) or
+  // leaves that to confirmSeriesCount (confirmed count) -- it never starts
+  // a job itself.
   const submitFn = g.slice(
     g.indexOf("async function submit"),
     g.indexOf("// Re-upload any references"),
   );
-  assert.match(submitFn, /for \(const jobId of jobsNeedingStart\(res\.jobs\)\) \{/);
-  assert.match(submitFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
-  // Polling still only follows the first job -- the full multi-job
-  // progress UI is a follow-up (Task 9), not this fix.
-  assert.match(submitFn, /pollJob\(firstJob\.id\);/);
+  assert.equal(/startGenerationJob/.test(submitFn), false);
+  assert.match(submitFn, /await executePlan\(/);
 });
 
 test("queued and running jobs older than the stale limit fail", () => {

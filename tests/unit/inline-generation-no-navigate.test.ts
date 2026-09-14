@@ -49,7 +49,7 @@ test("both modes render InlineGenerationPanel, not a second Generate confirmatio
   // InlineGenerationPanel itself renders nothing (no button) while idle —
   // it only appears once submit() has already moved phase off "idle".
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
-  assert.match(panel, /if \(gen\.phase === "idle"\) return null;/);
+  assert.match(panel, /if \(gen\.phase === "idle" \|\| gen\.phase === "confirm"\) return null;/);
 });
 
 test("Build's own prompt-building spinner is untouched — no ThinkingField for text generation", () => {

@@ -33,6 +33,7 @@ import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
+import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
@@ -107,6 +108,9 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
     }
     await gen.submit({
       prompt: result.rewritten_prompt,
+      // The original prompt being critiqued, not the rewrite -- series
+      // decomposition (rare for Critique, but possible) must use it.
+      userInput: savedInput,
       structuredAspectRatio: null,
       routingHints: result.category ? { category: result.category } : null,
     });
@@ -374,6 +378,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
             {result?.rewritten_prompt && isNativeGenerationEnabled() && (
               <>
                 <GenerationCreditGate gen={gen} className="mt-6" />
+                <SeriesConfirmPanel gen={gen} className="mt-6" />
                 <InlineGenerationPanel
                   promptLabel="Rewritten prompt"
                   promptText={result.rewritten_prompt}

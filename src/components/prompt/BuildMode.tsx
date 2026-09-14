@@ -48,8 +48,10 @@ import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
+import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
+import type { Intent } from "@/lib/prompt-engine/intent";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
 import { TemplateSetup } from "@/components/TemplateSetup";
 import { getTemplateBySlug, type Template } from "@/data/templates";
@@ -130,6 +132,12 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     }
     await gen.submit({
       prompt: promptText,
+      // The writer's own output (`promptText`) is what actually gets
+      // rendered on a single/edit plan; series decomposition must use the
+      // original rough idea instead, or it decomposes the writer's PAGE
+      // blocks — see decompose-series.ts / generation-handoff-user-input.test.ts.
+      userInput: savedRoughIdea || input,
+      intent: (result.intent as unknown as Intent) ?? null,
       structuredAspectRatio: result.aspect_ratio ?? null,
       routingHints: {
         category: typeof intent?.category === "string" ? intent.category : undefined,
@@ -690,6 +698,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
             {(activeGenPrompt || result?.prompt) && isNativeGenerationEnabled() && (
               <>
                 <GenerationCreditGate gen={gen} className="mt-6" />
+                <SeriesConfirmPanel gen={gen} className="mt-6" />
                 <InlineGenerationPanel
                   promptLabel="Your prompt"
                   promptText={activeGenPrompt ?? result!.prompt!}

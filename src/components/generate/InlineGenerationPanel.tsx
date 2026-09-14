@@ -32,7 +32,9 @@ export function InlineGenerationPanel({
   const [editPrompt, setEditPrompt] = useState("");
   const panelRef = useRef<HTMLDivElement>(null);
 
-  if (gen.phase === "idle") return null;
+  // "confirm" has no job yet either — SeriesConfirmPanel (rendered by the
+  // caller, right where GenerationCreditGate is) owns that state.
+  if (gen.phase === "idle" || gen.phase === "confirm") return null;
 
   const resolvedSize =
     gen.job?.width && gen.job?.height

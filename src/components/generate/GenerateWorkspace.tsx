@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
+import { Sparkles, ImagePlus, X, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
@@ -12,6 +12,7 @@ import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
 import {
   useGeneration,
   simplifyRatioLabel,
+  type GenerationChildJob,
   type ReferenceEntry,
 } from "@/lib/generation/use-generation";
 import type { RoutingHints } from "@/lib/generation/model-router";
@@ -20,11 +21,13 @@ import type { SessionVersion } from "@/lib/generation/client";
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
+import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
 import { trackEvent } from "@/lib/analytics";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { ModeHero } from "@/components/prompt/ModeHero";
-import { PROMPT_MODE_COPY } from "@/lib/product";
+import { PROMPT_MODE_COPY, GENERATION_STAGE_LABELS } from "@/lib/product";
+import { cn } from "@/lib/utils";
 
 /**
  * /generate — the direct creation workspace.
@@ -192,6 +195,22 @@ export function GenerateWorkspace() {
     );
   }
 
+  // A plan came back needing a count decision before any job (or credit
+  // reservation) exists yet -- no canvas, no composer, just the choice.
+  if (gen.phase === "confirm") {
+    return (
+      <>
+        <AuthGateDialog gen={gen} />
+        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        <GenerationCreditGate gen={gen} className="mt-6" />
+        <PromptSurface label="Prompt" className="mt-8">
+          {prompt}
+        </PromptSurface>
+        <SeriesConfirmPanel gen={gen} className="mt-6" />
+      </>
+    );
+  }
+
   // ---------- generating / result / edit / error-with-job: two-pane workspace ----------
   const canvasState =
     gen.phase === "starting" || gen.phase === "polling"
@@ -254,34 +273,93 @@ export function GenerateWorkspace() {
           )}
         </div>
 
-        {/* RIGHT — the generation canvas: generating / result / error */}
-        <GenerationCanvas
-          state={canvasState}
-          aspectRatio={resolvedSize.ratioLabel}
-          orientation={resolvedSize.orientation}
-          imageUrl={gen.resultUrl}
-          errorMessage={gen.errorMessage}
-          onRetry={gen.reset}
-          jobStatus={
-            gen.job?.status === "queued" || gen.job?.status === "running"
-              ? gen.job.status
-              : gen.phase === "starting"
-                ? "queued"
-                : "running"
-          }
-          actions={
-            editing ? undefined : (
-              <GenerationActions
-                onDownload={gen.download}
-                onEdit={() => setEditing((e) => !e)}
-                onRegenerate={gen.regenerate}
-                onNew={startNew}
-              />
-            )
-          }
-        />
+        {/* RIGHT — a confirmed series (>1 child job) gets a simple grid of
+            slots instead of the single-image canvas; everything else keeps
+            the shared GenerationCanvas. */}
+        {gen.jobs.length > 1 ? (
+          <SeriesJobsGrid jobs={gen.jobs} />
+        ) : (
+          <GenerationCanvas
+            state={canvasState}
+            aspectRatio={resolvedSize.ratioLabel}
+            orientation={resolvedSize.orientation}
+            imageUrl={gen.resultUrl}
+            errorMessage={gen.errorMessage}
+            onRetry={gen.reset}
+            jobStatus={
+              gen.job?.status === "queued" || gen.job?.status === "running"
+                ? gen.job.status
+                : gen.phase === "starting"
+                  ? "queued"
+                  : "running"
+            }
+            actions={
+              editing ? undefined : (
+                <GenerationActions
+                  onDownload={gen.download}
+                  onEdit={() => setEditing((e) => !e)}
+                  onRegenerate={gen.regenerate}
+                  onNew={startNew}
+                />
+              )
+            }
+          />
+        )}
       </div>
     </>
+  );
+}
+
+/** A confirmed series' child jobs — label + image (once succeeded) or a
+ *  spinner (queued/running), reusing the shared thinking copy. No per-job
+ *  edit/regenerate here; "New" above still blanks the whole composer. */
+function SeriesJobsGrid({ jobs }: { jobs: GenerationChildJob[] }) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {jobs.map((job, i) => (
+        <SeriesJobSlot key={job.jobId} job={job} index={i} />
+      ))}
+    </div>
+  );
+}
+
+function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number }) {
+  const label = job.label || `Image ${index + 1}`;
+
+  if (job.status === "succeeded" && job.result) {
+    return (
+      <div className="space-y-1.5">
+        <img
+          src={job.result.url}
+          alt={label}
+          className="aspect-square w-full rounded-md border border-[color:var(--border-subtle)] object-cover"
+        />
+        <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
+      </div>
+    );
+  }
+
+  const failed = job.status === "failed" || job.status === "cancelled";
+  return (
+    <div
+      className={cn(
+        "flex aspect-square flex-col items-center justify-center gap-2 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-3",
+      )}
+    >
+      {failed ? (
+        <p className="text-body-sm text-red-600">{job.errorMessage ?? "Failed"}</p>
+      ) : (
+        <Loader2 className="h-5 w-5 animate-spin text-[color:var(--text-tertiary)]" />
+      )}
+      <p className="truncate text-[12px] font-mono text-[color:var(--text-tertiary)]">{label}</p>
+      {!failed && (
+        <p className="text-[11px] text-[color:var(--text-tertiary)]">
+          {job.status === "queued"
+            ? GENERATION_STAGE_LABELS.starting
+            : GENERATION_STAGE_LABELS.creating}
+        </p>
+      )}
+    </div>
   );
 }
 

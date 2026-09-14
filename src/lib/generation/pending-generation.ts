@@ -11,7 +11,7 @@
 // authenticated to a page that has forgotten they ever pressed Generate.
 //
 // sessionStorage, tab-scoped and short-lived like the other generation
-// persistence keys (see use-generation.ts's ACTIVE_JOB_KEY).
+// persistence keys (see use-generation.ts's ACTIVE_SESSION_KEY).
 
 import type { SourceContextType } from "./job-request";
 import type { RoutingHints } from "./model-router";
