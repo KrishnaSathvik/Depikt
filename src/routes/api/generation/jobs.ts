@@ -13,6 +13,7 @@ import type { Intent } from "@/lib/prompt-engine/intent";
 import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { buildExecutionPlanJson } from "@/lib/generation/execution-plan";
 import {
+  decideExistingSession,
   generationJobIdempotencyKeys,
   toExistingJobsResult,
   type ExistingJobRow,
@@ -247,11 +248,9 @@ export const Route = createFileRoute("/api/generation/jobs")({
         if (!sessionError && insertedSession) {
           sessionId = insertedSession.id;
         } else if (sessionError?.code === "23505") {
-          // A concurrent submit won the session insert. Its insert commits
-          // just before its job RPC, so wait briefly for those jobs and
-          // return only that session's replay. The losing request must never
-          // create jobs from a different token against the winner's stored
-          // plan_json.
+          // A concurrent submit or failed cleanup left the unique session.
+          // Replay a complete job set, reuse a zero-job session, and reject
+          // partial/unexpected sets rather than splicing in new jobs.
           const { data: existingSession, error: existingSessionError } = await supabase
             .from("generation_sessions")
             .select("id")
@@ -262,29 +261,35 @@ export const Route = createFileRoute("/api/generation/jobs")({
             return jsonError("Could not replay the generation session", 500);
           }
 
-          for (let attempt = 0; attempt < 20; attempt += 1) {
-            const { data: concurrentJobRows, error: concurrentJobsError } = await supabase
-              .from("generation_jobs")
-              .select("id, session_id, idempotency_key, status, series_index, series_label")
-              .eq("user_id", userId)
-              .eq("session_id", existingSession.id)
-              .in("idempotency_key", expectedIdempotencyKeys);
-            if (concurrentJobsError) {
-              return jsonError("Could not replay the generation jobs", 500);
-            }
-            const concurrentResult = toExistingJobsResult(
-              (concurrentJobRows ?? []) as ExistingJobRow[],
-              expectedIdempotencyKeys,
-            );
-            if (concurrentResult) {
-              return new Response(JSON.stringify(concurrentResult), {
+          const { data: concurrentJobRows, error: concurrentJobsError } = await supabase
+            .from("generation_jobs")
+            .select("id, session_id, idempotency_key, status, series_index, series_label")
+            .eq("user_id", userId)
+            .eq("session_id", existingSession.id);
+          if (concurrentJobsError) {
+            return jsonError("Could not replay the generation jobs", 500);
+          }
+
+          const decision = decideExistingSession(
+            (concurrentJobRows ?? []) as ExistingJobRow[],
+            expectedIdempotencyKeys,
+          );
+          switch (decision.kind) {
+            case "replay":
+              return new Response(JSON.stringify(decision.result), {
                 status: 202,
                 headers: { "Content-Type": "application/json", ...corsHeaders },
               });
+            case "reuse":
+              sessionId = existingSession.id;
+              break;
+            case "invalid":
+              return jsonError("Generation is still being prepared. Please retry.", 409);
+            default: {
+              const exhaustive: never = decision;
+              return exhaustive;
             }
-            await new Promise((resolve) => setTimeout(resolve, 100));
           }
-          return jsonError("Generation is still being prepared. Please retry.", 409);
         } else {
           return jsonError("Could not start a generation session", 500);
         }

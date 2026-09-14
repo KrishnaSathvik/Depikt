@@ -6,6 +6,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  decideExistingSession,
   generationJobIdempotencyKeys,
   toExistingJobsResult,
   type ExistingJobRow,
@@ -27,6 +28,10 @@ test("series replay builds exact child keys without LIKE wildcard semantics", ()
 
 test("no matching rows means no replay -- the caller proceeds to create a new session", () => {
   assert.equal(toExistingJobsResult([], ["submit-1"]), null);
+});
+
+test("a unique-key session with zero jobs is reused", () => {
+  assert.deepEqual(decideExistingSession([], ["submit-1"]), { kind: "reuse" });
 });
 
 test("a single matched row replays as one job under its real session", () => {
@@ -95,6 +100,9 @@ test("a partial series is not a replay", () => {
     },
   ];
   assert.equal(toExistingJobsResult(rows, ["series-1:1", "series-1:2"]), null);
+  assert.deepEqual(decideExistingSession(rows, ["series-1:1", "series-1:2"]), {
+    kind: "invalid",
+  });
 });
 
 test("the wrong key set is not a replay even when the row count matches", () => {

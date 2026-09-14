@@ -25,6 +25,11 @@ export interface ExistingJobsResult {
   jobs: Array<{ id: string; label: string | null; index: number | null; status: string }>;
 }
 
+export type ExistingSessionDecision =
+  | { kind: "replay"; result: ExistingJobsResult }
+  | { kind: "reuse" }
+  | { kind: "invalid" };
+
 /**
  * Exact keys assigned by create_generation_job(s). Keeping this as a list
  * avoids treating user-controlled `%` and `_` characters as LIKE wildcards.
@@ -67,4 +72,19 @@ export function toExistingJobsResult(
       status: r.status,
     })),
   };
+}
+
+/**
+ * Decide what a retry may do with the session that owns its unique create key.
+ * An empty leftover is safe to reuse; a partial or unexpected job set must
+ * never be spliced into a new request.
+ */
+export function decideExistingSession(
+  rows: ExistingJobRow[],
+  expectedIdempotencyKeys: string[],
+): ExistingSessionDecision {
+  if (rows.length === 0) return { kind: "reuse" };
+
+  const result = toExistingJobsResult(rows, expectedIdempotencyKeys);
+  return result ? { kind: "replay", result } : { kind: "invalid" };
 }
