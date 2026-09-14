@@ -38,7 +38,7 @@ test("generation_series_started fires when createGenerationJobs returns multiple
   assert.match(executePlanFn, /trackEvent\("generation_series_started", \{ selectedCount \}\)/);
 });
 
-test("generation_series_child_done fires once per child on terminal transition during poll", () => {
+test("generation_series_child_done fires once per child on succeeded/failed transition during poll", () => {
   const hook = read("src/lib/generation/use-generation.ts");
   const pollFn = hook.slice(
     hook.indexOf("function pollSession"),
@@ -51,8 +51,32 @@ test("generation_series_child_done fires once per child on terminal transition d
   assert.match(pollFn, /index: child\.index/);
   assert.match(pollFn, /success: child\.status === "succeeded"/);
   assert.match(pollFn, /!isTerminalStatus\(prev\)/);
-  assert.match(pollFn, /isTerminalStatus\(child\.status\)/);
+  assert.match(pollFn, /child\.status === "succeeded" \|\| child\.status === "failed"/);
+  assert.doesNotMatch(pollFn, /isTerminalStatus\(child\.status\)/);
   assert.match(pollFn, /detailed\.length > 1/);
+});
+
+test("fresh submissions seed poll baseline from /jobs queued jobs; resume seeds on first poll", () => {
+  const hook = read("src/lib/generation/use-generation.ts");
+  const pollFn = hook.slice(
+    hook.indexOf("function pollSession"),
+    hook.indexOf("async function submit"),
+  );
+  const executePlanFn = hook.slice(
+    hook.indexOf("async function executePlan"),
+    hook.indexOf("/**\n   * The user picked a count"),
+  );
+
+  assert.match(pollFn, /queuedJobs\?: Array<\{ id: string \}>/);
+  assert.match(pollFn, /pollChildStatusRef\.current\.set\(child\.id, "queued"\)/);
+  assert.match(pollFn, /seeded: true/);
+  assert.match(pollFn, /seeded: false/);
+  assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);
+  assert.match(
+    hook,
+    /if \(activeSessionId\) pollSession\(activeSessionId\);/,
+    "resume omits queuedJobs so first poll seeds without emitting",
+  );
 });
 
 test("jobs route persists plan_json with telemetry fields via buildExecutionPlanJson", () => {

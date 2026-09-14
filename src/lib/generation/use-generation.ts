@@ -334,11 +334,22 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // succeeded version; each child's own richer detail (width/height/model/
   // errorMessage/signed result URL) still comes from getGenerationJob,
   // exactly as the single-job path always fetched it.
-  function pollSession(sessionId: string) {
+  function pollSession(
+    sessionId: string,
+    /** Fresh /jobs response — seed baseline as queued so a child that finishes before the first poll still emits child_done. Omit on resume (sessionStorage). */
+    queuedJobs?: Array<{ id: string }>,
+  ) {
     saveActiveSession(sessionId);
     pollStart.current = Date.now();
     pollChildStatusRef.current = new Map();
-    pollBaselineRef.current = { sessionId, seeded: false };
+    if (queuedJobs) {
+      for (const child of queuedJobs) {
+        pollChildStatusRef.current.set(child.id, "queued");
+      }
+      pollBaselineRef.current = { sessionId, seeded: true };
+    } else {
+      pollBaselineRef.current = { sessionId, seeded: false };
+    }
     const tick = async () => {
       try {
         const session = await getGenerationSession(sessionId);
@@ -372,7 +383,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
             child.index !== null &&
             prev !== undefined &&
             !isTerminalStatus(prev) &&
-            isTerminalStatus(child.status)
+            (child.status === "succeeded" || child.status === "failed")
           ) {
             trackEvent("generation_series_child_done", {
               index: child.index,
@@ -600,7 +611,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       for (const jobId of jobsNeedingStart(res.jobs)) {
         void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
       }
-      pollSession(res.sessionId);
+      pollSession(res.sessionId, res.jobs);
     } catch (err) {
       applyPlanOrJobError(err);
     }

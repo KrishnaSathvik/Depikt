@@ -47,7 +47,7 @@ test("executePlan starts every queued job from createGenerationJobs, not just th
   assert.match(executePlanFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
   // Polling covers every child on the session, not just the first -- see
   // generate-job-resume.test.ts for pollSession's own coverage.
-  assert.match(executePlanFn, /pollSession\(res\.sessionId\);/);
+  assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);
 
   // submit() only ever creates jobs through executePlan (auto count) or
   // leaves that to confirmSeriesCount (confirmed count) -- it never starts
