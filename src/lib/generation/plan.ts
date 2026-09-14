@@ -93,6 +93,29 @@ export function resolveSelectedCount(plan: GenerationPlan, selectedCount?: numbe
   throw new Error("selectedCount must be autoCount or desiredCount");
 }
 
+/**
+ * Chooses the real OpenAI operation for a plan. `plan.mode === "edit"` is
+ * one way in, but not the only one: a signed plan for a plain `single`/
+ * `series` request can still carry attached reference images (Library's
+ * "Use as reference", a Gallery handoff, or a manual attach on Generate) or
+ * a `sourceVersionId` from a prior result. Those requests must call
+ * OpenAI's images/edits endpoint with the reference bytes attached, not
+ * images/generations with no image input at all -- see job-pipeline.ts's
+ * "generate" branch, which never receives referenceImages. Getting this
+ * wrong was a confirmed live bug: an attached reference silently produced
+ * an unrelated image. See generate-reference-upload.test.ts.
+ */
+export function resolveOperation(
+  plan: GenerationPlan,
+  referenceAssetIds: string[],
+  sourceVersionId: string | null,
+): "generate" | "edit" {
+  if (plan.mode === "edit") return "edit";
+  if (referenceAssetIds.length > 0) return "edit";
+  if (sourceVersionId) return "edit";
+  return "generate";
+}
+
 function finish(
   mode: OutputMode,
   desiredCount: number,

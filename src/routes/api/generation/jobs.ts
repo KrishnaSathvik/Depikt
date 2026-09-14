@@ -4,13 +4,15 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateCreateJobsFromPlanBody } from "@/lib/generation/job-request";
 import { verifyPlanToken, type PlanTokenPayload } from "@/lib/generation/plan-token";
-import { resolveSelectedCount } from "@/lib/generation/plan";
+import { resolveSelectedCount, resolveOperation } from "@/lib/generation/plan";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
 import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
 import type { Intent } from "@/lib/prompt-engine/intent";
 import { asGenerationClient } from "@/lib/generation/db-types";
+import { buildExecutionPlanJson } from "@/lib/generation/execution-plan";
+import { toExistingJobsResult, type ExistingJobRow } from "@/lib/generation/idempotent-jobs";
 
 // Reference intents where the image must be reproduced faithfully, not just
 // used for inspiration — see reference.ts. A prompt built for one of these
@@ -115,6 +117,35 @@ export const Route = createFileRoute("/api/generation/jobs")({
           return jsonError("This plan has expired. Please try again.", 400);
         }
 
+        // Idempotent replay (retry, double-submit, a second tab): a single
+        // job matches this exact key; a series matches the `key:1..N`
+        // prefix create_generation_jobs assigns each child. Check before
+        // doing anything else so a replay never inserts a second session
+        // for jobs that already exist -- see idempotent-jobs.ts.
+        const isSeriesPlan = payload.plan.mode === "series";
+        const existingJobsQuery = isSeriesPlan
+          ? supabase
+              .from("generation_jobs")
+              .select("id, session_id, status, series_index, series_label")
+              .eq("user_id", userId)
+              .like("idempotency_key", `${req.idempotencyKey}:%`)
+          : supabase
+              .from("generation_jobs")
+              .select("id, session_id, status, series_index, series_label")
+              .eq("user_id", userId)
+              .eq("idempotency_key", req.idempotencyKey);
+        const { data: existingJobRows, error: existingJobsError } = await existingJobsQuery;
+        if (existingJobsError) {
+          return jsonError("Could not check for an existing generation job", 500);
+        }
+        const existingResult = toExistingJobsResult((existingJobRows ?? []) as ExistingJobRow[]);
+        if (existingResult) {
+          return new Response(JSON.stringify(existingResult), {
+            status: 202,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          });
+        }
+
         let selected: number;
         try {
           selected = resolveSelectedCount(payload.plan, req.selectedCount ?? undefined);
@@ -129,7 +160,11 @@ export const Route = createFileRoute("/api/generation/jobs")({
           () => undefined,
         );
 
-        const operation = payload.plan.mode === "edit" ? "edit" : "generate";
+        const operation = resolveOperation(
+          payload.plan,
+          payload.referenceAssetIds,
+          payload.sourceVersionId,
+        );
         const model = resolveGenerationModel({
           operation,
           promptText: payload.prompt,
@@ -166,14 +201,24 @@ export const Route = createFileRoute("/api/generation/jobs")({
 
         // A session id is required by the schema; direct /generate without
         // one yet creates a new session per submission for now (one
-        // creative thread per job).
+        // creative thread per job). plan_json carries more than the raw
+        // display plan -- see execution-plan.ts -- because /run needs the
+        // reference paths this token carried, and it must never trust a
+        // client-supplied list at execution time.
+        const executionPlan = buildExecutionPlanJson({
+          plan: payload.plan,
+          selectedCount: selected,
+          referenceAssetIds: payload.referenceAssetIds,
+          sourceVersionId: payload.sourceVersionId,
+          children,
+        });
         const { data: session, error: sessionError } = await supabase
           .from("generation_sessions")
           .insert({
             user_id: userId,
             source_type: req.sourceContextType,
             source_id: req.sourceContextId,
-            plan_json: payload.plan,
+            plan_json: executionPlan,
           })
           .select("id")
           .single();

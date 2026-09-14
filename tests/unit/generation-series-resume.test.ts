@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   classifyJobClaimResult,
   duplicateStartResponse,
@@ -16,6 +18,30 @@ test("queued children are started; running and succeeded are not", () => {
   ]);
 
   assert.deepEqual(ids, ["b", "d"]);
+});
+
+// Regression: submit() only ever called startGenerationJob(firstJob) after
+// createGenerationJobs, so a series reserved a credit and created a queued
+// job for every child (see jobs.ts's create_generation_jobs RPC) but only
+// the first one was ever actually run -- the rest sat "queued" forever
+// with their credits already spent. jobsNeedingStart (above) exists
+// specifically so every queued sibling gets its own /run request.
+test("submit() starts every queued job from createGenerationJobs, not just the first", () => {
+  const g = readFileSync(
+    resolve(import.meta.dirname, "../../src/lib/generation/use-generation.ts"),
+    "utf8",
+  );
+  assert.match(g, /import \{ jobsNeedingStart \} from "\.\/series-resume"/);
+
+  const submitFn = g.slice(
+    g.indexOf("async function submit"),
+    g.indexOf("// Re-upload any references"),
+  );
+  assert.match(submitFn, /for \(const jobId of jobsNeedingStart\(res\.jobs\)\) \{/);
+  assert.match(submitFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
+  // Polling still only follows the first job -- the full multi-job
+  // progress UI is a follow-up (Task 9), not this fix.
+  assert.match(submitFn, /pollJob\(firstJob\.id\);/);
 });
 
 test("queued and running jobs older than the stale limit fail", () => {

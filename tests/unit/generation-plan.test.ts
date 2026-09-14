@@ -6,6 +6,8 @@ import {
   AUTO_SERIES_CAP,
   buildGenerationPlan,
   resolveSelectedCount,
+  resolveOperation,
+  type GenerationPlan,
 } from "../../src/lib/generation/plan.ts";
 
 test("CI gate: fixture Intent → plan is 11/11", () => {
@@ -70,6 +72,39 @@ test("missing_facts alone do not imply search", () => {
   const plan = buildGenerationPlan(intent, `build a conference poster, title "HELLO"`);
   assert.equal(plan.searchNeeded, false);
   assert.equal(plan.mode, "single");
+});
+
+// Confirmed live bug: a signed "single"/"series" plan with an attached
+// reference image (Library "Use as reference", a Gallery handoff, a manual
+// attach on Generate) still went to OpenAI's images/generations endpoint
+// with no image input at all -- only plan.mode === "edit" ever produced an
+// "edit" operation. job-pipeline.ts's "generate" branch never receives
+// referenceImages, so the attachment was silently ignored end to end. See
+// generate-reference-upload.test.ts for the job-pipeline half of this.
+test("resolveOperation: a reference image or a source version forces edit even when the plan is single/series", () => {
+  const singlePlan: GenerationPlan = {
+    mode: "single",
+    desiredCount: 1,
+    autoCount: 1,
+    separateAssets: false,
+    searchNeeded: false,
+    requiresCountConfirmation: false,
+  };
+  const seriesPlan: GenerationPlan = {
+    ...singlePlan,
+    mode: "series",
+    desiredCount: 3,
+    autoCount: 3,
+  };
+
+  assert.equal(resolveOperation(singlePlan, [], null), "generate");
+  assert.equal(resolveOperation(singlePlan, ["user-1/ref.png"], null), "edit");
+  assert.equal(resolveOperation(singlePlan, [], "version-1"), "edit");
+  assert.equal(resolveOperation(seriesPlan, ["user-1/ref.png"], null), "edit");
+  assert.equal(resolveOperation(seriesPlan, [], null), "generate");
+
+  const editPlan: GenerationPlan = { ...singlePlan, mode: "edit" };
+  assert.equal(resolveOperation(editPlan, [], null), "edit");
 });
 
 test("listed variants with a coordinating deliverable noun infer a series", () => {

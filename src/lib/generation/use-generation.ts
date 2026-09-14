@@ -34,6 +34,7 @@ import {
 import type { RoutingHints } from "./model-router";
 import type { SourceContextType } from "./job-request";
 import { MAX_REFERENCE_IMAGES_V1 } from "./models";
+import { jobsNeedingStart } from "./series-resume";
 import {
   savePendingGeneration,
   readPendingGeneration,
@@ -378,10 +379,16 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       });
       const firstJob = res.jobs[0];
       if (!firstJob) throw new GenerationApiError("Could not create the generation job", 500);
-      // Deliberately not awaited: this request stays open for the whole
-      // generation (that is what keeps the server-side work alive). Polling
-      // below is what drives the UI.
-      void startGenerationJob(firstJob.id, referenceAssetIds).catch(() => {});
+      // A series reserves a credit and creates a queued job for every
+      // child up front (see jobs.ts) -- every one of them needs its own
+      // /run request to actually execute, or the siblings just sit queued
+      // forever with credits already spent. Deliberately not awaited: each
+      // /run request stays open for the whole generation (that is what
+      // keeps the server-side work alive). Polling below only follows the
+      // first job; full multi-job progress/confirm UI is a follow-up.
+      for (const jobId of jobsNeedingStart(res.jobs)) {
+        void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+      }
       pollJob(firstJob.id);
     } catch (err) {
       setPhase("error");

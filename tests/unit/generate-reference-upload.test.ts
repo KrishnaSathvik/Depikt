@@ -98,3 +98,34 @@ test("submit() never decides generate vs edit itself, and always forwards attach
   );
   assert.doesNotMatch(generateCall, /referenceImages/);
 });
+
+// The other half of the fix: the server's own operation choice (jobs.ts)
+// must actually route a reference/sourceVersionId to "edit", not just
+// plan.mode === "edit". A signed "single"/"series" plan with an attached
+// reference previously became "generate" and reached job-pipeline's
+// referenceImages-less branch above. See resolveOperation in plan.ts and
+// its direct unit coverage in generation-plan.test.ts.
+test("jobs.ts derives operation from resolveOperation(plan, referenceAssetIds, sourceVersionId), not plan.mode alone", () => {
+  const jobsRoute = read("src/routes/api/generation/jobs.ts");
+  assert.match(jobsRoute, /import \{ resolveSelectedCount, resolveOperation \} from/);
+  assert.match(
+    jobsRoute,
+    /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,?\s*\)/,
+  );
+  // The old, buggy ternary must be gone.
+  assert.doesNotMatch(jobsRoute, /payload\.plan\.mode === "edit" \? "edit" : "generate"/);
+});
+
+// /run must never trust a client-supplied referencePaths body -- the only
+// trusted list is what the signed plan token carried at job-creation time,
+// persisted on the job's session (plan_json.referenceAssetIds) and loaded
+// there. Otherwise a stale/crafted client could ask the server to download
+// and attach an arbitrary storage path as a "reference".
+test("jobs.$id.run.ts loads reference paths from the job's stored session plan, not the request body", () => {
+  const runRoute = read("src/routes/api/generation/jobs.$id.run.ts");
+  assert.doesNotMatch(runRoute, /referencePaths\?:/);
+  assert.doesNotMatch(runRoute, /body\.referencePaths/);
+  assert.match(runRoute, /from\("generation_sessions"\)/);
+  assert.match(runRoute, /\.select\("plan_json"\)/);
+  assert.match(runRoute, /extractStoredReferenceAssetIds\(session\?\.plan_json\)/);
+});
