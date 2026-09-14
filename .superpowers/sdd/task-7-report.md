@@ -179,3 +179,24 @@ Verification:
 
 Concern: settlement remains poll-driven, so a succeeded job is charged when its
 job or session endpoint is next polled.
+
+## Important finding follow-up: status CAS query errors
+
+`markJobRunning` and `markJobSucceeded` now throw Supabase query errors instead
+of returning `false`, so the worker cannot misclassify a database failure as a
+lost CAS or stale timeout. A successful query returns `Boolean(data)`, preserving
+`false` exclusively for a zero-row conditional update. `markJobFailed` already
+threw its query error and required no change.
+
+Added `tests/unit/generation-supabase-data-access.test.ts` with focused helper
+coverage distinguishing a thrown query error from a zero-row CAS result.
+
+Verification:
+
+- `node --test tests/unit/generation-supabase-data-access.test.ts`: pass, 2 tests,
+  0 failures.
+- `npm test`: pass, 483 tests, 0 failures.
+- Focused IDE lint diagnostics: clean.
+- `git diff --check`: pass.
+
+Concern: none.

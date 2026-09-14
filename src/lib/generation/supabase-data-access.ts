@@ -18,6 +18,17 @@ import type { GenerationDataAccess } from "./job-pipeline.ts";
 import { GENERATION_BUCKET, imageVersionStoragePath } from "./storage-paths.ts";
 import { asGenerationClient } from "./db-types.ts";
 
+export function didUpdateRow<T>({
+  data,
+  error,
+}: {
+  data: T | null;
+  error: unknown;
+}): boolean {
+  if (error) throw error;
+  return Boolean(data);
+}
+
 export function createSupabaseDataAccess(
   supabaseIn: SupabaseClient<Database>,
 ): GenerationDataAccess {
@@ -31,7 +42,7 @@ export function createSupabaseDataAccess(
         .in("status", ["queued", "running"])
         .select("id")
         .maybeSingle();
-      return !!data && !error;
+      return didUpdateRow({ data, error });
     },
 
     async markJobSucceeded(jobId, patch) {
@@ -48,7 +59,7 @@ export function createSupabaseDataAccess(
         .eq("status", "running")
         .select("id")
         .maybeSingle();
-      return !!data && !error;
+      return didUpdateRow({ data, error });
     },
 
     async markJobFailed(jobId, patch) {
