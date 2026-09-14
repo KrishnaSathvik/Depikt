@@ -7,7 +7,7 @@ Frozen prompts and fixture Intents for `buildGenerationPlan()` regression tests.
 | Gate | Command | When |
 |---|---|---|
 | CI | `npm test` | Every commit |
-| Release | `npm run test:vnext-1-live` | Before shipping VNext 1 (requires `OPENAI_API_KEY`) |
+| Release | `npm run test:vnext-1-live` | Before shipping VNext 1 (requires `OPENAI_API_KEY`; ~10 min budget for 11 sequential intent calls) |
 
 Ship bar: **11/11** on both gates. 10/11 is investigate-not-ship.
 

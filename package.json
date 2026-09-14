@@ -13,7 +13,7 @@
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tests/tsconfig.json",
     "test": "node --test 'tests/unit/**/*.test.ts'",
-    "test:vnext-1-live": "node --test --test-timeout=180000 tests/eval/vnext-1-live-intent.test.ts",
+    "test:vnext-1-live": "node --test --test-timeout=600000 tests/eval/vnext-1-live-intent.test.ts",
     "bench": "node tests/bench/runner.ts",
     "bench:compare": "node tests/bench/compare.ts"
   },
