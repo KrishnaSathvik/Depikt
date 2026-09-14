@@ -25,6 +25,8 @@ const DELIVERABLE_COUNT_RE =
   /\b(\d+)\s+(?:[A-Za-z][\w-]*\s+){0,3}(images?|ads?|variations?|scenes?|layouts?|examples?|concepts?|environments?)\b/i;
 const PLURAL_DELIVERABLE_RE =
   /\b(images|ads|variations|scenes|layouts|examples|concepts|environments)\b/i;
+const COORDINATING_DELIVERABLE_RE =
+  /\b(layouts?|scenes?|environments?|districts?|images?|ads?|variations?|examples?|concepts?)\b/i;
 const SEARCH_RE = /\b(research|look\s*up|check|current|tonight|as of)\b/i;
 
 export function buildGenerationPlan(
@@ -32,27 +34,27 @@ export function buildGenerationPlan(
   userPrompt: string,
   source?: SourceContextType,
 ): GenerationPlan {
-  if (source === "library") return finish("single", 1, false, searchNeeded(intent, userPrompt));
+  if (source === "library") return finish("single", 1, false, searchNeeded(userPrompt));
 
   if (
     intent.task === "edit" ||
     intent.reference_intent === "edit_source" ||
     intent.category === "image_edit"
   ) {
-    return finish("edit", 1, false, searchNeeded(intent, userPrompt));
+    return finish("edit", 1, false, searchNeeded(userPrompt));
   }
 
   if (
     CONTACT_SHEET_RE.test(userPrompt) ||
     (GRID_RE.test(userPrompt) && GRID_CONTEXT_RE.test(userPrompt))
   ) {
-    return finish("contact_sheet", 1, false, searchNeeded(intent, userPrompt));
+    return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
   }
   if (
     (COLLAGE_RE.test(userPrompt) || OVERVIEW_RE.test(userPrompt)) &&
     !SEPARATE_ASSETS_RE.test(userPrompt)
   ) {
-    return finish("collage", 1, false, searchNeeded(intent, userPrompt));
+    return finish("collage", 1, false, searchNeeded(userPrompt));
   }
 
   const listed = countListedVariants(userPrompt);
@@ -64,23 +66,25 @@ export function buildGenerationPlan(
   const panelWantsSeparate = intent.series.unit === "panel" && SEPARATE_ASSETS_RE.test(userPrompt);
 
   if (intent.series.unit === "panel" && !panelWantsSeparate && intent.series.enabled) {
-    return finish("contact_sheet", 1, false, searchNeeded(intent, userPrompt));
+    return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
   }
 
   const seriesFromIntent =
     intent.series.enabled && (intent.series.count === null || intent.series.count > 1);
   const seriesFromPrompt =
-    (explicit !== null && explicit >= 2) || (listed >= 2 && PLURAL_DELIVERABLE_RE.test(userPrompt));
+    (explicit !== null && explicit >= 2) ||
+    (listed >= 2 && PLURAL_DELIVERABLE_RE.test(userPrompt)) ||
+    (listed >= 3 && COORDINATING_DELIVERABLE_RE.test(userPrompt));
 
   if (seriesFromIntent || seriesFromPrompt) {
     const desired = Math.max(
       2,
       intentCount ?? explicit ?? (listed >= 2 ? listed : AUTO_SERIES_CAP),
     );
-    return finish("series", desired, true, searchNeeded(intent, userPrompt));
+    return finish("series", desired, true, searchNeeded(userPrompt));
   }
 
-  return finish("single", 1, false, searchNeeded(intent, userPrompt));
+  return finish("single", 1, false, searchNeeded(userPrompt));
 }
 
 export function resolveSelectedCount(plan: GenerationPlan, selectedCount?: number): number {
@@ -106,9 +110,8 @@ function finish(
   };
 }
 
-function searchNeeded(intent: Intent, userPrompt: string): boolean {
-  if (SEARCH_RE.test(userPrompt)) return true;
-  return intent.factual_requirements.missing_facts.length > 0;
+function searchNeeded(userPrompt: string): boolean {
+  return SEARCH_RE.test(userPrompt);
 }
 
 function explicitDeliverableCount(userPrompt: string): number | null {
@@ -129,7 +132,11 @@ function countListedVariants(userPrompt: string): number {
       .filter((s) => s.length > 0 && s.length < 80);
     return bits.length;
   }
-  const afterLastPeriod = userPrompt.split(".").pop() ?? "";
+  const sentences = userPrompt
+    .split(".")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  const afterLastPeriod = sentences.pop() ?? "";
   const phrases = afterLastPeriod
     .split(",")
     .map((s) => s.trim())

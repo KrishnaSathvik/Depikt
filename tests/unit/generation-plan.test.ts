@@ -57,3 +57,28 @@ test("object counts in a scene are not deliverable counts", () => {
   assert.equal(plan.mode, "single");
   assert.equal(plan.desiredCount, 1);
 });
+
+test("missing_facts alone do not imply search", () => {
+  const intent = {
+    ...loadVnext1Cases()[0]!.fixture_intent,
+    factual_requirements: {
+      user_supplied_facts: [],
+      missing_facts: ["date"],
+      placeholders_required: true,
+    },
+  };
+  const plan = buildGenerationPlan(intent, `build a conference poster, title "HELLO"`);
+  assert.equal(plan.searchNeeded, false);
+  assert.equal(plan.mode, "single");
+});
+
+test("listed variants with a coordinating deliverable noun infer a series", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  const plan = buildGenerationPlan(
+    intent,
+    "Build a regional layout using relevant expansions. Check research. North quarter, downtown core, sports complex, coastal harbor.",
+  );
+  assert.equal(plan.mode, "series");
+  assert.equal(plan.desiredCount, 4);
+  assert.equal(plan.searchNeeded, true);
+});
