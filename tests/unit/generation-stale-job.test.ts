@@ -15,6 +15,7 @@ interface FakeOptions {
     error_code: string | null;
     safe_error_message: string | null;
   };
+  liveError?: Error;
   refundError?: Error;
   refundReject?: Error;
 }
@@ -41,7 +42,7 @@ function createFakeSupabase(options: FakeOptions): {
             ? { data: options.updateData, error: options.updateError ?? null }
             : {
                 data: options.liveJob ?? null,
-                error: null,
+                error: options.liveError ?? null,
               },
       };
       return query;
@@ -191,18 +192,28 @@ test("still reports an applied timeout when refund RPC rejects", async () => {
   assert.equal(fake.refundCalls(), 1);
 });
 
-test("does not refund or report failure when the conditional update errors", async () => {
+test("throws when the conditional update errors", async () => {
   const fake = createFakeSupabase({
     updateData: null,
     updateError: new Error("database unavailable"),
   });
 
-  const result = await failAndRefundStaleJob(fake.client, staleJob, now);
+  await assert.rejects(
+    () => failAndRefundStaleJob(fake.client, staleJob, now),
+    /database unavailable/,
+  );
+  assert.equal(fake.refundCalls(), 0);
+});
 
-  assert.deepEqual(result, {
-    applied: false,
-    status: "running",
-    safe_error_message: null,
+test("throws when the live re-read errors after a lost stale-failure CAS", async () => {
+  const fake = createFakeSupabase({
+    updateData: null,
+    liveError: new Error("live read unavailable"),
   });
+
+  await assert.rejects(
+    () => failAndRefundStaleJob(fake.client, staleJob, now),
+    /live read unavailable/,
+  );
   assert.equal(fake.refundCalls(), 0);
 });

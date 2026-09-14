@@ -200,3 +200,51 @@ Verification:
 - `git diff --check`: pass.
 
 Concern: none.
+
+## Important finding follow-up: run-route claim query errors
+
+The queued→running CAS in `POST /api/generation/jobs/:id/run` now inspects both
+`data` and `error` from the claim update. A Supabase query failure returns HTTP
+500 via `jsonError("Could not claim the job", 500)`; only a successful zero-row
+CAS still returns HTTP 200 `{ claimed: false, status }` through
+`duplicateStartResponse`. The CAS predicate (`.eq("status", "queued")`) is
+unchanged.
+
+Added `classifyJobClaimResult({ data, error })` in `series-resume.ts` and unit
+coverage distinguishing error, duplicate, and claimed outcomes.
+
+Verification:
+
+- `node --test tests/unit/generation-series-resume.test.ts`: pass, 4 tests,
+  0 failures.
+- `npm test`: pass, 484 tests, 0 failures.
+
+Commit: `c08bf5c`.
+
+Concern: none.
+
+## Critical finding follow-up: stale poll errors and failed-job versions
+
+`failAndRefundStaleJob(...)` now throws on both conditional-update and live
+re-read query errors. Job and session GET handlers catch those failures and
+return HTTP 500 through `jsonError`; a successful zero-row update followed by a
+successful live re-read remains the lost-CAS path.
+
+Session GET now associates every loaded version with its `job_id`, filters
+against the post-stale-check job statuses, and signs only versions belonging to
+succeeded jobs. Versions from jobs that stale-failed and refunded remain stored
+but are not returned.
+
+Added stale-helper coverage for both query-error paths and pure helper coverage
+for succeeded-job version filtering.
+
+Verification:
+
+- `node --test tests/unit/generation-stale-job.test.ts tests/unit/generation-session-versions.test.ts`:
+  pass, 11 tests, 0 failures.
+- `npm test`: pass, 486 tests, 0 failures.
+- `npm run typecheck`: pass.
+- Focused IDE lint diagnostics: clean.
+- `git diff --check`: pass.
+
+Concern: storage cleanup for hidden failed-job versions remains outside Task 7.

@@ -102,11 +102,7 @@ export async function failAndRefundStaleJob(
     .maybeSingle();
 
   if (error) {
-    return {
-      applied: false,
-      status: job.status,
-      safe_error_message: job.safe_error_message ?? null,
-    };
+    throw error;
   }
 
   if (!data) {
@@ -116,17 +112,16 @@ export async function failAndRefundStaleJob(
       .eq("id", job.id)
       .maybeSingle();
 
-    if (!liveError && liveJob?.status === "failed" && liveJob.error_code === "timed_out") {
+    if (liveError) throw liveError;
+
+    if (liveJob?.status === "failed" && liveJob.error_code === "timed_out") {
       await refund();
     }
 
     return {
       applied: false,
-      status: liveError || !liveJob ? job.status : liveJob.status,
-      safe_error_message:
-        liveError || !liveJob
-          ? (job.safe_error_message ?? null)
-          : (liveJob.safe_error_message ?? null),
+      status: liveJob?.status ?? job.status,
+      safe_error_message: liveJob?.safe_error_message ?? job.safe_error_message ?? null,
     };
   }
 
