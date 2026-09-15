@@ -113,7 +113,7 @@ export function GenerationMaskEditor({
           onPointerMove={onPointerMove}
           onPointerUp={endStroke}
           onPointerCancel={endStroke}
-          onPointerLostCapture={endStroke}
+          onLostPointerCapture={endStroke}
         />
       </div>
       <label className="block space-y-1.5 text-body-sm text-[color:var(--text-secondary)]">

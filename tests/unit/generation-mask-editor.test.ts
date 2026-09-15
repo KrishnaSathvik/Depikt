@@ -32,7 +32,7 @@ test("GenerationMaskEditor locks drawing to one pointerId and ignores other poin
   assert.match(editor, /activePointerIdRef/);
   assert.match(editor, /activePointerIdRef\.current\s*!==\s*null/);
   assert.match(editor, /e\.pointerId\s*!==\s*activePointerIdRef\.current/);
-  assert.match(editor, /onPointerLostCapture/);
+  assert.match(editor, /onLostPointerCapture/);
 });
 
 test("GenerationMaskEditor overlays a canvas on an img and maps pointers with pointerToNormalized", () => {
