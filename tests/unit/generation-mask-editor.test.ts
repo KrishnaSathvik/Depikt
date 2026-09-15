@@ -26,6 +26,15 @@ function visibleCopy(src: string): string {
   return parts.join("\n");
 }
 
+test("GenerationMaskEditor locks drawing to one pointerId and ignores other pointers", () => {
+  const editor = read("src/components/generate/GenerationMaskEditor.tsx");
+  assert.match(editor, /setPointerCapture\(e\.pointerId\)/);
+  assert.match(editor, /activePointerIdRef/);
+  assert.match(editor, /activePointerIdRef\.current\s*!==\s*null/);
+  assert.match(editor, /e\.pointerId\s*!==\s*activePointerIdRef\.current/);
+  assert.match(editor, /onPointerLostCapture/);
+});
+
 test("GenerationMaskEditor overlays a canvas on an img and maps pointers with pointerToNormalized", () => {
   const editor = read("src/components/generate/GenerationMaskEditor.tsx");
   assert.match(editor, /<img/);

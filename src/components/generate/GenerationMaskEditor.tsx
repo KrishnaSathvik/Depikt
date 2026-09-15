@@ -29,6 +29,7 @@ export function GenerationMaskEditor({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
+  const activePointerIdRef = useRef<number | null>(null);
   const strokesRef = useRef(strokes);
   strokesRef.current = drawingRef.current ? strokesRef.current : strokes;
 
@@ -66,7 +67,9 @@ export function GenerationMaskEditor({
 
   function onPointerDown(e: PointerEvent<HTMLCanvasElement>) {
     if (e.button !== 0) return;
+    if (activePointerIdRef.current !== null) return;
     e.preventDefault();
+    activePointerIdRef.current = e.pointerId;
     e.currentTarget.setPointerCapture(e.pointerId);
     drawingRef.current = true;
     commitStrokes([
@@ -77,6 +80,7 @@ export function GenerationMaskEditor({
 
   function onPointerMove(e: PointerEvent<HTMLCanvasElement>) {
     if (!drawingRef.current) return;
+    if (e.pointerId !== activePointerIdRef.current) return;
     const current = strokesRef.current;
     const last = current[current.length - 1];
     if (!last) return;
@@ -87,8 +91,9 @@ export function GenerationMaskEditor({
   }
 
   function endStroke(e: PointerEvent<HTMLCanvasElement>) {
-    if (!drawingRef.current) return;
+    if (e.pointerId !== activePointerIdRef.current) return;
     drawingRef.current = false;
+    activePointerIdRef.current = null;
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
     }
@@ -108,6 +113,7 @@ export function GenerationMaskEditor({
           onPointerMove={onPointerMove}
           onPointerUp={endStroke}
           onPointerCancel={endStroke}
+          onPointerLostCapture={endStroke}
         />
       </div>
       <label className="block space-y-1.5 text-body-sm text-[color:var(--text-secondary)]">

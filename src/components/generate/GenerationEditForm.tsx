@@ -68,12 +68,11 @@ export function GenerationEditForm({
     <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
       <p className="text-body-sm font-medium text-[color:var(--text-primary)]">Edit image</p>
       {canSelectArea && (
-        <div role="tablist" aria-label="Edit mode" className="flex flex-wrap gap-2">
+        <div aria-label="Edit mode" className="flex flex-wrap gap-2">
           <Button
             type="button"
             size="sm"
-            role="tab"
-            aria-selected={mode === "area"}
+            aria-pressed={mode === "area"}
             variant={mode === "area" ? "default" : "outline"}
             onClick={() => setEditMode("area")}
           >
@@ -82,8 +81,7 @@ export function GenerationEditForm({
           <Button
             type="button"
             size="sm"
-            role="tab"
-            aria-selected={mode === "whole"}
+            aria-pressed={mode === "whole"}
             variant={mode === "whole" ? "default" : "outline"}
             onClick={() => setEditMode("whole")}
           >
