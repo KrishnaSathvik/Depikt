@@ -1,6 +1,6 @@
 // Source-inspection for the precision-edit overlay: the editor draws
 // locally over the source <img>, never uploads a mask, and never exposes
-// mask/alpha/inpainting copy. Whole-image Apply stays gen.applyEdit(prompt).
+// mask/alpha/inpainting copy. Apply still calls applyEdit from the parents.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -99,8 +99,8 @@ test("GenerateWorkspace and InlineGenerationPanel still render GenerationEditFor
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
   assert.match(workspace, /<GenerationEditForm\s/);
   assert.match(panel, /<GenerationEditForm\s/);
-  assert.match(workspace, /gen\.applyEdit\(editPrompt\)/);
-  assert.match(panel, /gen\.applyEdit\(editPrompt\)/);
+  assert.match(workspace, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
+  assert.match(panel, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
 });
 
 test("parents pass the result image and active version dimensions into the edit form", () => {
@@ -114,13 +114,12 @@ test("parents pass the result image and active version dimensions into the edit 
   }
 });
 
-test("the overlay never uploads a mask or changes applyEdit", () => {
+test("the overlay never uploads a mask while drawing", () => {
   const editor = read("src/components/generate/GenerationMaskEditor.tsx");
   const form = read("src/components/generate/GenerationEditForm.tsx");
   for (const src of [editor, form]) {
     assert.doesNotMatch(src, /POST\s*\/masks|\/api\/.*masks/);
+    assert.doesNotMatch(src, /uploadEditMask/);
     assert.doesNotMatch(src, /applyEdit\s*\(/);
   }
-  const hook = read("src/lib/generation/use-generation.ts");
-  assert.match(hook, /function applyEdit\(editPrompt: string\)/);
 });

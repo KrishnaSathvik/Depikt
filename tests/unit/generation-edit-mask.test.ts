@@ -1,8 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  bytesToPngDataUrl,
   clamp01,
   exportMaskPng,
+  hasPaintCoverage,
   normalizedToSourcePixel,
   pointerToNormalized,
   rasterizeMask,
@@ -125,4 +127,32 @@ test("exportMaskPng writes a same-size RGBA PNG that validates", () => {
   assert.equal(header.header.height, 8);
   assert.equal(header.header.colorType, 6);
   assert.deepEqual(validateMaskPng(png, 8, 8, 10_000), { ok: true });
+});
+
+test("bytesToPngDataUrl prefixes PNG bytes as a data URL", () => {
+  const png = exportMaskPng(
+    [{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }],
+    8,
+    8,
+  );
+  const dataUrl = bytesToPngDataUrl(png);
+  assert.match(dataUrl, /^data:image\/png;base64,/);
+  const b64 = dataUrl.slice("data:image/png;base64,".length);
+  assert.deepEqual(Uint8Array.from(Buffer.from(b64, "base64")), png);
+});
+
+test("hasPaintCoverage is false until a paint stroke leaves opaque pixels", () => {
+  const paint: MaskStroke = {
+    mode: "paint",
+    points: [{ x: 0.5, y: 0.5 }],
+    radius: 0.5,
+  };
+  const erase: MaskStroke = {
+    mode: "erase",
+    points: [{ x: 0.5, y: 0.5 }],
+    radius: 0.5,
+  };
+  assert.equal(hasPaintCoverage([], 8, 8), false);
+  assert.equal(hasPaintCoverage([paint], 8, 8), true);
+  assert.equal(hasPaintCoverage([paint, erase], 8, 8), false);
 });

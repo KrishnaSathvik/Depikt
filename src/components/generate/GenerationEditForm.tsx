@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GenerationMaskEditor } from "@/components/generate/GenerationMaskEditor";
-import type { MaskStroke } from "@/lib/generation/edit-mask";
+import { exportMaskPng, hasPaintCoverage, type MaskStroke } from "@/lib/generation/edit-mask";
 
 const DEFAULT_BRUSH_RADIUS = 0.04;
 
@@ -25,7 +25,7 @@ export function GenerationEditForm({
 }: {
   value: string;
   onChange: (next: string) => void;
-  onApply: () => void;
+  onApply: (result: { maskPng: Uint8Array | null }) => void;
   onCancel: () => void;
   imageUrl?: string | null;
   sourceWidth?: number;
@@ -53,6 +53,20 @@ export function GenerationEditForm({
   const editMode = editModeProp ?? uncontrolledMode;
   const strokes = strokesProp ?? uncontrolledStrokes;
   const mode = canSelectArea ? editMode : "whole";
+  const areaHasCoverage = useMemo(() => {
+    if (mode !== "area") return true;
+    if (!sourceWidth || !sourceHeight) return false;
+    return hasPaintCoverage(strokes, sourceWidth, sourceHeight);
+  }, [mode, strokes, sourceWidth, sourceHeight]);
+
+  function handleApply() {
+    if (!value.trim()) return;
+    if (mode === "area" && sourceWidth && sourceHeight) {
+      onApply({ maskPng: exportMaskPng(strokes, sourceWidth, sourceHeight) });
+      return;
+    }
+    onApply({ maskPng: null });
+  }
 
   function setEditMode(next: "area" | "whole") {
     if (editModeProp === undefined) setUncontrolledMode(next);
@@ -115,7 +129,12 @@ export function GenerationEditForm({
         placeholder="Make the jacket dark blue and keep everything else unchanged."
       />
       <div className="flex flex-wrap gap-2">
-        <Button size="default" className="gap-2" disabled={!value.trim()} onClick={onApply}>
+        <Button
+          size="default"
+          className="gap-2"
+          disabled={!value.trim() || (mode === "area" && !areaHasCoverage)}
+          onClick={handleApply}
+        >
           Apply edit → · 1 credit
         </Button>
         <Button size="default" variant="ghost" onClick={onCancel}>

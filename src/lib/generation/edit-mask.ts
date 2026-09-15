@@ -137,3 +137,29 @@ export function exportMaskPng(
   const pixels = rasterizeMask(strokes, sourceWidth, sourceHeight);
   return encodeRgbaPng(pixels, sourceWidth, sourceHeight);
 }
+
+export function hasPaintCoverage(
+  strokes: MaskStroke[],
+  sourceWidth: number,
+  sourceHeight: number,
+): boolean {
+  if (sourceWidth <= 0 || sourceHeight <= 0) return false;
+  const pixels = rasterizeMask(strokes, sourceWidth, sourceHeight);
+  for (let i = 3; i < pixels.length; i += 4) {
+    if (pixels[i] === 255) return true;
+  }
+  return false;
+}
+
+export function bytesToPngDataUrl(bytes: Uint8Array): string {
+  return `data:image/png;base64,${btoa(binaryFromBytes(bytes))}`;
+}
+
+function binaryFromBytes(bytes: Uint8Array): string {
+  let binary = "";
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+  }
+  return binary;
+}

@@ -232,8 +232,8 @@ export function GenerateWorkspace() {
             <GenerationEditForm
               value={editPrompt}
               onChange={setEditPrompt}
-              onApply={() => {
-                gen.applyEdit(editPrompt);
+              onApply={({ maskPng }) => {
+                gen.applyEdit(editPrompt, { maskPng });
                 setEditing(false);
                 setEditPrompt("");
               }}
