@@ -10,6 +10,8 @@ export interface PlanTokenPayload {
   userInput: string;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
+  maskAssetId: string | null;
+  maskPath: string | null;
   intent: Intent;
   plan: GenerationPlan;
   exp: number;
@@ -21,11 +23,7 @@ export function signPlanToken(payload: PlanTokenPayload, secret: string): string
   return `${body}.${mac}`;
 }
 
-export function verifyPlanToken(
-  token: string,
-  secret: string,
-  userId: string,
-): PlanTokenPayload {
+export function verifyPlanToken(token: string, secret: string, userId: string): PlanTokenPayload {
   const dot = token.lastIndexOf(".");
   if (dot < 1) throw new Error("invalid plan token");
   const body = token.slice(0, dot);

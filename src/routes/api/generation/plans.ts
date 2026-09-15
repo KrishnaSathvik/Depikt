@@ -5,7 +5,13 @@ import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateCreatePlanBody } from "@/lib/generation/job-request";
 import { buildGenerationPlan, type GenerationPlan } from "@/lib/generation/plan";
 import { signPlanToken, PLAN_TOKEN_TTL_MS } from "@/lib/generation/plan-token";
-import { ownerOfStoragePath, GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+import {
+  ownerOfStoragePath,
+  GENERATION_BUCKET,
+  maskAssetStoragePath,
+} from "@/lib/generation/storage-paths";
+import { MAX_MASK_BYTES } from "@/lib/generation/mask-upload-request";
+import { validateMaskPng } from "@/lib/generation/png-mask";
 import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { analyzeIntent } from "@/lib/prompt-engine/builder";
 import { IntentSchema, type Intent } from "@/lib/prompt-engine/intent";
@@ -104,6 +110,38 @@ export const Route = createFileRoute("/api/generation/plans")({
           }
         }
 
+        let maskAssetId: string | null = req.maskAssetId;
+        let maskPath: string | null = null;
+        if (maskAssetId) {
+          // sourceVersionId is required by validateCreatePlanBody when a mask is set.
+          if (!req.sourceVersionId) {
+            return jsonError("sourceVersionId is required when maskAssetId is set", 400);
+          }
+          try {
+            maskPath = maskAssetStoragePath(userId, maskAssetId);
+          } catch {
+            return jsonError("Invalid mask", 400);
+          }
+          if (ownerOfStoragePath(maskPath) !== userId) {
+            return jsonError("Invalid mask", 400);
+          }
+
+          const { data: source, error: sourceError } = await supabase
+            .from("image_versions")
+            .select("id, width, height")
+            .eq("id", req.sourceVersionId)
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (sourceError) return jsonError("Could not load source version", 500);
+          if (!source) return jsonError("Source version not found", 404);
+
+          const { data: file } = await supabase.storage.from(GENERATION_BUCKET).download(maskPath);
+          if (!file) return jsonError("Mask not found", 400);
+          const bytes = new Uint8Array(await file.arrayBuffer());
+          const maskCheck = validateMaskPng(bytes, source.width, source.height, MAX_MASK_BYTES);
+          if (!maskCheck.ok) return jsonError(maskCheck.error, 400);
+        }
+
         let intent: Intent;
         if (req.intent) {
           try {
@@ -145,6 +183,8 @@ export const Route = createFileRoute("/api/generation/plans")({
             userInput,
             referenceAssetIds: req.referenceAssetIds,
             sourceVersionId: req.sourceVersionId,
+            maskAssetId,
+            maskPath,
             intent,
             plan,
             exp: Date.now() + PLAN_TOKEN_TTL_MS,

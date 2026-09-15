@@ -243,6 +243,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
           selectedCount: selected,
           referenceAssetIds: payload.referenceAssetIds,
           sourceVersionId: payload.sourceVersionId,
+          maskAssetId: payload.maskAssetId ?? null,
+          maskPath: payload.maskPath ?? null,
           children,
         });
         const { data: insertedSession, error: sessionError } = await supabase
@@ -300,6 +302,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
                   selectedCount: selected,
                   referenceAssetIds: payload.referenceAssetIds,
                   sourceVersionId: payload.sourceVersionId,
+                  maskAssetId: payload.maskAssetId ?? null,
+                  maskPath: payload.maskPath ?? null,
                 })
               ) {
                 return jsonError("Generation is still being prepared. Please retry.", 409);

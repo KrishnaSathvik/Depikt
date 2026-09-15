@@ -1,10 +1,15 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   validateCreatePlanBody,
   validateCreateJobsFromPlanBody,
   MAX_PROMPT_CHARS,
 } from "../../src/lib/generation/job-request.ts";
+
+const ROOT = resolve(import.meta.dirname, "../..");
+const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 
 // ---------- POST /api/generation/plans ----------
 
@@ -90,6 +95,52 @@ test("plans: structuredAspectRatio passes through unvalidated (resolved later, a
   const r = validateCreatePlanBody({ prompt: "x", structuredAspectRatio: "4:5" });
   assert.equal(r.ok, true);
   if (r.ok) assert.equal(r.request.structuredAspectRatio, "4:5");
+});
+
+test("plans: defaults maskAssetId to null when omitted", () => {
+  const r = validateCreatePlanBody({ prompt: "x" });
+  assert.equal(r.ok, true);
+  if (r.ok) assert.equal(r.request.maskAssetId, null);
+});
+
+test("plans: rejects maskAssetId without sourceVersionId", () => {
+  const r = validateCreatePlanBody({ prompt: "x", maskAssetId: "mask-1" });
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /sourceVersionId/);
+});
+
+test("plans: rejects a client-supplied maskPath", () => {
+  const r = validateCreatePlanBody({
+    prompt: "x",
+    sourceVersionId: "version-1",
+    maskAssetId: "mask-1",
+    maskPath: "users/attacker/masks/x.png",
+  });
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /path/i);
+});
+
+test("plans: rejects a client-supplied mask raw path", () => {
+  const r = validateCreatePlanBody({
+    prompt: "x",
+    sourceVersionId: "version-1",
+    mask: "users/attacker/masks/x.png",
+  });
+  assert.equal(r.ok, false);
+  if (!r.ok) assert.match(r.error, /path/i);
+});
+
+test("plans: accepts maskAssetId together with sourceVersionId", () => {
+  const r = validateCreatePlanBody({
+    prompt: "x",
+    sourceVersionId: "version-1",
+    maskAssetId: "mask-1",
+  });
+  assert.equal(r.ok, true);
+  if (r.ok) {
+    assert.equal(r.request.maskAssetId, "mask-1");
+    assert.equal(r.request.sourceVersionId, "version-1");
+  }
 });
 
 // ---------- POST /api/generation/jobs ----------
@@ -216,4 +267,22 @@ test("jobs: rejects an invalid sourceContext.type", () => {
     sourceContext: { type: "chat" },
   });
   assert.equal(r.ok, false);
+});
+
+test("plans.ts derives maskPath from maskAssetStoragePath and never reads maskPath from the body", () => {
+  const src = read("src/routes/api/generation/plans.ts");
+  assert.match(src, /maskAssetStoragePath\(userId,/);
+  assert.match(src, /validateMaskPng\(/);
+  assert.match(src, /\.from\("image_versions"\)/);
+  assert.doesNotMatch(src, /req\.maskPath|body\.maskPath/);
+  assert.doesNotMatch(src, /maskPath:\s*req\./);
+});
+
+test("IntentSchema has no mask field", () => {
+  const src = read("src/lib/prompt-engine/intent.ts");
+  const start = src.indexOf("export const IntentSchema");
+  assert.ok(start >= 0, "IntentSchema is exported");
+  const typeStart = src.indexOf("export type Intent", start);
+  const schema = typeStart === -1 ? src.slice(start) : src.slice(start, typeStart);
+  assert.doesNotMatch(schema, /mask/i);
 });

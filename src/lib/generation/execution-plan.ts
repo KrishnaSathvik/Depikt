@@ -27,6 +27,8 @@ export interface ExecutionPlanJson {
   plan: GenerationPlan;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
+  maskAssetId: string | null;
+  maskPath: string | null;
   children: ExecutionPlanChild[];
 }
 
@@ -35,6 +37,8 @@ export function buildExecutionPlanJson(args: {
   selectedCount: number;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
+  maskAssetId: string | null;
+  maskPath: string | null;
   children: Array<{ label: string | null; prompt: string }>;
 }): ExecutionPlanJson {
   const childLabels = args.children.map((c) => c.label);
@@ -48,6 +52,8 @@ export function buildExecutionPlanJson(args: {
     plan: args.plan,
     referenceAssetIds: args.referenceAssetIds,
     sourceVersionId: args.sourceVersionId,
+    maskAssetId: args.maskAssetId,
+    maskPath: args.maskPath,
     children: args.children.map((c) => ({ label: c.label, promptLength: c.prompt.length })),
   };
 }
@@ -68,12 +74,27 @@ export function extractStoredReferenceAssetIds(planJson: unknown): string[] {
   return ids.filter((id): id is string => typeof id === "string");
 }
 
+/**
+ * /run must never trust a client-supplied mask path — a stale or crafted
+ * client could otherwise swap the signed mask. The only trusted source is
+ * maskPath persisted on plan_json from the verified plan token. Missing or
+ * malformed values (including request-shaped fields like `mask` / `path`)
+ * degrade to no mask.
+ */
+export function extractStoredMaskPath(planJson: unknown): string | null {
+  if (!planJson || typeof planJson !== "object") return null;
+  const path = (planJson as { maskPath?: unknown }).maskPath;
+  return typeof path === "string" && path.length > 0 ? path : null;
+}
+
 /** Fields that define whether a stored session may be reused for a new token. */
 export interface ExecutionPlanIdentity {
   plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
   selectedCount: number;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
+  maskAssetId: string | null;
+  maskPath: string | null;
 }
 
 function sameStringSet(a: string[], b: string[]): boolean {
@@ -96,8 +117,12 @@ function parseStoredExecutionPlanIdentity(stored: unknown): ExecutionPlanIdentit
   if (typeof planFields.desiredCount !== "number") return null;
   if (typeof planFields.autoCount !== "number") return null;
   if (typeof root.selectedCount !== "number") return null;
-  const sourceVersionId = root.sourceVersionId;
+  const sourceVersionId = root.sourceVersionId ?? null;
   if (sourceVersionId !== null && typeof sourceVersionId !== "string") return null;
+  const maskAssetId = root.maskAssetId ?? null;
+  if (maskAssetId !== null && typeof maskAssetId !== "string") return null;
+  const maskPath = root.maskPath ?? null;
+  if (maskPath !== null && typeof maskPath !== "string") return null;
 
   return {
     plan: {
@@ -108,6 +133,8 @@ function parseStoredExecutionPlanIdentity(stored: unknown): ExecutionPlanIdentit
     selectedCount: root.selectedCount,
     referenceAssetIds: extractStoredReferenceAssetIds(stored),
     sourceVersionId,
+    maskAssetId,
+    maskPath,
   };
 }
 
@@ -127,6 +154,8 @@ export function executionPlanIdentityMatches(
     parsed.plan.autoCount === current.plan.autoCount &&
     parsed.selectedCount === current.selectedCount &&
     parsed.sourceVersionId === current.sourceVersionId &&
+    parsed.maskAssetId === current.maskAssetId &&
+    parsed.maskPath === current.maskPath &&
     sameStringSet(parsed.referenceAssetIds, current.referenceAssetIds)
   );
 }

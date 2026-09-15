@@ -55,6 +55,8 @@ export interface CreatePlanRequest {
   intent?: Intent | null;
   referenceAssetIds?: string[];
   sourceVersionId?: string | null;
+  /** Server-issued id from uploadEditMask. Never a storage path. */
+  maskAssetId?: string | null;
   sourceContext?: { type: string; id?: string | null };
   structuredAspectRatio?: string | null;
 }
