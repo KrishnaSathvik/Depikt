@@ -3,7 +3,11 @@ import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptSurface } from "@/components/PromptSurface";
-import { CreationComposer, ComposerChips, COMPOSER_TEXTAREA_CLASS } from "@/components/composer/CreationComposer";
+import {
+  CreationComposer,
+  ComposerChips,
+  COMPOSER_TEXTAREA_CLASS,
+} from "@/components/composer/CreationComposer";
 import { GENERATE_EXAMPLES } from "@/data/composer-examples";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
@@ -160,10 +164,7 @@ export function GenerateWorkspace() {
     return (
       <>
         <AuthGateDialog gen={gen} />
-        <ModeHero
-          title={PROMPT_MODE_COPY.generate.title}
-          body={PROMPT_MODE_COPY.generate.body}
-        />
+        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
         <GenerationCreditGate gen={gen} className="mt-6" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mt-4 text-body-sm text-red-600">{gen.errorMessage}</p>
@@ -218,6 +219,7 @@ export function GenerateWorkspace() {
       : gen.phase === "result" || gen.phase === "awaiting_result_url"
         ? "result"
         : "error";
+  const active = gen.versions.find((v) => v.id === gen.activeVersionId);
 
   return (
     <>
@@ -236,6 +238,9 @@ export function GenerateWorkspace() {
                 setEditPrompt("");
               }}
               onCancel={() => setEditing(false)}
+              imageUrl={gen.resultUrl}
+              sourceWidth={active?.width}
+              sourceHeight={active?.height}
             />
           ) : (
             <div className="space-y-3">

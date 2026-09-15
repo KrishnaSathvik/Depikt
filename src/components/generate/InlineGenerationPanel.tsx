@@ -53,6 +53,7 @@ export function InlineGenerationPanel({
           structuredAspectRatio: structuredAspectRatio ?? null,
           referenceRatio: null,
         });
+  const active = gen.versions.find((v) => v.id === gen.activeVersionId);
 
   return (
     <div
@@ -107,6 +108,9 @@ export function InlineGenerationPanel({
             setEditPrompt("");
           }}
           onCancel={() => setEditing(false)}
+          imageUrl={gen.resultUrl}
+          sourceWidth={active?.width}
+          sourceHeight={active?.height}
         />
       )}
     </div>
@@ -114,11 +118,7 @@ export function InlineGenerationPanel({
 }
 
 /** Scroll once when the panel mounts (generation just started). */
-function ScrollIntoViewOnMount({
-  targetRef,
-}: {
-  targetRef: RefObject<HTMLDivElement | null>;
-}) {
+function ScrollIntoViewOnMount({ targetRef }: { targetRef: RefObject<HTMLDivElement | null> }) {
   useEffect(() => {
     targetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [targetRef]);
