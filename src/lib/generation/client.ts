@@ -169,3 +169,13 @@ export function uploadReferenceImage(
     body: JSON.stringify({ dataUrl }),
   });
 }
+
+export function uploadEditMask(
+  sourceVersionId: string,
+  dataUrl: string,
+): Promise<{ assetId: string }> {
+  return generationJson("/api/generation/masks", {
+    method: "POST",
+    body: JSON.stringify({ sourceVersionId, dataUrl }),
+  });
+}

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   GENERATION_BUCKET,
   imageVersionStoragePath,
+  maskAssetStoragePath,
   referenceAssetStoragePath,
   ownerOfStoragePath,
 } from "../../src/lib/generation/storage-paths.ts";
@@ -21,6 +22,11 @@ test("reference asset path is scoped under the owning user", () => {
   assert.equal(p, "users/user-1/references/asset-1.webp");
 });
 
+test("mask asset path is scoped under the owning user as png", () => {
+  const p = maskAssetStoragePath("user-1", "asset-1");
+  assert.equal(p, "users/user-1/masks/asset-1.png");
+});
+
 test("ownerOfStoragePath extracts the user id prefix", () => {
   assert.equal(ownerOfStoragePath("users/user-1/sessions/s/versions/v.png"), "user-1");
   assert.equal(ownerOfStoragePath("users/attacker/references/x.png"), "attacker");
@@ -35,6 +41,8 @@ test("rejects a path-traversal attempt in any segment", () => {
   assert.throws(() => imageVersionStoragePath("u", "../../s", "v"));
   assert.throws(() => imageVersionStoragePath("u", "s", "../v"));
   assert.throws(() => referenceAssetStoragePath("u", "../a"));
+  assert.throws(() => maskAssetStoragePath("../etc", "a"));
+  assert.throws(() => maskAssetStoragePath("u", "../a"));
 });
 
 test("rejects a segment containing a path separator", () => {
@@ -45,4 +53,5 @@ test("rejects a segment containing a path separator", () => {
 test("rejects an empty segment", () => {
   assert.throws(() => imageVersionStoragePath("", "s", "v"));
   assert.throws(() => referenceAssetStoragePath("u", ""));
+  assert.throws(() => maskAssetStoragePath("u", ""));
 });
