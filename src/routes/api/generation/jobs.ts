@@ -207,6 +207,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
             exactTextCount: payload.intent.exact_text.length,
             referenceIntent: payload.intent.reference_intent,
           },
+          hasMask: Boolean(payload.maskPath ?? payload.maskAssetId),
         });
         const size = resolveGenerationSize({
           promptText: payload.prompt,
