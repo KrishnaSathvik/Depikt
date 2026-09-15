@@ -50,6 +50,7 @@ import {
   clearPendingGeneration,
   pendingGenerationMatchesSource,
 } from "./pending-generation";
+import { decideSubmitGate } from "./submit-gate";
 
 export type GenerationPhase =
   | "idle"
@@ -159,6 +160,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   const [references, setReferences] = useState<ReferenceEntry[]>([]);
   const [credits, setCredits] = useState<number | null>(null);
+  const [creditsResolved, setCreditsResolved] = useState(false);
   const [phase, setPhase] = useState<GenerationPhase>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   // Every child job of the current session, each with its own status/result
@@ -184,6 +186,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // Remembers the params of the last submit() so regenerate()/applyEdit() can
   // resubmit without the caller re-supplying prompt/ratio/hints.
   const lastParamsRef = useRef<SubmitInput | null>(null);
+  // A Generate click that arrived while auth/credits were still hydrating.
+  const hydrationWaitRef = useRef(false);
   const referencesRef = useRef<ReferenceEntry[]>([]);
   referencesRef.current = references;
   // Everything confirmSeriesCount() needs to finish a plan that required
@@ -231,16 +235,42 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     if (activeSessionId) pollSession(activeSessionId);
   }, []);
 
-  // Load the authoritative balance once signed in.
+  // Load the authoritative balance once signed in. A failed fetch still
+  // marks credits resolved so Generate is not stuck waiting; the server
+  // remains authoritative on /plans and /jobs.
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setCredits(null);
+      setCreditsResolved(false);
+      return;
+    }
     getCreditBalance()
       .then((r) => {
         setCredits(r.availableCredits);
+        setCreditsResolved(true);
         if (r.availableCredits > 0) setCreditState("ok");
       })
-      .catch(() => setCredits(null));
+      .catch(() => setCreditsResolved(true));
   }, [user, phase]);
+
+  // Resume a Generate click that arrived while auth or credits were hydrating.
+  useEffect(() => {
+    if (!hydrationWaitRef.current) return;
+    const gate = decideSubmitGate({
+      authLoading,
+      hasUser: Boolean(user),
+      credits,
+      creditsResolved,
+    });
+    if (gate === "wait") return;
+    const pending = lastParamsRef.current;
+    if (!pending) {
+      hydrationWaitRef.current = false;
+      return;
+    }
+    void submit(pending);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user, credits, creditsResolved]);
 
   // A reference attached before sign-in fails to upload with a 401 and is
   // left flagged `error` rather than dropped — retry it automatically once a
@@ -477,6 +507,18 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     }
     const effectiveSourceContext = input.sourceContext ?? sourceContextRef.current;
     lastParamsRef.current = { ...input, sourceContext: effectiveSourceContext };
+
+    const gate = decideSubmitGate({
+      authLoading,
+      hasUser: Boolean(user),
+      credits,
+      creditsResolved,
+    });
+    if (gate === "wait") {
+      hydrationWaitRef.current = true;
+      return;
+    }
+    hydrationWaitRef.current = false;
 
     if (!user) {
       savePendingGeneration({
