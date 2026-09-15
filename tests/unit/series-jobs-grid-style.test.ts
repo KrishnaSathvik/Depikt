@@ -19,3 +19,12 @@ test("series job text uses design-system typography and color tokens", () => {
   assert.match(grid, /text-body-sm text-destructive/);
   assert.doesNotMatch(grid, /text-\[(?:11|12)px\]|text-red-600/);
 });
+
+test("a succeeded series tile without a URL says Loading image, not Creating", () => {
+  assert.match(grid, /GENERATION_STAGE_LABELS\.loadingImage/);
+  assert.match(grid, /const awaitingUrl = job\.status === "succeeded"/);
+  assert.match(
+    grid,
+    /awaitingUrl\s*\n\s*\? GENERATION_STAGE_LABELS\.loadingImage/,
+  );
+});

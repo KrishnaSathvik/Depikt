@@ -21,7 +21,6 @@ import {
   createGenerationPlan,
   createGenerationJobs,
   startGenerationJob,
-  getGenerationJob,
   getGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
@@ -36,7 +35,15 @@ import type { RoutingHints } from "./model-router";
 import type { SourceContextType } from "./job-request";
 import type { Intent } from "@/lib/prompt-engine/intent";
 import { MAX_REFERENCE_IMAGES_V1 } from "./models";
-import { jobsNeedingStart } from "./series-resume";
+import { sessionAwaitingResultUrl, shouldKeepPollingSession } from "./poll-complete";
+import {
+  jobsReadyToStart,
+  nextKickEntryAfterFailure,
+  runKickState,
+  runKicksInFlight,
+} from "./run-kick";
+import { readGenerationSessionLive } from "./live-poll-read";
+import { kickSessionMaintenance } from "./session-maintenance";
 import {
   savePendingGeneration,
   readPendingGeneration,
@@ -50,6 +57,8 @@ export type GenerationPhase =
   /** A plan came back with `requiresCountConfirmation` — waiting on confirmSeriesCount(). */
   | "confirm"
   | "polling"
+  /** Jobs succeeded but a signed result URL has not arrived yet — keep polling. */
+  | "awaiting_result_url"
   | "result"
   | "error";
 
@@ -165,6 +174,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStart = useRef<number>(0);
+  const pollTickRef = useRef<(() => void) | null>(null);
   // Per-session child status baseline so generation_series_child_done fires
   // on terminal transitions during poll, not on resume of already-finished jobs.
   const pollChildStatusRef = useRef<Map<string, GenerationChildJob["status"]>>(new Map());
@@ -189,11 +199,33 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   const job = jobs[0] ?? null;
 
+  function kickGenerationJob(jobId: string, referenceAssetIds: string[]) {
+    if (runKicksInFlight.has(jobId)) {
+      return;
+    }
+    runKicksInFlight.add(jobId);
+    void startGenerationJob(jobId, referenceAssetIds)
+      .then((res) => {
+        if (res.ok) {
+          runKickState.delete(jobId);
+          return;
+        }
+        runKickState.set(jobId, nextKickEntryAfterFailure(runKickState.get(jobId), Date.now()));
+      })
+      .catch(() => {
+        runKickState.set(jobId, nextKickEntryAfterFailure(runKickState.get(jobId), Date.now()));
+      })
+      .finally(() => {
+        runKicksInFlight.delete(jobId);
+        pollTickRef.current?.();
+      });
+  }
+
   // Resume a session left running across a refresh/reopen — see
   // ACTIVE_SESSION_KEY. pollSession's own first tick fetches every child
   // job's current status (they may already be done) and clears the key
-  // once all are terminal, so this only ever fires the network requests an
-  // in-flight session actually needs.
+  // only once polling is actually done — including after a succeeded job
+  // still waiting on a signed URL.
   useEffect(() => {
     const activeSessionId = readActiveSession();
     if (activeSessionId) pollSession(activeSessionId);
@@ -329,11 +361,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // Polls the whole session, not one job — a confirmed series creates
   // several queued children on one session (see jobs.ts's
   // create_generation_jobs), and every one of them needs its own status
-  // tracked until it's terminal, not just the first. getGenerationSession
-  // gives the current child list (id/status/label/index) and every
-  // succeeded version; each child's own richer detail (width/height/model/
-  // errorMessage/signed result URL) still comes from getGenerationJob,
-  // exactly as the single-job path always fetched it.
+  // tracked until it's terminal, not just the first. Status is read from
+  // Supabase directly: GET /api/generation/* is serialized behind POST /run
+  // on local workerd, so a refresh could see a finished image while the
+  // live spinner was still blocked. Each tick also kicks a background
+  // session GET for credit settlement and stale-fail; that path is never
+  // awaited by the spinner.
   function pollSession(
     sessionId: string,
     /** Fresh /jobs response — seed baseline as queued so a child that finishes before the first poll still emits child_done. Omit on resume (sessionStorage). */
@@ -352,23 +385,19 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     }
     const tick = async () => {
       try {
-        const session = await getGenerationSession(sessionId);
+        const snapshot = await readGenerationSessionLive(sessionId);
         const referenceAssetIds = referencesRef.current
           .map((reference) => reference.uploadedPath)
           .filter((path): path is string => !!path);
-        for (const jobId of jobsNeedingStart(session.jobs)) {
-          void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+        for (const jobId of jobsReadyToStart(
+          snapshot.jobs.map((job) => ({ id: job.jobId, status: job.status })),
+          runKickState,
+          runKicksInFlight,
+          Date.now(),
+        )) {
+          kickGenerationJob(jobId, referenceAssetIds);
         }
-        const detailed = await Promise.all(
-          session.jobs.map(async (child): Promise<GenerationChildJob> => {
-            const detail = await getGenerationJob(child.id);
-            return {
-              ...detail,
-              label: child.series_label ?? null,
-              index: child.series_index ?? null,
-            };
-          }),
-        );
+        const detailed = snapshot.jobs;
         const seeding =
           pollBaselineRef.current?.sessionId === sessionId && !pollBaselineRef.current.seeded;
         for (const child of detailed) {
@@ -394,30 +423,47 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         if (seeding && pollBaselineRef.current) pollBaselineRef.current.seeded = true;
 
         setJobs(detailed);
-        setVersions(session.versions);
-        if (detailed.length > 0 && detailed.every((j) => isTerminalStatus(j.status))) {
-          clearActiveSession();
-          const succeeded = detailed.filter((j) => j.status === "succeeded");
-          if (succeeded.length > 0) {
-            setPhase("result");
-            setActiveVersionId(succeeded[0].result?.versionId ?? null);
-            trackEvent("generation_succeeded", {
-              model: succeeded[0].model,
-              operation: succeeded[0].operation,
-            });
-          } else {
-            setPhase("error");
-            setErrorMessage(
-              detailed[0]?.errorMessage ?? "Generation failed. Your credit was returned.",
-            );
-            trackEvent("generation_failed", { model: detailed[0]?.model });
+        setVersions(snapshot.versions);
+        // Never awaited: credit settle + stale-fail stay on the server GET
+        // without stalling the live spinner behind POST /run.
+        kickSessionMaintenance(sessionId, getGenerationSession);
+        if (shouldKeepPollingSession(detailed, { elapsedMs: Date.now() - pollStart.current })) {
+          const awaitingUrl = sessionAwaitingResultUrl(detailed);
+          if (awaitingUrl) {
+            setPhase("awaiting_result_url");
+            const succeeded = detailed.filter((j) => j.status === "succeeded");
+            setActiveVersionId(succeeded[0]?.result?.versionId ?? null);
           }
+          const nextDelayMs = nextPollDelayMs(Date.now() - pollStart.current);
+          pollTimer.current = setTimeout(() => void tick(), nextDelayMs);
           return;
         }
-        pollTimer.current = setTimeout(tick, nextPollDelayMs(Date.now() - pollStart.current));
+        pollTickRef.current = null;
+        clearActiveSession();
+        const succeeded = detailed.filter((j) => j.status === "succeeded");
+        if (succeeded.length > 0) {
+          setPhase("result");
+          setActiveVersionId(succeeded[0].result?.versionId ?? null);
+          trackEvent("generation_succeeded", {
+            model: succeeded[0].model,
+            operation: succeeded[0].operation,
+          });
+        } else {
+          setPhase("error");
+          setErrorMessage(
+            detailed[0]?.errorMessage ?? "Generation failed. Your credit was returned.",
+          );
+          trackEvent("generation_failed", { model: detailed[0]?.model });
+        }
+        return;
       } catch {
-        pollTimer.current = setTimeout(tick, nextPollDelayMs(Date.now() - pollStart.current));
+        const retryDelayMs = nextPollDelayMs(Date.now() - pollStart.current);
+        pollTimer.current = setTimeout(() => void tick(), retryDelayMs);
       }
+    };
+    pollTickRef.current = () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+      void tick();
     };
     setPhase("polling");
     void tick();
@@ -608,8 +654,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       // forever with credits already spent. Deliberately not awaited: each
       // /run request stays open for the whole generation (that is what
       // keeps the server-side work alive).
-      for (const jobId of jobsNeedingStart(res.jobs)) {
-        void startGenerationJob(jobId, referenceAssetIds).catch(() => {});
+      for (const jobId of jobsReadyToStart(res.jobs, runKickState, runKicksInFlight, Date.now())) {
+        kickGenerationJob(jobId, referenceAssetIds);
       }
       pollSession(res.sessionId, res.jobs);
     } catch (err) {

@@ -107,7 +107,8 @@ test("submit() never decides generate vs edit itself, and always forwards attach
 // its direct unit coverage in generation-plan.test.ts.
 test("jobs.ts derives operation from resolveOperation(plan, referenceAssetIds, sourceVersionId), not plan.mode alone", () => {
   const jobsRoute = read("src/routes/api/generation/jobs.ts");
-  assert.match(jobsRoute, /import \{ resolveSelectedCount, resolveOperation \} from/);
+  assert.match(jobsRoute, /resolveOperation,/);
+  assert.match(jobsRoute, /from "@\/lib\/generation\/plan"/);
   assert.match(
     jobsRoute,
     /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,?\s*\)/,

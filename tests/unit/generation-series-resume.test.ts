@@ -37,14 +37,14 @@ test("executePlan starts every queued job from createGenerationJobs, not just th
     resolve(import.meta.dirname, "../../src/lib/generation/use-generation.ts"),
     "utf8",
   );
-  assert.match(g, /import \{ jobsNeedingStart \} from "\.\/series-resume"/);
+  assert.match(g, /from "\.\/run-kick"/);
 
   const executePlanFn = g.slice(
     g.indexOf("async function executePlan"),
     g.indexOf("/**\n   * The user picked a count"),
   );
-  assert.match(executePlanFn, /for \(const jobId of jobsNeedingStart\(res\.jobs\)\) \{/);
-  assert.match(executePlanFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
+  assert.match(executePlanFn, /jobsReadyToStart\(/);
+  assert.match(executePlanFn, /kickGenerationJob\(jobId, referenceAssetIds\)/);
   // Polling covers every child on the session, not just the first -- see
   // generate-job-resume.test.ts for pollSession's own coverage.
   assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);

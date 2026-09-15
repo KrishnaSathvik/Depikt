@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  CREDIT_CHARGE_BUDGET_MS,
   runGenerationJob,
   type GenerationDataAccess,
   type GenerationJobRecord,
@@ -148,6 +149,26 @@ test("does not charge when stale failure wins the success transition", async () 
   assert.equal(finalizeCalls.length, 0);
   assert.equal(calls.some((call) => call.startsWith("failed:")), false);
   assert.equal(calls.includes("finalize:charged:job-1"), false);
+});
+
+test("success returns even if charging credits hangs past the budget", async () => {
+  const { access } = makeFakeDataAccess();
+  access.finalizeCredits = () => new Promise(() => {});
+  const fetchImpl = (async () =>
+    new Response(JSON.stringify({ data: [{ b64_json: "AAAA" }], usage: {} }), {
+      status: 200,
+    })) as unknown as typeof fetch;
+
+  const started = Date.now();
+  const result = await runGenerationJob(baseJob(), null, {
+    data: access,
+    apiKey: "sk-test",
+    fetchImpl,
+    decodeBase64: () => new Uint8Array([1]),
+  });
+
+  assert.deepEqual(result, { outcome: "succeeded", versionId: "v1" });
+  assert.ok(Date.now() - started < CREDIT_CHARGE_BUDGET_MS + 500);
 });
 
 test("a charge settlement error after success never marks failed or refunds", async () => {

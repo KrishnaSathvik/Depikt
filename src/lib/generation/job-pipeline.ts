@@ -8,6 +8,9 @@
 
 import { generateImage, editImage, estimateApiCostUsd, OpenAIImageError } from "./openai-images.ts";
 import type { ModelAlias } from "./models.ts";
+import { raceWithTimeout, CREDIT_CHARGE_BUDGET_MS } from "./timeout.ts";
+
+export { CREDIT_CHARGE_BUDGET_MS };
 
 export interface GenerationJobRecord {
   id: string;
@@ -160,14 +163,14 @@ export async function runGenerationJob(
     return { outcome: "failed", errorCode };
   }
 
-  // The job is terminally succeeded. Credit settlement is charge-only from
-  // here: an idempotent retry may finish it later, but this path must never
-  // mark the job failed or refund its reservation.
-  try {
-    await data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id);
-  } catch {
-    // Keep the succeeded outcome; a later settlement retry can use the same key.
-  }
+  // The job is terminally succeeded. Charge is best-effort here — poll GET
+  // also calls settleSucceededJobCredits. A hung RPC must not keep /run
+  // open, because local workerd serializes poll behind that request.
+  await raceWithTimeout(
+    data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id),
+    CREDIT_CHARGE_BUDGET_MS,
+    { availableCredits: 0 },
+  ).catch(() => {});
 
   return { outcome: "succeeded", versionId };
 }

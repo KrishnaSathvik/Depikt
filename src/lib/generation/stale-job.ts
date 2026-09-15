@@ -1,4 +1,5 @@
 import type { UntypedSupabaseClient } from "@/lib/generation/db-types";
+import { CREDIT_CHARGE_BUDGET_MS, raceWithTimeout } from "./timeout.ts";
 
 export const STALE_MS = 6 * 60 * 1000;
 
@@ -23,21 +24,28 @@ export interface StaleJobResult {
 export async function settleSucceededJobCredits(
   supabase: UntypedSupabaseClient,
   job: Pick<StaleJob, "id" | "user_id" | "idempotency_key" | "status">,
+  timeoutMs: number = CREDIT_CHARGE_BUDGET_MS,
 ): Promise<void> {
   if (job.status !== "succeeded") return;
 
-  try {
-    const { error } = await supabase.rpc("finalize_generation_credits", {
-      p_user_id: job.user_id,
-      p_amount: 1,
-      p_idempotency_key: job.idempotency_key,
-      p_outcome: "charged",
-      p_job_id: job.id,
-    });
-    if (error) return;
-  } catch {
-    return;
-  }
+  await raceWithTimeout(
+    (async () => {
+      try {
+        const { error } = await supabase.rpc("finalize_generation_credits", {
+          p_user_id: job.user_id,
+          p_amount: 1,
+          p_idempotency_key: job.idempotency_key,
+          p_outcome: "charged",
+          p_job_id: job.id,
+        });
+        if (error) return;
+      } catch {
+        return;
+      }
+    })(),
+    timeoutMs,
+    undefined,
+  );
 }
 
 export function applyStaleFailure(

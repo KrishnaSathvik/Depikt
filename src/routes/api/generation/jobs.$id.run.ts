@@ -33,7 +33,9 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (!isNativeGenerationEnabled()) return jsonError("Not found", 404);
 
         const authResult = await authenticateGenerationRequest(request);
-        if (!authResult.ok) return jsonError(authResult.error, authResult.status);
+        if (!authResult.ok) {
+          return jsonError(authResult.error, authResult.status);
+        }
         const { userId } = authResult.auth;
         const supabase = asGenerationClient(authResult.auth.supabase);
 

@@ -5,6 +5,7 @@ import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asGenerationClient } from "@/lib/generation/db-types";
 import { versionsForSucceededJobs } from "@/lib/generation/session-versions";
 import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+import { createSignedUrlWithTimeout } from "@/lib/generation/signed-url";
 import {
   failAndRefundStaleJob,
   settleSucceededJobCredits,
@@ -73,10 +74,10 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
           versionsForSucceededJobs(versions ?? [], sessionJobs).map(
             async (v: { job_id: string; storage_path: string; [k: string]: unknown }) => {
               const { job_id: _jobId, ...version } = v;
-              const { data: signed } = await supabase.storage
-                .from(GENERATION_BUCKET)
-                .createSignedUrl(v.storage_path, 600);
-              return { ...version, url: signed?.signedUrl ?? null };
+              const signedUrl = await createSignedUrlWithTimeout(() =>
+                supabase.storage.from(GENERATION_BUCKET).createSignedUrl(v.storage_path, 600),
+              );
+              return { ...version, url: signedUrl };
             },
           ),
         );

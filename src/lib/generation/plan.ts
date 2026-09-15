@@ -13,16 +13,22 @@ export interface GenerationPlan {
 }
 
 export const AUTO_SERIES_CAP = 4;
+/** Absolute ceiling for a series, including a confirmed "generate all". */
+export const HARD_SERIES_CAP = 20;
 
 const CONTACT_SHEET_RE = /\b(contact\s*sheet|sticker\s*sheet)\b/i;
 const GRID_RE = /\b\d+\s*[x×]\s*\d+\b/;
 const GRID_CONTEXT_RE = /\b(sheet|grid|panel|panels)\b/i;
-const COLLAGE_RE = /\b(collage|mood\s*board|moodboard|comparison\s*board)\b/i;
+const COLLAGE_RE = /\b((?<!not\s+a\s+)collage|mood\s*board|moodboard|comparison\s*board)\b/i;
 const OVERVIEW_RE = /\boverview\b/i;
 const SEPARATE_ASSETS_RE =
-  /\b(separate\s+(images|files|assets)|individual\s+images|each\s+as\s+(its\s+own|a\s+separate))\b/i;
-const DELIVERABLE_COUNT_RE =
-  /\b(\d+)\s+(?:[A-Za-z][\w-]*\s+){0,3}(images?|ads?|variations?|scenes?|layouts?|examples?|concepts?|environments?)\b/i;
+  /\b(separate\s+(images|files|assets)|individual\s+images|each\s+(as|should\s+be)\s+(its\s+own|a\s+separate)|standalone\s+images?)\b/i;
+const WORD_COUNT_RE =
+  "two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty";
+const DELIVERABLE_COUNT_RE = new RegExp(
+  String.raw`\b(\d+|${WORD_COUNT_RE})\s+(?:[A-Za-z][\w-]*\s+){0,3}(images?|ads?|variations?|scenes?|layouts?|examples?|concepts?|environments?)\b`,
+  "i",
+);
 const PLURAL_DELIVERABLE_RE =
   /\b(images|ads|variations|scenes|layouts|examples|concepts|environments)\b/i;
 const COORDINATING_DELIVERABLE_RE =
@@ -87,9 +93,33 @@ export function buildGenerationPlan(
   return finish("single", 1, false, searchNeeded(userPrompt));
 }
 
+export function clampGenerationPlan(plan: GenerationPlan): GenerationPlan {
+  if (plan.mode !== "series") {
+    return {
+      ...plan,
+      desiredCount: 1,
+      autoCount: 1,
+      separateAssets: false,
+      requiresCountConfirmation: false,
+    };
+  }
+  const desiredCount = Math.min(Math.max(plan.desiredCount, 1), HARD_SERIES_CAP);
+  const autoCount = Math.min(desiredCount, AUTO_SERIES_CAP);
+  return {
+    ...plan,
+    desiredCount,
+    autoCount,
+    separateAssets: true,
+    requiresCountConfirmation: desiredCount > AUTO_SERIES_CAP,
+  };
+}
+
 export function resolveSelectedCount(plan: GenerationPlan, selectedCount?: number): number {
-  if (!plan.requiresCountConfirmation) return plan.autoCount;
-  if (selectedCount === plan.autoCount || selectedCount === plan.desiredCount) return selectedCount;
+  const clamped = clampGenerationPlan(plan);
+  if (!clamped.requiresCountConfirmation) return clamped.autoCount;
+  if (selectedCount === clamped.autoCount || selectedCount === clamped.desiredCount) {
+    return selectedCount;
+  }
   throw new Error("selectedCount must be autoCount or desiredCount");
 }
 
@@ -122,26 +152,53 @@ function finish(
   separateAssets: boolean,
   searchNeededValue: boolean,
 ): GenerationPlan {
-  const autoCount = mode === "series" ? Math.min(desiredCount, AUTO_SERIES_CAP) : 1;
-  return {
+  return clampGenerationPlan({
     mode,
-    desiredCount: mode === "series" ? desiredCount : 1,
-    autoCount,
-    separateAssets: mode === "series" ? true : false,
+    desiredCount,
+    autoCount: 1,
+    separateAssets,
     searchNeeded: searchNeededValue,
-    requiresCountConfirmation: mode === "series" && desiredCount > AUTO_SERIES_CAP,
-  };
+    requiresCountConfirmation: false,
+  });
 }
 
 function searchNeeded(userPrompt: string): boolean {
   return SEARCH_RE.test(userPrompt);
 }
 
+const WORD_COUNTS: Record<string, number> = {
+  two: 2,
+  three: 3,
+  four: 4,
+  five: 5,
+  six: 6,
+  seven: 7,
+  eight: 8,
+  nine: 9,
+  ten: 10,
+  eleven: 11,
+  twelve: 12,
+  thirteen: 13,
+  fourteen: 14,
+  fifteen: 15,
+  sixteen: 16,
+  seventeen: 17,
+  eighteen: 18,
+  nineteen: 19,
+  twenty: 20,
+};
+
+function parseCountToken(raw: string): number | null {
+  const digit = Number(raw);
+  if (Number.isFinite(digit)) return digit;
+  return WORD_COUNTS[raw.toLowerCase()] ?? null;
+}
+
 function explicitDeliverableCount(userPrompt: string): number | null {
   const m = userPrompt.match(DELIVERABLE_COUNT_RE);
   if (!m) return null;
-  const n = Number(m[1]);
-  return Number.isFinite(n) && n >= 2 ? n : null;
+  const n = parseCountToken(m[1]!);
+  return n !== null && n >= 2 ? n : null;
 }
 
 /** Slash, " or ", and comma-separated visual variants. Generic — not a domain list. */

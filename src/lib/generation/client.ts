@@ -26,7 +26,7 @@ export async function generationFetch(path: string, init: RequestInit = {}): Pro
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  return fetch(path, { ...init, headers });
+  return fetch(path, { cache: "no-store", ...init, headers });
 }
 
 async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -124,7 +124,7 @@ export interface JobStatusResponse {
   width: number;
   height: number;
   errorMessage: string | null;
-  result: { versionId: string; url: string; width: number; height: number } | null;
+  result: { versionId: string; url: string | null; width: number; height: number } | null;
 }
 
 export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {

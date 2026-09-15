@@ -602,6 +602,7 @@ export const GENERATION_STAGE_LABELS = {
   starting: "Starting your image…",
   creating: "Creating your image…",
   lingering: "Still working — this can take a couple of minutes",
+  loadingImage: "Loading image…",
   expectation: "Usually about a minute",
   keepOpen: "Keep this screen open",
 } as const;

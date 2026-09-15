@@ -4,7 +4,9 @@ import { readFileSync } from "node:fs";
 import { loadVnext1Cases } from "../image-evals/vnext-1/load-cases.ts";
 import {
   AUTO_SERIES_CAP,
+  HARD_SERIES_CAP,
   buildGenerationPlan,
+  clampGenerationPlan,
   resolveSelectedCount,
   resolveOperation,
   type GenerationPlan,
@@ -51,6 +53,42 @@ test("explicit N ads is a series of N; >4 requires confirmation", () => {
   assert.equal(resolveSelectedCount(plan, 4), 4);
   assert.equal(resolveSelectedCount(plan, 7), 7);
   assert.throws(() => resolveSelectedCount(plan, 20));
+});
+
+test("desiredCount is hard-capped at 20 even when the prompt asks for more", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  const plan = buildGenerationPlan(intent, "create 500 ads for a soda brand");
+  assert.equal(plan.mode, "series");
+  assert.equal(plan.desiredCount, HARD_SERIES_CAP);
+  assert.equal(plan.autoCount, AUTO_SERIES_CAP);
+  assert.equal(plan.requiresCountConfirmation, true);
+  assert.equal(resolveSelectedCount(plan, AUTO_SERIES_CAP), AUTO_SERIES_CAP);
+  assert.equal(resolveSelectedCount(plan, HARD_SERIES_CAP), HARD_SERIES_CAP);
+  assert.throws(() => resolveSelectedCount(plan, 500));
+
+  const forged = clampGenerationPlan({
+    mode: "series",
+    desiredCount: 500,
+    autoCount: 4,
+    separateAssets: true,
+    searchNeeded: false,
+    requiresCountConfirmation: true,
+  });
+  assert.equal(forged.desiredCount, HARD_SERIES_CAP);
+  assert.equal(forged.autoCount, AUTO_SERIES_CAP);
+});
+
+test("spelled-out four separate images is a series, not a collage or a single", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  const plan = buildGenerationPlan(
+    intent,
+    "Create four separate realistic astrophotography images for Instagram Stories: Milky Way, star trails, meteor shower, and a dense starfield. Each should be its own standalone image, not a collage.",
+  );
+  assert.equal(plan.mode, "series");
+  assert.equal(plan.desiredCount, 4);
+  assert.equal(plan.autoCount, AUTO_SERIES_CAP);
+  assert.equal(plan.separateAssets, true);
+  assert.equal(plan.requiresCountConfirmation, false);
 });
 
 test("object counts in a scene are not deliverable counts", () => {

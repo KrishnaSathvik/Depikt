@@ -16,7 +16,7 @@ export function SeriesJobsGrid({ jobs }: { jobs: GenerationChildJob[] }) {
 function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number }) {
   const label = job.label || `Image ${index + 1}`;
 
-  if (job.status === "succeeded" && job.result) {
+  if (job.status === "succeeded" && job.result?.url) {
     return (
       <div className="space-y-1.5">
         <div className="overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]">
@@ -28,6 +28,7 @@ function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number 
   }
 
   const failed = job.status === "failed" || job.status === "cancelled";
+  const awaitingUrl = job.status === "succeeded";
   return (
     <div className="flex aspect-square flex-col items-center justify-center gap-2 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-3">
       {failed ? (
@@ -38,9 +39,11 @@ function SeriesJobSlot({ job, index }: { job: GenerationChildJob; index: number 
       <p className="label-mono truncate">{label}</p>
       {!failed && (
         <p className="text-body-sm text-[color:var(--text-tertiary)]">
-          {job.status === "queued"
-            ? GENERATION_STAGE_LABELS.starting
-            : GENERATION_STAGE_LABELS.creating}
+          {awaitingUrl
+            ? GENERATION_STAGE_LABELS.loadingImage
+            : job.status === "queued"
+              ? GENERATION_STAGE_LABELS.starting
+              : GENERATION_STAGE_LABELS.creating}
         </p>
       )}
     </div>

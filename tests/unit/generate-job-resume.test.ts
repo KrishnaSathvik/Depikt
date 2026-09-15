@@ -36,21 +36,38 @@ test("the active generation session id survives a refresh and is resumed on moun
   // The old, one-job-only key must be gone entirely.
   assert.equal(/ACTIVE_JOB_KEY/.test(g), false);
 
-  // pollSession must persist the id as soon as it starts, and clear it once
-  // every child job is terminal — not just on success (a refreshed-then-
-  // failed session must not resume forever either).
+  // pollSession must persist the id as soon as it starts, and clear it only
+  // once polling is actually done — including after a succeeded job still
+  // waiting on a signed URL. Clearing on terminal status alone strands a
+  // paid success on "Loading image…".
   const pollSessionFn = g.slice(
     g.indexOf("function pollSession"),
     g.indexOf("async function submit"),
   );
   assert.match(pollSessionFn, /saveActiveSession\(sessionId\)/);
+  assert.match(pollSessionFn, /shouldKeepPollingSession\(detailed, \{ elapsedMs:/);
+  assert.match(pollSessionFn, /sessionAwaitingResultUrl\(detailed\)/);
+  assert.match(pollSessionFn, /setPhase\("awaiting_result_url"\)/);
   assert.match(pollSessionFn, /clearActiveSession\(\)/);
-  assert.match(pollSessionFn, /detailed\.every\(\(j\) => isTerminalStatus\(j\.status\)\)/);
-  // Every tick must restart children still queued. This covers both normal
-  // polling after a dropped /run request and mount resume, because the mount
-  // effect enters this same pollSession path.
-  assert.match(pollSessionFn, /jobsNeedingStart\(session\.jobs\)/);
-  assert.match(pollSessionFn, /void startGenerationJob\(jobId, referenceAssetIds\)\.catch/);
+  assert.equal(/detailed\.every\(\(j\) => isTerminalStatus\(j\.status\)\)/.test(pollSessionFn), false);
+  assert.match(pollSessionFn, /readGenerationSessionLive\(sessionId\)/);
+  // Spinner path must not await the server GET. Maintenance pokes it in
+  // the background so credit settle + stale-fail stay server-side.
+  assert.match(pollSessionFn, /kickSessionMaintenance\(sessionId, getGenerationSession\)/);
+  assert.equal(/await kickSessionMaintenance/.test(pollSessionFn), false);
+  assert.equal(/await getGenerationSession/.test(pollSessionFn), false);
+  assert.equal(/getGenerationSession\(sessionId\)/.test(pollSessionFn), false);
+  assert.equal(/getGenerationJob\(child\.id\)/.test(pollSessionFn), false);
+  // Every tick must restart children still queued *and* past backoff.
+  // This covers both normal polling after a dropped /run request and mount
+  // resume, because the mount effect enters this same pollSession path.
+  assert.match(pollSessionFn, /jobsReadyToStart\(/);
+  assert.match(pollSessionFn, /kickGenerationJob\(jobId, referenceAssetIds\)/);
+  assert.match(g, /function kickGenerationJob\(/);
+  assert.match(g, /runKicksInFlight/);
+  assert.match(g, /runKickState/);
+  assert.match(g, /nextKickEntryAfterFailure/);
+  assert.match(g, /startGenerationJob\(jobId, referenceAssetIds\)[\s\S]*?\.finally\(/);
   assert.match(
     pollSessionFn,
     /referencesRef\.current\s*\.map\(\(reference\) => reference\.uploadedPath\)/,
@@ -99,11 +116,10 @@ test("jobs from a session are given full per-job detail, not just id/status", ()
     g.indexOf("function pollSession"),
     g.indexOf("async function submit"),
   );
-  // Each session child is re-fetched via getGenerationJob for its own
-  // width/height/model/errorMessage/signed result URL -- the session GET
-  // itself only returns id/status/series_index/series_label/created_at.
-  assert.match(pollSessionFn, /session\.jobs\.map\(async \(child\)/);
-  assert.match(pollSessionFn, /await getGenerationJob\(child\.id\)/);
-  assert.match(pollSessionFn, /label: child\.series_label \?\? null/);
-  assert.match(pollSessionFn, /index: child\.series_index \?\? null/);
+  // Status/result must come from Supabase directly. GET /api/generation/*
+  // is serialized behind POST /run on local workerd, so a succeeded job
+  // would otherwise stay on "Still working" until a refresh.
+  assert.match(pollSessionFn, /readGenerationSessionLive\(sessionId\)/);
+  assert.match(pollSessionFn, /const detailed = snapshot\.jobs/);
+  assert.equal(/getGenerationJob/.test(pollSessionFn), false);
 });

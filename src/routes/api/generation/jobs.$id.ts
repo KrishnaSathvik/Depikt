@@ -4,6 +4,7 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asGenerationClient } from "@/lib/generation/db-types";
 import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
+import { createSignedUrlWithTimeout } from "@/lib/generation/signed-url";
 import {
   failAndRefundStaleJob,
   settleSucceededJobCredits,
@@ -70,10 +71,9 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
 
         let signedUrl: string | null = null;
         if (version) {
-          const { data: signed } = await supabase.storage
-            .from(GENERATION_BUCKET)
-            .createSignedUrl(version.storage_path, 600); // 10 minutes; re-signed on each poll/reload, never persisted
-          signedUrl = signed?.signedUrl ?? null;
+          signedUrl = await createSignedUrlWithTimeout(() =>
+            supabase.storage.from(GENERATION_BUCKET).createSignedUrl(version.storage_path, 600),
+          );
         }
 
         return new Response(
@@ -86,15 +86,14 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
             width: job.width,
             height: job.height,
             errorMessage: job.status === "failed" ? job.safe_error_message : null,
-            result:
-              version && signedUrl
-                ? {
-                    versionId: version.id,
-                    url: signedUrl,
-                    width: version.width,
-                    height: version.height,
-                  }
-                : null,
+            result: version
+              ? {
+                  versionId: version.id,
+                  url: signedUrl,
+                  width: version.width,
+                  height: version.height,
+                }
+              : null,
           }),
           { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } },
         );

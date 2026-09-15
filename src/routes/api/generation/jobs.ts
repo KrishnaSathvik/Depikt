@@ -4,7 +4,12 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateCreateJobsFromPlanBody } from "@/lib/generation/job-request";
 import { verifyPlanToken, type PlanTokenPayload } from "@/lib/generation/plan-token";
-import { resolveSelectedCount, resolveOperation } from "@/lib/generation/plan";
+import {
+  clampGenerationPlan,
+  HARD_SERIES_CAP,
+  resolveOperation,
+  resolveSelectedCount,
+} from "@/lib/generation/plan";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
@@ -139,6 +144,11 @@ export const Route = createFileRoute("/api/generation/jobs")({
           payload = verifyPlanToken(req.planToken, secret, userId);
         } catch {
           return jsonError("This plan has expired. Please try again.", 400);
+        }
+        payload = { ...payload, plan: clampGenerationPlan(payload.plan) };
+
+        if (req.selectedCount != null && req.selectedCount > HARD_SERIES_CAP) {
+          return jsonError(`selectedCount cannot exceed ${HARD_SERIES_CAP}`, 400);
         }
 
         let selected: number;

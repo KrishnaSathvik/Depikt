@@ -215,7 +215,7 @@ export function GenerateWorkspace() {
   const canvasState =
     gen.phase === "starting" || gen.phase === "polling"
       ? "generating"
-      : gen.phase === "result"
+      : gen.phase === "result" || gen.phase === "awaiting_result_url"
         ? "result"
         : "error";
 
