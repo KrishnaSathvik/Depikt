@@ -7,6 +7,7 @@ Frozen prompts and expected routing for precision area editing regression tests.
 | Gate | Command | When |
 |---|---|---|
 | CI | `npm test` | Every commit |
+| Live quality | `npm run test:vnext-2-live` | Manual/opt-in. Prints the frozen cases and PASS / SOFT FAIL / FAIL scorecard. Does not call OpenAI or invent numeric fidelity scores. Source/mask PNGs are not in `fixtures/` yet. |
 
 CI tests **transport, planning, and security** — not pixel quality. A future live quality gate (`npm run test:vnext-2-live`) is manual/opt-in and is not wired in this slice.
 

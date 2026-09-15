@@ -103,9 +103,11 @@ export function InlineGenerationPanel({
           value={editPrompt}
           onChange={setEditPrompt}
           onApply={({ maskPng }) => {
-            gen.applyEdit(editPrompt, { maskPng });
-            setEditing(false);
-            setEditPrompt("");
+            void gen.applyEdit(editPrompt, { maskPng }).then((ok) => {
+              if (!ok) return;
+              setEditing(false);
+              setEditPrompt("");
+            });
           }}
           onCancel={() => setEditing(false)}
           imageUrl={gen.resultUrl}

@@ -747,31 +747,33 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     });
   }
 
-  function applyEdit(editPrompt: string, opts?: { maskPng?: Uint8Array | null }) {
+  async function applyEdit(
+    editPrompt: string,
+    opts?: { maskPng?: Uint8Array | null },
+  ): Promise<boolean> {
     const sourceVersionId = activeVersionId;
-    if (!editPrompt.trim() || !sourceVersionId) return;
+    if (!editPrompt.trim() || !sourceVersionId) return false;
     trackEvent("edit_submitted", {});
-    void (async () => {
-      let maskAssetId: string | null = null;
-      if (opts?.maskPng) {
-        setPhase("starting");
-        try {
-          const uploaded = await uploadEditMask(sourceVersionId, bytesToPngDataUrl(opts.maskPng));
-          maskAssetId = uploaded.assetId;
-        } catch {
-          toast.error("Couldn't apply the selected area. Try again.");
-          setPhase("result");
-          return;
-        }
+    let maskAssetId: string | null = null;
+    if (opts?.maskPng) {
+      setPhase("starting");
+      try {
+        const uploaded = await uploadEditMask(sourceVersionId, bytesToPngDataUrl(opts.maskPng));
+        maskAssetId = uploaded.assetId;
+      } catch {
+        toast.error("Couldn't apply the selected area. Try again.");
+        setPhase("result");
+        return false;
       }
-      await submit({
-        prompt: editPrompt,
-        structuredAspectRatio: lastParamsRef.current?.structuredAspectRatio ?? null,
-        routingHints: lastParamsRef.current?.routingHints ?? null,
-        sourceVersionId,
-        maskAssetId,
-      });
-    })();
+    }
+    await submit({
+      prompt: editPrompt,
+      structuredAspectRatio: lastParamsRef.current?.structuredAspectRatio ?? null,
+      routingHints: lastParamsRef.current?.routingHints ?? null,
+      sourceVersionId,
+      maskAssetId,
+    });
+    return true;
   }
 
   function download() {

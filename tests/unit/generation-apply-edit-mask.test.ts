@@ -34,12 +34,9 @@ test("applyEdit uploads via uploadEditMask only when maskPng is provided", () =>
   const hook = read("src/lib/generation/use-generation.ts");
   assert.match(hook, /uploadEditMask/);
   assert.match(hook, /bytesToPngDataUrl/);
-  assert.match(
-    hook,
-    /function applyEdit\(editPrompt: string,\s*opts\?:\s*\{\s*maskPng\?:\s*Uint8Array\s*\|\s*null\s*\}\)/,
-  );
-
-  const applyEditFn = sliceFn(hook, "function applyEdit(editPrompt: string", "function download()");
+  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download()");
+  assert.match(applyEditFn, /Promise<boolean>/);
+  assert.match(applyEditFn, /opts\?: \{ maskPng\?: Uint8Array \| null \}/);
   assert.match(applyEditFn, /uploadEditMask\(/);
   assert.match(applyEditFn, /opts\?\.maskPng/);
   assert.match(applyEditFn, /bytesToPngDataUrl\(/);
@@ -84,12 +81,13 @@ test("both parents still call applyEdit with the form's maskPng", () => {
   for (const src of [workspace, panel]) {
     assert.match(src, /onApply=\{\(\{\s*maskPng\s*\}\)\s*=>\s*\{/);
     assert.match(src, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
+    assert.match(src, /if \(!ok\) return/);
   }
 });
 
 test("applyEdit uses activeVersionId as sourceVersionId", () => {
   const hook = read("src/lib/generation/use-generation.ts");
-  const applyEditFn = sliceFn(hook, "function applyEdit(editPrompt: string", "function download()");
+  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download()");
   assert.match(applyEditFn, /activeVersionId/);
   assert.match(applyEditFn, /sourceVersionId/);
   assert.doesNotMatch(applyEditFn, /sourceVersionId:\s*null/);
@@ -106,7 +104,7 @@ test("IntentSchema still has no mask field", () => {
 
 test("regenerate still strips sourceVersionId and does not keep a mask", () => {
   const hook = read("src/lib/generation/use-generation.ts");
-  const regenerateFn = sliceFn(hook, "function regenerate()", "function applyEdit");
+  const regenerateFn = sliceFn(hook, "function regenerate()", "async function applyEdit");
   assert.match(regenerateFn, /sourceVersionId:\s*null/);
   assert.match(regenerateFn, /maskAssetId:\s*(null|undefined)/);
 });
