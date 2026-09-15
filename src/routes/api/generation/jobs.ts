@@ -11,6 +11,7 @@ import {
   resolveSelectedCount,
 } from "@/lib/generation/plan";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
+import { withPrecisionEditPreamble } from "@/lib/generation/precision-edit-prompt";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
 import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
@@ -74,6 +75,14 @@ async function deleteSessionIfEmpty(
 
 async function resolveChildren(payload: PlanTokenPayload, selected: number): Promise<JobChild[]> {
   if (payload.plan.mode !== "series") {
+    if (payload.maskPath || payload.maskAssetId) {
+      return [
+        {
+          prompt: withPrecisionEditPreamble(payload.prompt, payload.intent.must_preserve),
+          label: null,
+        },
+      ];
+    }
     return [{ prompt: withFidelityPreamble(payload.prompt, payload.intent), label: null }];
   }
   const decomposerInput = selectDecomposerInput({

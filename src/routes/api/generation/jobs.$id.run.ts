@@ -127,12 +127,29 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             .maybeSingle();
           if (sourceVersion) sourcePath = (sourceVersion.storage_path as string) ?? null;
         }
-        const { referenceImages, editMask } = await assembleJobImages({
-          download,
-          sourcePath,
-          referencePaths,
-          maskPath,
-        });
+        let referenceImages: StoredImage[];
+        let editMask: StoredImage | null;
+        try {
+          const assembled = await assembleJobImages({
+            download,
+            sourcePath,
+            referencePaths,
+            maskPath,
+          });
+          referenceImages = assembled.referenceImages;
+          editMask = assembled.editMask;
+        } catch {
+          await data
+            .markJobFailed(job.id, {
+              errorCode: "mask_unavailable",
+              safeErrorMessage: "Could not load the selected region.",
+            })
+            .catch(() => {});
+          await data
+            .finalizeCredits(userId, 1, job.idempotency_key as string, "refunded", job.id)
+            .catch(() => {});
+          return jsonError("Could not load the selected region.", 500);
+        }
 
         const outcome = await runGenerationJob(
           {

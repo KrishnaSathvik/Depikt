@@ -20,6 +20,9 @@ export async function assembleJobImages(args: {
   let editMask: StoredImage | null = null;
   if (args.maskPath) {
     editMask = await args.download(args.maskPath);
+    if (!editMask) {
+      throw new Error("Could not load the edit mask.");
+    }
   }
   return { referenceImages, editMask };
 }

@@ -61,25 +61,27 @@ test("assembleJobImages leaves editMask null when there is no mask path", async 
   );
 });
 
-test("a failed mask download does not push onto referenceImages", async () => {
-  const result = await assembleJobImages({
-    download: async (path) => {
-      if (path.includes("/masks/")) return null;
-      return {
-        bytes: new Uint8Array([1]),
-        filename: path.split("/").pop() ?? "image.png",
-        mimeType: "image/png",
-      };
+test("assembleJobImages fails when maskPath is set and download returns null", async () => {
+  await assert.rejects(
+    () =>
+      assembleJobImages({
+        download: async (path) => {
+          if (path.includes("/masks/")) return null;
+          return {
+            bytes: new Uint8Array([1]),
+            filename: path.split("/").pop() ?? "image.png",
+            mimeType: "image/png",
+          };
+        },
+        sourcePath: "users/u/source.png",
+        referencePaths: [],
+        maskPath: "users/u/masks/mask-1.png",
+      }),
+    (err: unknown) => {
+      assert.ok(err instanceof Error);
+      assert.match(err.message, /selected region|edit mask/i);
+      return true;
     },
-    sourcePath: "users/u/source.png",
-    referencePaths: [],
-    maskPath: "users/u/masks/mask-1.png",
-  });
-
-  assert.equal(result.editMask, null);
-  assert.deepEqual(
-    result.referenceImages.map((img) => img.filename),
-    ["source.png"],
   );
 });
 
@@ -105,4 +107,15 @@ test("jobs.$id.run.ts keeps source download before references and does not push 
   assert.match(src, /editMask/);
   assert.doesNotMatch(src, /referenceImages\.push\(\s*editMask/);
   assert.doesNotMatch(src, /referenceImages\.push\(.*mask/s);
+});
+
+test("jobs.$id.run.ts fails the job and refunds when assembleJobImages throws", () => {
+  const src = read("src/routes/api/generation/jobs.$id.run.ts");
+  const assembleIdx = src.indexOf("await assembleJobImages");
+  assert.ok(assembleIdx > 0);
+  const aroundAssemble = src.slice(Math.max(0, assembleIdx - 200), assembleIdx + 900);
+  assert.match(aroundAssemble, /try\s*\{/);
+  assert.match(aroundAssemble, /catch/);
+  assert.match(aroundAssemble, /markJobFailed/);
+  assert.match(aroundAssemble, /"refunded"/);
 });
