@@ -27,13 +27,20 @@ test("an edit job fetches and attaches its source version's own image, not just 
 
   // The source-image fetch must happen before (and populate the same
   // array as) the user-uploaded reference loop, so both end up in the
-  // request sent to OpenAI.
+  // request sent to OpenAI. Image assembly lives in assembleJobImages;
+  // the run route still resolves the source version first.
   const sourceFetchIdx = g.indexOf('job.operation === "edit"');
-  const uploadedRefLoopIdx = g.indexOf("for (const path of referencePaths)");
-  assert.ok(sourceFetchIdx > 0 && uploadedRefLoopIdx > 0);
+  const assembleIdx = g.indexOf("await assembleJobImages");
+  assert.ok(sourceFetchIdx > 0 && assembleIdx > 0);
   assert.ok(
-    sourceFetchIdx < uploadedRefLoopIdx,
-    "source-version fetch must run before the user-uploaded reference loop",
+    sourceFetchIdx < assembleIdx,
+    "source-version fetch must run before assembling reference images",
   );
-});
 
+  const helper = read("src/lib/generation/job-images.ts");
+  const sourceDownloadIdx = helper.indexOf("args.sourcePath");
+  const referenceLoopIdx = helper.indexOf("for (const path of args.referencePaths)");
+  const maskDownloadIdx = helper.indexOf("args.maskPath");
+  assert.ok(sourceDownloadIdx > 0 && referenceLoopIdx > 0 && maskDownloadIdx > 0);
+  assert.ok(sourceDownloadIdx < referenceLoopIdx && referenceLoopIdx < maskDownloadIdx);
+});
