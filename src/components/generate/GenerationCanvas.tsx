@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThinkingField } from "@/components/processing/ThinkingField";
 import {
+  GENERATION_STAGE_LABELS,
   describeGenerationThinking,
   formatGenerationElapsed,
   type GenerationJobUiStatus,
@@ -93,24 +94,38 @@ export function GenerationCanvas({
     );
   }
 
-  if (state === "result" && imageUrl) {
-    return (
-      <div className={`space-y-4 ${className ?? ""}`}>
-        <div
-          className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] transition-[width,aspect-ratio] duration-200 ease-out"
-          style={{
-            width: box.width,
-            maxWidth: "100%",
-            aspectRatio: `${box.width} / ${box.height}`,
-          }}
-        >
-          <img src={imageUrl} alt={imageAlt} className="h-full w-full object-contain" />
-        </div>
-        {actions && (
-          <div className="mx-auto w-full" style={{ maxWidth: box.width }}>
-            {actions}
+  if (state === "result") {
+    if (imageUrl) {
+      return (
+        <div className={`space-y-4 ${className ?? ""}`}>
+          <div
+            className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] transition-[width,aspect-ratio] duration-200 ease-out"
+            style={{
+              width: box.width,
+              maxWidth: "100%",
+              aspectRatio: `${box.width} / ${box.height}`,
+            }}
+          >
+            <img src={imageUrl} alt={imageAlt} className="h-full w-full object-contain" />
           </div>
-        )}
+          {actions && (
+            <div className="mx-auto w-full" style={{ maxWidth: box.width }}>
+              {actions}
+            </div>
+          )}
+        </div>
+      );
+    }
+    return (
+      <div className={`space-y-3 text-center ${className ?? ""}`}>
+        <ThinkingField
+          variant="generate"
+          status={GENERATION_STAGE_LABELS.loadingImage}
+          width={box.width}
+          height={box.height}
+          className="[&>div]:transition-[width,aspect-ratio] [&>div]:duration-200 [&>div]:ease-out"
+        />
+        <p className="text-body-md">{GENERATION_STAGE_LABELS.loadingImage}</p>
       </div>
     );
   }

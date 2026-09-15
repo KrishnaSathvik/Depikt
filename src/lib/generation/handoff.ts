@@ -8,9 +8,13 @@
 
 import type { SourceContextType } from "./job-request";
 import type { RoutingHints } from "./model-router";
+import type { Intent } from "../prompt-engine/intent";
 
 export interface GenerationHandoff {
   prompt: string;
+  /** Original Build/Critique request. Series planning must use this, not `prompt`. */
+  userInput?: string | null;
+  intent?: Intent | null;
   references: { dataUrl: string }[];
   structuredAspectRatio?: string | null;
   /** From Prompt's structured intent, fed to the Image Model Router — never a user model choice, there isn't one. */

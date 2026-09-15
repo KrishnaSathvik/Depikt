@@ -11,13 +11,17 @@
 // authenticated to a page that has forgotten they ever pressed Generate.
 //
 // sessionStorage, tab-scoped and short-lived like the other generation
-// persistence keys (see use-generation.ts's ACTIVE_JOB_KEY).
+// persistence keys (see use-generation.ts's ACTIVE_SESSION_KEY).
 
 import type { SourceContextType } from "./job-request";
 import type { RoutingHints } from "./model-router";
+import type { Intent } from "../prompt-engine/intent";
 
 export interface PendingGeneration {
   prompt: string;
+  /** Original Build/Critique request. Series planning must use this, not `prompt`. */
+  userInput?: string | null;
+  intent?: Intent | null;
   /** Raw reference data URLs — re-uploaded on resume, since an unauthenticated
    * upload attempt 401s and a hard navigation may not have kept the in-memory
    * ReferenceEntry state that a retry would otherwise patch. */
@@ -33,6 +37,19 @@ export interface PendingGeneration {
 }
 
 const KEY = "depikt:pending-generation";
+
+const DIRECT_HANDOFF_SOURCES: readonly SourceContextType[] = ["library", "gallery", "template"];
+
+/** Whether this mounted generation surface owns resuming a persisted OAuth submission. */
+export function pendingGenerationMatchesSource(
+  hookType: SourceContextType,
+  pendingType: SourceContextType,
+): boolean {
+  return (
+    hookType === pendingType ||
+    (hookType === "direct" && DIRECT_HANDOFF_SOURCES.includes(pendingType))
+  );
+}
 
 export function savePendingGeneration(p: PendingGeneration): void {
   try {

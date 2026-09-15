@@ -63,12 +63,19 @@ export const CTA = {
   browseShort: "Browse Prompts",
   remix: "Remix in Prompt",
   openImago: "Open in Imago",
-  /** Behind the native-generation feature flag. */
+  /** Behind the native-generation feature flag. Kept for the count-1 case; a
+   *  confirmed series uses generateImages(n) below instead. */
   generateImage: "Generate image",
   generateRewrite: "Generate rewrite",
   /** Image job re-run — distinct from rebuildPrompt. */
   regenerateImage: "Regenerate image",
   critiqueThis: "Critique this prompt",
+  /** A plan's autoCount (or a confirmed count) when it's more than one image. */
+  generateImages: (n: number) => `Generate ${n} images · ${n} credits`,
+  /** useGeneration's "confirm" phase — a plan came back with requiresCountConfirmation. */
+  seriesConfirmTitle: (n: number) => `This request works best as ${n} separate images.`,
+  seriesConfirmAuto: (n: number) => `Generate ${n} now`,
+  seriesConfirmAll: (n: number) => `Generate all ${n}`,
 } as const;
 
 /**
@@ -595,6 +602,7 @@ export const GENERATION_STAGE_LABELS = {
   starting: "Starting your image…",
   creating: "Creating your image…",
   lingering: "Still working — this can take a couple of minutes",
+  loadingImage: "Loading image…",
   expectation: "Usually about a minute",
   keepOpen: "Keep this screen open",
 } as const;

@@ -18,21 +18,35 @@ import type { GenerationDataAccess } from "./job-pipeline.ts";
 import { GENERATION_BUCKET, imageVersionStoragePath } from "./storage-paths.ts";
 import { asGenerationClient } from "./db-types.ts";
 
+export function didUpdateRow<T>({
+  data,
+  error,
+}: {
+  data: T | null;
+  error: unknown;
+}): boolean {
+  if (error) throw error;
+  return Boolean(data);
+}
+
 export function createSupabaseDataAccess(
   supabaseIn: SupabaseClient<Database>,
 ): GenerationDataAccess {
   const supabase = asGenerationClient(supabaseIn);
   return {
     async markJobRunning(jobId) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("generation_jobs")
         .update({ status: "running", started_at: new Date().toISOString() })
-        .eq("id", jobId);
-      if (error) throw error;
+        .eq("id", jobId)
+        .in("status", ["queued", "running"])
+        .select("id")
+        .maybeSingle();
+      return didUpdateRow({ data, error });
     },
 
     async markJobSucceeded(jobId, patch) {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("generation_jobs")
         .update({
           status: "succeeded",
@@ -41,8 +55,11 @@ export function createSupabaseDataAccess(
           estimated_api_cost_usd: patch.estimatedApiCostUsd,
           openai_request_id: patch.openaiRequestId ?? null,
         })
-        .eq("id", jobId);
-      if (error) throw error;
+        .eq("id", jobId)
+        .eq("status", "running")
+        .select("id")
+        .maybeSingle();
+      return didUpdateRow({ data, error });
     },
 
     async markJobFailed(jobId, patch) {
@@ -54,7 +71,8 @@ export function createSupabaseDataAccess(
           error_code: patch.errorCode,
           safe_error_message: patch.safeErrorMessage,
         })
-        .eq("id", jobId);
+        .eq("id", jobId)
+        .eq("status", "running");
       if (error) throw error;
     },
 

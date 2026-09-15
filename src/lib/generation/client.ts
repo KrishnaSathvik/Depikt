@@ -8,6 +8,7 @@
 // feature.
 
 import { supabase } from "@/integrations/supabase/client";
+import type { Intent } from "@/lib/prompt-engine/intent";
 export { nextPollDelayMs, isTerminalStatus } from "./polling";
 
 export class GenerationApiError extends Error {
@@ -25,7 +26,7 @@ export async function generationFetch(path: string, init: RequestInit = {}): Pro
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  return fetch(path, { ...init, headers });
+  return fetch(path, { cache: "no-store", ...init, headers });
 }
 
 async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -40,28 +41,63 @@ async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
   return body as T;
 }
 
-export interface CreateJobRequest {
-  operation: "generate" | "edit";
-  // No `model` field: Depikt's Image Model Router decides Flare vs
-  // Sunburst server-side (see model-router.ts). The client can optionally
-  // pass routingHints from Prompt's structured intent to inform it.
+// The browser never assembles or submits an executable plan — no operation,
+// no mode, no per-image briefs. POST /plans is the only place a prompt (or
+// a pre-computed Intent) turns into a plan; the plan travels back as an
+// opaque, signed planToken that POST /jobs merely verifies. See job-request.ts.
+
+export interface CreatePlanRequest {
+  /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
   prompt: string;
+  /** The original human request, when different from `prompt` (Build/Critique). Series decomposition needs this, not the writer's PAGE-block output. */
+  userInput?: string | null;
+  /** Pre-computed Intent from Build/Critique, when available — skips a redundant intent-analysis call. */
+  intent?: Intent | null;
   referenceAssetIds?: string[];
   sourceVersionId?: string | null;
   sourceContext?: { type: string; id?: string | null };
+  structuredAspectRatio?: string | null;
+}
+
+export interface DisplayPlan {
+  mode: "single" | "series" | "collage" | "contact_sheet" | "edit";
+  desiredCount: number;
+  autoCount: number;
+  separateAssets: boolean;
+  searchNeeded: boolean;
+  requiresCountConfirmation: boolean;
+  creditCostAuto: number;
+  creditCostAll: number;
+}
+
+export interface CreatePlanResponse {
+  plan: DisplayPlan;
+  planToken: string;
+}
+
+export function createGenerationPlan(req: CreatePlanRequest): Promise<CreatePlanResponse> {
+  return generationJson<CreatePlanResponse>("/api/generation/plans", {
+    method: "POST",
+    body: JSON.stringify(req),
+  });
+}
+
+export interface CreateJobsFromPlanRequest {
+  planToken: string;
+  /** Required only when the plan's `requiresCountConfirmation` is true. */
+  selectedCount?: number;
   idempotencyKey: string;
   structuredAspectRatio?: string | null;
-  routingHints?: { category?: string; exactTextCount?: number; referenceIntent?: string };
+  sourceContext: { type: string; id?: string | null };
 }
 
-export interface CreateJobResponse {
-  jobId: string;
+export interface CreateJobsResponse {
   sessionId: string;
-  status: string;
+  jobs: Array<{ id: string; label: string | null; index: number | null; status: string }>;
 }
 
-export function createGenerationJob(req: CreateJobRequest): Promise<CreateJobResponse> {
-  return generationJson<CreateJobResponse>("/api/generation/jobs", {
+export function createGenerationJobs(req: CreateJobsFromPlanRequest): Promise<CreateJobsResponse> {
+  return generationJson<CreateJobsResponse>("/api/generation/jobs", {
     method: "POST",
     body: JSON.stringify(req),
   });
@@ -79,7 +115,6 @@ export function startGenerationJob(jobId: string, referencePaths: string[]): Pro
   });
 }
 
-
 export interface JobStatusResponse {
   jobId: string;
   sessionId: string;
@@ -89,7 +124,7 @@ export interface JobStatusResponse {
   width: number;
   height: number;
   errorMessage: string | null;
-  result: { versionId: string; url: string; width: number; height: number } | null;
+  result: { versionId: string; url: string | null; width: number; height: number } | null;
 }
 
 export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {
@@ -108,9 +143,17 @@ export interface SessionVersion {
   url: string | null;
 }
 
+export interface SessionJobSummary {
+  id: string;
+  status: string;
+  series_index: number | null;
+  series_label: string | null;
+  created_at: string;
+}
+
 export function getGenerationSession(
   sessionId: string,
-): Promise<{ sessionId: string; versions: SessionVersion[] }> {
+): Promise<{ sessionId: string; versions: SessionVersion[]; jobs: SessionJobSummary[] }> {
   return generationJson(`/api/generation/sessions/${sessionId}`);
 }
 

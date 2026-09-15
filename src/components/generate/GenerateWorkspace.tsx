@@ -20,6 +20,8 @@ import type { SessionVersion } from "@/lib/generation/client";
 import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
+import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
+import { SeriesJobsGrid } from "@/components/generate/SeriesJobsGrid";
 import { trackEvent } from "@/lib/analytics";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
@@ -88,6 +90,7 @@ export function GenerateWorkspace() {
       if (handoff.sourceType === "library" && handoff.prompt.trim()) {
         void gen.submit({
           prompt: handoff.prompt,
+          sourceContext: { type: "library", id: handoff.sourceId ?? null },
           structuredAspectRatio: handoff.structuredAspectRatio ?? null,
           routingHints: handoff.routingHints ?? null,
         });
@@ -192,11 +195,27 @@ export function GenerateWorkspace() {
     );
   }
 
+  // A plan came back needing a count decision before any job (or credit
+  // reservation) exists yet -- no canvas, no composer, just the choice.
+  if (gen.phase === "confirm") {
+    return (
+      <>
+        <AuthGateDialog gen={gen} />
+        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        <GenerationCreditGate gen={gen} className="mt-6" />
+        <PromptSurface label="Prompt" className="mt-8">
+          {prompt}
+        </PromptSurface>
+        <SeriesConfirmPanel gen={gen} className="mt-6" />
+      </>
+    );
+  }
+
   // ---------- generating / result / edit / error-with-job: two-pane workspace ----------
   const canvasState =
     gen.phase === "starting" || gen.phase === "polling"
       ? "generating"
-      : gen.phase === "result"
+      : gen.phase === "result" || gen.phase === "awaiting_result_url"
         ? "result"
         : "error";
 
@@ -254,32 +273,38 @@ export function GenerateWorkspace() {
           )}
         </div>
 
-        {/* RIGHT — the generation canvas: generating / result / error */}
-        <GenerationCanvas
-          state={canvasState}
-          aspectRatio={resolvedSize.ratioLabel}
-          orientation={resolvedSize.orientation}
-          imageUrl={gen.resultUrl}
-          errorMessage={gen.errorMessage}
-          onRetry={gen.reset}
-          jobStatus={
-            gen.job?.status === "queued" || gen.job?.status === "running"
-              ? gen.job.status
-              : gen.phase === "starting"
-                ? "queued"
-                : "running"
-          }
-          actions={
-            editing ? undefined : (
-              <GenerationActions
-                onDownload={gen.download}
-                onEdit={() => setEditing((e) => !e)}
-                onRegenerate={gen.regenerate}
-                onNew={startNew}
-              />
-            )
-          }
-        />
+        {/* RIGHT — a confirmed series (>1 child job) gets a simple grid of
+            slots instead of the single-image canvas; everything else keeps
+            the shared GenerationCanvas. */}
+        {gen.jobs.length > 1 ? (
+          <SeriesJobsGrid jobs={gen.jobs} />
+        ) : (
+          <GenerationCanvas
+            state={canvasState}
+            aspectRatio={resolvedSize.ratioLabel}
+            orientation={resolvedSize.orientation}
+            imageUrl={gen.resultUrl}
+            errorMessage={gen.errorMessage}
+            onRetry={gen.reset}
+            jobStatus={
+              gen.job?.status === "queued" || gen.job?.status === "running"
+                ? gen.job.status
+                : gen.phase === "starting"
+                  ? "queued"
+                  : "running"
+            }
+            actions={
+              editing ? undefined : (
+                <GenerationActions
+                  onDownload={gen.download}
+                  onEdit={() => setEditing((e) => !e)}
+                  onRegenerate={gen.regenerate}
+                  onNew={startNew}
+                />
+              )
+            }
+          />
+        )}
       </div>
     </>
   );

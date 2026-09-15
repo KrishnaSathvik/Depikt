@@ -43,7 +43,7 @@ test("the two-pane workspace (and its GenerationCanvas) only renders once genera
   assert.match(afterIdle, /lg:grid-cols-\[minmax\(0,2fr\)_minmax\(0,3fr\)\]/);
 });
 
-test("InlineGenerationPanel (Build/Critique) never mounts ThinkingField before phase leaves idle", () => {
+test("InlineGenerationPanel (Build/Critique) never mounts ThinkingField before phase leaves idle or confirm", () => {
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
-  assert.match(panel, /if \(gen\.phase === "idle"\) return null;/);
+  assert.match(panel, /if \(gen\.phase === "idle" \|\| gen\.phase === "confirm"\) return null;/);
 });

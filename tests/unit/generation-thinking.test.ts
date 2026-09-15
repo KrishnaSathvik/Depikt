@@ -33,6 +33,13 @@ test("elapsed formatting stays readable past a minute", () => {
   assert.equal(formatGenerationElapsed(102_000), "1m 42s");
 });
 
+test("a result without a signed URL is not the generation lingering spinner", () => {
+  const canvas = read("src/components/generate/GenerationCanvas.tsx");
+  assert.match(canvas, /if \(state === "result"\) \{/);
+  assert.match(canvas, /GENERATION_STAGE_LABELS\.loadingImage/);
+  assert.equal(/if \(state === "result" && imageUrl\)/.test(canvas), false);
+});
+
 test("GenerationCanvas shows one thinking headline, not a stacked fake pipeline", () => {
   const canvas = read("src/components/generate/GenerationCanvas.tsx");
   assert.match(canvas, /describeGenerationThinking/);

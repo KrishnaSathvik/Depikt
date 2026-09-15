@@ -37,6 +37,13 @@ test("the right pane is the shared GenerationCanvas, not bespoke markup", () => 
   assert.match(g, /state=\{canvasState\}/);
 });
 
+test("awaiting a signed URL renders as the result canvas, not the generating spinner", () => {
+  const g = read("src/components/generate/GenerateWorkspace.tsx");
+  assert.match(g, /gen\.phase === "result" \|\| gen\.phase === "awaiting_result_url"/);
+  const inline = read("src/components/generate/InlineGenerationPanel.tsx");
+  assert.match(inline, /gen\.phase === "result" \|\| gen\.phase === "awaiting_result_url"/);
+});
+
 test("Versions render only when there is more than one", () => {
   const g = read("src/components/generate/GenerateWorkspace.tsx");
   assert.match(g, /gen\.versions\.length > 1/);

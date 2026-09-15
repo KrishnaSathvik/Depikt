@@ -8,6 +8,9 @@
 
 import { generateImage, editImage, estimateApiCostUsd, OpenAIImageError } from "./openai-images.ts";
 import type { ModelAlias } from "./models.ts";
+import { raceWithTimeout, CREDIT_CHARGE_BUDGET_MS } from "./timeout.ts";
+
+export { CREDIT_CHARGE_BUDGET_MS };
 
 export interface GenerationJobRecord {
   id: string;
@@ -23,11 +26,11 @@ export interface GenerationJobRecord {
 }
 
 export interface GenerationDataAccess {
-  markJobRunning(jobId: string): Promise<void>;
+  markJobRunning(jobId: string): Promise<boolean>;
   markJobSucceeded(
     jobId: string,
     patch: { usage: unknown; estimatedApiCostUsd: number | null; openaiRequestId?: string },
-  ): Promise<void>;
+  ): Promise<boolean>;
   markJobFailed(
     jobId: string,
     patch: { errorCode: string; safeErrorMessage: string },
@@ -96,9 +99,13 @@ export async function runGenerationJob(
   deps: RunJobDeps,
 ): Promise<RunJobOutcome> {
   const { data } = deps;
+  let versionId: string;
 
   try {
-    await data.markJobRunning(job.id);
+    const running = await data.markJobRunning(job.id);
+    if (!running) {
+      return { outcome: "failed", errorCode: "timed_out" };
+    }
 
     const result =
       job.operation === "generate"
@@ -121,7 +128,7 @@ export async function runGenerationJob(
           });
 
     const bytes = deps.decodeBase64(result.b64);
-    const versionId = data.newVersionId();
+    versionId = data.newVersionId();
     const storagePath = data.buildStoragePath(job.userId, job.sessionId, versionId);
 
     await data.uploadImage(storagePath, bytes, "image/png");
@@ -138,13 +145,13 @@ export async function runGenerationJob(
       model: job.model,
     });
 
-    await data.markJobSucceeded(job.id, {
+    const succeeded = await data.markJobSucceeded(job.id, {
       usage: result.usage,
       estimatedApiCostUsd: estimateApiCostUsd(result.usage),
     });
-    await data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id);
-
-    return { outcome: "succeeded", versionId };
+    if (!succeeded) {
+      return { outcome: "failed", errorCode: "timed_out" };
+    }
   } catch (err) {
     const { errorCode, safeErrorMessage } = categorizeError(err);
     // Never let a failure in the failure path leave the reservation stuck:
@@ -155,4 +162,15 @@ export async function runGenerationJob(
       .catch(() => {});
     return { outcome: "failed", errorCode };
   }
+
+  // The job is terminally succeeded. Charge is best-effort here — poll GET
+  // also calls settleSucceededJobCredits. A hung RPC must not keep /run
+  // open, because local workerd serializes poll behind that request.
+  await raceWithTimeout(
+    data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id),
+    CREDIT_CHARGE_BUDGET_MS,
+    { availableCredits: 0 },
+  ).catch(() => {});
+
+  return { outcome: "succeeded", versionId };
 }

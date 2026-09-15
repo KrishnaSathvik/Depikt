@@ -9,6 +9,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { pendingGenerationMatchesSource } from "../../src/lib/generation/pending-generation.ts";
 
 function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
@@ -53,12 +54,31 @@ test("submit() persists pending generation before starting OAuth, not just a ref
   assert.ok(submitFn.indexOf("savePendingGeneration(") < submitFn.indexOf("setAuthPrompt(true)"));
 });
 
-test("a resume effect fires once signed in, matched to this hook instance's sourceContext", () => {
+test("pending OAuth submissions match their owning generation surface", () => {
+  assert.equal(pendingGenerationMatchesSource("library", "library"), true);
+  assert.equal(pendingGenerationMatchesSource("direct", "library"), true);
+  assert.equal(pendingGenerationMatchesSource("direct", "gallery"), true);
+  assert.equal(pendingGenerationMatchesSource("direct", "template"), true);
+  assert.equal(pendingGenerationMatchesSource("direct", "prompt_build"), false);
+  assert.equal(pendingGenerationMatchesSource("direct", "prompt_critique"), false);
+  assert.equal(pendingGenerationMatchesSource("prompt_build", "library"), false);
+  assert.equal(pendingGenerationMatchesSource("prompt_critique", "library"), false);
+});
+
+test("Generate's resume guard uses the source matcher, not raw inequality", () => {
   const g = read("src/lib/generation/use-generation.ts");
-  assert.match(g, /readPendingGeneration\(\)/);
-  assert.match(g, /pending\.sourceContext\.type !== sourceContextRef\.current\.type/);
-  assert.match(g, /clearPendingGeneration\(\)/);
-  assert.match(g, /resumePendingGeneration\(pending\)/);
+  const resumeEffect = g.slice(
+    g.indexOf("// If a submission was persisted before an OAuth round trip"),
+    g.indexOf("useEffect(\n    () => () =>"),
+  );
+  assert.match(resumeEffect, /readPendingGeneration\(\)/);
+  assert.match(resumeEffect, /pendingGenerationMatchesSource\(/);
+  assert.doesNotMatch(
+    resumeEffect,
+    /pending\.sourceContext\.type\s*!==\s*sourceContextRef\.current\.type/,
+  );
+  assert.match(resumeEffect, /clearPendingGeneration\(\)/);
+  assert.match(resumeEffect, /resumePendingGeneration\(pending\)/);
 });
 
 test("resume re-uploads any references lost to a hard navigation before resubmitting", () => {

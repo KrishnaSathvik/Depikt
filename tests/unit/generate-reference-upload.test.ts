@@ -60,36 +60,73 @@ test("a failed reference upload is flagged for retry, never filtered out of stat
 
 // Regression: attaching a reference image on a *first* Generate submission
 // (no sourceVersionId yet -- that only exists once a job has already run)
-// was silently ignored. The reference uploaded fine and was included in
-// the request as referenceAssetIds, but submit() picked
-// `operation: input.sourceVersionId ? "edit" : "generate"`, and job-
-// pipeline.ts's "generate" branch calls OpenAI's images/generations
-// endpoint with no reference images at all -- only "edit" (images/edits)
-// accepts image input. Confirmed live: attaching a landscape reference and
-// asking to "edit this" produced a result with zero relation to it. The
-// server already anticipated this (job-request.ts allows "edit" with
-// referenceAssetIds alone, no sourceVersionId required) -- only the client
-// never asked for it.
-test("submit() routes through the edit operation whenever a reference is attached, not just when editing an existing version", () => {
+// was silently ignored, because submit() picked the OpenAI operation
+// client-side from `input.sourceVersionId` alone and ignored referenceAssetIds
+// entirely. job-pipeline.ts's "generate" branch calls OpenAI's
+// images/generations endpoint with no reference images at all -- only "edit"
+// (images/edits) accepts image input. Confirmed live: attaching a landscape
+// reference and asking to "edit this" produced a result with zero relation
+// to it.
+//
+// Depikt VNext 1 (plan-token cutover) removed the client-side operation
+// choice altogether: submit() no longer decides generate vs edit at all --
+// it always forwards referenceAssetIds (and sourceVersionId, if any) to
+// POST /plans, and the server derives the real operation from the plan's
+// own analysis of the request (see plans.ts / jobs.ts). The original
+// regression -- a reference silently dropped from the request -- is now
+// structurally impossible: referenceAssetIds always reaches the plan.
+test("submit() never decides generate vs edit itself, and always forwards attached references to the plan", () => {
   const g = read("src/lib/generation/use-generation.ts");
   const submitFn = g.slice(
     g.indexOf("async function submit"),
     g.indexOf("// Re-upload any references"),
   );
 
-  // The old, buggy selection ignored attached references entirely.
-  assert.doesNotMatch(submitFn, /operation: input\.sourceVersionId \? "edit" : "generate"/);
-  assert.match(
-    submitFn,
-    /operation: input\.sourceVersionId \|\| referenceAssetIds\.length > 0 \? "edit" : "generate"/,
-  );
+  // The old, buggy client-side operation choice must be gone entirely --
+  // there is no "operation" field in a plan or jobs request at all.
+  assert.doesNotMatch(submitFn, /operation:/);
+  assert.match(submitFn, /createGenerationPlan\(\{/);
+  assert.match(submitFn, /referenceAssetIds,/);
 
   // job-pipeline.ts's "generate" branch never receives referenceImages --
-  // this is *why* the operation choice matters, not just cosmetic.
+  // this is *why* the server's own operation choice matters, not just
+  // cosmetic.
   const pipeline = read("src/lib/generation/job-pipeline.ts");
   const generateCall = pipeline.slice(
     pipeline.indexOf('job.operation === "generate"'),
     pipeline.indexOf(": await editImage("),
   );
   assert.doesNotMatch(generateCall, /referenceImages/);
+});
+
+// The other half of the fix: the server's own operation choice (jobs.ts)
+// must actually route a reference/sourceVersionId to "edit", not just
+// plan.mode === "edit". A signed "single"/"series" plan with an attached
+// reference previously became "generate" and reached job-pipeline's
+// referenceImages-less branch above. See resolveOperation in plan.ts and
+// its direct unit coverage in generation-plan.test.ts.
+test("jobs.ts derives operation from resolveOperation(plan, referenceAssetIds, sourceVersionId), not plan.mode alone", () => {
+  const jobsRoute = read("src/routes/api/generation/jobs.ts");
+  assert.match(jobsRoute, /resolveOperation,/);
+  assert.match(jobsRoute, /from "@\/lib\/generation\/plan"/);
+  assert.match(
+    jobsRoute,
+    /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,?\s*\)/,
+  );
+  // The old, buggy ternary must be gone.
+  assert.doesNotMatch(jobsRoute, /payload\.plan\.mode === "edit" \? "edit" : "generate"/);
+});
+
+// /run must never trust a client-supplied referencePaths body -- the only
+// trusted list is what the signed plan token carried at job-creation time,
+// persisted on the job's session (plan_json.referenceAssetIds) and loaded
+// there. Otherwise a stale/crafted client could ask the server to download
+// and attach an arbitrary storage path as a "reference".
+test("jobs.$id.run.ts loads reference paths from the job's stored session plan, not the request body", () => {
+  const runRoute = read("src/routes/api/generation/jobs.$id.run.ts");
+  assert.doesNotMatch(runRoute, /referencePaths\?:/);
+  assert.doesNotMatch(runRoute, /body\.referencePaths/);
+  assert.match(runRoute, /from\("generation_sessions"\)/);
+  assert.match(runRoute, /\.select\("plan_json"\)/);
+  assert.match(runRoute, /extractStoredReferenceAssetIds\(session\?\.plan_json\)/);
 });

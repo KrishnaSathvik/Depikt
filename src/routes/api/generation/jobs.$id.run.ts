@@ -7,6 +7,8 @@ import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import type { ModelAlias } from "@/lib/generation/models";
+import { classifyJobClaimResult, duplicateStartResponse } from "@/lib/generation/series-resume";
+import { extractStoredReferenceAssetIds } from "@/lib/generation/execution-plan";
 
 /**
  * POST /api/generation/jobs/:id/run — execute a queued job.
@@ -31,19 +33,11 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (!isNativeGenerationEnabled()) return jsonError("Not found", 404);
 
         const authResult = await authenticateGenerationRequest(request);
-        if (!authResult.ok) return jsonError(authResult.error, authResult.status);
+        if (!authResult.ok) {
+          return jsonError(authResult.error, authResult.status);
+        }
         const { userId } = authResult.auth;
         const supabase = asGenerationClient(authResult.auth.supabase);
-
-        let referencePaths: string[] = [];
-        try {
-          const body = (await request.json()) as { referencePaths?: unknown };
-          if (Array.isArray(body?.referencePaths)) {
-            referencePaths = body.referencePaths.filter((p): p is string => typeof p === "string");
-          }
-        } catch {
-          /* no body is fine: a plain generate has no references */
-        }
 
         const { data: job, error } = await supabase
           .from("generation_jobs")
@@ -55,19 +49,40 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (error) return jsonError("Could not load the job", 500);
         if (!job) return jsonError("Not found", 404);
 
+        // The reference paths to attach are never taken from the request
+        // body -- a stale/crafted client could otherwise ask this route to
+        // download and attach an arbitrary storage path. The only trusted
+        // source is the list the signed plan token carried at job-creation
+        // time, persisted on the job's own session -- see execution-plan.ts
+        // and jobs.ts.
+        const { data: session, error: sessionLoadError } = await supabase
+          .from("generation_sessions")
+          .select("plan_json")
+          .eq("id", job.session_id as string)
+          .maybeSingle();
+        if (sessionLoadError) return jsonError("Could not load the session", 500);
+        const referencePaths = extractStoredReferenceAssetIds(session?.plan_json);
+
         // Claim it. Anything other than `queued` means someone else is on it.
-        const { data: claimed } = await supabase
+        const claimResult = await supabase
           .from("generation_jobs")
           .update({ status: "running", started_at: new Date().toISOString() })
           .eq("id", job.id)
           .eq("status", "queued")
           .select("id")
           .maybeSingle();
-        if (!claimed) {
-          return new Response(JSON.stringify({ claimed: false, status: job.status }), {
-            status: 200,
-            headers: { "Content-Type": "application/json", ...corsHeaders },
-          });
+        const claimOutcome = classifyJobClaimResult(claimResult);
+        switch (claimOutcome) {
+          case "error":
+            return jsonError("Could not claim the job", 500);
+          case "duplicate":
+            return duplicateStartResponse(job.status as string, corsHeaders);
+          case "claimed":
+            break;
+          default: {
+            const _exhaustive: never = claimOutcome;
+            return _exhaustive;
+          }
         }
 
         const apiKey = process.env.OPENAI_API_KEY;

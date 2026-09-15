@@ -1,0 +1,402 @@
+[
+  {
+    "id": "instagram-influencer",
+    "prompt": "average instagram influencer photo, casual candid, natural light",
+    "has_reference": false,
+    "expected": {
+      "mode": "single",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "create",
+      "category": "social",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "ai-poster",
+    "prompt": "build an AI conference poster, strong typography and information hierarchy, title \"THE INTELLIGENCE LAYER\"",
+    "has_reference": false,
+    "expected": {
+      "mode": "single",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "create",
+      "category": "poster",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [{ "role": "title", "text": "THE INTELLIGENCE LAYER" }],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "halo-bottle",
+    "prompt": "3:4 product still. One 330ml frosted glass bottle of sparkling water, pale citrus liquid, condensation, wet black stone. Label in one line, exact spelling: \"HALO\". Tiny line under it: \"still, then not\". Cool rim light, no extra props, no other text.",
+    "has_reference": false,
+    "expected": {
+      "mode": "single",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "create",
+      "category": "product",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "explicit", "value": "3:4", "evidence": null },
+      "exact_text": [
+        { "role": "label", "text": "HALO" },
+        { "role": "subline", "text": "still, then not" }
+      ],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "same-woman-contact-sheet",
+    "prompt": "the same woman, six expressions, clean 2×3 contact sheet",
+    "has_reference": false,
+    "expected": {
+      "mode": "contact_sheet",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "series",
+      "category": "creative",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": true,
+        "continuation": false,
+        "count": 6,
+        "unit": "panel",
+        "consistency_requirements": ["same woman"]
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "breakfast-table",
+    "prompt": "breakfast table: 1 coffee, 2 croissants, 3 tulips, 1 pair of sunglasses, a red notebook, orange juice in the lower right",
+    "has_reference": false,
+    "expected": {
+      "mode": "single",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "create",
+      "category": "product",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "pearl-earring",
+    "prompt": "use this image as reference and recreate Girl with Pearl Earring accurately",
+    "has_reference": true,
+    "expected": {
+      "mode": "single",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "create",
+      "category": "creative",
+      "reference_intent": "composition",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "low",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "cities-skylines",
+    "prompt": "Cities: Skylines 1 California layout using relevant DLCs. Check DLC and research. Suburban district, downtown, sports and entertainment, integrated coast city.",
+    "has_reference": false,
+    "expected": {
+      "mode": "series",
+      "desiredCount": 4,
+      "autoCount": 4,
+      "search_needed": true,
+      "separate_assets": true
+    },
+    "fixture_intent": {
+      "task": "series",
+      "category": "creative",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": true,
+        "continuation": false,
+        "count": 4,
+        "unit": "asset",
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": ["DLC list"],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "astrophotography",
+    "prompt": "create highly realistic crisp milkyway or star trails/meteors/stars astrophotography images for instagram story",
+    "has_reference": false,
+    "expected": {
+      "mode": "series",
+      "desiredCount": 4,
+      "autoCount": 4,
+      "search_needed": false,
+      "separate_assets": true
+    },
+    "baseline_notes": "Fixture is deliberately create/not-series so CI scores via prompt inferred-series rules.",
+    "fixture_intent": {
+      "task": "create",
+      "category": "cinematic",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "platform", "value": "9:16", "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "precision-edit",
+    "prompt": "Change the red notebook to green. Keep everything else exactly the same.",
+    "has_reference": true,
+    "expected": {
+      "mode": "edit",
+      "desiredCount": 1,
+      "autoCount": 1,
+      "search_needed": false,
+      "separate_assets": false
+    },
+    "fixture_intent": {
+      "task": "edit",
+      "category": "image_edit",
+      "reference_intent": "edit_source",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": ["Change the red notebook to green"],
+      "must_preserve": ["everything else"],
+      "transparent_background": false,
+      "creative_freedom": "low",
+      "series": {
+        "enabled": false,
+        "continuation": false,
+        "count": null,
+        "unit": null,
+        "consistency_requirements": []
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "product-campaign",
+    "prompt": "the same HALO Lemon bottle in four environments: studio, beach, pool, night city",
+    "has_reference": false,
+    "expected": {
+      "mode": "series",
+      "desiredCount": 4,
+      "autoCount": 4,
+      "search_needed": false,
+      "separate_assets": true
+    },
+    "fixture_intent": {
+      "task": "series",
+      "category": "product",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": true,
+        "continuation": false,
+        "count": 4,
+        "unit": "asset",
+        "consistency_requirements": ["same HALO Lemon bottle"]
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  },
+  {
+    "id": "brand-campaign",
+    "prompt": "HALO summer campaign, four Instagram ads, same product and character, different scenes",
+    "has_reference": false,
+    "expected": {
+      "mode": "series",
+      "desiredCount": 4,
+      "autoCount": 4,
+      "search_needed": false,
+      "separate_assets": true
+    },
+    "fixture_intent": {
+      "task": "series",
+      "category": "social",
+      "reference_intent": "none",
+      "aspect_ratio": { "source": "none", "value": null, "evidence": null },
+      "exact_text": [],
+      "requested_changes": [],
+      "must_preserve": [],
+      "transparent_background": false,
+      "creative_freedom": "medium",
+      "series": {
+        "enabled": true,
+        "continuation": false,
+        "count": 4,
+        "unit": "asset",
+        "consistency_requirements": ["same product", "same character"]
+      },
+      "factual_requirements": {
+        "user_supplied_facts": [],
+        "missing_facts": [],
+        "placeholders_required": false
+      },
+      "ambiguity": { "blocking": false, "reason": null }
+    }
+  }
+]
