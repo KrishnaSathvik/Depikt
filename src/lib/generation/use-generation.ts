@@ -192,6 +192,10 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const lastParamsRef = useRef<SubmitInput | null>(null);
   // A Generate click that arrived while auth/credits were still hydrating.
   const hydrationWaitRef = useRef(false);
+  // An async mask upload may finish after hydration's effect has already
+  // run. Submit must read current state, not the pre-upload render closure.
+  const submitStateRef = useRef({ authLoading, user, credits, creditsResolved });
+  submitStateRef.current = { authLoading, user, credits, creditsResolved };
   const referencesRef = useRef<ReferenceEntry[]>([]);
   referencesRef.current = references;
   // Everything confirmSeriesCount() needs to finish a plan that required
@@ -504,6 +508,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   }
 
   async function submit(input: SubmitInput): Promise<void> {
+    const { authLoading, user, credits, creditsResolved } = submitStateRef.current;
     const effectivePrompt = input.prompt;
     if (!effectivePrompt.trim()) {
       toast.error("Describe what you want to create");
@@ -739,10 +744,10 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   function regenerate() {
     if (!lastParamsRef.current) return;
     trackEvent("regenerate_submitted", {});
+    // Repeat the prior operation with a fresh reservation. An edit still
+    // needs its original source and mask; dropping them makes it invalid.
     void submit({
       ...lastParamsRef.current,
-      sourceVersionId: null,
-      maskAssetId: null,
       idempotencyKey: undefined,
     });
   }

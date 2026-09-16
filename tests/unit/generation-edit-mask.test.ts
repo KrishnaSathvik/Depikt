@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { inflateSync } from "node:zlib";
 import {
   bytesToPngDataUrl,
   clamp01,
@@ -12,12 +13,28 @@ import {
 } from "../../src/lib/generation/edit-mask.ts";
 import { parsePngHeader, validateMaskPng } from "../../src/lib/generation/png-mask.ts";
 
-function alphaAt(
-  pixels: Uint8ClampedArray,
-  x: number,
-  y: number,
-  width: number,
-): number {
+test("exported API mask edits painted pixels and protects unselected/erased pixels", () => {
+  const strokes: MaskStroke[] = [
+    { mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.3 },
+    { mode: "erase", points: [{ x: 0.5, y: 0.5 }], radius: 0.05 },
+  ];
+  const png = Buffer.from(exportMaskPng(strokes, 32, 24));
+  const chunks: Buffer[] = [];
+  for (let offset = 8; offset < png.length; ) {
+    const len = png.readUInt32BE(offset);
+    if (png.toString("ascii", offset + 4, offset + 8) === "IDAT") {
+      chunks.push(png.subarray(offset + 8, offset + 8 + len));
+    }
+    offset += len + 12;
+  }
+  const scanlines = inflateSync(Buffer.concat(chunks));
+  const alpha = (x: number, y: number) => scanlines[y * (32 * 4 + 1) + 1 + x * 4 + 3];
+  assert.equal(alpha(20, 12), 0, "painted area must be transparent for editing");
+  assert.equal(alpha(0, 0), 255, "outside the selection must be protected");
+  assert.equal(alpha(16, 12), 255, "erased area must be protected again");
+});
+
+function alphaAt(pixels: Uint8ClampedArray, x: number, y: number, width: number): number {
   return pixels[(y * width + x) * 4 + 3]!;
 }
 
@@ -69,9 +86,7 @@ test("empty strokes rasterize to all-transparent pixels", () => {
 });
 
 test("one paint stroke writes some opaque white pixels", () => {
-  const strokes: MaskStroke[] = [
-    { mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 },
-  ];
+  const strokes: MaskStroke[] = [{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }];
   const pixels = rasterizeMask(strokes, 8, 8);
   assert.equal(someOpaque(pixels), true);
   for (let i = 0; i < pixels.length; i += 4) {
@@ -116,9 +131,7 @@ test("paint strokes interpolate along segments so fast strokes do not gap", () =
 });
 
 test("exportMaskPng writes a same-size RGBA PNG that validates", () => {
-  const strokes: MaskStroke[] = [
-    { mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 },
-  ];
+  const strokes: MaskStroke[] = [{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }];
   const png = exportMaskPng(strokes, 8, 8);
   const header = parsePngHeader(png);
   assert.equal(header.ok, true);
@@ -130,11 +143,7 @@ test("exportMaskPng writes a same-size RGBA PNG that validates", () => {
 });
 
 test("bytesToPngDataUrl prefixes PNG bytes as a data URL", () => {
-  const png = exportMaskPng(
-    [{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }],
-    8,
-    8,
-  );
+  const png = exportMaskPng([{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }], 8, 8);
   const dataUrl = bytesToPngDataUrl(png);
   assert.match(dataUrl, /^data:image\/png;base64,/);
   const b64 = dataUrl.slice("data:image/png;base64,".length);

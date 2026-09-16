@@ -135,6 +135,12 @@ export function exportMaskPng(
   sourceHeight: number,
 ): Uint8Array {
   const pixels = rasterizeMask(strokes, sourceWidth, sourceHeight);
+  // The editor paints opaque coverage; the Images API edits transparent
+  // pixels. Keep the preview representation separate from the wire mask.
+  for (let i = 0; i < pixels.length; i += 4) {
+    pixels[i + 3] = 255 - pixels[i + 3]!;
+    pixels[i] = pixels[i + 1] = pixels[i + 2] = 255;
+  }
   return encodeRgbaPng(pixels, sourceWidth, sourceHeight);
 }
 

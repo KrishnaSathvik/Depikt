@@ -102,13 +102,6 @@ test("IntentSchema still has no mask field", () => {
   assert.doesNotMatch(schema, /mask/i);
 });
 
-test("regenerate still strips sourceVersionId and does not keep a mask", () => {
-  const hook = read("src/lib/generation/use-generation.ts");
-  const regenerateFn = sliceFn(hook, "function regenerate()", "async function applyEdit");
-  assert.match(regenerateFn, /sourceVersionId:\s*null/);
-  assert.match(regenerateFn, /maskAssetId:\s*(null|undefined)/);
-});
-
 test("signed-out pending payload skips mask bytes", () => {
   const pending = read("src/lib/generation/pending-generation.ts");
   const iface = sliceFn(pending, "export interface PendingGeneration {", "const KEY");
