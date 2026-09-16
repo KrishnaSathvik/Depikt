@@ -1,0 +1,222 @@
+[
+  {
+    "id": "character-portrait",
+    "entities": ["character-a"],
+    "prompt": "Close-up portrait of Maya in a portrait setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "character-cafe",
+    "entities": ["character-a"],
+    "prompt": "Photograph of Maya in a cafe setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "character-beach",
+    "entities": ["character-a"],
+    "prompt": "Full-body photograph of Maya in a beach setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "character-city-night",
+    "entities": ["character-a"],
+    "prompt": "Photograph of Maya in a city night setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "product-studio",
+    "entities": ["product-a"],
+    "prompt": "Macro product label photograph of VELORA Lemon bottle in a studio setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "product-beach",
+    "entities": ["product-a"],
+    "prompt": "Photograph of VELORA Lemon bottle in a beach setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "product-pool",
+    "entities": ["product-a"],
+    "prompt": "Photograph of VELORA Lemon bottle in a pool setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "product-city-night",
+    "entities": ["product-a"],
+    "prompt": "Photograph of VELORA Lemon bottle in a city night setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "character-product-cafe",
+    "entities": ["character-a", "product-a"],
+    "prompt": "Photograph of Maya holding the VELORA Lemon bottle in a cafe setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "character-product-beach",
+    "entities": ["character-a", "product-a"],
+    "prompt": "Full-body photograph of Maya holding the VELORA Lemon bottle in a beach setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "character-product-pool",
+    "entities": ["character-a", "product-a"],
+    "prompt": "Photograph of Maya holding the VELORA Lemon bottle in a pool setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "character-product-city-night",
+    "entities": ["character-a", "product-a"],
+    "prompt": "Photograph of Maya holding the VELORA Lemon bottle in a city night setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "two-characters-cafe",
+    "entities": ["character-a", "character-b"],
+    "prompt": "Photograph of Maya and Sofia together, each with distinct facial features in a cafe setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "two-characters-beach",
+    "entities": ["character-a", "character-b"],
+    "prompt": "Full-body photograph of Maya and Sofia together, each with distinct facial features in a beach setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "two-products-studio",
+    "entities": ["product-a", "product-b"],
+    "prompt": "Photograph of VELORA Lemon and NEMORI Berry bottles side by side with distinct labels in a studio setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": true
+    }
+  },
+  {
+    "id": "brand-ads-studio",
+    "entities": ["brand-a"],
+    "prompt": "Photograph of a VELORA brand advertisement in a studio setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "brand-ads-beach",
+    "entities": ["brand-a"],
+    "prompt": "Photograph of a VELORA brand advertisement in a beach setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "brand-ads-pool",
+    "entities": ["brand-a"],
+    "prompt": "Photograph of a VELORA brand advertisement in a pool setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "brand-ads-city-night",
+    "entities": ["brand-a"],
+    "prompt": "Photograph of a VELORA brand advertisement in a city night setting. Preserve the supplied identities.",
+    "expected": {
+      "operation": "edit",
+      "model": "sunburst",
+      "maxImages": 8,
+      "distinct": false
+    }
+  },
+  {
+    "id": "no-entities-regression",
+    "entities": [],
+    "prompt": "average instagram influencer photo, casual candid, natural light",
+    "expected": {
+      "operation": "generate",
+      "model": "flare",
+      "maxImages": 0,
+      "distinct": false
+    }
+  }
+]
