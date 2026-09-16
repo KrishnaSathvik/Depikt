@@ -3,11 +3,17 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import {
   buildExecutionPlanJson,
   executionPlanIdentityMatches,
+  extractStoredMaskPath,
   extractStoredReferenceAssetIds,
 } from "../../src/lib/generation/execution-plan.ts";
+
+const ROOT = resolve(import.meta.dirname, "../..");
+const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 import type { GenerationPlan } from "../../src/lib/generation/plan.ts";
 
 const plan: GenerationPlan = {
@@ -25,6 +31,8 @@ test("buildExecutionPlanJson carries selectedCount, references, sourceVersionId,
     selectedCount: 3,
     referenceAssetIds: ["user-1/a.png", "user-1/b.png"],
     sourceVersionId: "version-9",
+    maskAssetId: null,
+    maskPath: null,
     children: [
       { label: "Scene 1", prompt: "a".repeat(500) },
       { label: "Scene 2", prompt: "b".repeat(20) },
@@ -40,12 +48,53 @@ test("buildExecutionPlanJson carries selectedCount, references, sourceVersionId,
   assert.deepEqual(executionPlan.plan, plan);
   assert.deepEqual(executionPlan.referenceAssetIds, ["user-1/a.png", "user-1/b.png"]);
   assert.equal(executionPlan.sourceVersionId, "version-9");
+  assert.equal(executionPlan.maskAssetId, null);
+  assert.equal(executionPlan.maskPath, null);
   assert.deepEqual(executionPlan.children, [
     { label: "Scene 1", promptLength: 500 },
     { label: "Scene 2", promptLength: 20 },
   ]);
   // Never the raw prompt text -- see the file header.
   assert.equal(JSON.stringify(executionPlan).includes("a".repeat(500)), false);
+});
+
+test("buildExecutionPlanJson stores maskAssetId and maskPath", () => {
+  const executionPlan = buildExecutionPlanJson({
+    plan,
+    selectedCount: 3,
+    referenceAssetIds: [],
+    sourceVersionId: "version-9",
+    maskAssetId: "mask-1",
+    maskPath: "users/user-1/masks/mask-1.png",
+    children: [{ label: "Scene 1", prompt: "x" }],
+  });
+  assert.equal(executionPlan.maskAssetId, "mask-1");
+  assert.equal(executionPlan.maskPath, "users/user-1/masks/mask-1.png");
+});
+
+test("extractStoredMaskPath only trusts maskPath on stored plan_json", () => {
+  assert.equal(
+    extractStoredMaskPath({ maskPath: "users/user-1/masks/mask-1.png" }),
+    "users/user-1/masks/mask-1.png",
+  );
+  assert.equal(extractStoredMaskPath({ maskPath: null }), null);
+  assert.equal(extractStoredMaskPath(null), null);
+  assert.equal(extractStoredMaskPath(undefined), null);
+  assert.equal(extractStoredMaskPath({}), null);
+  assert.equal(extractStoredMaskPath("not-an-object"), null);
+});
+
+test("extractStoredMaskPath ignores a fake request-shaped field", () => {
+  assert.equal(extractStoredMaskPath({ mask: "users/attacker/masks/x.png" }), null);
+  assert.equal(extractStoredMaskPath({ path: "users/attacker/masks/x.png" }), null);
+  assert.equal(extractStoredMaskPath({ maskAssetId: "mask-1" }), null);
+  assert.equal(
+    extractStoredMaskPath({
+      maskPath: 42,
+      mask: "users/attacker/masks/x.png",
+    }),
+    null,
+  );
 });
 
 test("extractStoredReferenceAssetIds only trusts a real string array on the stored plan_json", () => {
@@ -66,6 +115,8 @@ const identity = {
   selectedCount: 3,
   referenceAssetIds: ["user-1/a.png", "user-1/b.png"],
   sourceVersionId: "version-9",
+  maskAssetId: null as string | null,
+  maskPath: null as string | null,
 };
 
 test("executionPlanIdentityMatches accepts a stored plan with the same execution identity", () => {
@@ -74,6 +125,8 @@ test("executionPlanIdentityMatches accepts a stored plan with the same execution
     selectedCount: 3,
     referenceAssetIds: ["user-1/b.png", "user-1/a.png"],
     sourceVersionId: "version-9",
+    maskAssetId: null,
+    maskPath: null,
     children: [{ label: "Scene 1", prompt: "x" }],
   });
   assert.equal(executionPlanIdentityMatches(stored, identity), true);
@@ -85,6 +138,8 @@ test("executionPlanIdentityMatches rejects a different reference set", () => {
     selectedCount: 3,
     referenceAssetIds: ["user-1/other.png"],
     sourceVersionId: "version-9",
+    maskAssetId: null,
+    maskPath: null,
     children: [{ label: "Scene 1", prompt: "x" }],
   });
   assert.equal(executionPlanIdentityMatches(stored, identity), false);
@@ -96,39 +151,26 @@ test("executionPlanIdentityMatches rejects mismatched sourceVersionId, selectedC
     selectedCount: 3,
     referenceAssetIds: identity.referenceAssetIds,
     sourceVersionId: "version-9",
+    maskAssetId: null,
+    maskPath: null,
     children: [{ label: "Scene 1", prompt: "x" }],
   });
 
   assert.equal(
-    executionPlanIdentityMatches(
-      { ...base, sourceVersionId: "version-other" },
-      identity,
-    ),
+    executionPlanIdentityMatches({ ...base, sourceVersionId: "version-other" }, identity),
+    false,
+  );
+  assert.equal(executionPlanIdentityMatches({ ...base, selectedCount: 2 }, identity), false);
+  assert.equal(
+    executionPlanIdentityMatches({ ...base, plan: { ...plan, mode: "single" } }, identity),
     false,
   );
   assert.equal(
-    executionPlanIdentityMatches({ ...base, selectedCount: 2 }, identity),
+    executionPlanIdentityMatches({ ...base, plan: { ...plan, desiredCount: 4 } }, identity),
     false,
   );
   assert.equal(
-    executionPlanIdentityMatches(
-      { ...base, plan: { ...plan, mode: "single" } },
-      identity,
-    ),
-    false,
-  );
-  assert.equal(
-    executionPlanIdentityMatches(
-      { ...base, plan: { ...plan, desiredCount: 4 } },
-      identity,
-    ),
-    false,
-  );
-  assert.equal(
-    executionPlanIdentityMatches(
-      { ...base, plan: { ...plan, autoCount: 2 } },
-      identity,
-    ),
+    executionPlanIdentityMatches({ ...base, plan: { ...plan, autoCount: 2 } }, identity),
     false,
   );
 });
@@ -136,8 +178,41 @@ test("executionPlanIdentityMatches rejects mismatched sourceVersionId, selectedC
 test("executionPlanIdentityMatches rejects malformed stored plan_json", () => {
   assert.equal(executionPlanIdentityMatches(null, identity), false);
   assert.equal(executionPlanIdentityMatches({}, identity), false);
+  assert.equal(executionPlanIdentityMatches({ plan: { mode: "series" } }, identity), false);
+});
+
+test("executionPlanIdentityMatches rejects a different maskPath", () => {
+  const stored = buildExecutionPlanJson({
+    plan,
+    selectedCount: 3,
+    referenceAssetIds: identity.referenceAssetIds,
+    sourceVersionId: "version-9",
+    maskAssetId: "mask-1",
+    maskPath: "users/user-1/masks/mask-1.png",
+    children: [{ label: "Scene 1", prompt: "x" }],
+  });
+  assert.equal(executionPlanIdentityMatches(stored, identity), false);
   assert.equal(
-    executionPlanIdentityMatches({ plan: { mode: "series" } }, identity),
+    executionPlanIdentityMatches(stored, {
+      ...identity,
+      maskAssetId: "mask-1",
+      maskPath: "users/user-1/masks/other.png",
+    }),
     false,
   );
+  assert.equal(
+    executionPlanIdentityMatches(stored, {
+      ...identity,
+      maskAssetId: "mask-1",
+      maskPath: "users/user-1/masks/mask-1.png",
+    }),
+    true,
+  );
+});
+
+test("jobs.ts persists mask identity from the verified token payload, not the request body", () => {
+  const src = read("src/routes/api/generation/jobs.ts");
+  assert.match(src, /maskPath:\s*payload\.maskPath/);
+  assert.match(src, /maskAssetId:\s*payload\.maskAssetId/);
+  assert.doesNotMatch(src, /req\.maskPath|req\.maskAssetId|body\.maskPath/);
 });

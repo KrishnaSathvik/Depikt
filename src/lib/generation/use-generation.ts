@@ -24,6 +24,7 @@ import {
   getGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
+  uploadEditMask,
   nextPollDelayMs,
   isTerminalStatus,
   GenerationApiError,
@@ -51,6 +52,7 @@ import {
   pendingGenerationMatchesSource,
 } from "./pending-generation";
 import { decideSubmitGate } from "./submit-gate";
+import { bytesToPngDataUrl } from "./edit-mask";
 
 export type GenerationPhase =
   | "idle"
@@ -135,6 +137,8 @@ export interface SubmitInput {
   structuredAspectRatio?: string | null;
   routingHints?: RoutingHints | null;
   sourceVersionId?: string | null;
+  /** Server-issued id from uploadEditMask. Never a storage path. */
+  maskAssetId?: string | null;
   /** Reused verbatim only by the pending-auth resume path; omit otherwise. */
   idempotencyKey?: string;
 }
@@ -188,6 +192,10 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const lastParamsRef = useRef<SubmitInput | null>(null);
   // A Generate click that arrived while auth/credits were still hydrating.
   const hydrationWaitRef = useRef(false);
+  // An async mask upload may finish after hydration's effect has already
+  // run. Submit must read current state, not the pre-upload render closure.
+  const submitStateRef = useRef({ authLoading, user, credits, creditsResolved });
+  submitStateRef.current = { authLoading, user, credits, creditsResolved };
   const referencesRef = useRef<ReferenceEntry[]>([]);
   referencesRef.current = references;
   // Everything confirmSeriesCount() needs to finish a plan that required
@@ -500,6 +508,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   }
 
   async function submit(input: SubmitInput): Promise<void> {
+    const { authLoading, user, credits, creditsResolved } = submitStateRef.current;
     const effectivePrompt = input.prompt;
     if (!effectivePrompt.trim()) {
       toast.error("Describe what you want to create");
@@ -574,6 +583,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         intent: input.intent ?? null,
         referenceAssetIds,
         sourceVersionId: input.sourceVersionId ?? null,
+        maskAssetId: input.maskAssetId ?? null,
         sourceContext: effectiveSourceContext,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
@@ -734,18 +744,41 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   function regenerate() {
     if (!lastParamsRef.current) return;
     trackEvent("regenerate_submitted", {});
-    void submit({ ...lastParamsRef.current, sourceVersionId: null, idempotencyKey: undefined });
+    // Repeat the prior operation with a fresh reservation. An edit still
+    // needs its original source and mask; dropping them makes it invalid.
+    void submit({
+      ...lastParamsRef.current,
+      idempotencyKey: undefined,
+    });
   }
 
-  function applyEdit(editPrompt: string) {
-    if (!editPrompt.trim() || !activeVersionId) return;
+  async function applyEdit(
+    editPrompt: string,
+    opts?: { maskPng?: Uint8Array | null },
+  ): Promise<boolean> {
+    const sourceVersionId = activeVersionId;
+    if (!editPrompt.trim() || !sourceVersionId) return false;
     trackEvent("edit_submitted", {});
-    void submit({
+    let maskAssetId: string | null = null;
+    if (opts?.maskPng) {
+      setPhase("starting");
+      try {
+        const uploaded = await uploadEditMask(sourceVersionId, bytesToPngDataUrl(opts.maskPng));
+        maskAssetId = uploaded.assetId;
+      } catch {
+        toast.error("Couldn't apply the selected area. Try again.");
+        setPhase("result");
+        return false;
+      }
+    }
+    await submit({
       prompt: editPrompt,
       structuredAspectRatio: lastParamsRef.current?.structuredAspectRatio ?? null,
       routingHints: lastParamsRef.current?.routingHints ?? null,
-      sourceVersionId: activeVersionId,
+      sourceVersionId,
+      maskAssetId,
     });
+    return true;
   }
 
   function download() {

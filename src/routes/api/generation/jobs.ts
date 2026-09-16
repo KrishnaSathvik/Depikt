@@ -11,7 +11,8 @@ import {
   resolveSelectedCount,
 } from "@/lib/generation/plan";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
-import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
+import { withPrecisionEditPreamble } from "@/lib/generation/precision-edit-prompt";
+import { resolveGenerationSize, preserveEditSourceSize } from "@/lib/generation/aspect-ratio";
 import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
 import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
 import type { Intent } from "@/lib/prompt-engine/intent";
@@ -74,6 +75,14 @@ async function deleteSessionIfEmpty(
 
 async function resolveChildren(payload: PlanTokenPayload, selected: number): Promise<JobChild[]> {
   if (payload.plan.mode !== "series") {
+    if (payload.maskPath || payload.maskAssetId) {
+      return [
+        {
+          prompt: withPrecisionEditPreamble(payload.prompt, payload.intent.must_preserve),
+          label: null,
+        },
+      ];
+    }
     return [{ prompt: withFidelityPreamble(payload.prompt, payload.intent), label: null }];
   }
   const decomposerInput = selectDecomposerInput({
@@ -207,11 +216,30 @@ export const Route = createFileRoute("/api/generation/jobs")({
             exactTextCount: payload.intent.exact_text.length,
             referenceIntent: payload.intent.reference_intent,
           },
+          hasMask: Boolean(payload.maskPath ?? payload.maskAssetId),
         });
-        const size = resolveGenerationSize({
+        let size = resolveGenerationSize({
           promptText: payload.prompt,
           structuredAspectRatio: req.structuredAspectRatio ?? payload.intent.aspect_ratio.value,
         });
+        if (payload.sourceVersionId) {
+          const { data: source, error: sourceError } = await supabase
+            .from("image_versions")
+            .select("width, height")
+            .eq("id", payload.sourceVersionId)
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (sourceError) return jsonError("Could not load source version", 500);
+          if (!source) return jsonError("Source version not found", 404);
+          if (!(source.width > 0 && source.height > 0)) {
+            return jsonError("Source version has invalid dimensions", 400);
+          }
+          size = preserveEditSourceSize(
+            size,
+            source,
+            Boolean(payload.maskPath ?? payload.maskAssetId),
+          );
+        }
 
         if (
           operation === "edit" &&
@@ -243,6 +271,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
           selectedCount: selected,
           referenceAssetIds: payload.referenceAssetIds,
           sourceVersionId: payload.sourceVersionId,
+          maskAssetId: payload.maskAssetId ?? null,
+          maskPath: payload.maskPath ?? null,
           children,
         });
         const { data: insertedSession, error: sessionError } = await supabase
@@ -300,6 +330,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
                   selectedCount: selected,
                   referenceAssetIds: payload.referenceAssetIds,
                   sourceVersionId: payload.sourceVersionId,
+                  maskAssetId: payload.maskAssetId ?? null,
+                  maskPath: payload.maskPath ?? null,
                 })
               ) {
                 return jsonError("Generation is still being prepared. Please retry.", 409);

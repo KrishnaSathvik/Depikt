@@ -1,0 +1,86 @@
+[
+  {
+    "id": "notebook-color",
+    "prompt": "Change the red notebook to dark green. Keep everything else exactly the same.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "tulips-color",
+    "prompt": "Change only the yellow tulips to white tulips.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "juice-replacement",
+    "prompt": "Replace only the orange juice with a glass of milk.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "jacket-color",
+    "prompt": "Change only the jacket to dark blue.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "remove-object",
+    "prompt": "Remove the sunglasses and naturally fill the space.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "local-replacement",
+    "prompt": "Replace only the watch with a silver bracelet.",
+    "has_mask": true,
+    "expected": {
+      "operation": "edit",
+      "hasMask": true,
+      "model": "sunburst",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  },
+  {
+    "id": "whole-image-edit-regression",
+    "prompt": "Make the entire scene warmer and more cinematic.",
+    "has_mask": false,
+    "expected": {
+      "operation": "edit",
+      "hasMask": false,
+      "model": "unmasked_edit",
+      "sourceImageIndex": 0,
+      "creditCost": 1
+    }
+  }
+]

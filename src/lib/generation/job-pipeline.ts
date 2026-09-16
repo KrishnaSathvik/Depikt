@@ -6,11 +6,18 @@
 // The real implementation (src/lib/generation/supabase-data-access.ts) is
 // thin glue over this contract.
 
-import { generateImage, editImage, estimateApiCostUsd, OpenAIImageError } from "./openai-images.ts";
+import {
+  generateImage,
+  editImage,
+  estimateApiCostUsd,
+  OpenAIImageError,
+  type StoredImage,
+} from "./openai-images.ts";
 import type { ModelAlias } from "./models.ts";
 import { raceWithTimeout, CREDIT_CHARGE_BUDGET_MS } from "./timeout.ts";
 
 export { CREDIT_CHARGE_BUDGET_MS };
+export type { StoredImage };
 
 export interface GenerationJobRecord {
   id: string;
@@ -22,7 +29,8 @@ export interface GenerationJobRecord {
   width: number;
   height: number;
   idempotencyKey: string;
-  referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[];
+  referenceImages: StoredImage[];
+  editMask?: StoredImage | null;
 }
 
 export interface GenerationDataAccess {
@@ -125,6 +133,7 @@ export async function runGenerationJob(
             apiKey: deps.apiKey,
             fetchImpl: deps.fetchImpl,
             referenceImages: job.referenceImages,
+            mask: job.editMask ?? null,
           });
 
     const bytes = deps.decodeBase64(result.b64);

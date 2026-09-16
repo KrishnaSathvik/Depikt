@@ -37,6 +37,26 @@ export interface ResolvedSize {
   source: SizeSource;
 }
 
+/** Area edits keep the source canvas; ordinary edits keep it unless resized explicitly. */
+export function preserveEditSourceSize(
+  requested: ResolvedSize,
+  source: { width: number; height: number },
+  hasMask: boolean,
+): ResolvedSize {
+  if (!hasMask && requested.source !== "fallback") return requested;
+  const { width, height } = source;
+  let a = width;
+  let b = height;
+  while (b) [a, b] = [b, a % b];
+  return {
+    width,
+    height,
+    ratioLabel: `${width / a}:${height / a}`,
+    orientation: orientationOf(width, height),
+    source: "reference",
+  };
+}
+
 interface RatioEntry {
   label: string;
   width: number;

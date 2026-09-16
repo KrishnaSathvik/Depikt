@@ -12,7 +12,11 @@ import { OpenAIImageError } from "../../src/lib/generation/openai-images.ts";
 // call is recorded so tests can assert on the exact sequence of effects —
 // this is where "never charge and refund the same job" gets proven.
 function makeFakeDataAccess(
-  options: { runningTransition?: boolean; succeedTransition?: boolean; chargeFailure?: boolean } = {},
+  options: {
+    runningTransition?: boolean;
+    succeedTransition?: boolean;
+    chargeFailure?: boolean;
+  } = {},
 ) {
   const calls: string[] = [];
   const uploaded: Record<string, Uint8Array> = {};
@@ -147,7 +151,10 @@ test("does not charge when stale failure wins the success transition", async () 
 
   assert.deepEqual(result, { outcome: "failed", errorCode: "timed_out" });
   assert.equal(finalizeCalls.length, 0);
-  assert.equal(calls.some((call) => call.startsWith("failed:")), false);
+  assert.equal(
+    calls.some((call) => call.startsWith("failed:")),
+    false,
+  );
   assert.equal(calls.includes("finalize:charged:job-1"), false);
 });
 
@@ -188,7 +195,10 @@ test("a charge settlement error after success never marks failed or refunds", as
   assert.deepEqual(result, { outcome: "succeeded", versionId: "v1" });
   assert.equal(getStatus(), "succeeded");
   assert.deepEqual(finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
-  assert.equal(calls.some((call) => call.startsWith("failed:")), false);
+  assert.equal(
+    calls.some((call) => call.startsWith("failed:")),
+    false,
+  );
   assert.equal(calls.includes("finalize:refunded:job-1"), false);
 });
 
@@ -284,7 +294,49 @@ test("edit uses editImage with reference bytes and sets parentVersionId on the n
 
   assert.equal(result.outcome, "succeeded");
   assert.ok(capturedForm!.get("image[]"));
+  assert.equal(capturedForm!.get("mask"), null);
   assert.equal((versions[0] as { parentVersionId: string }).parentVersionId, "source-version-1");
+});
+
+test("edit passes editMask as a separate mask field, never inside image[]", async () => {
+  const { access, versions, finalizeCalls } = makeFakeDataAccess();
+  let capturedForm: FormData | null = null;
+  const fetchImpl = (async (_url: string | URL, init?: RequestInit) => {
+    capturedForm = init!.body as FormData;
+    return new Response(
+      JSON.stringify({ data: [{ b64_json: "BBBB" }], usage: { output_tokens: 200 } }),
+      { status: 200 },
+    );
+  }) as unknown as typeof fetch;
+
+  const job = baseJob({
+    operation: "edit",
+    referenceImages: [
+      { bytes: new Uint8Array([1]), filename: "source.png", mimeType: "image/png" },
+      { bytes: new Uint8Array([2]), filename: "ref.png", mimeType: "image/png" },
+    ],
+    editMask: { bytes: new Uint8Array([9, 9]), filename: "user-mask.png", mimeType: "image/png" },
+  });
+
+  const result = await runGenerationJob(job, "source-version-1", {
+    data: access,
+    apiKey: "sk-test",
+    fetchImpl,
+    decodeBase64: () => new Uint8Array([2]),
+  });
+
+  assert.equal(result.outcome, "succeeded");
+  const images = capturedForm!.getAll("image[]") as File[];
+  assert.deepEqual(
+    images.map((file) => file.name),
+    ["source.png", "ref.png"],
+  );
+  const mask = capturedForm!.get("mask") as File;
+  assert.equal(mask.name, "mask.png");
+  assert.deepEqual(new Uint8Array(await mask.arrayBuffer()), new Uint8Array([9, 9]));
+  assert.equal((versions[0] as { parentVersionId: string }).parentVersionId, "source-version-1");
+  assert.equal(finalizeCalls.length, 1);
+  assert.equal(finalizeCalls[0].outcome, "charged");
 });
 
 test("a fresh generate (no source version) leaves parentVersionId null", async () => {

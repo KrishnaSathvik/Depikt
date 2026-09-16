@@ -1,6 +1,37 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { resolveGenerationSize } from "../../src/lib/generation/aspect-ratio.ts";
+import {
+  resolveGenerationSize,
+  preserveEditSourceSize,
+} from "../../src/lib/generation/aspect-ratio.ts";
+
+test("notebook precision edit preserves the landscape source canvas", () => {
+  const requested = resolveGenerationSize({ promptText: "Make the notebook dark green." });
+  const result = preserveEditSourceSize(requested, { width: 1536, height: 1024 }, true);
+  assert.deepEqual([result.width, result.height, result.ratioLabel], [1536, 1024, "3:2"]);
+});
+
+test("masked edit cannot resize the source even with an explicit square request", () => {
+  const requested = resolveGenerationSize({ promptText: "Make it square." });
+  const result = preserveEditSourceSize(requested, { width: 1024, height: 1536 }, true);
+  assert.deepEqual([result.width, result.height], [1024, 1536]);
+});
+
+test("whole-image edits preserve source size by default but allow explicit resizing", () => {
+  const source = { width: 1536, height: 1024 };
+  const warm = resolveGenerationSize({
+    promptText: "Make the entire scene warmer and more cinematic.",
+  });
+  assert.deepEqual(
+    [
+      preserveEditSourceSize(warm, source, false).width,
+      preserveEditSourceSize(warm, source, false).height,
+    ],
+    [1536, 1024],
+  );
+  const square = resolveGenerationSize({ promptText: "Change to 1:1." });
+  assert.equal(preserveEditSourceSize(square, source, false), square);
+});
 
 test("priority 1: structured ratio from Prompt wins over everything else", () => {
   const r = resolveGenerationSize({

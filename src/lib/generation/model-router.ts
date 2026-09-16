@@ -30,6 +30,8 @@ export interface ModelRouterInput {
   promptText: string;
   referenceCount: number;
   hints?: RoutingHints;
+  /** True when the job carries a precision-edit mask. Only consulted for edits. */
+  hasMask?: boolean;
 }
 
 // Substrings whose presence in a category label means the typical output
@@ -61,8 +63,12 @@ const FIDELITY_KEYWORD_RE =
 const PRECISE_EDIT_RE = /\b(only|just)\b[^.]{0,20}\bchange\b|\blocaliz(e|ed)\b|\bprecise(ly)?\b/i;
 
 export function resolveGenerationModel(input: ModelRouterInput): ModelAlias {
-  const { operation, promptText, referenceCount, hints } = input;
+  const { operation, promptText, referenceCount, hints, hasMask } = input;
   const text = promptText ?? "";
+
+  // Masked edits always use Sunburst. hasMask is execution metadata, not
+  // a keyword in the prompt — unmasked simple edits can still be Flare.
+  if (operation === "edit" && hasMask) return "sunburst";
 
   // 1. Structured signal from Prompt, when available — trust it over
   // re-deriving from prose, same principle as the aspect-ratio resolver.

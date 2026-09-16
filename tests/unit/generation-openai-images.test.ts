@@ -107,9 +107,85 @@ test("editImage sends multipart form with model, size, quality=max, and referenc
 
   assert.equal(result.b64, "BBBB");
   assert.equal(capturedForm!.get("model"), "gpt-image-2.5-flare");
+  assert.equal(capturedForm!.get("prompt"), "change the background");
   assert.equal(capturedForm!.get("quality"), "max");
   assert.equal(capturedForm!.get("size"), "1024x1024");
+  assert.equal(capturedForm!.get("n"), "1");
+  assert.equal(capturedForm!.get("output_format"), "png");
   assert.ok(capturedForm!.get("image[]"));
+  assert.equal(capturedForm!.get("mask"), null);
+});
+
+test("editImage with a mask sends a separate PNG mask field and keeps it out of image[]", async () => {
+  let capturedForm: FormData | null = null;
+  const fetchImpl = (async (_url: string | URL, init?: RequestInit) => {
+    capturedForm = init!.body as FormData;
+    return new Response(
+      JSON.stringify({ data: [{ b64_json: "CCCC" }], usage: { output_tokens: 7024 } }),
+      { status: 200 },
+    );
+  }) as unknown as typeof fetch;
+
+  const maskBytes = new Uint8Array([9, 9, 9]);
+  const result = await editImage({
+    model: "sunburst",
+    prompt: "change the selected area",
+    width: 1024,
+    height: 1024,
+    apiKey: "sk-test",
+    fetchImpl,
+    referenceImages: [
+      { bytes: new Uint8Array([1, 2, 3]), filename: "source.png", mimeType: "image/png" },
+    ],
+    mask: { bytes: maskBytes, filename: "user-mask.png", mimeType: "image/png" },
+  });
+
+  assert.equal(result.b64, "CCCC");
+  assert.equal(capturedForm!.get("model"), "gpt-image-2.5-sunburst");
+  assert.equal(capturedForm!.get("prompt"), "change the selected area");
+  assert.equal(capturedForm!.get("n"), "1");
+  assert.equal(capturedForm!.get("quality"), "max");
+  assert.equal(capturedForm!.get("output_format"), "png");
+
+  const images = capturedForm!.getAll("image[]") as File[];
+  assert.equal(images.length, 1);
+  assert.equal(images[0].name, "source.png");
+
+  const mask = capturedForm!.get("mask") as File;
+  assert.ok(mask);
+  assert.equal(mask.name, "mask.png");
+  assert.equal(mask.type, "image/png");
+  assert.deepEqual(new Uint8Array(await mask.arrayBuffer()), maskBytes);
+});
+
+test("editImage preserves image[] order so the first reference stays image[0]", async () => {
+  let capturedForm: FormData | null = null;
+  const fetchImpl = (async (_url: string | URL, init?: RequestInit) => {
+    capturedForm = init!.body as FormData;
+    return new Response(JSON.stringify({ data: [{ b64_json: "DDDD" }] }), { status: 200 });
+  }) as unknown as typeof fetch;
+
+  await editImage({
+    model: "flare",
+    prompt: "x",
+    width: 1024,
+    height: 1024,
+    apiKey: "sk-test",
+    fetchImpl,
+    referenceImages: [
+      { bytes: new Uint8Array([1]), filename: "source.png", mimeType: "image/png" },
+      { bytes: new Uint8Array([2]), filename: "ref-a.png", mimeType: "image/png" },
+      { bytes: new Uint8Array([3]), filename: "ref-b.png", mimeType: "image/png" },
+    ],
+    mask: { bytes: new Uint8Array([9]), filename: "mask.png", mimeType: "image/png" },
+  });
+
+  const images = capturedForm!.getAll("image[]") as File[];
+  assert.deepEqual(
+    images.map((file) => file.name),
+    ["source.png", "ref-a.png", "ref-b.png"],
+  );
+  assert.equal((capturedForm!.get("mask") as File).name, "mask.png");
 });
 
 test("editImage throws OpenAIImageError on a failed response", async () => {

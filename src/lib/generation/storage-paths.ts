@@ -37,6 +37,12 @@ export function referenceAssetStoragePath(
   return `users/${userId}/references/${assetId}.${extension}`;
 }
 
+export function maskAssetStoragePath(userId: string, assetId: string): string {
+  assertSafeSegment(userId, "userId");
+  assertSafeSegment(assetId, "assetId");
+  return `users/${userId}/masks/${assetId}.png`;
+}
+
 /** The user id a path was scoped to, for a defense-in-depth check before returning a signed URL. */
 export function ownerOfStoragePath(path: string): string | null {
   const match = path.match(/^users\/([^/]+)\//);

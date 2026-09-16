@@ -8,6 +8,12 @@
 
 import { resolveModelId, GENERATION_QUALITY, type ModelAlias } from "./models.ts";
 
+export type StoredImage = {
+  bytes: Uint8Array;
+  filename: string;
+  mimeType: string;
+};
+
 export interface GenerateImageInput {
   model: ModelAlias;
   prompt: string;
@@ -19,7 +25,9 @@ export interface GenerateImageInput {
 
 export interface EditImageInput extends GenerateImageInput {
   /** Reference images as raw bytes, already validated (count, MIME, size) by the caller. */
-  referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[];
+  referenceImages: StoredImage[];
+  /** PNG mask applied to image[0]. Never placed inside referenceImages. */
+  mask?: StoredImage | null;
 }
 
 export interface OpenAIImageUsage {
@@ -109,6 +117,9 @@ export async function editImage(input: EditImageInput): Promise<GenerateImageRes
   form.set("output_format", "png");
   for (const ref of input.referenceImages) {
     form.append("image[]", new Blob([ref.bytes as BlobPart], { type: ref.mimeType }), ref.filename);
+  }
+  if (input.mask) {
+    form.set("mask", new Blob([input.mask.bytes as BlobPart], { type: "image/png" }), "mask.png");
   }
   const res = await fetchFn("https://api.openai.com/v1/images/edits", {
     method: "POST",

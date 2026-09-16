@@ -8,7 +8,11 @@ import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import type { ModelAlias } from "@/lib/generation/models";
 import { classifyJobClaimResult, duplicateStartResponse } from "@/lib/generation/series-resume";
-import { extractStoredReferenceAssetIds } from "@/lib/generation/execution-plan";
+import {
+  extractStoredReferenceAssetIds,
+  extractStoredMaskPath,
+} from "@/lib/generation/execution-plan";
+import { assembleJobImages, type StoredImage } from "@/lib/generation/job-images";
 
 /**
  * POST /api/generation/jobs/:id/run — execute a queued job.
@@ -49,12 +53,13 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (error) return jsonError("Could not load the job", 500);
         if (!job) return jsonError("Not found", 404);
 
-        // The reference paths to attach are never taken from the request
-        // body -- a stale/crafted client could otherwise ask this route to
-        // download and attach an arbitrary storage path. The only trusted
-        // source is the list the signed plan token carried at job-creation
-        // time, persisted on the job's own session -- see execution-plan.ts
-        // and jobs.ts.
+        // The reference and mask paths to attach are never taken from the
+        // request body -- a stale/crafted client could otherwise ask this
+        // route to download and attach an arbitrary storage path. A
+        // body.maskPath would be ignored because this handler never reads
+        // request JSON. The only trusted source is the list the signed plan
+        // token carried at job-creation time, persisted on the job's own
+        // session -- see execution-plan.ts and jobs.ts.
         const { data: session, error: sessionLoadError } = await supabase
           .from("generation_sessions")
           .select("plan_json")
@@ -62,6 +67,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           .maybeSingle();
         if (sessionLoadError) return jsonError("Could not load the session", 500);
         const referencePaths = extractStoredReferenceAssetIds(session?.plan_json);
+        const maskPath = extractStoredMaskPath(session?.plan_json);
 
         // Claim it. Anything other than `queued` means someone else is on it.
         const claimResult = await supabase
@@ -100,29 +106,50 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           return jsonError("Generation is temporarily unavailable.", 503);
         }
 
-        const referenceImages: { bytes: Uint8Array; filename: string; mimeType: string }[] = [];
-        const download = async (path: string) => {
+        const download = async (path: string): Promise<StoredImage | null> => {
           const { data: file } = await authResult.auth.supabase.storage
             .from(GENERATION_BUCKET)
             .download(path);
-          if (!file) return false;
-          referenceImages.push({
+          if (!file) return null;
+          return {
             bytes: new Uint8Array(await file.arrayBuffer()),
             filename: path.split("/").pop() ?? "image.png",
             mimeType: file.type || "image/png",
-          });
-          return true;
+          };
         };
 
+        let sourcePath: string | null = null;
         if (job.operation === "edit" && job.source_version_id) {
           const { data: sourceVersion } = await supabase
             .from("image_versions")
             .select("storage_path")
             .eq("id", job.source_version_id)
             .maybeSingle();
-          if (sourceVersion) await download(sourceVersion.storage_path as string);
+          if (sourceVersion) sourcePath = (sourceVersion.storage_path as string) ?? null;
         }
-        for (const path of referencePaths) await download(path);
+        let referenceImages: StoredImage[];
+        let editMask: StoredImage | null;
+        try {
+          const assembled = await assembleJobImages({
+            download,
+            sourcePath,
+            referencePaths,
+            maskPath,
+          });
+          referenceImages = assembled.referenceImages;
+          editMask = assembled.editMask;
+        } catch {
+          await data
+            .markJobFailed(job.id, {
+              errorCode: "mask_unavailable",
+              safeErrorMessage: "Could not load the selected region.",
+            })
+            .catch(() => {});
+          await data
+            .finalizeCredits(userId, 1, job.idempotency_key as string, "refunded", job.id)
+            .catch(() => {});
+          return jsonError("Could not load the selected region.", 500);
+        }
 
         const outcome = await runGenerationJob(
           {
@@ -136,6 +163,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             height: job.height as number,
             idempotencyKey: job.idempotency_key as string,
             referenceImages,
+            editMask,
           },
           (job.source_version_id as string | null) ?? null,
           {

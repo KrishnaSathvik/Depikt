@@ -55,6 +55,8 @@ export interface CreatePlanRequest {
   intent?: Intent | null;
   referenceAssetIds?: string[];
   sourceVersionId?: string | null;
+  /** Server-issued id from uploadEditMask. Never a storage path. */
+  maskAssetId?: string | null;
   sourceContext?: { type: string; id?: string | null };
   structuredAspectRatio?: string | null;
 }
@@ -167,5 +169,15 @@ export function uploadReferenceImage(
   return generationJson("/api/generation/references", {
     method: "POST",
     body: JSON.stringify({ dataUrl }),
+  });
+}
+
+export function uploadEditMask(
+  sourceVersionId: string,
+  dataUrl: string,
+): Promise<{ assetId: string }> {
+  return generationJson("/api/generation/masks", {
+    method: "POST",
+    body: JSON.stringify({ sourceVersionId, dataUrl }),
   });
 }

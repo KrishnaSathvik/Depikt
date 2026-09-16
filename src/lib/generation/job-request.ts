@@ -72,6 +72,8 @@ export interface ValidatedCreatePlanRequest {
   intent: unknown;
   referenceAssetIds: string[];
   sourceVersionId: string | null;
+  /** Server-issued mask asset id from POST /masks. Never a storage path. */
+  maskAssetId: string | null;
   sourceContextType: SourceContextType;
   sourceContextId: string | null;
   structuredAspectRatio: string | null;
@@ -91,6 +93,12 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
   if (typeof body !== "object" || body === null)
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
+
+  // The browser may submit a server-issued maskAssetId, never a raw storage
+  // path — /plans derives maskPath server-side. See storage-paths.ts.
+  if ("maskPath" in b || "mask" in b) {
+    return { ok: false, error: "Do not send a storage path; submit maskAssetId instead" };
+  }
 
   if (!isNonEmptyString(b.prompt)) {
     return { ok: false, error: "prompt is required" };
@@ -133,6 +141,16 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
     sourceVersionId = b.sourceVersionId;
   }
 
+  let maskAssetId: string | null = null;
+  if (b.maskAssetId !== undefined && b.maskAssetId !== null) {
+    if (!isNonEmptyString(b.maskAssetId))
+      return { ok: false, error: "maskAssetId must be a string" };
+    maskAssetId = b.maskAssetId;
+  }
+  if (maskAssetId && !sourceVersionId) {
+    return { ok: false, error: "sourceVersionId is required when maskAssetId is set" };
+  }
+
   const sourceContext = parseSourceContext(b.sourceContext);
   if ("error" in sourceContext) return { ok: false, error: sourceContext.error };
 
@@ -148,6 +166,7 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
       intent: b.intent ?? null,
       referenceAssetIds,
       sourceVersionId,
+      maskAssetId,
       sourceContextType: sourceContext.sourceContextType,
       sourceContextId: sourceContext.sourceContextId,
       structuredAspectRatio,

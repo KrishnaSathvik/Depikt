@@ -1,6 +1,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { resolveGenerationModel } from "../../src/lib/generation/model-router.ts";
+
+const jobsSrc = () =>
+  readFileSync(resolve(import.meta.dirname, "../../src/routes/api/generation/jobs.ts"), "utf8");
 
 test("defaults to flare for a simple photography prompt", () => {
   const m = resolveGenerationModel({
@@ -72,6 +77,36 @@ test("a simple edit stays on flare", () => {
     operation: "edit",
     promptText: "make the sky more orange",
     referenceCount: 0,
+  });
+  assert.equal(m, "flare");
+});
+
+test("an edit with hasMask routes to sunburst even for a bland prompt", () => {
+  const m = resolveGenerationModel({
+    operation: "edit",
+    promptText: "make it warmer",
+    referenceCount: 0,
+    hasMask: true,
+  });
+  assert.equal(m, "sunburst");
+});
+
+test("an unmasked bland edit stays on flare", () => {
+  const m = resolveGenerationModel({
+    operation: "edit",
+    promptText: "make it warmer",
+    referenceCount: 0,
+    hasMask: false,
+  });
+  assert.equal(m, "flare");
+});
+
+test("hasMask does not force sunburst on generate", () => {
+  const m = resolveGenerationModel({
+    operation: "generate",
+    promptText: "make it warmer",
+    referenceCount: 0,
+    hasMask: true,
   });
   assert.equal(m, "flare");
 });
@@ -169,4 +204,10 @@ test("structured hint: style reference_intent does not force sunburst on its own
     hints: { referenceIntent: "style" },
   });
   assert.equal(m, "flare");
+});
+
+test("jobs.ts passes hasMask from the signed token's mask identity, not keyword detection", () => {
+  const src = jobsSrc();
+  assert.match(src, /hasMask:\s*Boolean\(payload\.maskPath\s*\?\?\s*payload\.maskAssetId\)/);
+  assert.doesNotMatch(src, /notebook|tulips/i);
 });
