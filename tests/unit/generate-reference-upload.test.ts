@@ -111,7 +111,7 @@ test("jobs.ts derives operation from resolveOperation(plan, referenceAssetIds, s
   assert.match(jobsRoute, /from "@\/lib\/generation\/plan"/);
   assert.match(
     jobsRoute,
-    /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,\s*payload\.entities\?\.length \?\? 0,?\s*\)/,
+    /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,\s*\(payload\.entities\?\.length \?\? 0\) \+\s*\(payload\.grounding\?\.bundle\.visualReferences\.length \?\? 0\),?\s*\)/,
   );
   // The old, buggy ternary must be gone.
   assert.doesNotMatch(jobsRoute, /payload\.plan\.mode === "edit" \? "edit" : "generate"/);

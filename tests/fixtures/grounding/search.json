@@ -1,0 +1,31 @@
+{
+  "web": [
+    {
+      "url": "https://community.example.com/layouts",
+      "title": "Community layouts",
+      "excerpt": "A community layout suggestion.",
+      "quality": "community"
+    },
+    {
+      "url": "https://docs.example.com/capabilities",
+      "title": "Official capabilities",
+      "excerpt": "The documented transport options include ferries and transit hubs.",
+      "quality": "official_documentation"
+    },
+    {
+      "url": "https://product.example.com/overview",
+      "title": "Product overview",
+      "excerpt": "Use assets compatible with the specified edition.",
+      "quality": "official_product"
+    }
+  ],
+  "images": [
+    {
+      "url": "https://product.example.com/gallery",
+      "title": "Reference gallery",
+      "excerpt": "A documented layout with connected districts and visible transport corridors.",
+      "quality": "official_product",
+      "imageUrl": "https://images.example.com/layout.png"
+    }
+  ]
+}

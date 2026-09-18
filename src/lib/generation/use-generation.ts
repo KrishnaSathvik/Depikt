@@ -1,3 +1,9 @@
+import {
+  saveGroundingResume,
+  readGroundingResume,
+  clearGroundingResume,
+  type GroundingSummary,
+} from "./grounding/resume";
 import { saveEntityResume, readEntityResume, clearEntityResume } from "./entity-resume";
 // Native image generation — the one shared execution path.
 //
@@ -128,6 +134,7 @@ export function simplifyRatioLabel(width: number, height: number): string {
 }
 
 export interface SubmitInput {
+  refreshGrounding?: boolean;
   entityIds?: string[];
   prompt: string;
   /** Original human request, when different from `prompt` (Build/Critique's finished writer output). Series planning must use this, not the writer's PAGE-block output — see decompose-series.ts. */
@@ -178,6 +185,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
   // Set only when a plan comes back with requiresCountConfirmation — the
   // display-safe plan shown to the user while phase is "confirm".
+  const [grounding, setGrounding] = useState<{
+    sources: Array<{ id: string; url: string; title: string }>;
+    createdAt: string;
+  } | null>(null);
+  const groundingRef = useRef<GroundingSummary | null>(null);
+  const [researching, setResearching] = useState(false);
   const [planPreview, setPlanPreview] = useState<DisplayPlan | null>(null);
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -246,7 +259,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     if (authLoading || !user || resumedUserRef.current === user.id) return;
     resumedUserRef.current = user.id;
     const activeSessionId = readActiveSession();
-    const resumed = readEntityResume(user.id);
+    const researched = readGroundingResume(user.id);
+    const resumed = readEntityResume(user.id) ?? researched;
+    if (researched && (!activeSessionId || activeSessionId === researched.sessionId)) {
+      setGrounding(researched.grounding);
+      groundingRef.current = researched.grounding;
+    }
     if (resumed && (!activeSessionId || activeSessionId === resumed.sessionId)) {
       lastParamsRef.current = resumed.input;
       resumedReferencePathsRef.current = resumed.referenceAssetIds;
@@ -591,7 +609,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       // existing source version if any) and always via the plan/jobs pair,
       // so a reference attached on a first submission is never dropped --
       // see generate-reference-upload.test.ts.
+      setResearching(true);
       const planRes = await createGenerationPlan({
+        refreshGrounding: input.refreshGrounding,
         entityIds: input.entityIds,
         prompt: effectivePrompt,
         userInput: input.userInput ?? null,
@@ -602,6 +622,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         sourceContext: effectiveSourceContext,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
+      setResearching(false);
+      setGrounding(planRes.grounding ?? null);
+      groundingRef.current = planRes.grounding ?? null;
       trackEvent("generation_planned", {
         entityCount: input.entityIds?.length ?? 0,
         lockedEntityCount: input.entityIds?.length ?? 0,
@@ -648,6 +671,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         effectiveSourceContext,
       );
     } catch (err) {
+      setResearching(false);
       applyPlanOrJobError(err);
     }
   }
@@ -737,8 +761,18 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       const owner = submitStateRef.current.user;
       if (owner && lastParamsRef.current)
         saveEntityResume(owner.id, res.sessionId, lastParamsRef.current, referenceAssetIds);
+      if (owner && lastParamsRef.current && groundingRef.current)
+        saveGroundingResume({
+          userId: owner.id,
+          sessionId: res.sessionId,
+          input: lastParamsRef.current,
+          referenceAssetIds,
+          grounding: groundingRef.current,
+        });
+      else clearGroundingResume();
       pollSession(res.sessionId, res.jobs);
     } catch (err) {
+      setResearching(false);
       applyPlanOrJobError(err);
     }
   }
@@ -777,7 +811,13 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     void submit({
       ...lastParamsRef.current,
       idempotencyKey: undefined,
+      refreshGrounding: false,
     });
+  }
+
+  function refreshResearch() {
+    if (lastParamsRef.current)
+      void submit({ ...lastParamsRef.current, idempotencyKey: undefined, refreshGrounding: true });
   }
 
   async function applyEdit(
@@ -820,6 +860,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   }
 
   function reset() {
+    clearGroundingResume();
+    groundingRef.current = null;
+    setGrounding(null);
     setPhase("idle");
     setErrorMessage(null);
     setPlanPreview(null);
@@ -887,6 +930,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     phase,
     job,
     jobs,
+    grounding,
+    researching,
     planPreview,
     versions,
     activeVersionId,
@@ -902,6 +947,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     submit,
     confirmSeriesCount,
     regenerate,
+    refreshResearch,
     applyEdit,
     download,
     reset,

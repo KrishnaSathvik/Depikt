@@ -49,7 +49,9 @@ import { PROMPT_MODE_COPY } from "@/lib/product";
  * prompt).
  */
 export function GenerateWorkspace() {
-  const [selectedEntities, setSelectedEntities] = useState<ReferenceEntity[]>([]);
+  const [selectedEntities, setSelectedEntities] = useState<ReferenceEntity[]>(
+    [],
+  );
   const [prompt, setPrompt] = useState("");
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
@@ -70,10 +72,15 @@ export function GenerateWorkspace() {
     if (handoff) {
       setPrompt(handoff.prompt);
       if (handoff.routingHints) setRoutingHints(handoff.routingHints);
-      if (handoff.structuredAspectRatio) setStructuredRatio(handoff.structuredAspectRatio);
-      setSourceContext({ type: handoff.sourceType, id: handoff.sourceId ?? null });
+      if (handoff.structuredAspectRatio)
+        setStructuredRatio(handoff.structuredAspectRatio);
+      setSourceContext({
+        type: handoff.sourceType,
+        id: handoff.sourceId ?? null,
+      });
       trackEvent("generate_opened", { source: handoff.sourceType });
-      for (const ref of handoff.references) void gen.addReferenceFromDataUrl(ref.dataUrl);
+      for (const ref of handoff.references)
+        void gen.addReferenceFromDataUrl(ref.dataUrl);
       // "Open in Generate" from an existing creation: hydrate the canvas
       // with that version directly (no job, no re-upload) and open the
       // edit composer so the next action is naturally "edit this".
@@ -128,7 +135,8 @@ export function GenerateWorkspace() {
           promptText: prompt,
           structuredAspectRatio: structuredRatio,
           referenceRatio:
-            gen.references[0]?.local.meta?.width && gen.references[0]?.local.meta?.height
+            gen.references[0]?.local.meta?.width &&
+            gen.references[0]?.local.meta?.height
               ? {
                   width: gen.references[0].local.meta.width,
                   height: gen.references[0].local.meta.height,
@@ -173,7 +181,10 @@ export function GenerateWorkspace() {
     return (
       <>
         <AuthGateDialog gen={gen} />
-        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        <ModeHero
+          title={PROMPT_MODE_COPY.generate.title}
+          body={PROMPT_MODE_COPY.generate.body}
+        />
         <GenerationCreditGate gen={gen} className="mt-6" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mt-4 text-body-sm text-red-600">{gen.errorMessage}</p>
@@ -217,7 +228,10 @@ export function GenerateWorkspace() {
     return (
       <>
         <AuthGateDialog gen={gen} />
-        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        <ModeHero
+          title={PROMPT_MODE_COPY.generate.title}
+          body={PROMPT_MODE_COPY.generate.body}
+        />
         <GenerationCreditGate gen={gen} className="mt-6" />
         <PromptSurface label="Prompt" className="mt-8">
           {prompt}
@@ -261,7 +275,9 @@ export function GenerateWorkspace() {
             />
           ) : (
             <div className="space-y-3">
-              <PromptSurface label="Prompt">{gen.job?.errorMessage ?? prompt}</PromptSurface>
+              <PromptSurface label="Prompt">
+                {gen.job?.errorMessage ?? prompt}
+              </PromptSurface>
               {gen.references.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {gen.references.map((r, i) => (
@@ -270,7 +286,11 @@ export function GenerateWorkspace() {
                       className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
                     >
                       <div className="h-8 w-8 shrink-0 overflow-hidden rounded">
-                        <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                        <img
+                          src={r.local.dataUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </div>
                       <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
                         Reference image
@@ -284,6 +304,40 @@ export function GenerateWorkspace() {
                 {resolvedSize.ratioLabel} · {resolvedSize.orientation}
               </p>
 
+              {gen.researching && (
+                <p role="status" className="text-body-sm">
+                  Preparing your request and researching references when needed…
+                </p>
+              )}
+              {gen.grounding && (
+                <details className="text-body-sm">
+                  <summary>
+                    Grounded with {gen.grounding.sources.length} sources
+                  </summary>
+                  <ul>
+                    {gen.grounding.sources.map((source) => (
+                      <li key={source.id}>
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {source.title}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                  {gen.phase === "result" && (
+                    <button
+                      type="button"
+                      onClick={gen.refreshResearch}
+                      className="underline"
+                    >
+                      Regenerate with fresh research · uses credits
+                    </button>
+                  )}
+                </details>
+              )}
               {gen.phase === "result" && gen.versions.length > 1 && (
                 <VersionStrip
                   versions={gen.versions}
@@ -364,7 +418,11 @@ function ComposerSurface({
               className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
             >
               <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded">
-                <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={r.local.dataUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
                 {r.uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-[9px]">
                     …
@@ -456,7 +514,13 @@ function VersionStrip({
               : "border-[color:var(--border-subtle)]"
           }`}
         >
-          {v.url && <img src={v.url} alt={`Version ${i + 1}`} className="h-16 w-16 object-cover" />}
+          {v.url && (
+            <img
+              src={v.url}
+              alt={`Version ${i + 1}`}
+              className="h-16 w-16 object-cover"
+            />
+          )}
           <span className="sr-only">Version {i + 1}</span>
         </button>
       ))}

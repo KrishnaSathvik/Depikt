@@ -1,3 +1,6 @@
+import { verifyExecutionAuthorization } from "@/lib/generation/execution-auth";
+import { verifyGroundingSnapshot } from "@/lib/generation/grounding/service";
+import { createGroundingProvider } from "@/lib/generation/grounding/provider";
 import {
   extractStoredEntityReferencePaths,
   EntityReferenceUnavailableError,
@@ -11,7 +14,10 @@ import { GENERATION_BUCKET } from "@/lib/generation/storage-paths";
 import { runGenerationJob } from "@/lib/generation/job-pipeline";
 import { createSupabaseDataAccess } from "@/lib/generation/supabase-data-access";
 import type { ModelAlias } from "@/lib/generation/models";
-import { classifyJobClaimResult, duplicateStartResponse } from "@/lib/generation/series-resume";
+import {
+  classifyJobClaimResult,
+  duplicateStartResponse,
+} from "@/lib/generation/series-resume";
 import {
   extractStoredReferenceAssetIds,
   extractStoredMaskPath,
@@ -40,7 +46,8 @@ import {
 export const Route = createFileRoute("/api/generation/jobs/$id/run")({
   server: {
     handlers: {
-      OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
+      OPTIONS: async () =>
+        new Response(null, { status: 204, headers: corsHeaders }),
       POST: async ({ request, params }) => {
         if (!isNativeGenerationEnabled()) return jsonError("Not found", 404);
 
@@ -75,8 +82,11 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           .eq("user_id", userId)
           .eq("id", job.session_id as string)
           .maybeSingle();
-        if (sessionLoadError) return jsonError("Could not load the session", 500);
-        const referencePaths = extractStoredReferenceAssetIds(session?.plan_json);
+        if (sessionLoadError)
+          return jsonError("Could not load the session", 500);
+        const referencePaths = extractStoredReferenceAssetIds(
+          session?.plan_json,
+        );
         const maskPath = extractStoredMaskPath(session?.plan_json);
 
         // Claim it. Anything other than `queued` means someone else is on it.
@@ -111,7 +121,13 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             })
             .catch(() => {});
           await data
-            .finalizeCredits(userId, 1, job.idempotency_key as string, "refunded", job.id)
+            .finalizeCredits(
+              userId,
+              1,
+              job.idempotency_key as string,
+              "refunded",
+              job.id,
+            )
             .catch(() => {});
           return jsonError("Generation is temporarily unavailable.", 503);
         }
@@ -119,7 +135,10 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         const download = async (path: string): Promise<StoredImage | null> => {
           const { data: file } = await authResult.auth.supabase.storage
             .from(GENERATION_BUCKET)
-            .download(path, path.includes("/entities/") ? { cacheNonce: job.id } : undefined);
+            .download(
+              path,
+              path.includes("/entities/") ? { cacheNonce: job.id } : undefined,
+            );
           if (!file) return null;
           return {
             bytes: new Uint8Array(await file.arrayBuffer()),
@@ -136,14 +155,36 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             .eq("user_id", userId)
             .eq("id", job.source_version_id)
             .maybeSingle();
-          if (sourceVersion) sourcePath = (sourceVersion.storage_path as string) ?? null;
+          if (sourceVersion)
+            sourcePath = (sourceVersion.storage_path as string) ?? null;
         }
         let referenceImages: StoredImage[];
         let editMask: StoredImage | null;
         try {
           if (!session) throw new EntityReferenceUnavailableError();
-          const entityReferencePaths = extractStoredEntityReferencePaths(session.plan_json, userId);
-          if (entityReferencePaths.length && job.source_version_id && !sourcePath)
+          verifyExecutionAuthorization(
+            session.plan_json,
+            {
+              userId,
+              idempotencyKey: job.idempotency_key,
+              prompt: job.prompt,
+              operation: job.operation,
+              width: job.width,
+              height: job.height,
+              sourceVersionId: job.source_version_id ?? null,
+            },
+            process.env.GENERATION_PLAN_SECRET ?? "",
+            process.env.GROUNDING_ENABLED === "true",
+          );
+          const entityReferencePaths = extractStoredEntityReferencePaths(
+            session.plan_json,
+            userId,
+          );
+          if (
+            entityReferencePaths.length &&
+            job.source_version_id &&
+            !sourcePath
+          )
             throw new EntityReferenceUnavailableError();
           const assembled = await assembleJobImages({
             entityReferencePaths,
@@ -154,6 +195,17 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           });
           referenceImages = assembled.referenceImages;
           editMask = assembled.editMask;
+          if (session.plan_json?.grounding) {
+            const snapshot = verifyGroundingSnapshot(
+              session.plan_json.grounding,
+              userId,
+              process.env.GENERATION_PLAN_SECRET ?? "",
+            );
+            const transient = await createGroundingProvider().loadImages(
+              snapshot.bundle,
+            );
+            referenceImages.push(...transient);
+          }
         } catch (error) {
           const failure = await failImageInputJob({
             error,
@@ -183,7 +235,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           {
             data,
             apiKey,
-            decodeBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
+            decodeBase64: (b64) =>
+              Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
           },
         );
 

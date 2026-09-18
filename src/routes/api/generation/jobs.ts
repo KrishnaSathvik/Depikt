@@ -1,10 +1,20 @@
+import { authorizeExecution } from "@/lib/generation/execution-auth";
+import { groundingBrief } from "@/lib/generation/grounding/service";
 import { buildEntityPreamble } from "@/lib/generation/entity-preamble";
 import { createFileRoute } from "@tanstack/react-router";
-import { corsHeaders, getClientIp, jsonError, rateLimitExceeded } from "@/lib/api/public-route";
+import {
+  corsHeaders,
+  getClientIp,
+  jsonError,
+  rateLimitExceeded,
+} from "@/lib/api/public-route";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { validateCreateJobsFromPlanBody } from "@/lib/generation/job-request";
-import { verifyPlanToken, type PlanTokenPayload } from "@/lib/generation/plan-token";
+import {
+  verifyPlanToken,
+  type PlanTokenPayload,
+} from "@/lib/generation/plan-token";
 import {
   clampGenerationPlan,
   HARD_SERIES_CAP,
@@ -13,11 +23,23 @@ import {
 } from "@/lib/generation/plan";
 import { resolveGenerationModel } from "@/lib/generation/model-router";
 import { withPrecisionEditPreamble } from "@/lib/generation/precision-edit-prompt";
-import { resolveGenerationSize, preserveEditSourceSize } from "@/lib/generation/aspect-ratio";
-import { selectDecomposerInput, decomposeSeries } from "@/lib/generation/decompose-series";
-import { referenceGuidance, type ReferenceIntent } from "@/lib/prompt-engine/reference";
+import {
+  resolveGenerationSize,
+  preserveEditSourceSize,
+} from "@/lib/generation/aspect-ratio";
+import {
+  selectDecomposerInput,
+  decomposeSeries,
+} from "@/lib/generation/decompose-series";
+import {
+  referenceGuidance,
+  type ReferenceIntent,
+} from "@/lib/prompt-engine/reference";
 import type { Intent } from "@/lib/prompt-engine/intent";
-import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
+import {
+  asGenerationClient,
+  type UntypedSupabaseClient,
+} from "@/lib/generation/db-types";
 import {
   buildExecutionPlanJson,
   executionPlanIdentityMatches,
@@ -48,7 +70,9 @@ function withFidelityPreamble(prompt: string, intent: Intent): string {
   if (HAS_PRESERVE_LIST_RE.test(prompt)) return prompt;
   const guidance = referenceGuidance(intent.reference_intent);
   const preserveList =
-    intent.must_preserve.length > 0 ? `Preserve: ${intent.must_preserve.join("; ")}.` : "";
+    intent.must_preserve.length > 0
+      ? `Preserve: ${intent.must_preserve.join("; ")}.`
+      : "";
   const preamble = [guidance, preserveList].filter(Boolean).join(" ");
   return preamble ? `${preamble}\n\n${prompt}` : prompt;
 }
@@ -71,15 +95,25 @@ async function deleteSessionIfEmpty(
     .limit(1);
   if (jobsError || (jobs?.length ?? 0) > 0) return;
 
-  await supabase.from("generation_sessions").delete().eq("user_id", userId).eq("id", sessionId);
+  await supabase
+    .from("generation_sessions")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", sessionId);
 }
 
-async function resolveChildren(payload: PlanTokenPayload, selected: number): Promise<JobChild[]> {
+async function resolveChildren(
+  payload: PlanTokenPayload,
+  selected: number,
+): Promise<JobChild[]> {
   const preamble = buildEntityPreamble(
     payload.entities ?? [],
     payload.referenceAssetIds.length + (payload.sourceVersionId ? 1 : 0),
   );
-  const withEntities = (prompt: string) => (preamble ? `${preamble}\n\n${prompt}` : prompt);
+  const withEntities = (prompt: string) =>
+    [preamble, groundingBrief(payload.grounding), prompt]
+      .filter(Boolean)
+      .join("\n\n");
   if (payload.plan.mode !== "series") {
     if (payload.maskPath || payload.maskAssetId) {
       return [
@@ -93,7 +127,12 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
       ];
     }
     return [
-      { prompt: withEntities(withFidelityPreamble(payload.prompt, payload.intent)), label: null },
+      {
+        prompt: withEntities(
+          withFidelityPreamble(payload.prompt, payload.intent),
+        ),
+        label: null,
+      },
     ];
   }
   const decomposerInput = selectDecomposerInput({
@@ -107,7 +146,10 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
     selectedCount: selected,
     apiKey: process.env.OPENAI_API_KEY,
   });
-  return decomposition.children.map((c) => ({ prompt: withEntities(c.prompt), label: c.label }));
+  return decomposition.children.map((c) => ({
+    prompt: withEntities(c.prompt),
+    label: c.label,
+  }));
 }
 
 /**
@@ -132,17 +174,22 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
 export const Route = createFileRoute("/api/generation/jobs")({
   server: {
     handlers: {
-      OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
+      OPTIONS: async () =>
+        new Response(null, { status: 204, headers: corsHeaders }),
       POST: async ({ request }) => {
         if (!isNativeGenerationEnabled()) return jsonError("Not found", 404);
 
         const ip = getClientIp(request);
         if (rateLimitExceeded(ip)) {
-          return jsonError("Too many requests. Please wait a moment and try again.", 429);
+          return jsonError(
+            "Too many requests. Please wait a moment and try again.",
+            429,
+          );
         }
 
         const authResult = await authenticateGenerationRequest(request);
-        if (!authResult.ok) return jsonError(authResult.error, authResult.status);
+        if (!authResult.ok)
+          return jsonError(authResult.error, authResult.status);
         const { userId } = authResult.auth;
         const supabase = asGenerationClient(authResult.auth.supabase);
 
@@ -158,7 +205,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
         const req = validation.request;
 
         const secret = process.env.GENERATION_PLAN_SECRET;
-        if (!secret) return jsonError("Generation is temporarily unavailable.", 503);
+        if (!secret)
+          return jsonError("Generation is temporarily unavailable.", 503);
 
         let payload: PlanTokenPayload;
         try {
@@ -169,12 +217,18 @@ export const Route = createFileRoute("/api/generation/jobs")({
         payload = { ...payload, plan: clampGenerationPlan(payload.plan) };
 
         if (req.selectedCount != null && req.selectedCount > HARD_SERIES_CAP) {
-          return jsonError(`selectedCount cannot exceed ${HARD_SERIES_CAP}`, 400);
+          return jsonError(
+            `selectedCount cannot exceed ${HARD_SERIES_CAP}`,
+            400,
+          );
         }
 
         let selected: number;
         try {
-          selected = resolveSelectedCount(payload.plan, req.selectedCount ?? undefined);
+          selected = resolveSelectedCount(
+            payload.plan,
+            req.selectedCount ?? undefined,
+          );
         } catch (e) {
           return jsonError((e as Error).message, 400);
         }
@@ -188,13 +242,19 @@ export const Route = createFileRoute("/api/generation/jobs")({
           isSeriesPlan,
           selected,
         );
-        const { data: existingJobRows, error: existingJobsError } = await supabase
-          .from("generation_jobs")
-          .select("id, session_id, idempotency_key, status, series_index, series_label")
-          .eq("user_id", userId)
-          .in("idempotency_key", expectedIdempotencyKeys);
+        const { data: existingJobRows, error: existingJobsError } =
+          await supabase
+            .from("generation_jobs")
+            .select(
+              "id, session_id, idempotency_key, status, series_index, series_label",
+            )
+            .eq("user_id", userId)
+            .in("idempotency_key", expectedIdempotencyKeys);
         if (existingJobsError) {
-          return jsonError("Could not check for an existing generation job", 500);
+          return jsonError(
+            "Could not check for an existing generation job",
+            500,
+          );
         }
         const existingResult = toExistingJobsResult(
           (existingJobRows ?? []) as ExistingJobRow[],
@@ -218,7 +278,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
           payload.plan,
           payload.referenceAssetIds,
           payload.sourceVersionId,
-          payload.entities?.length ?? 0,
+          (payload.entities?.length ?? 0) +
+            (payload.grounding?.bundle.visualReferences.length ?? 0),
         );
         const model = resolveGenerationModel({
           operation,
@@ -234,7 +295,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
         });
         let size = resolveGenerationSize({
           promptText: payload.prompt,
-          structuredAspectRatio: req.structuredAspectRatio ?? payload.intent.aspect_ratio.value,
+          structuredAspectRatio:
+            req.structuredAspectRatio ?? payload.intent.aspect_ratio.value,
         });
         if (payload.sourceVersionId) {
           const { data: source, error: sourceError } = await supabase
@@ -243,7 +305,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
             .eq("id", payload.sourceVersionId)
             .eq("user_id", userId)
             .maybeSingle();
-          if (sourceError) return jsonError("Could not load source version", 500);
+          if (sourceError)
+            return jsonError("Could not load source version", 500);
           if (!source) return jsonError("Source version not found", 404);
           if (!(source.width > 0 && source.height > 0)) {
             return jsonError("Source version has invalid dimensions", 400);
@@ -261,7 +324,10 @@ export const Route = createFileRoute("/api/generation/jobs")({
           !payload.entities?.length &&
           !payload.sourceVersionId
         ) {
-          return jsonError("Editing requires a sourceVersionId or a reference image", 400);
+          return jsonError(
+            "Editing requires a sourceVersionId or a reference image",
+            400,
+          );
         }
 
         if (!process.env.OPENAI_API_KEY) {
@@ -282,6 +348,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         // reference paths this token carried, and it must never trust a
         // client-supplied list at execution time.
         const executionPlan = buildExecutionPlanJson({
+          grounding: payload.grounding,
           entities: payload.entities,
           plan: payload.plan,
           selectedCount: selected,
@@ -291,13 +358,27 @@ export const Route = createFileRoute("/api/generation/jobs")({
           maskPath: payload.maskPath ?? null,
           children,
         });
+        const signedExecutionPlan = {
+          ...executionPlan,
+          executionAuthorization: authorizeExecution(executionPlan, {
+            operation,
+            width: size.width,
+            height: size.height,
+            userId,
+            secret,
+            children: children.map((child, index) => ({
+              key: expectedIdempotencyKeys[index],
+              prompt: child.prompt,
+            })),
+          }),
+        };
         const { data: insertedSession, error: sessionError } = await supabase
           .from("generation_sessions")
           .insert({
             user_id: userId,
             source_type: req.sourceContextType,
             source_id: req.sourceContextId,
-            plan_json: executionPlan,
+            plan_json: signedExecutionPlan,
             create_idempotency_key: req.idempotencyKey,
           })
           .select("id")
@@ -310,21 +391,25 @@ export const Route = createFileRoute("/api/generation/jobs")({
           // A concurrent submit or failed cleanup left the unique session.
           // Replay a complete job set, reuse a zero-job session, and reject
           // partial/unexpected sets rather than splicing in new jobs.
-          const { data: existingSession, error: existingSessionError } = await supabase
-            .from("generation_sessions")
-            .select("id, plan_json")
-            .eq("user_id", userId)
-            .eq("create_idempotency_key", req.idempotencyKey)
-            .single();
+          const { data: existingSession, error: existingSessionError } =
+            await supabase
+              .from("generation_sessions")
+              .select("id, plan_json")
+              .eq("user_id", userId)
+              .eq("create_idempotency_key", req.idempotencyKey)
+              .single();
           if (existingSessionError || !existingSession) {
             return jsonError("Could not replay the generation session", 500);
           }
 
-          const { data: concurrentJobRows, error: concurrentJobsError } = await supabase
-            .from("generation_jobs")
-            .select("id, session_id, idempotency_key, status, series_index, series_label")
-            .eq("user_id", userId)
-            .eq("session_id", existingSession.id);
+          const { data: concurrentJobRows, error: concurrentJobsError } =
+            await supabase
+              .from("generation_jobs")
+              .select(
+                "id, session_id, idempotency_key, status, series_index, series_label",
+              )
+              .eq("user_id", userId)
+              .eq("session_id", existingSession.id);
           if (concurrentJobsError) {
             return jsonError("Could not replay the generation jobs", 500);
           }
@@ -342,6 +427,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
             case "reuse":
               if (
                 !executionPlanIdentityMatches(existingSession.plan_json, {
+                  grounding: payload.grounding,
                   entities: payload.entities,
                   plan: payload.plan,
                   selectedCount: selected,
@@ -351,12 +437,18 @@ export const Route = createFileRoute("/api/generation/jobs")({
                   maskPath: payload.maskPath ?? null,
                 })
               ) {
-                return jsonError("Generation is still being prepared. Please retry.", 409);
+                return jsonError(
+                  "Generation is still being prepared. Please retry.",
+                  409,
+                );
               }
               sessionId = existingSession.id;
               break;
             case "invalid":
-              return jsonError("Generation is still being prepared. Please retry.", 409);
+              return jsonError(
+                "Generation is still being prepared. Please retry.",
+                409,
+              );
             default: {
               const exhaustive: never = decision;
               return exhaustive;
@@ -394,24 +486,32 @@ export const Route = createFileRoute("/api/generation/jobs")({
           return new Response(
             JSON.stringify({
               sessionId,
-              jobs: [{ id: row.job_id, label: null, index: null, status: "queued" }],
+              jobs: [
+                { id: row.job_id, label: null, index: null, status: "queued" },
+              ],
             }),
-            { status: 202, headers: { "Content-Type": "application/json", ...corsHeaders } },
+            {
+              status: 202,
+              headers: { "Content-Type": "application/json", ...corsHeaders },
+            },
           );
         }
 
-        const { data: created, error: createError } = await supabase.rpc("create_generation_jobs", {
-          p_user_id: userId,
-          p_session_id: sessionId,
-          p_operation: operation,
-          p_model: model,
-          p_prompts: children.map((c) => c.prompt),
-          p_labels: children.map((c) => c.label),
-          p_width: size.width,
-          p_height: size.height,
-          p_source_version_id: payload.sourceVersionId,
-          p_idempotency_prefix: req.idempotencyKey,
-        });
+        const { data: created, error: createError } = await supabase.rpc(
+          "create_generation_jobs",
+          {
+            p_user_id: userId,
+            p_session_id: sessionId,
+            p_operation: operation,
+            p_model: model,
+            p_prompts: children.map((c) => c.prompt),
+            p_labels: children.map((c) => c.label),
+            p_width: size.width,
+            p_height: size.height,
+            p_source_version_id: payload.sourceVersionId,
+            p_idempotency_prefix: req.idempotencyKey,
+          },
+        );
         if (createError) {
           await deleteSessionIfEmpty(supabase, userId, sessionId);
           return jsonError("Could not create the generation jobs", 500);
@@ -433,7 +533,10 @@ export const Route = createFileRoute("/api/generation/jobs")({
               status: "queued",
             })),
           }),
-          { status: 202, headers: { "Content-Type": "application/json", ...corsHeaders } },
+          {
+            status: 202,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          },
         );
       },
     },

@@ -1,3 +1,4 @@
+import type { GroundingSnapshot } from "./grounding/service.ts";
 import type { ResolvedEntity } from "./entities.ts";
 import { extractStoredEntities } from "./stored-entities.ts";
 export { extractStoredEntityReferencePaths } from "./stored-entities.ts";
@@ -20,6 +21,7 @@ export interface ExecutionPlanChild {
 }
 
 export interface ExecutionPlanJson {
+  grounding?: GroundingSnapshot;
   entities?: ResolvedEntity[];
   lockedEntityCount?: number;
   /** Flat telemetry/evidence fields — see vnext-1 design §6. */
@@ -38,6 +40,7 @@ export interface ExecutionPlanJson {
 }
 
 export function buildExecutionPlanJson(args: {
+  grounding?: GroundingSnapshot;
   entities?: ResolvedEntity[];
   plan: GenerationPlan;
   selectedCount: number;
@@ -49,6 +52,7 @@ export function buildExecutionPlanJson(args: {
 }): ExecutionPlanJson {
   const childLabels = args.children.map((c) => c.label);
   return {
+    ...(args.grounding ? { grounding: args.grounding } : {}),
     ...(args.entities?.length
       ? { entities: args.entities, lockedEntityCount: args.entities.length }
       : {}),
@@ -63,7 +67,10 @@ export function buildExecutionPlanJson(args: {
     sourceVersionId: args.sourceVersionId,
     maskAssetId: args.maskAssetId,
     maskPath: args.maskPath,
-    children: args.children.map((c) => ({ label: c.label, promptLength: c.prompt.length })),
+    children: args.children.map((c) => ({
+      label: c.label,
+      promptLength: c.prompt.length,
+    })),
   };
 }
 
@@ -98,6 +105,7 @@ export function extractStoredMaskPath(planJson: unknown): string | null {
 
 /** Fields that define whether a stored session may be reused for a new token. */
 export interface ExecutionPlanIdentity {
+  grounding?: GroundingSnapshot;
   entities?: ResolvedEntity[];
   plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
   selectedCount: number;
@@ -117,7 +125,9 @@ function sameStringSet(a: string[], b: string[]): boolean {
   return true;
 }
 
-function parseStoredExecutionPlanIdentity(stored: unknown): ExecutionPlanIdentity | null {
+function parseStoredExecutionPlanIdentity(
+  stored: unknown,
+): ExecutionPlanIdentity | null {
   if (!stored || typeof stored !== "object") return null;
   const root = stored as Record<string, unknown>;
   const plan = root.plan;
@@ -128,7 +138,8 @@ function parseStoredExecutionPlanIdentity(stored: unknown): ExecutionPlanIdentit
   if (typeof planFields.autoCount !== "number") return null;
   if (typeof root.selectedCount !== "number") return null;
   const sourceVersionId = root.sourceVersionId ?? null;
-  if (sourceVersionId !== null && typeof sourceVersionId !== "string") return null;
+  if (sourceVersionId !== null && typeof sourceVersionId !== "string")
+    return null;
   const maskAssetId = root.maskAssetId ?? null;
   if (maskAssetId !== null && typeof maskAssetId !== "string") return null;
   const maskPath = root.maskPath ?? null;
@@ -156,6 +167,10 @@ export function executionPlanIdentityMatches(
   stored: unknown,
   current: ExecutionPlanIdentity,
 ): boolean {
+  const storedGrounding = (stored as { grounding?: GroundingSnapshot } | null)
+    ?.grounding;
+  if ((storedGrounding?.seal ?? null) !== (current.grounding?.seal ?? null))
+    return false;
   let storedEntities: ResolvedEntity[];
   try {
     storedEntities = extractStoredEntities(stored);
@@ -173,7 +188,10 @@ export function executionPlanIdentityMatches(
       e.locked,
       e.resolvedReferences.map((r) => [r.assetId, r.role, r.path]),
     ]);
-  if (JSON.stringify(identity(storedEntities)) !== JSON.stringify(identity(current.entities ?? [])))
+  if (
+    JSON.stringify(identity(storedEntities)) !==
+    JSON.stringify(identity(current.entities ?? []))
+  )
     return false;
   const parsed = parseStoredExecutionPlanIdentity(stored);
   if (!parsed) return false;

@@ -87,7 +87,8 @@ test("jobs route persists plan_json with telemetry fields via buildExecutionPlan
   const executionPlan = read("src/lib/generation/execution-plan.ts");
 
   assert.match(route, /buildExecutionPlanJson\(/);
-  assert.match(route, /plan_json: executionPlan/);
+  assert.match(route, /plan_json: signedExecutionPlan/);
+  assert.match(route, /authorizeExecution\(executionPlan,/);
   assert.match(executionPlan, /mode: args\.plan\.mode/);
   assert.match(executionPlan, /desiredCount: args\.plan\.desiredCount/);
   assert.match(executionPlan, /autoCount: args\.plan\.autoCount/);
