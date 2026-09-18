@@ -139,9 +139,10 @@ export function resolveOperation(
   plan: GenerationPlan,
   referenceAssetIds: string[],
   sourceVersionId: string | null,
+  entityCount = 0,
 ): "generate" | "edit" {
   if (plan.mode === "edit") return "edit";
-  if (referenceAssetIds.length > 0) return "edit";
+  if (referenceAssetIds.length > 0 || entityCount > 0) return "edit";
   if (sourceVersionId) return "edit";
   return "generate";
 }

@@ -1,3 +1,13 @@
+import {
+  resolveEntityReferences,
+  selectOwnedEntities,
+} from "@/lib/generation/entity-reference-resolver";
+import {
+  MAX_JOB_INPUT_IMAGES_WITH_ENTITIES,
+  entityReferenceIntent,
+  type ReferenceEntity,
+  type ResolvedEntity,
+} from "@/lib/generation/entities";
 import { createFileRoute } from "@tanstack/react-router";
 import { corsHeaders, getClientIp, jsonError, rateLimitExceeded } from "@/lib/api/public-route";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
@@ -110,7 +120,32 @@ export const Route = createFileRoute("/api/generation/plans")({
           }
         }
 
-        let maskAssetId: string | null = req.maskAssetId;
+        let entities: ResolvedEntity[] = [];
+        if (req.entityIds.length) {
+          const { data: rows, error } = await supabase
+            .from("reference_entities")
+            .select("*, assets:reference_entity_assets(*)")
+            .eq("user_id", userId)
+            .in("id", req.entityIds);
+          if (error) return jsonError("Could not load reference packs", 500);
+          const owned = (rows ?? []) as ReferenceEntity[];
+          if (owned.length !== req.entityIds.length || owned.some((e) => e.user_id !== userId))
+            return jsonError("Invalid reference pack", 400);
+          try {
+            entities = resolveEntityReferences({
+              entities: selectOwnedEntities(owned, req.entityIds, userId),
+              prompt: req.userInput ?? req.prompt,
+              budget:
+                MAX_JOB_INPUT_IMAGES_WITH_ENTITIES -
+                req.referenceAssetIds.length -
+                (req.sourceVersionId ? 1 : 0),
+            });
+          } catch (error) {
+            return jsonError((error as Error).message, 400);
+          }
+        }
+
+        const maskAssetId: string | null = req.maskAssetId;
         let maskPath: string | null = null;
         if (maskAssetId) {
           // sourceVersionId is required by validateCreatePlanBody when a mask is set.
@@ -155,7 +190,9 @@ export const Route = createFileRoute("/api/generation/plans")({
           const referenceImageUrl = await previewReferenceImageUrl(
             supabase,
             userId,
-            req.referenceAssetIds,
+            req.referenceAssetIds.length
+              ? req.referenceAssetIds
+              : entities.flatMap((e) => e.resolvedReferences.map((r) => r.path)),
           );
           try {
             const analysis = await analyzeIntent({
@@ -163,7 +200,10 @@ export const Route = createFileRoute("/api/generation/plans")({
               userInput: req.userInput ?? req.prompt,
               mode: "default",
               referenceImageUrl,
-              referenceIntent: "auto",
+              referenceIntent:
+                !req.referenceAssetIds.length && entities.length
+                  ? entityReferenceIntent(entities[0].type)
+                  : "auto",
               category: null,
               remixRef: null,
             });
@@ -181,6 +221,7 @@ export const Route = createFileRoute("/api/generation/plans")({
             userId,
             prompt: req.prompt,
             userInput,
+            ...(entities.length ? { entities } : {}),
             referenceAssetIds: req.referenceAssetIds,
             sourceVersionId: req.sourceVersionId,
             maskAssetId,

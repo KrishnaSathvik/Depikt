@@ -48,3 +48,15 @@ export function ownerOfStoragePath(path: string): string | null {
   const match = path.match(/^users\/([^/]+)\//);
   return match ? match[1] : null;
 }
+
+export function entityAssetStoragePath(
+  userId: string,
+  entityId: string,
+  assetId: string,
+  extension: "png" | "jpg" | "webp",
+) {
+  assertSafeSegment(userId, "userId");
+  assertSafeSegment(entityId, "entityId");
+  assertSafeSegment(assetId, "assetId");
+  return `users/${userId}/entities/${entityId}/${assetId}.${extension}`;
+}

@@ -1,3 +1,4 @@
+import { buildEntityPreamble } from "@/lib/generation/entity-preamble";
 import { createFileRoute } from "@tanstack/react-router";
 import { corsHeaders, getClientIp, jsonError, rateLimitExceeded } from "@/lib/api/public-route";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
@@ -74,28 +75,39 @@ async function deleteSessionIfEmpty(
 }
 
 async function resolveChildren(payload: PlanTokenPayload, selected: number): Promise<JobChild[]> {
+  const preamble = buildEntityPreamble(
+    payload.entities ?? [],
+    payload.referenceAssetIds.length + (payload.sourceVersionId ? 1 : 0),
+  );
+  const withEntities = (prompt: string) => (preamble ? `${preamble}\n\n${prompt}` : prompt);
   if (payload.plan.mode !== "series") {
     if (payload.maskPath || payload.maskAssetId) {
       return [
         {
-          prompt: withPrecisionEditPreamble(payload.prompt, payload.intent.must_preserve),
+          prompt: withPrecisionEditPreamble(
+            withEntities(payload.prompt),
+            payload.intent.must_preserve,
+          ),
           label: null,
         },
       ];
     }
-    return [{ prompt: withFidelityPreamble(payload.prompt, payload.intent), label: null }];
+    return [
+      { prompt: withEntities(withFidelityPreamble(payload.prompt, payload.intent)), label: null },
+    ];
   }
   const decomposerInput = selectDecomposerInput({
     userInput: payload.userInput,
     writerPrompt: payload.prompt,
   });
   const decomposition = await decomposeSeries({
+    entities: payload.entities,
     userInput: decomposerInput,
     intent: payload.intent,
     selectedCount: selected,
     apiKey: process.env.OPENAI_API_KEY,
   });
-  return decomposition.children.map((c) => ({ prompt: c.prompt, label: c.label }));
+  return decomposition.children.map((c) => ({ prompt: withEntities(c.prompt), label: c.label }));
 }
 
 /**
@@ -206,11 +218,13 @@ export const Route = createFileRoute("/api/generation/jobs")({
           payload.plan,
           payload.referenceAssetIds,
           payload.sourceVersionId,
+          payload.entities?.length ?? 0,
         );
         const model = resolveGenerationModel({
           operation,
           promptText: payload.prompt,
           referenceCount: payload.referenceAssetIds.length,
+          lockedEntityCount: payload.entities?.length ?? 0,
           hints: {
             category: payload.intent.category,
             exactTextCount: payload.intent.exact_text.length,
@@ -244,6 +258,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         if (
           operation === "edit" &&
           payload.referenceAssetIds.length === 0 &&
+          !payload.entities?.length &&
           !payload.sourceVersionId
         ) {
           return jsonError("Editing requires a sourceVersionId or a reference image", 400);
@@ -267,6 +282,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         // reference paths this token carried, and it must never trust a
         // client-supplied list at execution time.
         const executionPlan = buildExecutionPlanJson({
+          entities: payload.entities,
           plan: payload.plan,
           selectedCount: selected,
           referenceAssetIds: payload.referenceAssetIds,
@@ -326,6 +342,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
             case "reuse":
               if (
                 !executionPlanIdentityMatches(existingSession.plan_json, {
+                  entities: payload.entities,
                   plan: payload.plan,
                   selectedCount: selected,
                   referenceAssetIds: payload.referenceAssetIds,

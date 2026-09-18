@@ -1,3 +1,4 @@
+import { MAX_ADHOC_REFERENCE_IMAGES } from "./entities.ts";
 // Native image generation — model, quality, and credit configuration.
 //
 // Locked V1 decisions (2026-09-10, after the max-quality economics benchmark
@@ -66,4 +67,4 @@ export function creditCostFor(_operation: GenerationOperation, _model?: ModelAli
 // documented example uses up to 4 images without stating a hard maximum;
 // this is our product choice, and copy referencing it must say "Depikt's
 // V1 limit," not "OpenAI's limit."
-export const MAX_REFERENCE_IMAGES_V1 = 4;
+export const MAX_REFERENCE_IMAGES_V1 = MAX_ADHOC_REFERENCE_IMAGES;

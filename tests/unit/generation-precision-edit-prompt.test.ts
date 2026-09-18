@@ -53,9 +53,8 @@ test("jobs.ts uses withPrecisionEditPreamble for masked non-series jobs and with
 
   assert.match(
     resolveChildren,
-    /withPrecisionEditPreamble\(payload\.prompt,\s*payload\.intent\.must_preserve\)/,
+    /withPrecisionEditPreamble\(\s*withEntities\(payload\.prompt\),\s*payload\.intent\.must_preserve,?\s*\)/,
   );
   assert.match(resolveChildren, /withFidelityPreamble\(payload\.prompt,\s*payload\.intent\)/);
   assert.match(resolveChildren, /maskPath|maskAssetId/);
 });
-

@@ -18,6 +18,7 @@ import type { RoutingHints } from "./model-router";
 import type { Intent } from "../prompt-engine/intent";
 
 export interface PendingGeneration {
+  entityIds?: string[];
   prompt: string;
   /** Original Build/Critique request. Series planning must use this, not `prompt`. */
   userInput?: string | null;

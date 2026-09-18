@@ -1,3 +1,5 @@
+import type { ResolvedEntity } from "./entities.ts";
+import { extractStoredEntities } from "./stored-entities.ts";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Intent } from "../prompt-engine/intent.ts";
 import type { GenerationPlan } from "./plan.ts";
@@ -5,6 +7,7 @@ import type { GenerationPlan } from "./plan.ts";
 export const PLAN_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 export interface PlanTokenPayload {
+  entities?: ResolvedEntity[];
   userId: string;
   prompt: string;
   userInput: string;
@@ -35,5 +38,6 @@ export function verifyPlanToken(token: string, secret: string, userId: string): 
   const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")) as PlanTokenPayload;
   if (payload.userId !== userId) throw new Error("invalid plan token");
   if (payload.exp < Date.now()) throw new Error("plan expired");
+  extractStoredEntities(payload, userId);
   return payload;
 }

@@ -675,3 +675,31 @@ export function describeIntent(intent: Record<string, unknown> | null | undefine
 export function historyKindLabel(kind: string): string {
   return kind === "critique" ? "Critique" : "Build";
 }
+
+export const REFERENCES_COPY = {
+  tab: "References",
+  title: "Reference packs",
+  add: "+ Reference pack",
+  create: "New reference pack",
+  empty: "Save a character, product, or brand to keep it consistent across images.",
+  groups: { character: "Characters", product: "Products", brand: "Brands" },
+  hints: {
+    character:
+      "Describe facial features, hair and distinguishing traits. Clothing and pose can change.",
+    product: "Describe geometry, label, cap and defining colors.",
+    brand: "Describe the logo, colors and visual language.",
+  },
+  locked: "Identity locked",
+  limit: "Up to 4 packs and 8 total input images.",
+  name: "Name",
+  description: "Identity description",
+  type: "Type",
+  save: "Save reference pack",
+  remove: "Delete pack",
+  upload: "Add image",
+  role: "Reference view",
+  primary: "Add the primary reference first.",
+  cancel: "Cancel",
+  loading: "Loading reference packs…",
+  signIn: "Sign in to manage reference packs.",
+};

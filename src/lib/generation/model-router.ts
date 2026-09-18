@@ -26,6 +26,7 @@ export interface RoutingHints {
 }
 
 export interface ModelRouterInput {
+  lockedEntityCount?: number;
   operation: "generate" | "edit";
   promptText: string;
   referenceCount: number;
@@ -69,6 +70,8 @@ export function resolveGenerationModel(input: ModelRouterInput): ModelAlias {
   // Masked edits always use Sunburst. hasMask is execution metadata, not
   // a keyword in the prompt — unmasked simple edits can still be Flare.
   if (operation === "edit" && hasMask) return "sunburst";
+
+  if ((input.lockedEntityCount ?? 0) > 0) return "sunburst";
 
   // 1. Structured signal from Prompt, when available — trust it over
   // re-deriving from prose, same principle as the aspect-ratio resolver.

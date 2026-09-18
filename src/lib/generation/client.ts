@@ -47,6 +47,7 @@ async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
 // opaque, signed planToken that POST /jobs merely verifies. See job-request.ts.
 
 export interface CreatePlanRequest {
+  entityIds?: string[];
   /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
   prompt: string;
   /** The original human request, when different from `prompt` (Build/Critique). Series decomposition needs this, not the writer's PAGE-block output. */

@@ -1,3 +1,4 @@
+import { saveEntityResume, readEntityResume, clearEntityResume } from "./entity-resume";
 // Native image generation — the one shared execution path.
 //
 // Extracted from GenerateWorkspace so /generate, Prompt Build's inline
@@ -127,6 +128,7 @@ export function simplifyRatioLabel(width: number, height: number): string {
 }
 
 export interface SubmitInput {
+  entityIds?: string[];
   prompt: string;
   /** Original human request, when different from `prompt` (Build/Critique's finished writer output). Series planning must use this, not the writer's PAGE-block output — see decompose-series.ts. */
   userInput?: string | null;
@@ -190,6 +192,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // Remembers the params of the last submit() so regenerate()/applyEdit() can
   // resubmit without the caller re-supplying prompt/ratio/hints.
   const lastParamsRef = useRef<SubmitInput | null>(null);
+  const resumedReferencePathsRef = useRef<string[]>([]);
+  const resumedUserRef = useRef<string | null>(null);
   // A Generate click that arrived while auth/credits were still hydrating.
   const hydrationWaitRef = useRef(false);
   // An async mask upload may finish after hydration's effect has already
@@ -239,9 +243,18 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   // only once polling is actually done — including after a succeeded job
   // still waiting on a signed URL.
   useEffect(() => {
+    if (authLoading || !user || resumedUserRef.current === user.id) return;
+    resumedUserRef.current = user.id;
     const activeSessionId = readActiveSession();
-    if (activeSessionId) pollSession(activeSessionId);
-  }, []);
+    const resumed = readEntityResume(user.id);
+    if (resumed && (!activeSessionId || activeSessionId === resumed.sessionId)) {
+      lastParamsRef.current = resumed.input;
+      resumedReferencePathsRef.current = resumed.referenceAssetIds;
+    }
+    const sessionId = activeSessionId ?? resumed?.sessionId;
+    if (sessionId) pollSession(sessionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, user?.id]);
 
   // Load the authoritative balance once signed in. A failed fetch still
   // marks credits resolved so Generate is not stuck waiting; the server
@@ -531,6 +544,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
     if (!user) {
       savePendingGeneration({
+        entityIds: input.entityIds,
         prompt: effectivePrompt,
         userInput: input.userInput ?? null,
         intent: input.intent ?? null,
@@ -567,9 +581,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     trackEvent("generate_submitted", { source: effectiveSourceContext.type });
     try {
       const idempotencyKey = input.idempotencyKey ?? crypto.randomUUID();
-      const referenceAssetIds = referencesRef.current
-        .map((r) => r.uploadedPath)
-        .filter((p): p is string => !!p);
+      const referenceAssetIds = referencesRef.current.length
+        ? referencesRef.current.map((r) => r.uploadedPath).filter((p): p is string => !!p)
+        : resumedReferencePathsRef.current;
       // Depikt decides generate vs edit server-side, from the plan's own
       // analysis of the request (task / reference_intent) -- see plans.ts
       // and jobs.ts. The browser never chooses an operation; it only
@@ -578,6 +592,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       // so a reference attached on a first submission is never dropped --
       // see generate-reference-upload.test.ts.
       const planRes = await createGenerationPlan({
+        entityIds: input.entityIds,
         prompt: effectivePrompt,
         userInput: input.userInput ?? null,
         intent: input.intent ?? null,
@@ -588,6 +603,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
       trackEvent("generation_planned", {
+        entityCount: input.entityIds?.length ?? 0,
+        lockedEntityCount: input.entityIds?.length ?? 0,
         mode: planRes.plan.mode,
         desiredCount: planRes.plan.desiredCount,
         autoCount: planRes.plan.autoCount,
@@ -643,13 +660,20 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       setPhase("idle");
       setCreditState("exhausted");
       setCredits(0);
+      toast.error("Not enough credits for this generation.");
       trackEvent("credits_exhausted", { source: sourceContextRef.current.type, via: "server" });
       return;
-    } else if (err instanceof GenerationApiError && err.status === 401) {
-      setErrorMessage(ERROR_COPY.auth);
-    } else {
-      setErrorMessage("Generation is temporarily unavailable.");
     }
+    const message =
+      err instanceof GenerationApiError
+        ? err.status === 401
+          ? ERROR_COPY.auth
+          : err.message
+        : "Could not start generation. Please check your connection and try again.";
+    setErrorMessage(message);
+    // Planning failures return to the composer, which may be above the
+    // viewport. Keep the actual API error visible at the point of failure.
+    toast.error(message);
   }
 
   // Re-upload any references the pending payload carried (a hard navigation
@@ -662,6 +686,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       await Promise.all(pending.referenceDataUrls.map((url) => addReferenceFromDataUrl(url)));
     }
     await submit({
+      entityIds: pending.entityIds,
       prompt: pending.prompt,
       userInput: pending.userInput ?? null,
       intent: pending.intent ?? null,
@@ -709,6 +734,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       for (const jobId of jobsReadyToStart(res.jobs, runKickState, runKicksInFlight, Date.now())) {
         kickGenerationJob(jobId, referenceAssetIds);
       }
+      const owner = submitStateRef.current.user;
+      if (owner && lastParamsRef.current)
+        saveEntityResume(owner.id, res.sessionId, lastParamsRef.current, referenceAssetIds);
       pollSession(res.sessionId, res.jobs);
     } catch (err) {
       applyPlanOrJobError(err);
@@ -772,6 +800,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       }
     }
     await submit({
+      entityIds: lastParamsRef.current?.entityIds,
       prompt: editPrompt,
       structuredAspectRatio: lastParamsRef.current?.structuredAspectRatio ?? null,
       routingHints: lastParamsRef.current?.routingHints ?? null,
@@ -802,6 +831,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
    *  can just try again), this clears everything so the next submission
    *  starts from nothing. */
   function clearReferences() {
+    resumedReferencePathsRef.current = [];
+    clearEntityResume();
     setReferences([]);
   }
 

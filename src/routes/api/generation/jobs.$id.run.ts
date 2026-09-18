@@ -1,3 +1,7 @@
+import {
+  extractStoredEntityReferencePaths,
+  EntityReferenceUnavailableError,
+} from "@/lib/generation/stored-entities";
 import { createFileRoute } from "@tanstack/react-router";
 import { corsHeaders, jsonError } from "@/lib/api/public-route";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
@@ -12,7 +16,11 @@ import {
   extractStoredReferenceAssetIds,
   extractStoredMaskPath,
 } from "@/lib/generation/execution-plan";
-import { assembleJobImages, type StoredImage } from "@/lib/generation/job-images";
+import {
+  assembleJobImages,
+  failImageInputJob,
+  type StoredImage,
+} from "@/lib/generation/job-images";
 
 /**
  * POST /api/generation/jobs/:id/run — execute a queued job.
@@ -48,6 +56,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           .select(
             "id, user_id, session_id, operation, model, prompt, width, height, idempotency_key, source_version_id, status",
           )
+          .eq("user_id", userId)
           .eq("id", params.id)
           .maybeSingle();
         if (error) return jsonError("Could not load the job", 500);
@@ -63,6 +72,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         const { data: session, error: sessionLoadError } = await supabase
           .from("generation_sessions")
           .select("plan_json")
+          .eq("user_id", userId)
           .eq("id", job.session_id as string)
           .maybeSingle();
         if (sessionLoadError) return jsonError("Could not load the session", 500);
@@ -109,7 +119,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         const download = async (path: string): Promise<StoredImage | null> => {
           const { data: file } = await authResult.auth.supabase.storage
             .from(GENERATION_BUCKET)
-            .download(path);
+            .download(path, path.includes("/entities/") ? { cacheNonce: job.id } : undefined);
           if (!file) return null;
           return {
             bytes: new Uint8Array(await file.arrayBuffer()),
@@ -123,6 +133,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           const { data: sourceVersion } = await supabase
             .from("image_versions")
             .select("storage_path")
+            .eq("user_id", userId)
             .eq("id", job.source_version_id)
             .maybeSingle();
           if (sourceVersion) sourcePath = (sourceVersion.storage_path as string) ?? null;
@@ -130,7 +141,12 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         let referenceImages: StoredImage[];
         let editMask: StoredImage | null;
         try {
+          if (!session) throw new EntityReferenceUnavailableError();
+          const entityReferencePaths = extractStoredEntityReferencePaths(session.plan_json, userId);
+          if (entityReferencePaths.length && job.source_version_id && !sourcePath)
+            throw new EntityReferenceUnavailableError();
           const assembled = await assembleJobImages({
+            entityReferencePaths,
             download,
             sourcePath,
             referencePaths,
@@ -138,17 +154,15 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           });
           referenceImages = assembled.referenceImages;
           editMask = assembled.editMask;
-        } catch {
-          await data
-            .markJobFailed(job.id, {
-              errorCode: "mask_unavailable",
-              safeErrorMessage: "Could not load the selected region.",
-            })
-            .catch(() => {});
-          await data
-            .finalizeCredits(userId, 1, job.idempotency_key as string, "refunded", job.id)
-            .catch(() => {});
-          return jsonError("Could not load the selected region.", 500);
+        } catch (error) {
+          const failure = await failImageInputJob({
+            error,
+            data,
+            jobId: job.id,
+            userId,
+            idempotencyKey: job.idempotency_key,
+          });
+          return jsonError(failure.safeErrorMessage, 500);
         }
 
         const outcome = await runGenerationJob(
