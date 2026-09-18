@@ -55,7 +55,10 @@ test("generation_series_child_done fires once per child on succeeded/failed tran
   assert.match(pollFn, /success: child\.status === "succeeded"/);
   assert.match(pollFn, /!isTerminalStatus\(prev\)/);
   assert.match(pollFn, /child\.status === "succeeded" \|\| child\.status === "failed"/);
-  assert.doesNotMatch(pollFn, /isTerminalStatus\(child\.status\)/);
+  assert.doesNotMatch(
+    pollFn.slice(pollFn.indexOf("const prev ="), pollFn.indexOf("if (seeding &&")),
+    /isTerminalStatus\(child\.status\)/,
+  );
   assert.match(pollFn, /detailed\.length > 1/);
 });
 

@@ -1,5 +1,7 @@
 # VNext 5 — validation and targeted repair
 
+> Historical implementation record. The per-job repair allowance, quality-failure refund, and pending economic decision below are superseded by [the frozen launch policy](2026-09-18-vnext-5-launch-economics.md). Both features remain disabled.
+
 Implementation remains disabled unless `VALIDATION_REPAIR_ENABLED=true`. No live image generation, live judging, visual-quality comparisons, or browser verification was run. No new benchmark image fixtures were created. The program stops here; campaign memory and VNext 6 are excluded.
 
 ## Execution and checks

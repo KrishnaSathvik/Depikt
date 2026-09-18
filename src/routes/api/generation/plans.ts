@@ -1,5 +1,9 @@
 import { planGrounding } from "@/lib/generation/grounding/planner";
-import { resolveGrounding } from "@/lib/generation/grounding/service";
+import {
+  resolveGrounding,
+  groundingQueryPrices,
+  type GroundingUsage,
+} from "@/lib/generation/grounding/service";
 import { createGroundingProvider } from "@/lib/generation/grounding/provider";
 import { createGroundingCache } from "@/lib/generation/grounding/cache";
 import {
@@ -222,6 +226,7 @@ export const Route = createFileRoute("/api/generation/plans")({
         const plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
 
         let grounding;
+        let groundingUsage: GroundingUsage | undefined;
         if (process.env.GROUNDING_ENABLED === "true") {
           const groundingPlan = planGrounding(intent, userInput, plan.searchNeeded);
           plan.searchNeeded = groundingPlan.needed;
@@ -235,6 +240,10 @@ export const Route = createFileRoute("/api/generation/plans")({
                 provider: createGroundingProvider(),
                 cache: createGroundingCache(supabase, userId),
                 refresh: req.refreshGrounding,
+                queryCosts: groundingQueryPrices(),
+                onUsage: (usage) => {
+                  groundingUsage = usage;
+                },
               });
             } catch {
               return jsonError("Could not research references. Please try again.", 502);
@@ -245,6 +254,7 @@ export const Route = createFileRoute("/api/generation/plans")({
           {
             userId,
             grounding,
+            groundingUsage,
             prompt: req.prompt,
             userInput,
             ...(entities.length ? { entities } : {}),

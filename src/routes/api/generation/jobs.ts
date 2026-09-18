@@ -290,6 +290,12 @@ export const Route = createFileRoute("/api/generation/jobs")({
         if (process.env.VALIDATION_REPAIR_ENABLED === "true") {
           try {
             validationSnapshot = buildJobValidationPlans({
+              groundedRequirements: payload.grounding
+                ? [
+                    ...payload.grounding.bundle.facts.map((f) => f.text),
+                    ...payload.grounding.bundle.visualReferences.map((r) => r.description),
+                  ]
+                : undefined,
               intent: payload.intent,
               entities: payload.entities ?? [],
               selectedCount: selected,
@@ -309,6 +315,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         const executionPlan = buildExecutionPlanJson({
           validation: validationSnapshot,
           grounding: payload.grounding,
+          groundingUsage: payload.groundingUsage,
           entities: payload.entities,
           plan: payload.plan,
           selectedCount: selected,
@@ -385,6 +392,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
                 !executionPlanIdentityMatches(existingSession.plan_json, {
                   validation: validationSnapshot,
                   grounding: payload.grounding,
+                  groundingUsage: payload.groundingUsage,
                   entities: payload.entities,
                   plan: payload.plan,
                   selectedCount: selected,

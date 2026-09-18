@@ -124,7 +124,12 @@ export function startGenerationJob(jobId: string, referencePaths: string[]): Pro
 }
 
 export interface JobStatusResponse {
-  validation?: { verdict: "pass" | "repairable" | "fail"; repairAttempts: number };
+  validation?: {
+    verdict: "pass" | "repairable" | "fail";
+    repairAttempts: number;
+    refinementPending?: boolean;
+    warning?: boolean;
+  };
   jobId: string;
   sessionId: string;
   status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
@@ -187,4 +192,8 @@ export function uploadEditMask(
     method: "POST",
     body: JSON.stringify({ sourceVersionId, dataUrl }),
   });
+}
+
+export function refineGenerationSession(sessionId: string): Promise<unknown> {
+  return generationJson(`/api/generation/sessions/${sessionId}/refine`, { method: "POST" });
 }

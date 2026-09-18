@@ -15,7 +15,6 @@ import {
 } from "../../src/lib/generation/validation/contract.ts";
 import {
   validateAndRepair,
-  ValidationFailure,
   type ValidationRuntime,
 } from "../../src/lib/generation/validation/runtime.ts";
 import { planRepair } from "../../src/lib/generation/validation/repair.ts";
@@ -200,7 +199,7 @@ function runtime(
         read: async () => ({ text: options.ocrResults?.[reads++] ?? "WRONG", confidence: 1 }),
       },
     },
-    repairPolicy: options.policy ?? "platform_absorbs_one",
+    repairPolicy: options.policy ?? "platform_absorbs_one_per_request",
     claimRepair: async () => {
       claims++;
       return options.claim ?? true;
@@ -223,51 +222,53 @@ test("one repair followed by revalidation; persistent claim denied prevents any 
   assert.equal(calls, 1);
   assert.deepEqual(good.saved, [0, 1]);
   const denied = runtime({ claim: false });
-  await assert.rejects(
-    () =>
-      validateAndRepair({ image }, denied.r, async () => {
-        calls++;
-        return { image };
-      }),
-    ValidationFailure,
-  );
+  const retained = await validateAndRepair({ image }, denied.r, async () => {
+    calls++;
+    return { image };
+  });
+  assert.equal(retained.selected, "original");
   assert.equal(calls, 1);
 });
-test("repair failure never loops; disabled economic policy spends no repair attempts", async () => {
+test("imperfect repair, uncertainty, and provider failure retain usable output without loops", async () => {
   let calls = 0;
   const bad = runtime();
-  await assert.rejects(
-    () =>
-      validateAndRepair({ image }, bad.r, async () => {
-        calls++;
-        return { image };
-      }),
-    ValidationFailure,
-  );
+  const retained = await validateAndRepair({ image }, bad.r, async () => {
+    calls++;
+    return { image };
+  });
+  assert.equal(retained.selected, "original");
+  assert.equal(retained.repairOutcome, "not_improved");
   assert.equal(calls, 1);
   assert.deepEqual(bad.saved, [0, 1]);
   const disabled = runtime({ policy: "disabled" });
-  await assert.rejects(
-    () =>
-      validateAndRepair({ image }, disabled.r, async () => {
+  assert.equal(
+    (
+      await validateAndRepair({ image }, disabled.r, async () => {
         calls++;
         return { image };
-      }),
-    ValidationFailure,
+      })
+    ).selected,
+    "original",
   );
-  assert.equal(calls, 1);
   assert.equal(disabled.claims(), 0);
   const unavailable = runtime();
   delete unavailable.r.context.ocr;
-  await assert.rejects(
-    () =>
-      validateAndRepair({ image }, unavailable.r, async () => {
+  assert.equal(
+    (
+      await validateAndRepair({ image }, unavailable.r, async () => {
         calls++;
         return { image };
-      }),
-    ValidationFailure,
+      })
+    ).attempts,
+    0,
   );
   assert.equal(calls, 1);
+  const failure = await validateAndRepair({ image }, runtime().r, async () => {
+    throw Error("provider failed");
+  });
+  assert.equal(failure.selected, "original");
+  assert.equal(failure.repairOutcome, "provider_failed");
+  assert.equal(failure.attempts, 1);
 });
 test("validation plan signatures resist owner changes and JSONB key reordering", () => {
   const intent = loadVnext1Cases()[0]!.fixture_intent;

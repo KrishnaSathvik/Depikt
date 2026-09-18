@@ -1,3 +1,4 @@
+import type { GroundingUsage } from "./grounding/service.ts";
 import { verifyGroundingSnapshot, type GroundingSnapshot } from "./grounding/service.ts";
 import type { ResolvedEntity } from "./entities.ts";
 import { extractStoredEntities } from "./stored-entities.ts";
@@ -9,6 +10,7 @@ export const PLAN_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 export interface PlanTokenPayload {
   grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   userId: string;
   prompt: string;

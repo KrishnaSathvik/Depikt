@@ -54,6 +54,7 @@ import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 import { Route as ApiGenerationEntitiesIdRouteImport } from './routes/api/generation/entities.$id'
+import { Route as ApiGenerationSessionsIdRefineRouteImport } from './routes/api/generation/sessions.$id.refine'
 import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
 import { Route as ApiGenerationEntitiesIdAssetsRouteImport } from './routes/api/generation/entities.$id.assets'
 import { Route as ApiGenerationEntitiesIdAssetsAssetIdRouteImport } from './routes/api/generation/entities.$id.assets.$assetId'
@@ -285,6 +286,12 @@ const ApiGenerationEntitiesIdRoute = ApiGenerationEntitiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiGenerationEntitiesRoute,
 } as any)
+const ApiGenerationSessionsIdRefineRoute =
+  ApiGenerationSessionsIdRefineRouteImport.update({
+    id: '/refine',
+    path: '/refine',
+    getParentRoute: () => ApiGenerationSessionsIdRoute,
+  } as any)
 const ApiGenerationJobsIdRunRoute = ApiGenerationJobsIdRunRouteImport.update({
   id: '/run',
   path: '/run',
@@ -347,10 +354,11 @@ export interface FileRoutesByFullPath {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
-  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/sessions/$id/refine': typeof ApiGenerationSessionsIdRefineRoute
   '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRoutesByTo {
@@ -397,10 +405,11 @@ export interface FileRoutesByTo {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
-  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/sessions/$id/refine': typeof ApiGenerationSessionsIdRefineRoute
   '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRoutesById {
@@ -448,10 +457,11 @@ export interface FileRoutesById {
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
-  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
+  '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
   '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/sessions/$id/refine': typeof ApiGenerationSessionsIdRefineRoute
   '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRouteTypes {
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/webhook'
     | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/sessions/$id/refine'
     | '/api/generation/entities/$id/assets/$assetId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -554,6 +565,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/webhook'
     | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/sessions/$id/refine'
     | '/api/generation/entities/$id/assets/$assetId'
   id:
     | '__root__'
@@ -604,6 +616,7 @@ export interface FileRouteTypes {
     | '/api/public/billing/webhook'
     | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/sessions/$id/refine'
     | '/api/generation/entities/$id/assets/$assetId'
   fileRoutesById: FileRoutesById
 }
@@ -649,7 +662,7 @@ export interface RootRouteChildren {
   ApiGenerationReferencesRoute: typeof ApiGenerationReferencesRoute
   ApiPublicCritiquePromptRoute: typeof ApiPublicCritiquePromptRoute
   ApiPublicGeneratePromptRoute: typeof ApiPublicGeneratePromptRoute
-  ApiGenerationSessionsIdRoute: typeof ApiGenerationSessionsIdRoute
+  ApiGenerationSessionsIdRoute: typeof ApiGenerationSessionsIdRouteWithChildren
   ApiPublicBillingWebhookRoute: typeof ApiPublicBillingWebhookRoute
 }
 
@@ -970,6 +983,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationEntitiesIdRouteImport
       parentRoute: typeof ApiGenerationEntitiesRoute
     }
+    '/api/generation/sessions/$id/refine': {
+      id: '/api/generation/sessions/$id/refine'
+      path: '/refine'
+      fullPath: '/api/generation/sessions/$id/refine'
+      preLoaderRoute: typeof ApiGenerationSessionsIdRefineRouteImport
+      parentRoute: typeof ApiGenerationSessionsIdRoute
+    }
     '/api/generation/jobs/$id/run': {
       id: '/api/generation/jobs/$id/run'
       path: '/run'
@@ -1059,6 +1079,20 @@ const ApiGenerationJobsRouteChildren: ApiGenerationJobsRouteChildren = {
 const ApiGenerationJobsRouteWithChildren =
   ApiGenerationJobsRoute._addFileChildren(ApiGenerationJobsRouteChildren)
 
+interface ApiGenerationSessionsIdRouteChildren {
+  ApiGenerationSessionsIdRefineRoute: typeof ApiGenerationSessionsIdRefineRoute
+}
+
+const ApiGenerationSessionsIdRouteChildren: ApiGenerationSessionsIdRouteChildren =
+  {
+    ApiGenerationSessionsIdRefineRoute: ApiGenerationSessionsIdRefineRoute,
+  }
+
+const ApiGenerationSessionsIdRouteWithChildren =
+  ApiGenerationSessionsIdRoute._addFileChildren(
+    ApiGenerationSessionsIdRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AccountRoute: AccountRoute,
@@ -1102,7 +1136,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerationReferencesRoute: ApiGenerationReferencesRoute,
   ApiPublicCritiquePromptRoute: ApiPublicCritiquePromptRoute,
   ApiPublicGeneratePromptRoute: ApiPublicGeneratePromptRoute,
-  ApiGenerationSessionsIdRoute: ApiGenerationSessionsIdRoute,
+  ApiGenerationSessionsIdRoute: ApiGenerationSessionsIdRouteWithChildren,
   ApiPublicBillingWebhookRoute: ApiPublicBillingWebhookRoute,
 }
 export const routeTree = rootRouteImport

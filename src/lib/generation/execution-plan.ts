@@ -1,3 +1,4 @@
+import type { GroundingUsage } from "./grounding/service.ts";
 import type { ValidationSnapshot } from "./validation/contract.ts";
 import type { GroundingSnapshot } from "./grounding/service.ts";
 import type { ResolvedEntity } from "./entities.ts";
@@ -24,6 +25,7 @@ export interface ExecutionPlanChild {
 export interface ExecutionPlanJson {
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   lockedEntityCount?: number;
   /** Flat telemetry/evidence fields — see vnext-1 design §6. */
@@ -44,6 +46,7 @@ export interface ExecutionPlanJson {
 export function buildExecutionPlanJson(args: {
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   plan: GenerationPlan;
   selectedCount: number;
@@ -56,6 +59,7 @@ export function buildExecutionPlanJson(args: {
   const childLabels = args.children.map((c) => c.label);
   return {
     ...(args.validation ? { validation: args.validation } : {}),
+    ...(args.groundingUsage ? { groundingUsage: args.groundingUsage } : {}),
     ...(args.grounding ? { grounding: args.grounding } : {}),
     ...(args.entities?.length
       ? { entities: args.entities, lockedEntityCount: args.entities.length }
@@ -108,6 +112,7 @@ export function extractStoredMaskPath(planJson: unknown): string | null {
 export interface ExecutionPlanIdentity {
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
   selectedCount: number;

@@ -29,6 +29,7 @@ import {
   createGenerationJobs,
   startGenerationJob,
   getGenerationSession,
+  refineGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
   uploadEditMask,
@@ -496,7 +497,14 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         // Never awaited: credit settle + stale-fail stay on the server GET
         // without stalling the live spinner behind POST /run.
         kickSessionMaintenance(sessionId, getGenerationSession);
-        if (shouldKeepPollingSession(detailed, { elapsedMs: Date.now() - pollStart.current })) {
+        const refinementPending = detailed.some((child) => child.validation?.refinementPending);
+        if (refinementPending && detailed.every((child) => isTerminalStatus(child.status))) {
+          kickSessionMaintenance(`refine:${sessionId}`, () => refineGenerationSession(sessionId));
+        }
+        if (
+          (refinementPending && Date.now() - pollStart.current < 12 * 60 * 1000) ||
+          shouldKeepPollingSession(detailed, { elapsedMs: Date.now() - pollStart.current })
+        ) {
           const awaitingUrl = sessionAwaitingResultUrl(detailed);
           if (awaitingUrl) {
             setPhase("awaiting_result_url");
@@ -805,7 +813,11 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   function regenerate() {
     if (!lastParamsRef.current) return;
-    trackEvent("regenerate_submitted", {});
+    trackEvent("regenerate_submitted", {
+      sessionId: job?.sessionId ?? null,
+      jobId: job?.jobId ?? null,
+      afterValidation: !!job?.validation,
+    });
     // Repeat the prior operation with a fresh reservation. An edit still
     // needs its original source and mask; dropping them makes it invalid.
     void submit({
@@ -854,6 +866,11 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     const activeVersion = versions.find((v) => v.id === activeVersionId);
     const url = job?.result?.url ?? activeVersion?.url;
     if (!url) return;
+    trackEvent("generation_result_accepted", {
+      sessionId: job?.sessionId ?? null,
+      jobId: job?.jobId ?? null,
+      signal: "download",
+    });
     trackEvent("image_downloaded", {});
     const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(activeVersionId ?? "").slice(0, 8)}.png`;
     void downloadFile(url, filename);

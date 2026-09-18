@@ -1,3 +1,5 @@
+import { automaticRepairEnabled } from "@/lib/generation/economic-policy";
+import { refineGenerationSession } from "@/lib/generation/validation/session-repair";
 import { verifyExecutionAuthorization } from "@/lib/generation/execution-auth";
 import { verifyValidationPlan } from "@/lib/generation/validation/contract";
 import { createValidationProviders } from "@/lib/generation/validation/providers";
@@ -62,7 +64,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         const { data: job, error } = await supabase
           .from("generation_jobs")
           .select(
-            "id, user_id, session_id, operation, model, prompt, width, height, idempotency_key, source_version_id, status",
+            "id, user_id, session_id, operation, model, prompt, width, height, idempotency_key, source_version_id, status, series_index",
           )
           .eq("user_id", userId)
           .eq("id", params.id)
@@ -222,11 +224,15 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
                 referenceBindings,
                 ...validationProviders,
               },
-              repairPolicy:
-                process.env.AUTO_REPAIR_POLICY === "platform_absorbs_one"
-                  ? "platform_absorbs_one"
-                  : "disabled",
-              ...validationDataAccess(supabase, job.id, userId),
+              repairPolicy: "disabled",
+              refinementPending: automaticRepairEnabled(),
+              ...validationDataAccess(
+                supabase,
+                job.id,
+                userId,
+                job.session_id,
+                process.env.GENERATION_PLAN_SECRET ?? "",
+              ),
             };
           }
         } catch (error) {
@@ -253,6 +259,11 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             idempotencyKey: job.idempotency_key as string,
             referenceImages,
             editMask,
+            groundingCostUsd:
+              job.series_index == null || job.series_index === 0
+                ? (session?.plan_json?.groundingUsage?.costUsd ??
+                  (session?.plan_json?.grounding ? null : 0))
+                : 0,
           },
           (job.source_version_id as string | null) ?? null,
           {
@@ -263,6 +274,15 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           },
         );
 
+        if (outcome.outcome === "succeeded" && automaticRepairEnabled()) {
+          await refineGenerationSession({
+            db: supabase,
+            userId,
+            sessionId: job.session_id,
+            apiKey,
+            secret: process.env.GENERATION_PLAN_SECRET ?? "",
+          }).catch(() => {});
+        }
         return new Response(JSON.stringify({ claimed: true, ...outcome }), {
           status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },

@@ -43,7 +43,7 @@ export function assembleLivePoll(
 ): LivePollSnapshot {
   const versionsByJob = new Map<string, LivePollVersionRow>();
   for (const version of versions) {
-    if (!versionsByJob.has(version.job_id)) versionsByJob.set(version.job_id, version);
+    versionsByJob.set(version.job_id, version);
   }
 
   return {

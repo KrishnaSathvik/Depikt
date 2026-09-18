@@ -1,3 +1,4 @@
+import { LAUNCH_ECONOMIC_POLICY } from "../economic-policy.ts";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import {
   GroundingBundleSchema,
@@ -50,7 +51,7 @@ export function normalizeResults(
   const facts = [
     ...new Map(factual.filter((r) => r.excerpt.trim()).map((r) => [r.url, r])).values(),
   ]
-    .slice(0, 10)
+    .slice(0, LAUNCH_ECONOMIC_POLICY.maxGroundingSources - visuals.length)
     .map((r) => ({ text: r.excerpt.slice(0, 400), sourceId: source(r) }));
   const visualReferences = visuals.map((r) => ({
     imageUrl: r.imageUrl!,
@@ -66,6 +67,22 @@ export function normalizeResults(
   });
 }
 
+export interface GroundingUsage {
+  cacheHit: boolean;
+  webQueries: number;
+  visualQueries: number;
+  costUsd: number | null;
+}
+export function groundingQueryPrices(env: Record<string, string | undefined> = process.env) {
+  const price = (raw: string | undefined) =>
+    raw !== undefined && raw.trim() !== "" && Number.isFinite(Number(raw)) && Number(raw) >= 0
+      ? Number(raw)
+      : null;
+  return {
+    web: price(env.GROUNDING_WEB_QUERY_COST_USD),
+    visual: price(env.GROUNDING_VISUAL_QUERY_COST_USD),
+  };
+}
 export interface GroundingCache {
   get(key: string): Promise<string | null>;
   set(key: string, value: string): Promise<void>;
@@ -114,6 +131,8 @@ export async function resolveGrounding(args: {
   provider: GroundingProvider;
   cache: GroundingCache;
   refresh?: boolean;
+  onUsage?: (usage: GroundingUsage) => void;
+  queryCosts?: { web: number | null; visual: number | null };
 }): Promise<GroundingSnapshot | undefined> {
   if (!args.plan.needed) return undefined;
   const key = createHash("sha256")
@@ -133,16 +152,26 @@ export async function resolveGrounding(args: {
     if (cached) {
       const snapshot = verifyGroundingSnapshot(JSON.parse(cached), args.userId, args.secret);
       if (snapshot.key !== key) throw new Error("Grounding cache key mismatch");
+      args.onUsage?.({ cacheHit: true, webQueries: 0, visualQueries: 0, costUsd: 0 });
       return snapshot;
     }
   }
+  let webQueries = 0,
+    visualQueries = 0;
   const web: SearchResult[] = [];
   const images: SearchResult[] = [];
-  for (const query of args.plan.queries.slice(0, 2)) {
-    if (args.plan.mode !== "visual") web.push(...(await args.provider.searchWeb(query)));
-    if (args.plan.mode !== "web") images.push(...(await args.provider.searchImages(query)));
+  const queries = [...new Set(args.plan.queries)].slice(0, LAUNCH_ECONOMIC_POLICY.maxWebQueries);
+  for (const [index, query] of queries.entries()) {
+    if (args.plan.mode !== "visual") {
+      webQueries++;
+      web.push(...(await args.provider.searchWeb(query)));
+    }
+    if (args.plan.mode !== "web" && index < LAUNCH_ECONOMIC_POLICY.maxVisualQueries) {
+      visualQueries++;
+      images.push(...(await args.provider.searchImages(query)));
+    }
   }
-  const bundle = normalizeResults(web, images, args.plan.queries);
+  const bundle = normalizeResults(web, images, queries);
   if (
     (args.plan.mode !== "visual" && !bundle.facts.length) ||
     (args.plan.mode !== "web" && !bundle.visualReferences.length)
@@ -150,6 +179,12 @@ export async function resolveGrounding(args: {
     throw new Error("Research returned insufficient evidence");
   const snapshot = { key, bundle, seal: seal(key, bundle, args.userId, args.secret) };
   await args.cache.set(key, JSON.stringify(snapshot));
+  const costs = args.queryCosts;
+  const costUsd =
+    (!webQueries || costs?.web != null) && (!visualQueries || costs?.visual != null)
+      ? webQueries * (costs?.web ?? 0) + visualQueries * (costs?.visual ?? 0)
+      : null;
+  args.onUsage?.({ cacheHit: false, webQueries, visualQueries, costUsd });
   return snapshot;
 }
 export function groundingBrief(snapshot?: GroundingSnapshot): string {

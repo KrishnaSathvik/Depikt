@@ -442,7 +442,7 @@ test("validation repairs once, revalidates, records both image costs and charges
         entityIds: [],
         ocr: { read: async () => ({ text: ++ocr === 1 ? "WRONG" : "HELLO", confidence: 1 }) },
       },
-      repairPolicy: "platform_absorbs_one",
+      repairPolicy: "platform_absorbs_one_per_request",
       claimRepair: async () => {
         claims++;
         return true;
@@ -466,7 +466,7 @@ test("validation repairs once, revalidates, records both image costs and charges
   assert.ok(patch.estimatedApiCostUsd > 0);
 });
 
-test("repair failure refunds exactly once, never publishes a failing image and never makes a third call", async () => {
+test("imperfect repair retains original output, charges once and never makes a third call", async () => {
   const fake = makeFakeDataAccess();
   let requests = 0;
   const outcome = await runGenerationJob(baseJob(), null, {
@@ -492,15 +492,15 @@ test("repair failure refunds exactly once, never publishes a failing image and n
         entityIds: [],
         ocr: { read: async () => ({ text: "WRONG", confidence: 1 }) },
       },
-      repairPolicy: "platform_absorbs_one",
+      repairPolicy: "platform_absorbs_one_per_request",
       claimRepair: async () => true,
       save: async () => {},
     },
   });
-  assert.deepEqual(outcome, { outcome: "failed", errorCode: "validation_failed" });
+  assert.equal(outcome.outcome, "succeeded");
   assert.equal(requests, 2);
-  assert.equal(fake.versions.length, 0);
-  assert.deepEqual(fake.finalizeCalls, [{ outcome: "refunded", jobId: "job-1" }]);
+  assert.equal(fake.versions.length, 1);
+  assert.deepEqual(fake.finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
 });
 
 test("masked repair retries original source and signed mask, never the drifted result", async () => {
@@ -542,7 +542,7 @@ test("masked repair retries original source and signed mask, never the drifted r
           mask,
           entityIds: [],
         },
-        repairPolicy: "platform_absorbs_one",
+        repairPolicy: "platform_absorbs_one_per_request",
         claimRepair: async () => true,
         save: async () => {},
       },

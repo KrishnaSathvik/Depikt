@@ -1,52 +1,91 @@
 import type { ValidationTelemetry } from "./openai-providers.ts";
 import type { StoredImage } from "../openai-images.ts";
 import type { ValidationPlan, ValidationResult } from "./contract.ts";
-import { MAX_AUTO_REPAIR_ATTEMPTS } from "./contract.ts";
+import { INCLUDED_REPAIR_POLICY } from "../economic-policy.ts";
 import { validateResult, type ValidationContext } from "./engine.ts";
-import { planRepair, type RepairPlan } from "./repair.ts";
+import { planRepair, repairIsBetter, type RepairPlan } from "./repair.ts";
 
-export class ValidationFailure extends Error {
-  readonly code: string;
-  constructor(result: ValidationResult) {
-    super("The image did not satisfy the required checks.");
-    this.code = result.checks.some((c) => c.status === "unavailable")
-      ? "validation_unavailable"
-      : "validation_failed";
-  }
-}
 export interface ValidationRuntime {
   plan: ValidationPlan;
   providerTelemetry?: ValidationTelemetry;
   context: Omit<ValidationContext, "image">;
-  /** No policy is configured by default. No extra user credit is ever reserved. */
-  repairPolicy: "disabled" | "platform_absorbs_one";
+  repairPolicy: "disabled" | typeof INCLUDED_REPAIR_POLICY;
+  /** True while initial series outputs are collected; the server coordinator owns repairs. */
+  refinementPending?: boolean;
+  initialResult?: ValidationResult;
   claimRepair(): Promise<boolean>;
   save(result: ValidationResult, attempt: number): Promise<void>;
 }
-/** At most one retry; a failed or uncertain revalidation terminates the job. */
+export interface ValidationOutcome<T> {
+  output: T;
+  result: ValidationResult;
+  attempts: number;
+  repairOutcome: "not_attempted" | "improved" | "not_improved" | "provider_failed";
+  selected: "original" | "repair";
+}
+/** A generated image is never discarded because checking or its included repair failed. */
 export async function validateAndRepair<T extends { image: StoredImage }>(
   initial: T,
   runtime: ValidationRuntime,
   repair: (plan: RepairPlan, result: ValidationResult, current: T) => Promise<T>,
-): Promise<{ output: T; result: ValidationResult; attempts: number }> {
-  let output = initial;
-  let result = await validateResult(runtime.plan, { ...runtime.context, image: output.image });
-  await runtime.save(result, 0);
-  if (result.verdict === "pass") return { output, result, attempts: 0 };
+): Promise<ValidationOutcome<T>> {
+  let result: ValidationResult;
+  try {
+    result =
+      runtime.initialResult ??
+      (await validateResult(runtime.plan, { ...runtime.context, image: initial.image }));
+  } catch {
+    result = {
+      verdict: "fail",
+      checks: runtime.plan.checks.map((c) => ({
+        ...c,
+        status: "unavailable",
+        confidence: 0,
+        evidence: "Validation unavailable",
+        method: "deterministic",
+      })),
+    };
+  }
+  const original: ValidationOutcome<T> = {
+    output: initial,
+    result,
+    attempts: 0,
+    repairOutcome: "not_attempted",
+    selected: "original",
+  };
+  try {
+    await runtime.save(result, 0);
+  } catch {
+    return original;
+  }
   const plan = planRepair(result, {
     hasMask: !!runtime.context.mask,
     hasReferences: !!runtime.context.references.length,
   });
-  if (
-    !plan ||
-    runtime.repairPolicy !== "platform_absorbs_one" ||
-    MAX_AUTO_REPAIR_ATTEMPTS !== 1 ||
-    !(await runtime.claimRepair())
-  )
-    throw new ValidationFailure(result);
-  output = await repair(plan, result, output);
-  result = await validateResult(runtime.plan, { ...runtime.context, image: output.image });
-  await runtime.save(result, 1);
-  if (result.verdict !== "pass") throw new ValidationFailure(result);
-  return { output, result, attempts: 1 };
+  if (result.verdict !== "repairable" || !plan || runtime.repairPolicy !== INCLUDED_REPAIR_POLICY)
+    return original;
+  try {
+    if (!(await runtime.claimRepair())) return original;
+  } catch {
+    return original;
+  }
+  try {
+    const output = await repair(plan, result, initial);
+    const revalidated = await validateResult(runtime.plan, {
+      ...runtime.context,
+      image: output.image,
+    });
+    const better = repairIsBetter(result, revalidated);
+    // Telemetry persistence failure must not lose either usable result.
+    await runtime.save(revalidated, 1).catch(() => {});
+    return {
+      output: better ? output : initial,
+      result: better ? revalidated : result,
+      attempts: 1,
+      repairOutcome: better ? "improved" : "not_improved",
+      selected: better ? "repair" : "original",
+    };
+  } catch {
+    return { ...original, attempts: 1, repairOutcome: "provider_failed" };
+  }
 }

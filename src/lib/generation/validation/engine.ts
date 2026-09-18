@@ -46,11 +46,13 @@ export async function validateResult(
     passed: boolean,
     evidence: string,
     method: ValidationCheck["method"] = "deterministic",
-  ) => checks.push({ ...spec, status: passed ? "pass" : "fail", evidence, method });
+    confidence = 1,
+  ) => checks.push({ ...spec, status: passed ? "pass" : "fail", evidence, method, confidence });
   const unavailable = (spec: CheckSpec, method: ValidationCheck["method"]) =>
     checks.push({
       ...spec,
       status: "unavailable",
+      confidence: 0,
       evidence: "Required evidence could not be measured",
       method,
     });
@@ -112,6 +114,7 @@ export async function validateResult(
             passed,
             passed ? "OCR text requirements satisfied" : "OCR text requirements differ",
             "ocr",
+            ocr.confidence,
           );
         } catch {
           unavailable(spec, "ocr");
@@ -163,7 +166,7 @@ export async function validateResult(
           typeof d.evidence !== "string"
         )
           unavailable(spec, "visual_judge");
-        else add(spec, d.passed, d.evidence.slice(0, 400), "visual_judge");
+        else add(spec, d.passed, d.evidence.slice(0, 400), "visual_judge", d.confidence);
       }
     } catch {
       for (const spec of subjective) unavailable(spec, "visual_judge");

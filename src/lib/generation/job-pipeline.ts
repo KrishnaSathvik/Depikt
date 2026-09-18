@@ -1,8 +1,4 @@
-import {
-  validateAndRepair,
-  ValidationFailure,
-  type ValidationRuntime,
-} from "./validation/runtime.ts";
+import { validateAndRepair, type ValidationRuntime } from "./validation/runtime.ts";
 import { repairInstruction } from "./validation/repair.ts";
 // Native image generation — job execution pipeline.
 //
@@ -37,6 +33,7 @@ export interface GenerationJobRecord {
   idempotencyKey: string;
   referenceImages: StoredImage[];
   editMask?: StoredImage | null;
+  groundingCostUsd?: number | null;
 }
 
 export interface GenerationDataAccess {
@@ -87,14 +84,6 @@ export type RunJobOutcome =
   | { outcome: "failed"; errorCode: string };
 
 function categorizeError(err: unknown): { errorCode: string; safeErrorMessage: string } {
-  if (err instanceof ValidationFailure)
-    return {
-      errorCode: err.code,
-      safeErrorMessage:
-        err.code === "validation_unavailable"
-          ? "The required image checks could not be completed. Your credit was returned."
-          : "The image did not meet the required checks. Your credit was returned.",
-    };
   if (err instanceof OpenAIImageError) {
     if (err.status === 429) {
       return {
@@ -159,32 +148,14 @@ export async function runGenerationJob(
         { result, image: { bytes, filename: "result.png", mimeType: "image/png" } },
         deps.validation,
         async (repair, report, current) => {
-          const localized =
-            (repair.action === "remove_unwanted_text" || repair.action === "rerender_exact_text") &&
-            job.referenceImages.length < 8;
-          const prompt = `${localized ? "Image 1 is the generated source to correct. Original numbered reference images below are shifted by one position for this repair.\n\n" : ""}${job.prompt}\n\nTARGETED REPAIR\n${repairInstruction(repair, report)}`;
-          const next =
-            localized || job.operation === "edit"
-              ? await editImage({
-                  model: job.model,
-                  prompt,
-                  width: job.width,
-                  height: job.height,
-                  apiKey: deps.apiKey,
-                  fetchImpl: deps.fetchImpl,
-                  referenceImages: localized
-                    ? [current.image, ...job.referenceImages]
-                    : job.referenceImages,
-                  mask: localized ? null : (job.editMask ?? null),
-                })
-              : await generateImage({
-                  model: job.model,
-                  prompt,
-                  width: job.width,
-                  height: job.height,
-                  apiKey: deps.apiKey,
-                  fetchImpl: deps.fetchImpl,
-                });
+          const next = await executeTargetedRepair(
+            job,
+            current.image,
+            repair,
+            report,
+            deps.apiKey,
+            deps.fetchImpl,
+          );
           usages.push(next.usage);
           return {
             result: next,
@@ -201,6 +172,9 @@ export async function runGenerationJob(
       validationReport = {
         ...validated.result,
         repairAttempts: validated.attempts,
+        repairOutcome: validated.repairOutcome,
+        refinementPending: deps.validation.refinementPending ?? false,
+        warning: validated.result.verdict !== "pass",
         providerTelemetry: deps.validation.providerTelemetry,
       };
     }
@@ -223,14 +197,40 @@ export async function runGenerationJob(
 
     const succeeded = await data.markJobSucceeded(job.id, {
       usage: validationReport
-        ? { imageAttempts: usages, validation: validationReport }
-        : result.usage,
+        ? {
+            imageAttempts: usages,
+            validation: validationReport,
+            economics: {
+              policy: "launch-v1",
+              initialProviderCostUsd: estimateApiCostUsd(usages[0]),
+              validationCostUsd: deps.validation?.providerTelemetry?.estimatedCostUsd ?? null,
+              groundingCostUsd: job.groundingCostUsd ?? null,
+              repairCostUsd: usages.length > 1 ? estimateApiCostUsd(usages[1]) : 0,
+              repairTriggered: usages.length > 1,
+              userAccepted: null,
+              userRegenerated: null,
+            },
+          }
+        : job.groundingCostUsd !== undefined
+          ? {
+              ...result.usage,
+              economics: {
+                initialProviderCostUsd: estimateApiCostUsd(usages[0]),
+                groundingCostUsd: job.groundingCostUsd,
+                validationCostUsd: 0,
+                repairCostUsd: 0,
+                repairTriggered: false,
+              },
+            }
+          : result.usage,
       estimatedApiCostUsd:
+        job.groundingCostUsd === null ||
         deps.validation?.providerTelemetry?.estimatedCostUsd === null ||
         usages.some((u) => estimateApiCostUsd(u) === null)
           ? null
           : usages.reduce((sum, u) => sum + (estimateApiCostUsd(u) ?? 0), 0) +
-            (deps.validation?.providerTelemetry?.estimatedCostUsd ?? 0),
+            (deps.validation?.providerTelemetry?.estimatedCostUsd ?? 0) +
+            (job.groundingCostUsd ?? 0),
     });
     if (!succeeded) {
       return { outcome: "failed", errorCode: "timed_out" };
@@ -256,4 +256,41 @@ export async function runGenerationJob(
   ).catch(() => {});
 
   return { outcome: "succeeded", versionId };
+}
+
+/** Reused by the server-owned session coordinator after the request-wide budget claim. */
+export async function executeTargetedRepair(
+  job: GenerationJobRecord,
+  currentImage: StoredImage,
+  repair: import("./validation/repair.ts").RepairPlan,
+  report: import("./validation/contract.ts").ValidationResult,
+  apiKey: string,
+  fetchImpl?: typeof fetch,
+) {
+  const localized =
+    (repair.action === "remove_unwanted_text" || repair.action === "rerender_exact_text") &&
+    job.referenceImages.length < 8;
+  const prompt = `${localized ? "Image 1 is the generated source to correct. Original numbered reference images below are shifted by one position for this repair.\n\n" : ""}${job.prompt}\n\nTARGETED REPAIR\n${repairInstruction(repair, report)}`;
+  const next =
+    localized || job.operation === "edit"
+      ? await editImage({
+          model: job.model,
+          prompt,
+          width: job.width,
+          height: job.height,
+          apiKey: apiKey,
+          fetchImpl: fetchImpl,
+          referenceImages: localized ? [currentImage, ...job.referenceImages] : job.referenceImages,
+          mask: localized ? null : (job.editMask ?? null),
+        })
+      : await generateImage({
+          model: job.model,
+          prompt,
+          width: job.width,
+          height: job.height,
+          apiKey: apiKey,
+          fetchImpl: fetchImpl,
+        });
+
+  return next;
 }

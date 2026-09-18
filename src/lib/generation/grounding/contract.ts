@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { LAUNCH_ECONOMIC_POLICY } from "../economic-policy.ts";
+
 export type GroundingMode = "none" | "web" | "visual" | "web_and_visual";
 export interface GroundingPlan {
   needed: boolean;
@@ -58,7 +60,7 @@ export const GroundingBundleSchema = z
         }),
       )
       .max(2),
-    sources: z.array(GroundingSourceSchema).max(12),
+    sources: z.array(GroundingSourceSchema).max(LAUNCH_ECONOMIC_POLICY.maxGroundingSources),
     queries: z.array(z.string().max(500)).max(4),
     createdAt: z.iso.datetime(),
   })

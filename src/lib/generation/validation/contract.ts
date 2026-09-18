@@ -17,6 +17,9 @@ export const CheckKindSchema = z.enum([
   "edit_preservation",
   "unwanted_text",
   "entity_distinction",
+  "grounding_consistency",
+  "strict_preservation",
+  "requested_edit",
 ]);
 export type CheckKind = z.infer<typeof CheckKindSchema>;
 export const CheckSpecSchema = z.strictObject({
@@ -37,6 +40,7 @@ export interface ValidationSnapshot {
   seal: string;
 }
 export interface ValidationCheck extends CheckSpec {
+  confidence?: number;
   status: "pass" | "fail" | "unavailable";
   evidence: string;
   method: "deterministic" | "ocr" | "visual_judge";
@@ -45,7 +49,7 @@ export interface ValidationResult {
   checks: ValidationCheck[];
   verdict: "pass" | "repairable" | "fail";
 }
-export const MAX_AUTO_REPAIR_ATTEMPTS = 1;
+export { MAX_AUTO_REPAIR_ATTEMPTS_PER_REQUEST } from "../economic-policy.ts";
 
 export function buildValidationPlan(args: {
   intent: Intent;
@@ -53,6 +57,7 @@ export function buildValidationPlan(args: {
   selectedCount: number;
   prompt: string;
   hasMask: boolean;
+  groundedRequirements?: string[];
 }): ValidationPlan {
   const checks: CheckSpec[] = [
     { id: "dimensions", kind: "dimensions", target: "output canvas" },
@@ -83,6 +88,20 @@ export function buildValidationPlan(args: {
       "edit_preservation",
       args.intent.must_preserve.join("; ").slice(0, 600) || "outside selected area",
     );
+  if (args.hasMask)
+    add(
+      "requested_edit",
+      args.intent.requested_changes.join("; ").slice(0, 600) || args.prompt.slice(0, 600),
+    );
+  for (const requirement of args.groundedRequirements?.slice(0, 8) ?? [])
+    add("grounding_consistency", requirement.slice(0, 600));
+  if (
+    /\b(keep|preserve|exact|same|recreate|reproduce)\b/i.test(args.prompt) &&
+    !args.hasMask &&
+    !args.entities.length &&
+    !args.intent.exact_text.length
+  )
+    add("strict_preservation", args.prompt.slice(0, 600));
   if (args.intent.reference_intent === "composition") add("composition", "reference composition");
   const count = args.prompt.match(
     /\b(?:exactly\s+)(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\s+([\p{L} -]{1,60})(?:[,.!;]|$)/iu,
@@ -142,6 +161,7 @@ export function buildJobValidationPlans(args: {
   selectedCount: number;
   prompt: string;
   hasMask: boolean;
+  groundedRequirements?: string[];
   children: Array<{ key: string; prompt: string }>;
   userId: string;
   secret: string;

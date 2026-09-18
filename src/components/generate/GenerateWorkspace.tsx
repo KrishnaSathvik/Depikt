@@ -289,19 +289,13 @@ export function GenerateWorkspace() {
                   Preparing your request and researching references when needed…
                 </p>
               )}
-              {gen.job?.validation && (
+              {gen.job?.validation?.refinementPending && (
                 <p role="status" className="text-body-sm">
-                  {gen.job.status === "failed"
-                    ? "Validation could not be satisfied"
-                    : gen.job.validation.verdict === "pass"
-                      ? "Validation passed"
-                      : gen.job.validation.repairAttempts
-                        ? "Checking repair…"
-                        : "Checking requirements…"}
-                  {gen.job.validation.verdict === "pass" && gen.job.validation.repairAttempts > 0
-                    ? " · Repaired once"
-                    : ""}
+                  Refining details…
                 </p>
+              )}
+              {gen.phase === "result" && gen.job?.validation?.warning && (
+                <p className="text-body-sm">Some requested details may not be exact.</p>
               )}
               {gen.grounding && (
                 <details className="text-body-sm">
