@@ -4,4 +4,9 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
+  "vars": {
+    "GROUNDING_ENABLED": "false",
+    "VALIDATION_REPAIR_ENABLED": "false",
+    "AUTO_REPAIR_POLICY": "disabled",
+  },
 }
