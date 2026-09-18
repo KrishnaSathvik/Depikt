@@ -1,0 +1,37 @@
+[
+  {
+    "id": "character-a",
+    "name": "Maya",
+    "type": "character",
+    "description": "Fictional adult woman, warm brown skin, oval face, dark almond eyes, thick eyebrows, short black curly bob and a small mole on her left cheek.",
+    "roles": ["primary", "three_quarter", "full_body"]
+  },
+  {
+    "id": "character-b",
+    "name": "Sofia",
+    "type": "character",
+    "description": "Fictional adult woman, fair freckled skin, square face, green eyes, straight copper-red shoulder-length hair and a broad nose.",
+    "roles": ["primary", "three_quarter", "full_body"]
+  },
+  {
+    "id": "product-a",
+    "name": "VELORA Lemon",
+    "type": "product",
+    "description": "Fictional cylindrical pale yellow beverage bottle, dark green ribbed cap, cream label reading VELORA and LEMON, lemon-and-leaves circle emblem.",
+    "roles": ["front", "three_quarter", "detail"]
+  },
+  {
+    "id": "product-b",
+    "name": "NEMORI Berry",
+    "type": "product",
+    "description": "Fictional short square lavender beverage bottle, silver flat cap, white label reading NEMORI and BERRY, three purple diamond emblem.",
+    "roles": ["front", "three_quarter", "detail"]
+  },
+  {
+    "id": "brand-a",
+    "name": "VELORA",
+    "type": "brand",
+    "description": "Fictional brand: VELORA uppercase dark green wordmark, lemon-and-leaves circle emblem, cream and pale yellow palette, minimal editorial product photography.",
+    "roles": ["logo", "style_reference", "product_shot"]
+  }
+]

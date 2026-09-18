@@ -49,7 +49,10 @@ test("the active generation session id survives a refresh and is resumed on moun
   assert.match(pollSessionFn, /sessionAwaitingResultUrl\(detailed\)/);
   assert.match(pollSessionFn, /setPhase\("awaiting_result_url"\)/);
   assert.match(pollSessionFn, /clearActiveSession\(\)/);
-  assert.equal(/detailed\.every\(\(j\) => isTerminalStatus\(j\.status\)\)/.test(pollSessionFn), false);
+  assert.equal(
+    /detailed\.every\(\(j\) => isTerminalStatus\(j\.status\)\)/.test(pollSessionFn),
+    false,
+  );
   assert.match(pollSessionFn, /readGenerationSessionLive\(sessionId\)/);
   // Spinner path must not await the server GET. Maintenance pokes it in
   // the background so credit settle + stale-fail stay server-side.
@@ -79,7 +82,7 @@ test("the active generation session id survives a refresh and is resumed on moun
   // resume effect.
   assert.match(
     g,
-    /const activeSessionId = readActiveSession\(\);\s*\n\s*if \(activeSessionId\) pollSession\(activeSessionId\);/,
+    /const activeSessionId = readActiveSession\(\);[\s\S]*const sessionId = activeSessionId \?\? resumed\?\.sessionId;\s*if \(sessionId\) pollSession\(sessionId\);/,
   );
 
   // A resumed job has no local `prompt` to resolve a ratio from; once the

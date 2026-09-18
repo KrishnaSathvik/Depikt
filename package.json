@@ -16,7 +16,8 @@
     "test:vnext-1-live": "node --test --test-timeout=600000 tests/eval/vnext-1-live-intent.test.ts",
     "test:vnext-2-live": "node --import tsx tests/eval/vnext-2-live.ts",
     "bench": "node tests/bench/runner.ts",
-    "bench:compare": "node tests/bench/compare.ts"
+    "bench:compare": "node tests/bench/compare.ts",
+    "test:vnext-3-live": "node tests/eval/vnext-3-live.ts"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

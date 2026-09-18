@@ -1,3 +1,5 @@
+import { ReferencePackPicker } from "./ReferencePackPicker";
+import type { ReferenceEntity } from "@/lib/generation/entities";
 import { useEffect, useState } from "react";
 import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,6 +49,7 @@ import { PROMPT_MODE_COPY } from "@/lib/product";
  * prompt).
  */
 export function GenerateWorkspace() {
+  const [selectedEntities, setSelectedEntities] = useState<ReferenceEntity[]>([]);
   const [prompt, setPrompt] = useState("");
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
@@ -134,7 +137,12 @@ export function GenerateWorkspace() {
         });
 
   function submitComposer() {
-    void gen.submit({ prompt, structuredAspectRatio: structuredRatio, routingHints });
+    void gen.submit({
+      prompt,
+      entityIds: selectedEntities.map((e) => e.id),
+      structuredAspectRatio: structuredRatio,
+      routingHints,
+    });
   }
 
   function useChip(text: string) {
@@ -149,6 +157,7 @@ export function GenerateWorkspace() {
   function startNew() {
     gen.reset();
     gen.clearReferences();
+    setSelectedEntities([]);
     setPrompt("");
     setStructuredRatio(null);
     setRoutingHints(null);
@@ -189,6 +198,12 @@ export function GenerateWorkspace() {
             ]
               .filter(Boolean)
               .join(" · ")}
+          />
+          <ReferencePackPicker
+            selected={selectedEntities}
+            onChange={setSelectedEntities}
+            prompt={prompt}
+            adhocCount={gen.references.length}
           />
           <ComposerChips chips={GENERATE_EXAMPLES} onSelect={useChip} />
         </div>

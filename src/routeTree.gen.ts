@@ -38,6 +38,7 @@ import { Route as ApiGenerationReferencesRouteImport } from './routes/api/genera
 import { Route as ApiGenerationPlansRouteImport } from './routes/api/generation/plans'
 import { Route as ApiGenerationMasksRouteImport } from './routes/api/generation/masks'
 import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
+import { Route as ApiGenerationEntitiesRouteImport } from './routes/api/generation/entities'
 import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
 import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
 import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
@@ -52,7 +53,10 @@ import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/cr
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
+import { Route as ApiGenerationEntitiesIdRouteImport } from './routes/api/generation/entities.$id'
 import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
+import { Route as ApiGenerationEntitiesIdAssetsRouteImport } from './routes/api/generation/entities.$id.assets'
+import { Route as ApiGenerationEntitiesIdAssetsAssetIdRouteImport } from './routes/api/generation/entities.$id.assets.$assetId'
 
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
@@ -200,6 +204,11 @@ const ApiGenerationJobsRoute = ApiGenerationJobsRouteImport.update({
   path: '/api/generation/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerationEntitiesRoute = ApiGenerationEntitiesRouteImport.update({
+  id: '/api/generation/entities',
+  path: '/api/generation/entities',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationCreditsRoute = ApiGenerationCreditsRouteImport.update({
   id: '/api/generation/credits',
   path: '/api/generation/credits',
@@ -271,11 +280,28 @@ const ApiGenerationJobsIdRoute = ApiGenerationJobsIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiGenerationJobsRoute,
 } as any)
+const ApiGenerationEntitiesIdRoute = ApiGenerationEntitiesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiGenerationEntitiesRoute,
+} as any)
 const ApiGenerationJobsIdRunRoute = ApiGenerationJobsIdRunRouteImport.update({
   id: '/run',
   path: '/run',
   getParentRoute: () => ApiGenerationJobsIdRoute,
 } as any)
+const ApiGenerationEntitiesIdAssetsRoute =
+  ApiGenerationEntitiesIdAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => ApiGenerationEntitiesIdRoute,
+  } as any)
+const ApiGenerationEntitiesIdAssetsAssetIdRoute =
+  ApiGenerationEntitiesIdAssetsAssetIdRouteImport.update({
+    id: '/$assetId',
+    path: '/$assetId',
+    getParentRoute: () => ApiGenerationEntitiesIdAssetsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -312,16 +338,20 @@ export interface FileRoutesByFullPath {
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
+  '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -358,16 +388,20 @@ export interface FileRoutesByTo {
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
+  '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -405,16 +439,20 @@ export interface FileRoutesById {
   '/api/billing/webhook': typeof ApiBillingWebhookRoute
   '/api/blog/rss.xml': typeof ApiBlogRssDotxmlRoute
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
+  '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRoute
   '/api/public/billing/webhook': typeof ApiPublicBillingWebhookRoute
+  '/api/generation/entities/$id/assets': typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
   '/api/generation/jobs/$id/run': typeof ApiGenerationJobsIdRunRoute
+  '/api/generation/entities/$id/assets/$assetId': typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -453,16 +491,20 @@ export interface FileRouteTypes {
     | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
+    | '/api/generation/entities'
     | '/api/generation/jobs'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/entities/$id/assets/$assetId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -499,16 +541,20 @@ export interface FileRouteTypes {
     | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
+    | '/api/generation/entities'
     | '/api/generation/jobs'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/entities/$id/assets/$assetId'
   id:
     | '__root__'
     | '/'
@@ -545,16 +591,20 @@ export interface FileRouteTypes {
     | '/api/billing/webhook'
     | '/api/blog/rss.xml'
     | '/api/generation/credits'
+    | '/api/generation/entities'
     | '/api/generation/jobs'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
     | '/api/public/billing/webhook'
+    | '/api/generation/entities/$id/assets'
     | '/api/generation/jobs/$id/run'
+    | '/api/generation/entities/$id/assets/$assetId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -592,6 +642,7 @@ export interface RootRouteChildren {
   ApiBillingWebhookRoute: typeof ApiBillingWebhookRoute
   ApiBlogRssDotxmlRoute: typeof ApiBlogRssDotxmlRoute
   ApiGenerationCreditsRoute: typeof ApiGenerationCreditsRoute
+  ApiGenerationEntitiesRoute: typeof ApiGenerationEntitiesRouteWithChildren
   ApiGenerationJobsRoute: typeof ApiGenerationJobsRouteWithChildren
   ApiGenerationMasksRoute: typeof ApiGenerationMasksRoute
   ApiGenerationPlansRoute: typeof ApiGenerationPlansRoute
@@ -807,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generation/entities': {
+      id: '/api/generation/entities'
+      path: '/api/generation/entities'
+      fullPath: '/api/generation/entities'
+      preLoaderRoute: typeof ApiGenerationEntitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/credits': {
       id: '/api/generation/credits'
       path: '/api/generation/credits'
@@ -905,6 +963,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsIdRouteImport
       parentRoute: typeof ApiGenerationJobsRoute
     }
+    '/api/generation/entities/$id': {
+      id: '/api/generation/entities/$id'
+      path: '/$id'
+      fullPath: '/api/generation/entities/$id'
+      preLoaderRoute: typeof ApiGenerationEntitiesIdRouteImport
+      parentRoute: typeof ApiGenerationEntitiesRoute
+    }
     '/api/generation/jobs/$id/run': {
       id: '/api/generation/jobs/$id/run'
       path: '/run'
@@ -912,8 +977,65 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsIdRunRouteImport
       parentRoute: typeof ApiGenerationJobsIdRoute
     }
+    '/api/generation/entities/$id/assets': {
+      id: '/api/generation/entities/$id/assets'
+      path: '/assets'
+      fullPath: '/api/generation/entities/$id/assets'
+      preLoaderRoute: typeof ApiGenerationEntitiesIdAssetsRouteImport
+      parentRoute: typeof ApiGenerationEntitiesIdRoute
+    }
+    '/api/generation/entities/$id/assets/$assetId': {
+      id: '/api/generation/entities/$id/assets/$assetId'
+      path: '/$assetId'
+      fullPath: '/api/generation/entities/$id/assets/$assetId'
+      preLoaderRoute: typeof ApiGenerationEntitiesIdAssetsAssetIdRouteImport
+      parentRoute: typeof ApiGenerationEntitiesIdAssetsRoute
+    }
   }
 }
+
+interface ApiGenerationEntitiesIdAssetsRouteChildren {
+  ApiGenerationEntitiesIdAssetsAssetIdRoute: typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
+}
+
+const ApiGenerationEntitiesIdAssetsRouteChildren: ApiGenerationEntitiesIdAssetsRouteChildren =
+  {
+    ApiGenerationEntitiesIdAssetsAssetIdRoute:
+      ApiGenerationEntitiesIdAssetsAssetIdRoute,
+  }
+
+const ApiGenerationEntitiesIdAssetsRouteWithChildren =
+  ApiGenerationEntitiesIdAssetsRoute._addFileChildren(
+    ApiGenerationEntitiesIdAssetsRouteChildren,
+  )
+
+interface ApiGenerationEntitiesIdRouteChildren {
+  ApiGenerationEntitiesIdAssetsRoute: typeof ApiGenerationEntitiesIdAssetsRouteWithChildren
+}
+
+const ApiGenerationEntitiesIdRouteChildren: ApiGenerationEntitiesIdRouteChildren =
+  {
+    ApiGenerationEntitiesIdAssetsRoute:
+      ApiGenerationEntitiesIdAssetsRouteWithChildren,
+  }
+
+const ApiGenerationEntitiesIdRouteWithChildren =
+  ApiGenerationEntitiesIdRoute._addFileChildren(
+    ApiGenerationEntitiesIdRouteChildren,
+  )
+
+interface ApiGenerationEntitiesRouteChildren {
+  ApiGenerationEntitiesIdRoute: typeof ApiGenerationEntitiesIdRouteWithChildren
+}
+
+const ApiGenerationEntitiesRouteChildren: ApiGenerationEntitiesRouteChildren = {
+  ApiGenerationEntitiesIdRoute: ApiGenerationEntitiesIdRouteWithChildren,
+}
+
+const ApiGenerationEntitiesRouteWithChildren =
+  ApiGenerationEntitiesRoute._addFileChildren(
+    ApiGenerationEntitiesRouteChildren,
+  )
 
 interface ApiGenerationJobsIdRouteChildren {
   ApiGenerationJobsIdRunRoute: typeof ApiGenerationJobsIdRunRoute
@@ -973,6 +1095,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiBillingWebhookRoute: ApiBillingWebhookRoute,
   ApiBlogRssDotxmlRoute: ApiBlogRssDotxmlRoute,
   ApiGenerationCreditsRoute: ApiGenerationCreditsRoute,
+  ApiGenerationEntitiesRoute: ApiGenerationEntitiesRouteWithChildren,
   ApiGenerationJobsRoute: ApiGenerationJobsRouteWithChildren,
   ApiGenerationMasksRoute: ApiGenerationMasksRoute,
   ApiGenerationPlansRoute: ApiGenerationPlansRoute,

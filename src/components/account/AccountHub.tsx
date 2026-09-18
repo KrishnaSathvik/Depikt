@@ -1,3 +1,4 @@
+import { AccountContentTabs } from "./AccountContentTabs";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -108,10 +109,11 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
       </div>
 
       <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-5">
-        <p className="text-heading-sm text-[color:var(--text-primary)]">Creations</p>
-        <div className="mt-4">
-          <CreationsGrid onSelect={hub.openCreationDetail} />
-        </div>
+        <AccountContentTabs>
+          <div className="mt-4">
+            <CreationsGrid onSelect={hub.openCreationDetail} />
+          </div>
+        </AccountContentTabs>
       </div>
 
       <div className="mt-4 flex flex-col border-t border-[color:var(--border-subtle)] pt-2">

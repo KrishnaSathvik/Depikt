@@ -113,9 +113,14 @@ test("jobs.$id.run.ts fails the job and refunds when assembleJobImages throws", 
   const src = read("src/routes/api/generation/jobs.$id.run.ts");
   const assembleIdx = src.indexOf("await assembleJobImages");
   assert.ok(assembleIdx > 0);
-  const aroundAssemble = src.slice(Math.max(0, assembleIdx - 200), assembleIdx + 900);
+  const aroundAssemble = src.slice(
+    src.lastIndexOf("try {", assembleIdx),
+    src.indexOf("const outcome", assembleIdx),
+  );
   assert.match(aroundAssemble, /try\s*\{/);
   assert.match(aroundAssemble, /catch/);
-  assert.match(aroundAssemble, /markJobFailed/);
-  assert.match(aroundAssemble, /"refunded"/);
+  assert.match(aroundAssemble, /failImageInputJob/);
+  const failureHelper = read("src/lib/generation/job-images.ts");
+  assert.match(failureHelper, /markJobFailed/);
+  assert.match(failureHelper, /['"]refunded['"]/);
 });

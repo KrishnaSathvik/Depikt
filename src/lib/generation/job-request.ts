@@ -15,7 +15,11 @@
 // client-submitted `operation`, `mode`, `count`, `children`, or raw `plan`
 // object anywhere in this file — see plan.ts and plan-token.ts.
 
-import { MAX_REFERENCE_IMAGES_V1 } from "./models.ts";
+import {
+  MAX_ADHOC_REFERENCE_IMAGES as MAX_REFERENCE_IMAGES_V1,
+  MAX_ATTACHED_ENTITIES,
+  UUID_RE,
+} from "./entities.ts";
 
 export type SourceContextType =
   | "direct"
@@ -70,6 +74,7 @@ export interface ValidatedCreatePlanRequest {
   userInput: string | null;
   /** Pre-computed Intent from Build/Critique, when available. Unvalidated here — the route parses it with IntentSchema. */
   intent: unknown;
+  entityIds: string[];
   referenceAssetIds: string[];
   sourceVersionId: string | null;
   /** Server-issued mask asset id from POST /masks. Never a storage path. */
@@ -99,6 +104,17 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
   if ("maskPath" in b || "mask" in b) {
     return { ok: false, error: "Do not send a storage path; submit maskAssetId instead" };
   }
+
+  if (["entities", "entityPaths", "resolvedReferences"].some((k) => k in b))
+    return { ok: false, error: "Submit entityIds only" };
+  const entityIds = b.entityIds === undefined ? [] : b.entityIds;
+  if (
+    !Array.isArray(entityIds) ||
+    entityIds.length > MAX_ATTACHED_ENTITIES ||
+    entityIds.some((id) => typeof id !== "string" || !UUID_RE.test(id)) ||
+    new Set(entityIds).size !== entityIds.length
+  )
+    return { ok: false, error: "Invalid reference pack ids" };
 
   if (!isNonEmptyString(b.prompt)) {
     return { ok: false, error: "prompt is required" };
@@ -164,6 +180,7 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
       prompt: b.prompt,
       userInput,
       intent: b.intent ?? null,
+      entityIds,
       referenceAssetIds,
       sourceVersionId,
       maskAssetId,
@@ -194,7 +211,18 @@ export type CreateJobsFromPlanValidationResult =
 // client hand-assemble an executable plan) are rejected outright rather
 // than silently ignored, so a stale/crafted client fails loudly instead of
 // quietly losing the protection the token provides.
-const FORBIDDEN_FIELDS = ["plan", "count", "children", "prompt", "operation", "mode"] as const;
+const FORBIDDEN_FIELDS = [
+  "plan",
+  "count",
+  "children",
+  "prompt",
+  "operation",
+  "mode",
+  "entities",
+  "entityIds",
+  "entityPaths",
+  "resolvedReferences",
+] as const;
 
 /**
  * Validates a raw, untrusted request body for POST /api/generation/jobs.

@@ -1,3 +1,5 @@
+import { sanitizeSeriesIntent, childExactText } from "./series-exact-text.ts";
+import type { ResolvedEntity } from "./entities.ts";
 import { z } from "zod";
 import { createStructuredResponse } from "../openai/client.ts";
 import { MODEL_ROLES } from "../openai/models.ts";
@@ -27,9 +29,11 @@ const SERIES_DECOMPOSITION_CONTRACT: ResultContract<SeriesDecomposition> = {
 const DECOMPOSER_INSTRUCTIONS = `Split a request for a coordinated image series into separate image briefs.
 Return exactly the requested number of children when possible. Each child must describe one standalone image.
 Keep shared visual and factual requirements consistent, while making each child's distinct subject or role clear.
+Scene names and child labels are metadata, never text to render. Include exact copy only when explicitly requested in ORIGINAL REQUEST, and only in the child it belongs to. Shared campaign copy belongs in every child. Do not invent headlines or captions.
 Do not make collages, contact sheets, grids, panels, or PAGE blocks. Do not decide the number of images.`;
 
 export interface DecomposeSeriesOptions {
+  entities?: ResolvedEntity[];
   userInput: string;
   intent: Intent;
   selectedCount: number;
@@ -48,6 +52,7 @@ export function selectDecomposerInput(opts: {
 }
 
 export async function decomposeSeries(opts: DecomposeSeriesOptions): Promise<SeriesDecomposition> {
+  opts = { ...opts, intent: sanitizeSeriesIntent(opts.intent, opts.userInput) };
   const count = normalizeCount(opts.selectedCount);
   let decomposition: SeriesDecomposition | null = null;
 
@@ -73,7 +78,7 @@ async function completeWithLuna(
     input: [
       {
         role: "user",
-        content: `ORIGINAL REQUEST:\n${opts.userInput.trim()}\n\nNUMBER OF IMAGES: ${count}\n\nINTENT:\n${JSON.stringify(opts.intent)}`,
+        content: `ORIGINAL REQUEST:\n${opts.userInput.trim()}\n\nNUMBER OF IMAGES: ${count}\n\nINTENT:\n${JSON.stringify(opts.intent)}${opts.entities?.length ? `\n\nENTITIES (identity context only; reference selection is already fixed):\n${opts.entities.map((e) => `${e.name} (${e.type}): ${e.description}`).join("\n")}` : ""}`,
       },
     ],
     contract: SERIES_DECOMPOSITION_CONTRACT,
@@ -100,9 +105,15 @@ function sanitizeDecomposition(
     const child = supplied[index];
     const fallback = `Image ${index + 1} of ${count} — ${userInput}.`;
     const basePrompt = stripCollage(child?.prompt.trim() || fallback);
+    const exactText = childExactText(intent, userInput, basePrompt, index);
+    // A model response (or outage fallback) may repeat another child's copy.
+    // Remove those literals before attaching this child's authoritative text.
+    const scopedPrompt = intent.exact_text
+      .filter((item) => !exactText.includes(item))
+      .reduce((prompt, item) => prompt.replaceAll(item.text, ""), basePrompt);
     return {
       label: child?.label.trim() || `Image ${index + 1}`,
-      prompt: appendSharedConstraints(basePrompt, intent),
+      prompt: appendSharedConstraints(scopedPrompt, { ...intent, exact_text: exactText }),
     };
   });
 
@@ -132,6 +143,9 @@ function appendSharedConstraints(prompt: string, intent: Intent): string {
       .join("; ");
     constraints.push(`Render this exact text verbatim: ${exactText}.`);
   }
+  constraints.push(
+    "Do not add scene-name labels, headlines, or captions beyond the exact copy specified for this image. Preserve text already present on referenced products and logos.",
+  );
   if (intent.series.consistency_requirements.length > 0) {
     constraints.push(
       `Keep these series consistency requirements: ${intent.series.consistency_requirements.join("; ")}.`,

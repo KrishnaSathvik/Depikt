@@ -24,7 +24,10 @@ test("generation_planned fires after /plans with plan fields and source, never p
   assert.match(submitFn, /searchNeeded: planRes\.plan\.searchNeeded/);
   assert.match(submitFn, /requiresCountConfirmation: planRes\.plan\.requiresCountConfirmation/);
   assert.match(submitFn, /source: effectiveSourceContext\.type/);
-  assert.equal(/prompt:/.test(submitFn.match(/trackEvent\("generation_planned"[\s\S]*?\}\);/)?.[0] ?? ""), false);
+  assert.equal(
+    /prompt:/.test(submitFn.match(/trackEvent\("generation_planned"[\s\S]*?\}\);/)?.[0] ?? ""),
+    false,
+  );
 });
 
 test("generation_series_started fires when createGenerationJobs returns multiple jobs", () => {
@@ -74,7 +77,7 @@ test("fresh submissions seed poll baseline from /jobs queued jobs; resume seeds 
   assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);
   assert.match(
     hook,
-    /if \(activeSessionId\) pollSession\(activeSessionId\);/,
+    /if \(sessionId\) pollSession\(sessionId\);/,
     "resume omits queuedJobs so first poll seeds without emitting",
   );
 });

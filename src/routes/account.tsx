@@ -1,3 +1,4 @@
+import { AccountContentTabs } from "@/components/account/AccountContentTabs";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -149,7 +150,9 @@ function AccountPage() {
         </div>
         <div className="mt-10">
           {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
-          <CreationsTab />
+          <AccountContentTabs>
+            <CreationsTab />
+          </AccountContentTabs>
         </div>
       </main>
       <Footer />

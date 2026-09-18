@@ -1,3 +1,6 @@
+import type { ResolvedEntity } from "./entities.ts";
+import { extractStoredEntities } from "./stored-entities.ts";
+export { extractStoredEntityReferencePaths } from "./stored-entities.ts";
 // Native image generation — what a generation_sessions row's `plan_json`
 // actually stores.
 //
@@ -17,6 +20,8 @@ export interface ExecutionPlanChild {
 }
 
 export interface ExecutionPlanJson {
+  entities?: ResolvedEntity[];
+  lockedEntityCount?: number;
   /** Flat telemetry/evidence fields — see vnext-1 design §6. */
   mode: GenerationPlan["mode"];
   desiredCount: number;
@@ -33,6 +38,7 @@ export interface ExecutionPlanJson {
 }
 
 export function buildExecutionPlanJson(args: {
+  entities?: ResolvedEntity[];
   plan: GenerationPlan;
   selectedCount: number;
   referenceAssetIds: string[];
@@ -43,6 +49,9 @@ export function buildExecutionPlanJson(args: {
 }): ExecutionPlanJson {
   const childLabels = args.children.map((c) => c.label);
   return {
+    ...(args.entities?.length
+      ? { entities: args.entities, lockedEntityCount: args.entities.length }
+      : {}),
     mode: args.plan.mode,
     desiredCount: args.plan.desiredCount,
     autoCount: args.plan.autoCount,
@@ -89,6 +98,7 @@ export function extractStoredMaskPath(planJson: unknown): string | null {
 
 /** Fields that define whether a stored session may be reused for a new token. */
 export interface ExecutionPlanIdentity {
+  entities?: ResolvedEntity[];
   plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
   selectedCount: number;
   referenceAssetIds: string[];
@@ -146,6 +156,25 @@ export function executionPlanIdentityMatches(
   stored: unknown,
   current: ExecutionPlanIdentity,
 ): boolean {
+  let storedEntities: ResolvedEntity[];
+  try {
+    storedEntities = extractStoredEntities(stored);
+  } catch {
+    return false;
+  }
+  // JSONB may reorder object keys. Compare explicit values, retaining reference
+  // order because the preamble binds identity to image positions.
+  const identity = (entities: ResolvedEntity[]) =>
+    entities.map((e) => [
+      e.id,
+      e.type,
+      e.name,
+      e.description,
+      e.locked,
+      e.resolvedReferences.map((r) => [r.assetId, r.role, r.path]),
+    ]);
+  if (JSON.stringify(identity(storedEntities)) !== JSON.stringify(identity(current.entities ?? [])))
+    return false;
   const parsed = parseStoredExecutionPlanIdentity(stored);
   if (!parsed) return false;
   return (

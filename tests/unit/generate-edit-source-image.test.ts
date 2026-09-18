@@ -39,7 +39,7 @@ test("an edit job fetches and attaches its source version's own image, not just 
 
   const helper = read("src/lib/generation/job-images.ts");
   const sourceDownloadIdx = helper.indexOf("args.sourcePath");
-  const referenceLoopIdx = helper.indexOf("for (const path of args.referencePaths)");
+  const referenceLoopIdx = helper.indexOf("for (const path of [...args.referencePaths,");
   const maskDownloadIdx = helper.indexOf("args.maskPath");
   assert.ok(sourceDownloadIdx > 0 && referenceLoopIdx > 0 && maskDownloadIdx > 0);
   assert.ok(sourceDownloadIdx < referenceLoopIdx && referenceLoopIdx < maskDownloadIdx);

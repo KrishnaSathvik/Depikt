@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "approval": {
+    "approvedBy": "repository owner (explicit approval in chat)",
+    "approvedAt": "2026-09-16T19:57:31.634580+00:00",
+    "verdict": "APPROVED",
+    "scope": "Exact reviewed corpus; all five packs PASS. Preserve existing files and hashes."
+  },
+  "files": {
+    "cases.json": "95f18c4607344b9d36564e95871a7c7771a99816f214dc4ddd6305db6227a4f5",
+    "fixtures/prompts.json": "4c3137fedfe7f4132d82954d910281651dc394891d72c1b01350e0ae83d20f1e",
+    "fixtures/brand-a/logo.webp": "374161f1e7f26c436acb13ce450482f985943ab95bde7cb6092b3271433048db",
+    "fixtures/brand-a/product-shot.webp": "38e2322ac5110b4581dc009b76b2aca0b814392300d350ef552e7ebf65a7e99f",
+    "fixtures/brand-a/style-reference.webp": "09ed777a9914967175552780ea42ecc4182145e23ef17fcb9f6e39adf99ab411",
+    "fixtures/character-a/full-body.webp": "052bcc6245493ad8f5ba973cf4bd04c8620f00767270d5f1b929f5847a6c0280",
+    "fixtures/character-a/primary.webp": "54c99c574c85d4a439258a6aa2de4eed62f975a1cf80f2f7ea887dd58ec8ef6c",
+    "fixtures/character-a/three-quarter.webp": "de02b1d47a4aa0c16fdb60d48969da81957b21f0a70f5bb3be68dd144ef75cc4",
+    "fixtures/character-b/full-body.webp": "eeed71be91558524068bc9a9b1ed890d770a7d2f14a9d8a8ed1f52fa06a000a3",
+    "fixtures/character-b/primary.webp": "38e541c8ae1167f46f7d78b30482a7b92d274d6b42e02be3ffa70fcf02a0e0ca",
+    "fixtures/character-b/three-quarter.webp": "efac38d9af9b8f477cef3e7aa39989994b79eac272c05b700d5edfa79534d24e",
+    "fixtures/product-a/detail.webp": "038a65a81b01e2885c2928a9b6694af70d5a1cae1619b6b6b04598b1bb850b02",
+    "fixtures/product-a/front.webp": "6e9af47278805c7778a4237eda51858b5735ca4156aff2b1d487236b27d238b2",
+    "fixtures/product-a/three-quarter.webp": "90e14d9d39749fef80ac0fdee77967d64952ff1964207cb2e24c5a618c1dd04a",
+    "fixtures/product-b/detail.webp": "277427e87ed11910cba7f0d80605c858c08a7726c74a5f731f12f49b24806978",
+    "fixtures/product-b/front.webp": "be4ac09e6c57a0c0582b10852c5ccc50de3ad458c25e6e25c1e907219cead4c1",
+    "fixtures/product-b/three-quarter.webp": "5396547e50b189c1c632789840a18a4f380ce0365b1af8b74325fdd1bbed24b0"
+  }
+}
