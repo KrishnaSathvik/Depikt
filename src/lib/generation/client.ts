@@ -20,10 +20,7 @@ export class GenerationApiError extends Error {
   }
 }
 
-export async function generationFetch(
-  path: string,
-  init: RequestInit = {},
-): Promise<Response> {
+export async function generationFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   const headers = new Headers(init.headers);
@@ -86,9 +83,7 @@ export interface CreatePlanResponse {
   planToken: string;
 }
 
-export function createGenerationPlan(
-  req: CreatePlanRequest,
-): Promise<CreatePlanResponse> {
+export function createGenerationPlan(req: CreatePlanRequest): Promise<CreatePlanResponse> {
   return generationJson<CreatePlanResponse>("/api/generation/plans", {
     method: "POST",
     body: JSON.stringify(req),
@@ -106,17 +101,10 @@ export interface CreateJobsFromPlanRequest {
 
 export interface CreateJobsResponse {
   sessionId: string;
-  jobs: Array<{
-    id: string;
-    label: string | null;
-    index: number | null;
-    status: string;
-  }>;
+  jobs: Array<{ id: string; label: string | null; index: number | null; status: string }>;
 }
 
-export function createGenerationJobs(
-  req: CreateJobsFromPlanRequest,
-): Promise<CreateJobsResponse> {
+export function createGenerationJobs(req: CreateJobsFromPlanRequest): Promise<CreateJobsResponse> {
   return generationJson<CreateJobsResponse>("/api/generation/jobs", {
     method: "POST",
     body: JSON.stringify(req),
@@ -128,10 +116,7 @@ export function createGenerationJobs(
  * OpenAI call inside this request (no waitUntil/Queues available), so the
  * caller must NOT await it — start it, then poll the job as usual.
  */
-export function startGenerationJob(
-  jobId: string,
-  referencePaths: string[],
-): Promise<Response> {
+export function startGenerationJob(jobId: string, referencePaths: string[]): Promise<Response> {
   return generationFetch(`/api/generation/jobs/${jobId}/run`, {
     method: "POST",
     body: JSON.stringify({ referencePaths }),
@@ -139,6 +124,7 @@ export function startGenerationJob(
 }
 
 export interface JobStatusResponse {
+  validation?: { verdict: "pass" | "repairable" | "fail"; repairAttempts: number };
   jobId: string;
   sessionId: string;
   status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
@@ -147,12 +133,7 @@ export interface JobStatusResponse {
   width: number;
   height: number;
   errorMessage: string | null;
-  result: {
-    versionId: string;
-    url: string | null;
-    width: number;
-    height: number;
-  } | null;
+  result: { versionId: string; url: string | null; width: number; height: number } | null;
 }
 
 export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {
@@ -181,11 +162,7 @@ export interface SessionJobSummary {
 
 export function getGenerationSession(
   sessionId: string,
-): Promise<{
-  sessionId: string;
-  versions: SessionVersion[];
-  jobs: SessionJobSummary[];
-}> {
+): Promise<{ sessionId: string; versions: SessionVersion[]; jobs: SessionJobSummary[] }> {
   return generationJson(`/api/generation/sessions/${sessionId}`);
 }
 

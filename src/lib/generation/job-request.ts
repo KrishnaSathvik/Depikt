@@ -50,14 +50,11 @@ interface ParsedSourceContext {
 }
 
 /** Shared by both request bodies below: `{ type, id? }`, defaulting to "direct". */
-function parseSourceContext(
-  value: unknown,
-): ParsedSourceContext | { error: string } {
+function parseSourceContext(value: unknown): ParsedSourceContext | { error: string } {
   if (value === undefined || value === null) {
     return { sourceContextType: "direct", sourceContextId: null };
   }
-  if (typeof value !== "object")
-    return { error: "sourceContext must be an object" };
+  if (typeof value !== "object") return { error: "sourceContext must be an object" };
   const sc = value as Record<string, unknown>;
   if (!SOURCE_CONTEXT_TYPES.includes(sc.type as SourceContextType)) {
     return { error: "sourceContext.type is invalid" };
@@ -98,32 +95,31 @@ export type CreatePlanValidationResult =
  * whole job is to turn that into an opaque, signed plan the browser cannot
  * forge or edit. See plans.ts.
  */
-export function validateCreatePlanBody(
-  body: unknown,
-): CreatePlanValidationResult {
+export function validateCreatePlanBody(body: unknown): CreatePlanValidationResult {
   if (typeof body !== "object" || body === null)
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
 
   if (
-    ["grounding", "facts", "sources", "visualReferences", "groundingPlan"].some(
-      (k) => k in b,
-    )
+    [
+      "validation",
+      "repair",
+      "repairPolicy",
+      "grounding",
+      "facts",
+      "sources",
+      "visualReferences",
+      "groundingPlan",
+    ].some((k) => k in b)
   )
     return { ok: false, error: "Grounding is resolved by the server" };
-  if (
-    b.refreshGrounding !== undefined &&
-    typeof b.refreshGrounding !== "boolean"
-  )
+  if (b.refreshGrounding !== undefined && typeof b.refreshGrounding !== "boolean")
     return { ok: false, error: "refreshGrounding must be a boolean" };
 
   // The browser may submit a server-issued maskAssetId, never a raw storage
   // path — /plans derives maskPath server-side. See storage-paths.ts.
   if ("maskPath" in b || "mask" in b) {
-    return {
-      ok: false,
-      error: "Do not send a storage path; submit maskAssetId instead",
-    };
+    return { ok: false, error: "Do not send a storage path; submit maskAssetId instead" };
   }
 
   if (["entities", "entityPaths", "resolvedReferences"].some((k) => k in b))
@@ -141,24 +137,16 @@ export function validateCreatePlanBody(
     return { ok: false, error: "prompt is required" };
   }
   if (b.prompt.length > MAX_PROMPT_CHARS) {
-    return {
-      ok: false,
-      error: `prompt too long (max ${MAX_PROMPT_CHARS} chars)`,
-    };
+    return { ok: false, error: `prompt too long (max ${MAX_PROMPT_CHARS} chars)` };
   }
 
   let userInput: string | null = null;
   if (b.userInput !== undefined && b.userInput !== null) {
-    if (!isNonEmptyString(b.userInput))
-      return { ok: false, error: "userInput must be a string" };
+    if (!isNonEmptyString(b.userInput)) return { ok: false, error: "userInput must be a string" };
     userInput = b.userInput;
   }
 
-  if (
-    b.intent !== undefined &&
-    b.intent !== null &&
-    typeof b.intent !== "object"
-  ) {
+  if (b.intent !== undefined && b.intent !== null && typeof b.intent !== "object") {
     return { ok: false, error: "intent must be an object" };
   }
 
@@ -168,10 +156,7 @@ export function validateCreatePlanBody(
       !Array.isArray(b.referenceAssetIds) ||
       !b.referenceAssetIds.every((id) => isNonEmptyString(id))
     ) {
-      return {
-        ok: false,
-        error: "referenceAssetIds must be an array of strings",
-      };
+      return { ok: false, error: "referenceAssetIds must be an array of strings" };
     }
     referenceAssetIds = b.referenceAssetIds as string[];
     if (referenceAssetIds.length > MAX_REFERENCE_IMAGES_V1) {
@@ -196,15 +181,11 @@ export function validateCreatePlanBody(
     maskAssetId = b.maskAssetId;
   }
   if (maskAssetId && !sourceVersionId) {
-    return {
-      ok: false,
-      error: "sourceVersionId is required when maskAssetId is set",
-    };
+    return { ok: false, error: "sourceVersionId is required when maskAssetId is set" };
   }
 
   const sourceContext = parseSourceContext(b.sourceContext);
-  if ("error" in sourceContext)
-    return { ok: false, error: sourceContext.error };
+  if ("error" in sourceContext) return { ok: false, error: sourceContext.error };
 
   const structuredAspectRatio = isNonEmptyString(b.structuredAspectRatio)
     ? b.structuredAspectRatio
@@ -249,6 +230,9 @@ export type CreateJobsFromPlanValidationResult =
 // than silently ignored, so a stale/crafted client fails loudly instead of
 // quietly losing the protection the token provides.
 const FORBIDDEN_FIELDS = [
+  "validation",
+  "repair",
+  "repairPolicy",
   "grounding",
   "facts",
   "sources",
@@ -272,19 +256,14 @@ const FORBIDDEN_FIELDS = [
  * object. See plans.ts (the only place a plan is computed) and
  * plan-token.ts (the signature that makes this token unforgeable).
  */
-export function validateCreateJobsFromPlanBody(
-  body: unknown,
-): CreateJobsFromPlanValidationResult {
+export function validateCreateJobsFromPlanBody(body: unknown): CreateJobsFromPlanValidationResult {
   if (typeof body !== "object" || body === null)
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
 
   for (const field of FORBIDDEN_FIELDS) {
     if (b[field] !== undefined) {
-      return {
-        ok: false,
-        error: `${field} is not a valid field; submit a planToken instead`,
-      };
+      return { ok: false, error: `${field} is not a valid field; submit a planToken instead` };
     }
   }
 
@@ -294,10 +273,7 @@ export function validateCreateJobsFromPlanBody(
 
   let selectedCount: number | null = null;
   if (b.selectedCount !== undefined) {
-    if (
-      typeof b.selectedCount !== "number" ||
-      !Number.isFinite(b.selectedCount)
-    ) {
+    if (typeof b.selectedCount !== "number" || !Number.isFinite(b.selectedCount)) {
       return { ok: false, error: "selectedCount must be a number" };
     }
     selectedCount = b.selectedCount;
@@ -312,8 +288,7 @@ export function validateCreateJobsFromPlanBody(
     : null;
 
   const sourceContext = parseSourceContext(b.sourceContext);
-  if ("error" in sourceContext)
-    return { ok: false, error: sourceContext.error };
+  if ("error" in sourceContext) return { ok: false, error: sourceContext.error };
 
   return {
     ok: true,

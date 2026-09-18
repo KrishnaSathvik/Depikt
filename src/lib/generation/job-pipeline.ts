@@ -1,3 +1,9 @@
+import {
+  validateAndRepair,
+  ValidationFailure,
+  type ValidationRuntime,
+} from "./validation/runtime.ts";
+import { repairInstruction } from "./validation/repair.ts";
 // Native image generation — job execution pipeline.
 //
 // Depends only on this narrow interface, never on the Supabase SDK
@@ -69,6 +75,7 @@ export interface GenerationDataAccess {
 
 export interface RunJobDeps {
   data: GenerationDataAccess;
+  validation?: ValidationRuntime;
   apiKey: string;
   fetchImpl?: typeof fetch;
   /** base64 -> bytes, injectable because atob/Buffer differ between the Workers and Node runtimes. */
@@ -80,6 +87,14 @@ export type RunJobOutcome =
   | { outcome: "failed"; errorCode: string };
 
 function categorizeError(err: unknown): { errorCode: string; safeErrorMessage: string } {
+  if (err instanceof ValidationFailure)
+    return {
+      errorCode: err.code,
+      safeErrorMessage:
+        err.code === "validation_unavailable"
+          ? "The required image checks could not be completed. Your credit was returned."
+          : "The image did not meet the required checks. Your credit was returned.",
+    };
   if (err instanceof OpenAIImageError) {
     if (err.status === 429) {
       return {
@@ -115,7 +130,7 @@ export async function runGenerationJob(
       return { outcome: "failed", errorCode: "timed_out" };
     }
 
-    const result =
+    let result =
       job.operation === "generate"
         ? await generateImage({
             model: job.model,
@@ -136,7 +151,59 @@ export async function runGenerationJob(
             mask: job.editMask ?? null,
           });
 
-    const bytes = deps.decodeBase64(result.b64);
+    let bytes = deps.decodeBase64(result.b64);
+    const usages = [result.usage];
+    let validationReport: unknown;
+    if (deps.validation) {
+      const validated = await validateAndRepair(
+        { result, image: { bytes, filename: "result.png", mimeType: "image/png" } },
+        deps.validation,
+        async (repair, report, current) => {
+          const localized =
+            (repair.action === "remove_unwanted_text" || repair.action === "rerender_exact_text") &&
+            job.referenceImages.length < 8;
+          const prompt = `${localized ? "Image 1 is the generated source to correct. Original numbered reference images below are shifted by one position for this repair.\n\n" : ""}${job.prompt}\n\nTARGETED REPAIR\n${repairInstruction(repair, report)}`;
+          const next =
+            localized || job.operation === "edit"
+              ? await editImage({
+                  model: job.model,
+                  prompt,
+                  width: job.width,
+                  height: job.height,
+                  apiKey: deps.apiKey,
+                  fetchImpl: deps.fetchImpl,
+                  referenceImages: localized
+                    ? [current.image, ...job.referenceImages]
+                    : job.referenceImages,
+                  mask: localized ? null : (job.editMask ?? null),
+                })
+              : await generateImage({
+                  model: job.model,
+                  prompt,
+                  width: job.width,
+                  height: job.height,
+                  apiKey: deps.apiKey,
+                  fetchImpl: deps.fetchImpl,
+                });
+          usages.push(next.usage);
+          return {
+            result: next,
+            image: {
+              bytes: deps.decodeBase64(next.b64),
+              filename: "result.png",
+              mimeType: "image/png",
+            },
+          };
+        },
+      );
+      result = validated.output.result;
+      bytes = validated.output.image.bytes;
+      validationReport = {
+        ...validated.result,
+        repairAttempts: validated.attempts,
+        providerTelemetry: deps.validation.providerTelemetry,
+      };
+    }
     versionId = data.newVersionId();
     const storagePath = data.buildStoragePath(job.userId, job.sessionId, versionId);
 
@@ -155,8 +222,15 @@ export async function runGenerationJob(
     });
 
     const succeeded = await data.markJobSucceeded(job.id, {
-      usage: result.usage,
-      estimatedApiCostUsd: estimateApiCostUsd(result.usage),
+      usage: validationReport
+        ? { imageAttempts: usages, validation: validationReport }
+        : result.usage,
+      estimatedApiCostUsd:
+        deps.validation?.providerTelemetry?.estimatedCostUsd === null ||
+        usages.some((u) => estimateApiCostUsd(u) === null)
+          ? null
+          : usages.reduce((sum, u) => sum + (estimateApiCostUsd(u) ?? 0), 0) +
+            (deps.validation?.providerTelemetry?.estimatedCostUsd ?? 0),
     });
     if (!succeeded) {
       return { outcome: "failed", errorCode: "timed_out" };

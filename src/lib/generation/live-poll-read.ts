@@ -22,7 +22,7 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
       db
         .from("generation_jobs")
         .select(
-          "id, status, operation, model, width, height, safe_error_message, session_id, series_index, series_label",
+          "id, status, operation, model, width, height, safe_error_message, session_id, series_index, series_label, usage_json",
         )
         .eq("session_id", sessionId)
         .order("series_index", { ascending: true }),

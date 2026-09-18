@@ -8,6 +8,7 @@ export interface LivePollJobRow {
   width: number | null;
   height: number | null;
   safe_error_message: string | null;
+  usage_json?: { validation?: JobStatusResponse["validation"] } | null;
   session_id: string;
   series_index: number | null;
   series_label: string | null;
@@ -49,6 +50,7 @@ export function assembleLivePoll(
     jobs: jobs.map((job) => {
       const version = job.status === "succeeded" ? (versionsByJob.get(job.id) ?? null) : null;
       return {
+        ...(job.usage_json?.validation ? { validation: job.usage_json.validation } : {}),
         jobId: job.id,
         sessionId: job.session_id,
         status: job.status as JobStatusResponse["status"],
