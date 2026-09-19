@@ -691,5 +691,481 @@
       "total_tokens": 5505
     },
     "label": "bench-gen-sunburst-wide"
+  },
+  {
+    "at": "2026-09-16T18:44:26.052Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, warm brown skin, oval face, dark almond eyes, thick eyebrows, short black curly bob and a small mole on her left cheek. front-facing head and shoulders portrait. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. ",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-a-primary.png",
+    "ms": 33494,
+    "usage": {
+      "input_tokens": 80,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 80
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1836
+    },
+    "label": "vnext3-character-a-primary"
+  },
+  {
+    "at": "2026-09-16T18:45:00.639Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-character-a-primary.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, warm brown skin, oval face, dark almond eyes, thick eyebrows, short black curly bob and a small mole on her left cheek. three-quarter view photograph. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-a-three_quarter.png",
+    "ms": 34264,
+    "usage": {
+      "input_tokens": 1136,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 112
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2892
+    },
+    "label": "vnext3-character-a-three_quarter"
+  },
+  {
+    "at": "2026-09-16T18:45:31.445Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-character-a-primary.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, warm brown skin, oval face, dark almond eyes, thick eyebrows, short black curly bob and a small mole on her left cheek. head-to-toe standing full body photograph, neutral simple clothing. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-a-full_body.png",
+    "ms": 30605,
+    "usage": {
+      "input_tokens": 1144,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 120
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2900
+    },
+    "label": "vnext3-character-a-full_body"
+  },
+  {
+    "at": "2026-09-16T18:45:59.792Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, fair freckled skin, square face, green eyes, straight copper-red shoulder-length hair and a broad nose. front-facing head and shoulders portrait. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. ",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-b-primary.png",
+    "ms": 28104,
+    "usage": {
+      "input_tokens": 76,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 76
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1832
+    },
+    "label": "vnext3-character-b-primary"
+  },
+  {
+    "at": "2026-09-16T18:46:36.429Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-character-b-primary.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, fair freckled skin, square face, green eyes, straight copper-red shoulder-length hair and a broad nose. three-quarter view photograph. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-b-three_quarter.png",
+    "ms": 36461,
+    "usage": {
+      "input_tokens": 1132,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 108
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2888
+    },
+    "label": "vnext3-character-b-three_quarter"
+  },
+  {
+    "at": "2026-09-16T18:47:06.669Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-character-b-primary.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional adult woman, fair freckled skin, square face, green eyes, straight copper-red shoulder-length hair and a broad nose. head-to-toe standing full body photograph, neutral simple clothing. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-character-b-full_body.png",
+    "ms": 30084,
+    "usage": {
+      "input_tokens": 1140,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 116
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2896
+    },
+    "label": "vnext3-character-b-full_body"
+  },
+  {
+    "at": "2026-09-16T18:47:33.579Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Create a high-fidelity reference fixture. Fictional cylindrical pale yellow beverage bottle, dark green ribbed cap, cream label reading VELORA and LEMON, thin green outlined circle emblem. straight-on full product photograph, entire bottle visible. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. ",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png",
+    "ms": 26761,
+    "usage": {
+      "input_tokens": 81,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 81
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1837
+    },
+    "label": "vnext3-product-a-front"
+  },
+  {
+    "at": "2026-09-16T18:48:03.575Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional cylindrical pale yellow beverage bottle, dark green ribbed cap, cream label reading VELORA and LEMON, thin green outlined circle emblem. three-quarter view photograph. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-a-three_quarter.png",
+    "ms": 29861,
+    "usage": {
+      "input_tokens": 1134,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 110
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2890
+    },
+    "label": "vnext3-product-a-three_quarter"
+  },
+  {
+    "at": "2026-09-16T18:48:33.116Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional cylindrical pale yellow beverage bottle, dark green ribbed cap, cream label reading VELORA and LEMON, thin green outlined circle emblem. close photograph of the product label and cap. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-a-detail.png",
+    "ms": 29406,
+    "usage": {
+      "input_tokens": 1138,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 114
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2894
+    },
+    "label": "vnext3-product-a-detail"
+  },
+  {
+    "at": "2026-09-16T18:48:59.150Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Create a high-fidelity reference fixture. Fictional short square lavender beverage bottle, silver flat cap, white label reading NEMORI and BERRY, three purple diamond emblem. straight-on full product photograph, entire bottle visible. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. ",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-b-front.png",
+    "ms": 25893,
+    "usage": {
+      "input_tokens": 78,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 78
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1834
+    },
+    "label": "vnext3-product-b-front"
+  },
+  {
+    "at": "2026-09-16T18:49:30.924Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-b-front.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional short square lavender beverage bottle, silver flat cap, white label reading NEMORI and BERRY, three purple diamond emblem. three-quarter view photograph. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-b-three_quarter.png",
+    "ms": 31610,
+    "usage": {
+      "input_tokens": 1131,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 107
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2887
+    },
+    "label": "vnext3-product-b-three_quarter"
+  },
+  {
+    "at": "2026-09-16T18:50:01.478Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-b-front.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional short square lavender beverage bottle, silver flat cap, white label reading NEMORI and BERRY, three purple diamond emblem. close photograph of the product label and cap. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-product-b-detail.png",
+    "ms": 30426,
+    "usage": {
+      "input_tokens": 1135,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 111
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2891
+    },
+    "label": "vnext3-product-b-detail"
+  },
+  {
+    "at": "2026-09-16T18:50:29.637Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [],
+    "prompt": "Create a high-fidelity reference fixture. Fictional brand: VELORA uppercase dark green wordmark, thin green outlined circle emblem, cream and pale yellow palette, minimal editorial product photography. flat logo on a clean cream card. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. ",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-logo.png",
+    "ms": 28011,
+    "usage": {
+      "input_tokens": 79,
+      "input_tokens_details": {
+        "image_tokens": 0,
+        "text_tokens": 79
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 1835
+    },
+    "label": "vnext3-brand-a-logo"
+  },
+  {
+    "at": "2026-09-16T18:51:07.334Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-logo.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional brand: VELORA uppercase dark green wordmark, thin green outlined circle emblem, cream and pale yellow palette, minimal editorial product photography. brand visual style board with typography and color swatches. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-style_reference.png",
+    "ms": 37554,
+    "usage": {
+      "input_tokens": 1140,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 116
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2896
+    },
+    "label": "vnext3-brand-a-style_reference"
+  },
+  {
+    "at": "2026-09-16T18:51:40.770Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-logo.png"
+    ],
+    "prompt": "Create a high-fidelity reference fixture. Fictional brand: VELORA uppercase dark green wordmark, thin green outlined circle emblem, cream and pale yellow palette, minimal editorial product photography. editorial product shot of the pale yellow beverage bottle. Neutral studio light, clean background, crisp detail. Entirely fictional; no real person, celebrity, real-world brand or watermark. Preserve precisely the identity, colors and all defining features in the attached primary reference. Change only the framing to the requested view.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-product_shot.png",
+    "ms": 33288,
+    "usage": {
+      "input_tokens": 1139,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 115
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2895
+    },
+    "label": "vnext3-brand-a-product_shot"
+  },
+  {
+    "at": "2026-09-16T18:56:33.170Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png"
+    ],
+    "prompt": "Create ONLY a flat logo reference card on plain cream. Use the attached fictional beverage label as identity reference. Exact dark green wordmark VELORA, with the same lemon-and-leaves circle emblem above it. Centered orthographic graphic, sharp clean edges. No bottle, no packaging, no scene, no products, no mockup, no extra text. This is a flat brand logo reference image.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-logo-v2.png",
+    "ms": 28182,
+    "usage": {
+      "input_tokens": 1121,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 97
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2877
+    },
+    "label": "vnext3-brand-a-logo-v2"
+  },
+  {
+    "at": "2026-09-16T19:19:26.769Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png"
+    ],
+    "prompt": "Create a fictional VELORA beverage brand visual reference board. Preserve EXACTLY the attached pale yellow beverage bottle, green cap, cream label, VELORA wordmark and lemon-and-leaves circle emblem. Show matching green, cream and pale yellow color swatches and clean editorial typography. No cosmetics, droppers or unrelated product categories. Same beverage identity, no extra slogans.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-style_reference-v2.png",
+    "ms": 39493,
+    "usage": {
+      "input_tokens": 1115,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 91
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2871
+    },
+    "label": "vnext3-brand-a-style_reference-v2"
+  },
+  {
+    "at": "2026-09-16T19:20:00.278Z",
+    "kind": "fixture",
+    "model": "gpt-image-2.5-sunburst",
+    "quality": "high",
+    "size": "1024x1024",
+    "refs": [
+      "research/images-2-5-community/runs/_fixtures/vnext3-product-a-front.png"
+    ],
+    "prompt": "Create an editorial studio photograph of the EXACT fictional VELORA LEMON beverage bottle in the reference. Preserve its cylindrical pale yellow bottle, ribbed green cap, cream label, VELORA and LEMON wordmarks and lemon-and-leaves circle emblem. Standing on a cream plinth with soft natural side light. No cosmetics or droppers. One bottle, no extra text or products.",
+    "file": "research/images-2-5-community/runs/_fixtures/vnext3-brand-a-product_shot-v2.png",
+    "ms": 33246,
+    "usage": {
+      "input_tokens": 1118,
+      "input_tokens_details": {
+        "image_tokens": 1024,
+        "text_tokens": 94
+      },
+      "output_tokens": 1756,
+      "output_tokens_details": {
+        "image_tokens": 1756,
+        "text_tokens": 0
+      },
+      "total_tokens": 2874
+    },
+    "label": "vnext3-brand-a-product_shot-v2"
   }
 ]

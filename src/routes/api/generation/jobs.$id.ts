@@ -35,7 +35,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         const { data: job, error } = await supabase
           .from("generation_jobs")
           .select(
-            "id, user_id, status, operation, model, width, height, error_code, safe_error_message, session_id, idempotency_key, created_at, completed_at",
+            "id, user_id, status, operation, model, width, height, error_code, safe_error_message, session_id, idempotency_key, created_at, completed_at, usage_json",
           )
           .eq("id", params.id)
           .maybeSingle();
@@ -65,6 +65,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
             .from("image_versions")
             .select("id, storage_path, width, height")
             .eq("job_id", job.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
           version = v ?? null;
         }
@@ -78,6 +80,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
 
         return new Response(
           JSON.stringify({
+            ...(job.usage_json?.validation ? { validation: job.usage_json.validation } : {}),
             jobId: job.id,
             sessionId: job.session_id,
             status: job.status,

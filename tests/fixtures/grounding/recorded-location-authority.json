@@ -1,0 +1,159 @@
+{
+  "sourceRun": "final-location-authority-2026-09",
+  "prompt": "Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.",
+  "intent": {
+    "task": "create",
+    "category": "cinematic",
+    "reference_intent": "none",
+    "aspect_ratio": {
+      "source": "none",
+      "value": null,
+      "evidence": null
+    },
+    "exact_text": [],
+    "requested_changes": [],
+    "must_preserve": [],
+    "transparent_background": false,
+    "creative_freedom": "low",
+    "series": {
+      "enabled": false,
+      "continuation": false,
+      "count": null,
+      "unit": "asset",
+      "consistency_requirements": []
+    },
+    "factual_requirements": {
+      "user_supplied_facts": [
+        "Photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney",
+        "Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today",
+        "Do not invent skyline landmarks",
+        "No text"
+      ],
+      "missing_facts": [],
+      "placeholders_required": false
+    },
+    "ambiguity": {
+      "blocking": false,
+      "reason": null
+    }
+  },
+  "bundle": {
+    "contextFacts": [
+      {
+        "text": "Unique IDA-00024321SeriesSydney Reference Collection (SRC) - PhotographsDateBetween 1st January 1967 and 31st December 1967Date qualifieryear onlyFormatPhotograph - DigitalDescriptionView showing trees, path, Opera House under construction and bridge. Photographer Allan A. Hedges.LanguageNo linguistic content - Not applicable (zxx)Geographic location[1] ... Opera House and Sydney Harbour Bridge fr",
+        "sourceId": "s1"
+      },
+      {
+        "text": "Built in 1932, the Sydney Harbour Bridge is one of Australia’s best-known and photographed landmarks. It is an integral component of the Sydney Harbour vista. The bridge played an important part in the development of modern Sydney and has been recognised all over the world as a symbol of ...",
+        "sourceId": "s2"
+      },
+      {
+        "text": "Unique IDA-00065085SeriesPublic Relations Photograph Library, 1989-2022Date31st December 2005Date qualifierexactFormatPhotograph - DigitalDescriptionNew Years Eve, night view from Garden Island, towards the Opera House, the Harbour Bridge and the North Sydney, skyline showing the gathered spectators on the foreshore of the Island, various moored vessels, boats and the illuminated Heart symbol on t",
+        "sourceId": "s3"
+      },
+      {
+        "text": "From scenic harbourside parks to iconic landmarks, here’s a guide to the best spots in Sydney to watch the fireworks, including those with good accessibility, family-friendly options and those with easy access by public transport. Mrs. Macquaries Point. Credit: Daniel Tran · One of the most coveted spots for the New Year’s Eve fireworks. Best for: Stunning panoramic views of the Sydney Harbour Bri",
+        "sourceId": "s4"
+      },
+      {
+        "text": "Content from the State Library of New South Wales.",
+        "sourceId": "s5"
+      },
+      {
+        "text": "This well-known Australia landmark opened in 1932. The height of the top of the arch is 134 meters above sea level. The 1-kilometer-long bridge is visible in the Landsat images, but you have to look closely. Located near the bridge is one of the world’s most recognizable buildings and part of Sydney Harbour’s landscape. The Sydney Opera House was completed in 1973.",
+        "sourceId": "s6"
+      }
+    ],
+    "validationClaims": [
+      {
+        "requirement": "create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today",
+        "origin": "user",
+        "supportedBy": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "s6",
+          "s7",
+          "s8"
+        ],
+        "checkableVisually": true
+      }
+    ],
+    "visualReferences": [
+      {
+        "imageUrl": "https://imgs.search.brave.com/lpm0SkDcxUcUCulq5SVn_qmlmpFjgqsTkqBxUy58xg0/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/cGxhbm5pbmcubnN3/Lmdvdi5hdS9zaXRl/cy9kZWZhdWx0L2Zp/bGVzLzIwMjYtMDQv/YmFsbGFzdC1wb2lu/dC1wYXJrLTEyMDB4/ODAwLmpwZw",
+        "sourceId": "s7",
+        "description": "Aerial view of a green peninsula in Sydney Harbour with the Harbour Bridge and skyline in the background. Credit: Placemaking NSW"
+      },
+      {
+        "imageUrl": "https://imgs.search.brave.com/4GHtOSmWbMFMEHiIthctIVymM246KT5p2vweJeDVltU/rs:fit:500:0:1:0/g:ce/aHR0cHM6Ly93d3cu/bnN3Lmdvdi5hdS9z/aXRlcy9kZWZhdWx0/L2ZpbGVzL3N0eWxl/cy9nYWxsZXJ5X3Nf/eDEvcHVibGljL2F0/ZHcvMTY5ZjAyNGU0/YWIwN2E5YTg2MDdk/M2Y0MDM1YjI0ZjQu/anBlZz9pdG9rPVhr/UFFaQU1t",
+        "sourceId": "s8",
+        "description": "Sydney Harbour Bridge - Milsons Point"
+      }
+    ],
+    "sources": [
+      {
+        "id": "s1",
+        "url": "https://archives.cityofsydney.nsw.gov.au/nodes/view/584966",
+        "title": "Opera House and Sydney Harbour Bridge from Mrs Macquarie's Chair | City of Sydney Archives",
+        "quality": "institutional"
+      },
+      {
+        "id": "s2",
+        "url": "https://www.dcceew.gov.au/parks-heritage/heritage/places/national/sydney-harbour-bridge",
+        "title": "Sydney Harbour Bridge - DCCEEW",
+        "quality": "institutional"
+      },
+      {
+        "id": "s3",
+        "url": "https://archives.cityofsydney.nsw.gov.au/nodes/view/691455",
+        "title": "New Years Eve, illuminated heart on Harbour Bridge, Mrs Macquarie's Point Sydney Harbour, 2005 | City of Sydney Archives",
+        "quality": "institutional"
+      },
+      {
+        "id": "s4",
+        "url": "https://news.cityofsydney.nsw.gov.au/articles/best-vantage-points-for-sydney-new-years-eve",
+        "title": "Best vantage points for Sydney New Year’s Eve | City of Sydney - News",
+        "quality": "institutional"
+      },
+      {
+        "id": "s5",
+        "url": "https://www.sl.nsw.gov.au/panoramic-view-sydney-harbour-and-city-skyline",
+        "title": "Panoramic view of Sydney Harbour and the city skyline | State Library of New South Wales",
+        "quality": "institutional"
+      },
+      {
+        "id": "s6",
+        "url": "https://eros.usgs.gov/earthshots/harbours",
+        "title": "Harbours | EROS",
+        "quality": "institutional"
+      },
+      {
+        "id": "s7",
+        "url": "https://planning.nsw.gov.au/about-us/our-work/placemaking-nsw",
+        "title": "Aerial view of a green peninsula in Sydney Harbour with the Harbour Bridge and skyline in the background. Credit: Placemaking NSW",
+        "quality": "institutional"
+      },
+      {
+        "id": "s8",
+        "url": "https://nsw.gov.au/visiting-and-exploring-nsw/locations-and-attractions/sydney-harbour-bridge",
+        "title": "Sydney Harbour Bridge - Milsons Point",
+        "quality": "institutional"
+      }
+    ],
+    "queries": [
+      "blue-hour Mrs Macquarie’s Point Sydney Opera House Harbour Bridge skyline landmarks official references",
+      "blue-hour Mrs Macquarie’s Point Sydney Opera House Harbour Bridge skyline landmarks (site:gov OR site:gov.au OR site:gov.uk OR site:gouv.fr OR site:go.jp OR site:govt.nz OR site:gc.ca) official references",
+      "blue-hour Mrs Macquarie’s Point Sydney Opera House Harbour Bridge skyline landmarks current appearance photographs"
+    ],
+    "createdAt": "2026-09-19T04:14:57.138Z",
+    "retrieval": {
+      "authorityRequested": true,
+      "authorityFallbackQuery": "blue-hour Mrs Macquarie’s Point Sydney Opera House Harbour Bridge skyline landmarks (site:gov OR site:gov.au OR site:gov.uk OR site:gouv.fr OR site:go.jp OR site:govt.nz OR site:gc.ca) official references",
+      "authoritativeWebFound": true,
+      "authoritativeVisualFound": true
+    },
+    "authorityStatus": "available"
+  }
+}

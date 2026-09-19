@@ -1,0 +1,42 @@
+[
+  {
+    "name": "incidental craft counts and attribution",
+    "prompt": "Create a game-faithful image of a compact stock-style Mun lander on the Mun surface using KSP 1 stock-game concepts.",
+    "evidence": "KSP 1 compact stock-style Mun lander on the Mun surface. Craft A has 122 parts. Craft B by user X has 22 parts.",
+    "absent": ["122", "22", "user X"],
+    "present": ["compact stock-style Mun lander"],
+    "checkable": true
+  },
+  {
+    "name": "incidental fireworks",
+    "prompt": "Create a blue-hour view from Mrs Macquarie’s Point in Sydney showing the Opera House and Harbour Bridge in correct relative placement.",
+    "evidence": "Sydney Opera House and Harbour Bridge seen from Mrs Macquarie’s Point during New Year's fireworks.",
+    "absent": ["fireworks"],
+    "present": ["blue-hour", "relative placement"],
+    "checkable": true
+  },
+  {
+    "name": "explicit fireworks",
+    "prompt": "Show Sydney Harbour during New Year's fireworks.",
+    "evidence": "Sydney Harbour celebrates New Year's fireworks.",
+    "absent": [],
+    "present": ["fireworks"],
+    "checkable": true
+  },
+  {
+    "name": "explicit craft fidelity with hidden component count",
+    "prompt": "Recreate this specific 22-part KSP craft.",
+    "evidence": "This specific KSP craft has 22 parts and landing legs.",
+    "absent": [],
+    "present": ["22-part"],
+    "checkable": false
+  },
+  {
+    "name": "generic unrelated retrieved obligations",
+    "prompt": "Show an amber Acme camera on a marble table. No fireworks.",
+    "evidence": "Acme camera launch by author Alice used 122 drones and fireworks. The camera has an amber body.",
+    "absent": ["122", "Alice", "drones"],
+    "present": ["amber Acme camera"],
+    "checkable": true
+  }
+]

@@ -1,3 +1,11 @@
+import { activeSessionStore, readRestorableSession } from "./active-session";
+import { selectedGenerationResult, regenerateVersionInput, resultRatioLabel } from "./result-state";
+import {
+  saveGroundingResume,
+  readGroundingResume,
+  clearGroundingResume,
+  type GroundingSummary,
+} from "./grounding/resume";
 import { saveEntityResume, readEntityResume, clearEntityResume } from "./entity-resume";
 // Native image generation — the one shared execution path.
 //
@@ -23,6 +31,7 @@ import {
   createGenerationJobs,
   startGenerationJob,
   getGenerationSession,
+  refineGenerationSession,
   getCreditBalance,
   uploadReferenceImage,
   uploadEditMask,
@@ -88,46 +97,13 @@ export const ERROR_COPY: Record<string, string> = {
   unknown: "Generation failed.",
 };
 
-// A generation session (especially a Sunburst child, or a multi-image
-// series) can run well past a typical page load; a refresh or accidental
-// close must not lose track of it. The active session id is the only thing
-// that needs to survive — pollSession's first tick re-fetches everything
-// else (every child job's status/result, plus versions) from the session
-// itself. Tab-scoped on purpose: resuming a session left running in a
-// different, still-open tab would race two pollers against the same jobs.
-const ACTIVE_SESSION_KEY = "depikt.generate.activeSessionId";
-function saveActiveSession(sessionId: string) {
-  try {
-    sessionStorage.setItem(ACTIVE_SESSION_KEY, sessionId);
-  } catch {
-    /* private-mode/storage-blocked: resume just won't work, generation itself still does */
-  }
-}
-function clearActiveSession() {
-  try {
-    sessionStorage.removeItem(ACTIVE_SESSION_KEY);
-  } catch {
-    /* see saveActiveSession */
-  }
-}
-function readActiveSession(): string | null {
-  try {
-    return sessionStorage.getItem(ACTIVE_SESSION_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function gcd(a: number, b: number): number {
-  return b === 0 ? a : gcd(b, a % b);
-}
 /** e.g. 1024x1280 -> "4:5". Used to label a resumed job's real dimensions. */
 export function simplifyRatioLabel(width: number, height: number): string {
-  const d = gcd(width, height) || 1;
-  return `${width / d}:${height / d}`;
+  return resultRatioLabel(width, height);
 }
 
 export interface SubmitInput {
+  refreshGrounding?: boolean;
   entityIds?: string[];
   prompt: string;
   /** Original human request, when different from `prompt` (Build/Critique's finished writer output). Series planning must use this, not the writer's PAGE-block output — see decompose-series.ts. */
@@ -171,17 +147,21 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   // Every child job of the current session, each with its own status/result
   // — length 1 for the overwhelming majority of submissions (single/edit),
-  // length > 1 only for a confirmed series. `job` below is jobs[0], kept for
-  // every existing single-job consumer (GenerateWorkspace, InlineGenerationPanel).
+  // length > 1 only for a confirmed series. `job` follows the selected image.
   const [jobs, setJobs] = useState<GenerationChildJob[]>([]);
   const [versions, setVersions] = useState<SessionVersion[]>([]);
   const [activeVersionId, setActiveVersionId] = useState<string | null>(null);
   // Set only when a plan comes back with requiresCountConfirmation — the
   // display-safe plan shown to the user while phase is "confirm".
+  const [grounding, setGrounding] = useState<GroundingSummary | null>(null);
+  const groundingRef = useRef<GroundingSummary | null>(null);
+  const [researching, setResearching] = useState(false);
   const [planPreview, setPlanPreview] = useState<DisplayPlan | null>(null);
 
   const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollStart = useRef<number>(0);
+  const pollEpoch = useRef(0);
+  const selectionPinned = useRef(false);
   const pollTickRef = useRef<(() => void) | null>(null);
   // Per-session child status baseline so generation_series_child_done fires
   // on terminal transitions during poll, not on resume of already-finished jobs.
@@ -213,7 +193,17 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     sourceContext: { type: SourceContextType; id?: string | null };
   } | null>(null);
 
-  const job = jobs[0] ?? null;
+  const selectedResult = selectedGenerationResult(jobs, versions, activeVersionId);
+  const job = selectedResult.job;
+
+  function saveActiveSession(sessionId: string) {
+    const userId = submitStateRef.current.user?.id;
+    if (userId) activeSessionStore(userId, sourceContextRef.current.type).save(sessionId);
+  }
+  function clearActiveSession() {
+    const userId = submitStateRef.current.user?.id;
+    if (userId) activeSessionStore(userId, sourceContextRef.current.type).clear();
+  }
 
   function kickGenerationJob(jobId: string, referenceAssetIds: string[]) {
     if (runKicksInFlight.has(jobId)) {
@@ -237,22 +227,25 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       });
   }
 
-  // Resume a session left running across a refresh/reopen — see
-  // ACTIVE_SESSION_KEY. pollSession's own first tick fetches every child
-  // job's current status (they may already be done) and clears the key
-  // only once polling is actually done — including after a succeeded job
-  // still waiting on a signed URL.
+  // Only an active request from this user/workspace can initiate recovery.
+  // Reference/research caches are context, never evidence of an active job.
+  // pollSession verifies the saved session before displaying any progress.
   useEffect(() => {
     if (authLoading || !user || resumedUserRef.current === user.id) return;
     resumedUserRef.current = user.id;
-    const activeSessionId = readActiveSession();
-    const resumed = readEntityResume(user.id);
-    if (resumed && (!activeSessionId || activeSessionId === resumed.sessionId)) {
+    const activeSessionId = activeSessionStore(user.id, sourceContextRef.current.type).read();
+    if (!activeSessionId) return;
+    const researched = readGroundingResume(user.id);
+    const resumed = readEntityResume(user.id) ?? researched;
+    if (researched && activeSessionId === researched.sessionId) {
+      setGrounding(researched.grounding);
+      groundingRef.current = researched.grounding;
+    }
+    if (resumed && activeSessionId === resumed.sessionId) {
       lastParamsRef.current = resumed.input;
       resumedReferencePathsRef.current = resumed.referenceAssetIds;
     }
-    const sessionId = activeSessionId ?? resumed?.sessionId;
-    if (sessionId) pollSession(sessionId);
+    pollSession(activeSessionId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, user?.id]);
 
@@ -325,6 +318,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
   useEffect(
     () => () => {
+      pollEpoch.current++;
+      resumedUserRef.current = null;
       if (pollTimer.current) clearTimeout(pollTimer.current);
     },
     [],
@@ -423,6 +418,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     /** Fresh /jobs response — seed baseline as queued so a child that finishes before the first poll still emits child_done. Omit on resume (sessionStorage). */
     queuedJobs?: Array<{ id: string }>,
   ) {
+    const epoch = ++pollEpoch.current;
     saveActiveSession(sessionId);
     pollStart.current = Date.now();
     pollChildStatusRef.current = new Map();
@@ -434,9 +430,22 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     } else {
       pollBaselineRef.current = { sessionId, seeded: false };
     }
+    let verified = Boolean(queuedJobs);
     const tick = async () => {
       try {
-        const snapshot = await readGenerationSessionLive(sessionId);
+        const snapshot = verified
+          ? await readGenerationSessionLive(sessionId)
+          : await readRestorableSession(sessionId, readGenerationSessionLive);
+        if (epoch !== pollEpoch.current) return;
+        if (!snapshot) {
+          clearActiveSession();
+          pollTickRef.current = null;
+          setPhase("idle");
+          return;
+        }
+        verified = true;
+        if (snapshot.jobs.some((child) => child.status === "queued" || child.status === "running"))
+          setPhase("polling");
         const referenceAssetIds = referencesRef.current
           .map((reference) => reference.uploadedPath)
           .filter((path): path is string => !!path);
@@ -475,15 +484,40 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
 
         setJobs(detailed);
         setVersions(snapshot.versions);
+        const usable = detailed.find((child) => child.status === "succeeded" && child.result?.url);
+        if (usable) {
+          setPhase("result");
+          setActiveVersionId((current) => {
+            if (
+              selectionPinned.current &&
+              snapshot.versions.some((version) => version.id === current)
+            )
+              return current;
+            const improved = snapshot.versions.find(
+              (version) => version.parent_version_id === current,
+            );
+            if (current && improved) return improved.id;
+            return snapshot.versions.some((version) => version.id === current)
+              ? current
+              : usable.result!.versionId;
+          });
+        }
         // Never awaited: credit settle + stale-fail stay on the server GET
         // without stalling the live spinner behind POST /run.
         kickSessionMaintenance(sessionId, getGenerationSession);
-        if (shouldKeepPollingSession(detailed, { elapsedMs: Date.now() - pollStart.current })) {
+        const refinementPending = detailed.some((child) => child.validation?.refinementPending);
+        if (refinementPending && detailed.every((child) => isTerminalStatus(child.status))) {
+          kickSessionMaintenance(`refine:${sessionId}`, () => refineGenerationSession(sessionId));
+        }
+        if (
+          (refinementPending && Date.now() - pollStart.current < 12 * 60 * 1000) ||
+          shouldKeepPollingSession(detailed, { elapsedMs: Date.now() - pollStart.current })
+        ) {
           const awaitingUrl = sessionAwaitingResultUrl(detailed);
           if (awaitingUrl) {
             setPhase("awaiting_result_url");
             const succeeded = detailed.filter((j) => j.status === "succeeded");
-            setActiveVersionId(succeeded[0]?.result?.versionId ?? null);
+            setActiveVersionId((current) => current ?? succeeded[0]?.result?.versionId ?? null);
           }
           const nextDelayMs = nextPollDelayMs(Date.now() - pollStart.current);
           pollTimer.current = setTimeout(() => void tick(), nextDelayMs);
@@ -494,7 +528,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         const succeeded = detailed.filter((j) => j.status === "succeeded");
         if (succeeded.length > 0) {
           setPhase("result");
-          setActiveVersionId(succeeded[0].result?.versionId ?? null);
+          setActiveVersionId((current) => current ?? succeeded[0].result?.versionId ?? null);
           trackEvent("generation_succeeded", {
             model: succeeded[0].model,
             operation: succeeded[0].operation,
@@ -508,6 +542,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         }
         return;
       } catch {
+        if (epoch !== pollEpoch.current) return;
         const retryDelayMs = nextPollDelayMs(Date.now() - pollStart.current);
         pollTimer.current = setTimeout(() => void tick(), retryDelayMs);
       }
@@ -516,7 +551,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       if (pollTimer.current) clearTimeout(pollTimer.current);
       void tick();
     };
-    setPhase("polling");
+    if (queuedJobs) setPhase("polling");
     void tick();
   }
 
@@ -574,6 +609,11 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       return;
     }
 
+    stopPolling();
+    selectionPinned.current = false;
+    setJobs([]);
+    setVersions([]);
+    setActiveVersionId(null);
     setPhase("starting");
     setErrorMessage(null);
     setCreditState("ok");
@@ -591,7 +631,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       // existing source version if any) and always via the plan/jobs pair,
       // so a reference attached on a first submission is never dropped --
       // see generate-reference-upload.test.ts.
+      setResearching(true);
       const planRes = await createGenerationPlan({
+        refreshGrounding: input.refreshGrounding,
         entityIds: input.entityIds,
         prompt: effectivePrompt,
         userInput: input.userInput ?? null,
@@ -602,6 +644,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         sourceContext: effectiveSourceContext,
         structuredAspectRatio: input.structuredAspectRatio ?? null,
       });
+      setResearching(false);
+      setGrounding(planRes.grounding ?? null);
+      groundingRef.current = planRes.grounding ?? null;
       trackEvent("generation_planned", {
         entityCount: input.entityIds?.length ?? 0,
         lockedEntityCount: input.entityIds?.length ?? 0,
@@ -648,6 +693,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         effectiveSourceContext,
       );
     } catch (err) {
+      setResearching(false);
       applyPlanOrJobError(err);
     }
   }
@@ -737,8 +783,18 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       const owner = submitStateRef.current.user;
       if (owner && lastParamsRef.current)
         saveEntityResume(owner.id, res.sessionId, lastParamsRef.current, referenceAssetIds);
+      if (owner && lastParamsRef.current && groundingRef.current)
+        saveGroundingResume({
+          userId: owner.id,
+          sessionId: res.sessionId,
+          input: lastParamsRef.current,
+          referenceAssetIds,
+          grounding: groundingRef.current,
+        });
+      else clearGroundingResume();
       pollSession(res.sessionId, res.jobs);
     } catch (err) {
+      setResearching(false);
       applyPlanOrJobError(err);
     }
   }
@@ -769,15 +825,37 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     );
   }
 
-  function regenerate() {
+  function regenerate(versionId?: string) {
+    const version = versions.find((v) => v.id === (versionId ?? activeVersionId));
+    if (version && (versionId || jobs.length > 1 || !lastParamsRef.current)) {
+      trackEvent("regenerate_submitted", {
+        sessionId: job?.sessionId ?? null,
+        versionId: version.id,
+      });
+      void submit({
+        ...regenerateVersionInput(version),
+        entityIds: lastParamsRef.current?.entityIds,
+      });
+      return;
+    }
     if (!lastParamsRef.current) return;
-    trackEvent("regenerate_submitted", {});
+    trackEvent("regenerate_submitted", {
+      sessionId: job?.sessionId ?? null,
+      jobId: job?.jobId ?? null,
+      afterValidation: !!job?.validation,
+    });
     // Repeat the prior operation with a fresh reservation. An edit still
     // needs its original source and mask; dropping them makes it invalid.
     void submit({
       ...lastParamsRef.current,
       idempotencyKey: undefined,
+      refreshGrounding: false,
     });
+  }
+
+  function refreshResearch() {
+    if (lastParamsRef.current)
+      void submit({ ...lastParamsRef.current, idempotencyKey: undefined, refreshGrounding: true });
   }
 
   async function applyEdit(
@@ -802,7 +880,9 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     await submit({
       entityIds: lastParamsRef.current?.entityIds,
       prompt: editPrompt,
-      structuredAspectRatio: lastParamsRef.current?.structuredAspectRatio ?? null,
+      structuredAspectRatio: selectedResult.version
+        ? `${selectedResult.version.width}:${selectedResult.version.height}`
+        : (lastParamsRef.current?.structuredAspectRatio ?? null),
       routingHints: lastParamsRef.current?.routingHints ?? null,
       sourceVersionId,
       maskAssetId,
@@ -810,16 +890,38 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     return true;
   }
 
-  function download() {
-    const activeVersion = versions.find((v) => v.id === activeVersionId);
-    const url = job?.result?.url ?? activeVersion?.url;
+  function download(versionId?: string) {
+    const targetId = versionId ?? activeVersionId;
+    const target = selectedGenerationResult(jobs, versions, targetId);
+    const url = target.url;
     if (!url) return;
+    trackEvent("generation_result_accepted", {
+      sessionId: target.job?.sessionId ?? null,
+      jobId: target.job?.jobId ?? null,
+      versionId: targetId,
+      signal: "download",
+    });
     trackEvent("image_downloaded", {});
-    const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(activeVersionId ?? "").slice(0, 8)}.png`;
+    const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(targetId ?? "").slice(0, 8)}.png`;
     void downloadFile(url, filename);
   }
 
+  function stopPolling() {
+    pollEpoch.current++;
+    if (pollTimer.current) clearTimeout(pollTimer.current);
+    pollTickRef.current = null;
+    clearActiveSession();
+  }
+
   function reset() {
+    stopPolling();
+    selectionPinned.current = false;
+    setJobs([]);
+    setVersions([]);
+    setActiveVersionId(null);
+    clearGroundingResume();
+    groundingRef.current = null;
+    setGrounding(null);
     setPhase("idle");
     setErrorMessage(null);
     setPlanPreview(null);
@@ -877,8 +979,8 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     setAuthPromptContext(null);
   }
 
-  const activeVersion = versions.find((v) => v.id === activeVersionId);
-  const resultUrl = job?.result?.url ?? activeVersion?.url ?? null;
+  const activeVersion = selectedResult.version;
+  const resultUrl = selectedResult.url;
   const displayModel = activeVersion?.model ?? job?.model ?? null;
 
   return {
@@ -887,10 +989,16 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     phase,
     job,
     jobs,
+    grounding,
+    researching,
     planPreview,
     versions,
     activeVersionId,
-    setActiveVersionId,
+    setActiveVersionId: (id: string) => {
+      selectionPinned.current = true;
+      setActiveVersionId(id);
+    },
+    requestPrompt: lastParamsRef.current?.userInput ?? lastParamsRef.current?.prompt ?? "",
     errorMessage,
     credits,
     references,
@@ -902,6 +1010,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     submit,
     confirmSeriesCount,
     regenerate,
+    refreshResearch,
     applyEdit,
     download,
     reset,

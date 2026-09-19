@@ -1,0 +1,47 @@
+Create the homepage Open Graph image for Astra Projects.
+
+OUTPUT
+1200 × 630 PNG.
+Use deterministic rendering with Next.js ImageResponse.
+Do not use an AI image model.
+
+BRAND
+Use public/logo.png exactly as supplied.
+Preserve its colors, proportions, dark background, and complete spiral.
+Do not redraw, recolor, stretch, or add stars.
+
+STYLE
+White background: #ffffff.
+Main text: #0d0d0d.
+Secondary text: #5d5d5d.
+Optional fine rule: #e6e6e6.
+Use explicitly loaded Geist or a consistent licensed sans-serif font.
+Minimal editorial composition with generous whitespace.
+
+LAYOUT
+Keep essential text at least 56 px from the edges.
+Top-left: a small complete logo beside “Astra Projects”.
+Left: headline and supporting copy.
+Right: the complete square logo, approximately 360 × 360.
+Keep text and artwork separate.
+
+EXACT HEADLINE
+See what people are
+actually doing
+with Astra.
+
+SUPPORTING COPY
+Real projects, experiments, useful work, and things that
+didn't quite go as planned.
+
+OPTIONAL FOOTER
+Independent collection of GPT-6 Astra projects
+
+Use large semibold typography. Measure wrapping and prevent overflow.
+Do not print a project count.
+
+No cards, pills, robots, fake UI, extra galaxies, decorative stars,
+synthetic illustrations, or gradients outside the supplied artwork.
+
+Route: /
+Existing image entry point: src/app/opengraph-image.tsx

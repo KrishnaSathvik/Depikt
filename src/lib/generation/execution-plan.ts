@@ -1,3 +1,6 @@
+import type { GroundingUsage } from "./grounding/service.ts";
+import type { ValidationSnapshot } from "./validation/contract.ts";
+import type { GroundingSnapshot } from "./grounding/service.ts";
 import type { ResolvedEntity } from "./entities.ts";
 import { extractStoredEntities } from "./stored-entities.ts";
 export { extractStoredEntityReferencePaths } from "./stored-entities.ts";
@@ -20,6 +23,9 @@ export interface ExecutionPlanChild {
 }
 
 export interface ExecutionPlanJson {
+  validation?: Record<string, ValidationSnapshot>;
+  grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   lockedEntityCount?: number;
   /** Flat telemetry/evidence fields — see vnext-1 design §6. */
@@ -38,6 +44,9 @@ export interface ExecutionPlanJson {
 }
 
 export function buildExecutionPlanJson(args: {
+  validation?: Record<string, ValidationSnapshot>;
+  grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   plan: GenerationPlan;
   selectedCount: number;
@@ -49,6 +58,9 @@ export function buildExecutionPlanJson(args: {
 }): ExecutionPlanJson {
   const childLabels = args.children.map((c) => c.label);
   return {
+    ...(args.validation ? { validation: args.validation } : {}),
+    ...(args.groundingUsage ? { groundingUsage: args.groundingUsage } : {}),
+    ...(args.grounding ? { grounding: args.grounding } : {}),
     ...(args.entities?.length
       ? { entities: args.entities, lockedEntityCount: args.entities.length }
       : {}),
@@ -98,6 +110,9 @@ export function extractStoredMaskPath(planJson: unknown): string | null {
 
 /** Fields that define whether a stored session may be reused for a new token. */
 export interface ExecutionPlanIdentity {
+  validation?: Record<string, ValidationSnapshot>;
+  grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   plan: Pick<GenerationPlan, "mode" | "desiredCount" | "autoCount">;
   selectedCount: number;
@@ -156,6 +171,20 @@ export function executionPlanIdentityMatches(
   stored: unknown,
   current: ExecutionPlanIdentity,
 ): boolean {
+  const validationIdentity = (value?: Record<string, ValidationSnapshot>) =>
+    Object.entries(value ?? {})
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, snapshot]) => [key, snapshot.seal]);
+  if (
+    JSON.stringify(
+      validationIdentity(
+        (stored as { validation?: Record<string, ValidationSnapshot> } | null)?.validation,
+      ),
+    ) !== JSON.stringify(validationIdentity(current.validation))
+  )
+    return false;
+  const storedGrounding = (stored as { grounding?: GroundingSnapshot } | null)?.grounding;
+  if ((storedGrounding?.seal ?? null) !== (current.grounding?.seal ?? null)) return false;
   let storedEntities: ResolvedEntity[];
   try {
     storedEntities = extractStoredEntities(stored);

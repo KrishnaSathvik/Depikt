@@ -55,7 +55,10 @@ test("generation_series_child_done fires once per child on succeeded/failed tran
   assert.match(pollFn, /success: child\.status === "succeeded"/);
   assert.match(pollFn, /!isTerminalStatus\(prev\)/);
   assert.match(pollFn, /child\.status === "succeeded" \|\| child\.status === "failed"/);
-  assert.doesNotMatch(pollFn, /isTerminalStatus\(child\.status\)/);
+  assert.doesNotMatch(
+    pollFn.slice(pollFn.indexOf("const prev ="), pollFn.indexOf("if (seeding &&")),
+    /isTerminalStatus\(child\.status\)/,
+  );
   assert.match(pollFn, /detailed\.length > 1/);
 });
 
@@ -77,7 +80,7 @@ test("fresh submissions seed poll baseline from /jobs queued jobs; resume seeds 
   assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);
   assert.match(
     hook,
-    /if \(sessionId\) pollSession\(sessionId\);/,
+    /if \(!activeSessionId\) return;[\s\S]*pollSession\(activeSessionId\);/,
     "resume omits queuedJobs so first poll seeds without emitting",
   );
 });
@@ -87,7 +90,8 @@ test("jobs route persists plan_json with telemetry fields via buildExecutionPlan
   const executionPlan = read("src/lib/generation/execution-plan.ts");
 
   assert.match(route, /buildExecutionPlanJson\(/);
-  assert.match(route, /plan_json: executionPlan/);
+  assert.match(route, /plan_json: signedExecutionPlan/);
+  assert.match(route, /authorizeExecution\(executionPlan,/);
   assert.match(executionPlan, /mode: args\.plan\.mode/);
   assert.match(executionPlan, /desiredCount: args\.plan\.desiredCount/);
   assert.match(executionPlan, /autoCount: args\.plan\.autoCount/);

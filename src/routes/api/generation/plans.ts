@@ -1,3 +1,11 @@
+import { planGrounding } from "@/lib/generation/grounding/planner";
+import {
+  resolveGrounding,
+  groundingQueryPrices,
+  type GroundingUsage,
+} from "@/lib/generation/grounding/service";
+import { createGroundingProvider } from "@/lib/generation/grounding/provider";
+import { createGroundingCache } from "@/lib/generation/grounding/cache";
 import {
   resolveEntityReferences,
   selectOwnedEntities,
@@ -138,7 +146,8 @@ export const Route = createFileRoute("/api/generation/plans")({
               budget:
                 MAX_JOB_INPUT_IMAGES_WITH_ENTITIES -
                 req.referenceAssetIds.length -
-                (req.sourceVersionId ? 1 : 0),
+                (req.sourceVersionId ? 1 : 0) -
+                (process.env.GROUNDING_ENABLED === "true" ? 2 : 0),
             });
           } catch (error) {
             return jsonError((error as Error).message, 400);
@@ -216,9 +225,42 @@ export const Route = createFileRoute("/api/generation/plans")({
         const userInput = req.userInput ?? req.prompt;
         const plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
 
+        let grounding;
+        let groundingUsage: GroundingUsage | undefined;
+        if (process.env.GROUNDING_ENABLED === "true") {
+          const groundingPlan = planGrounding(
+            intent,
+            userInput,
+            plan.searchNeeded,
+            entities.length,
+          );
+          plan.searchNeeded = groundingPlan.needed;
+          if (groundingPlan.needed) {
+            try {
+              grounding = await resolveGrounding({
+                plan: groundingPlan,
+                intent,
+                prompt: userInput,
+                userId,
+                secret,
+                provider: createGroundingProvider(),
+                cache: createGroundingCache(supabase, userId),
+                refresh: req.refreshGrounding,
+                queryCosts: groundingQueryPrices(),
+                onUsage: (usage) => {
+                  groundingUsage = usage;
+                },
+              });
+            } catch {
+              return jsonError("Could not research references. Please try again.", 502);
+            }
+          }
+        }
         const planToken = signPlanToken(
           {
             userId,
+            grounding,
+            groundingUsage,
             prompt: req.prompt,
             userInput,
             ...(entities.length ? { entities } : {}),
@@ -233,10 +275,23 @@ export const Route = createFileRoute("/api/generation/plans")({
           secret,
         );
 
-        return new Response(JSON.stringify({ plan: toDisplayPlan(plan), planToken }), {
-          status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        });
+        return new Response(
+          JSON.stringify({
+            plan: toDisplayPlan(plan),
+            planToken,
+            grounding: grounding
+              ? {
+                  sources: grounding.bundle.sources,
+                  createdAt: grounding.bundle.createdAt,
+                  temporalSupport: grounding.bundle.temporalSupport,
+                }
+              : null,
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json", ...corsHeaders },
+          },
+        );
       },
     },
   },

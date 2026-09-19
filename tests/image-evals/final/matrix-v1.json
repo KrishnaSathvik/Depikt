@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "status": "frozen-not-executed",
+  "maxScenarios": 14,
+  "maxInitialImages": 18,
+  "maxRepairImages": 1,
+  "requires": [
+    "VNext 5 merged",
+    "final economic policy agreed",
+    "explicit activation of live verification"
+  ],
+  "scenarios": [
+    { "id": "single", "images": 1, "covers": ["V1 single"] },
+    { "id": "series", "images": 3, "covers": ["V1 planning", "count", "resume"] },
+    { "id": "contact-sheet", "images": 1, "covers": ["V1 output semantics"] },
+    { "id": "precision-edit", "images": 1, "covers": ["V2 mask", "outside-mask preservation"] },
+    { "id": "whole-edit", "images": 1, "covers": ["V2 regression"] },
+    { "id": "character", "images": 1, "covers": ["V3 character identity"] },
+    { "id": "product", "images": 1, "covers": ["V3 product identity"] },
+    {
+      "id": "entities",
+      "images": 1,
+      "covers": ["V3 two characters and product", "entity distinction"]
+    },
+    { "id": "brand-series", "images": 3, "covers": ["V3 brand consistency"] },
+    { "id": "game-grounding", "images": 1, "covers": ["V4 web and visual", "provenance"] },
+    { "id": "location-grounding", "images": 1, "covers": ["V4 current facts", "cache reuse"] },
+    { "id": "exact-text", "images": 1, "covers": ["V5 OCR", "constraints"] },
+    {
+      "id": "repair",
+      "images": 1,
+      "maxRepairs": 1,
+      "covers": ["V5 repair budget", "revalidation", "credits"]
+    },
+    { "id": "plain-regression", "images": 1, "covers": ["no entities", "no search", "regenerate"] }
+  ],
+  "browserPass": [
+    "Generate",
+    "Series",
+    "Edit",
+    "Reference packs",
+    "Grounding",
+    "Validation",
+    "Repair",
+    "Regenerate",
+    "Refresh/resume",
+    "Credits",
+    "Mobile",
+    "Desktop"
+  ]
+}

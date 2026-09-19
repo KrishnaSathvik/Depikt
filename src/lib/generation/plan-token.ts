@@ -1,3 +1,5 @@
+import type { GroundingUsage } from "./grounding/service.ts";
+import { verifyGroundingSnapshot, type GroundingSnapshot } from "./grounding/service.ts";
 import type { ResolvedEntity } from "./entities.ts";
 import { extractStoredEntities } from "./stored-entities.ts";
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -7,6 +9,8 @@ import type { GenerationPlan } from "./plan.ts";
 export const PLAN_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 export interface PlanTokenPayload {
+  grounding?: GroundingSnapshot;
+  groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];
   userId: string;
   prompt: string;
@@ -39,5 +43,6 @@ export function verifyPlanToken(token: string, secret: string, userId: string): 
   if (payload.userId !== userId) throw new Error("invalid plan token");
   if (payload.exp < Date.now()) throw new Error("plan expired");
   extractStoredEntities(payload, userId);
+  if (payload.grounding) verifyGroundingSnapshot(payload.grounding, userId, secret);
   return payload;
 }

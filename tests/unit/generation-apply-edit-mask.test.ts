@@ -21,10 +21,18 @@ function sliceFn(src: string, start: string, end: string): string {
 
 test("SubmitInput includes maskAssetId and submit() forwards it to createGenerationPlan", () => {
   const hook = read("src/lib/generation/use-generation.ts");
-  const submitInput = sliceFn(hook, "export interface SubmitInput {", "export interface UseGenerationOptions");
+  const submitInput = sliceFn(
+    hook,
+    "export interface SubmitInput {",
+    "export interface UseGenerationOptions",
+  );
   assert.match(submitInput, /maskAssetId\?:\s*string\s*\|\s*null/);
 
-  const submitFn = sliceFn(hook, "async function submit(input: SubmitInput)", "function applyPlanOrJobError");
+  const submitFn = sliceFn(
+    hook,
+    "async function submit(input: SubmitInput)",
+    "function applyPlanOrJobError",
+  );
   assert.match(submitFn, /createGenerationPlan\(\{/);
   assert.match(submitFn, /maskAssetId:\s*input\.maskAssetId\s*\?\?\s*null/);
   assert.match(submitFn, /sourceVersionId:\s*input\.sourceVersionId\s*\?\?\s*null/);
@@ -34,7 +42,7 @@ test("applyEdit uploads via uploadEditMask only when maskPng is provided", () =>
   const hook = read("src/lib/generation/use-generation.ts");
   assert.match(hook, /uploadEditMask/);
   assert.match(hook, /bytesToPngDataUrl/);
-  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download()");
+  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download(");
   assert.match(applyEditFn, /Promise<boolean>/);
   assert.match(applyEditFn, /opts\?: \{ maskPng\?: Uint8Array \| null \}/);
   assert.match(applyEditFn, /uploadEditMask\(/);
@@ -67,10 +75,16 @@ test("GenerationMaskEditor and the edit form never call uploadEditMask", () => {
 
 test("form onApply whole-image passes null mask; area uses exportMaskPng", () => {
   const form = read("src/components/generate/GenerationEditForm.tsx");
-  assert.match(form, /onApply:\s*\(result:\s*\{\s*maskPng:\s*Uint8Array\s*\|\s*null\s*\}\)\s*=>\s*void/);
+  assert.match(
+    form,
+    /onApply:\s*\(result:\s*\{\s*maskPng:\s*Uint8Array\s*\|\s*null\s*\}\)\s*=>\s*void/,
+  );
   assert.match(form, /exportMaskPng/);
   assert.match(form, /onApply\(\{\s*maskPng:\s*null\s*\}\)/);
-  assert.match(form, /onApply\(\{\s*maskPng:\s*exportMaskPng\(strokes,\s*sourceWidth,\s*sourceHeight\)\s*\}\)/);
+  assert.match(
+    form,
+    /onApply\(\{\s*maskPng:\s*exportMaskPng\(strokes,\s*sourceWidth,\s*sourceHeight\)\s*\}\)/,
+  );
   assert.match(form, /hasPaintCoverage/);
   assert.match(form, /Apply edit → · 1 credit/);
 });
@@ -87,7 +101,7 @@ test("both parents still call applyEdit with the form's maskPng", () => {
 
 test("applyEdit uses activeVersionId as sourceVersionId", () => {
   const hook = read("src/lib/generation/use-generation.ts");
-  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download()");
+  const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download(");
   assert.match(applyEditFn, /activeVersionId/);
   assert.match(applyEditFn, /sourceVersionId/);
   assert.doesNotMatch(applyEditFn, /sourceVersionId:\s*null/);
@@ -108,7 +122,11 @@ test("signed-out pending payload skips mask bytes", () => {
   assert.doesNotMatch(iface, /mask/i);
 
   const hook = read("src/lib/generation/use-generation.ts");
-  const submitFn = sliceFn(hook, "async function submit(input: SubmitInput)", "function applyPlanOrJobError");
+  const submitFn = sliceFn(
+    hook,
+    "async function submit(input: SubmitInput)",
+    "function applyPlanOrJobError",
+  );
   const saveCall = submitFn.slice(
     submitFn.indexOf("savePendingGeneration({"),
     submitFn.indexOf("setAuthPromptContext"),

@@ -1,0 +1,96 @@
+{
+  "version": 2,
+  "status": "frozen-not-executed",
+  "runId": "targeted-vnext-blockers-2026-09",
+  "maxScenarios": 6,
+  "maxInitialImages": 7,
+  "maxRepairImages": 1,
+  "maxTotalProviderImages": 8,
+  "sourceRunId": "final-vnext-verification-2026-09",
+  "sourceImage": "benchmark-results/final-verification/single-version-0.png",
+  "scenarios": [
+    {
+      "id": "series",
+      "images": 2,
+      "covers": [
+        "V1 planning",
+        "count",
+        "resume"
+      ],
+      "number": 2,
+      "prompt": "Create two separate standalone cinematic images of a fictional desert astronomy observatory:\n1. sunrise exterior\n2. night control room\nEach must be its own image. No collage. No text.",
+      "instructions": "SERIES\nImages: 2\n\nPrompt:\n\u201cCreate two separate standalone cinematic images of a fictional desert astronomy observatory:\n1. sunrise exterior\n2. night control room\nEach must be its own image. No collage. No text.\u201d\n\nCovers:\n- V1 series planning\n- count\n- separate assets\n- child execution\n- session/resume\n\nExpected:\n2 independent images, never one collage.",
+      "maxRepairs": 0
+    },
+    {
+      "id": "precision-edit",
+      "images": 1,
+      "covers": [
+        "V2 mask",
+        "outside-mask preservation"
+      ],
+      "number": 4,
+      "prompt": "Change only the cobalt-blue teapot to matte ivory. Preserve the pears, walnut table, composition, shadows, reflections, lighting and background.",
+      "instructions": "PRECISION EDIT\nImages: 1\n\nSource:\nScenario 1 result.\n\nMask:\nteapot only.\n\nPrompt:\n\u201cChange only the cobalt-blue teapot to matte ivory. Preserve the pears, walnut table, composition, shadows, reflections, lighting and background.\u201d\n\nCovers:\n- V2 precision mask\n- source remains image[0]\n- outside-mask preservation\n- Sunburst masked edit\n- version chain",
+      "maxRepairs": 0,
+      "source": "single:original",
+      "mask": "teapot only"
+    },
+    {
+      "id": "product",
+      "images": 1,
+      "covers": [
+        "V3 product identity"
+      ],
+      "number": 7,
+      "prompt": "NEMORI Berry bottle on a brushed stainless-steel counter with condensation nearby, cool lavender studio light, three-quarter premium product photograph. Preserve the exact product identity and packaging.",
+      "instructions": "PRODUCT LOCK\nImages: 1\n\nUse:\napproved frozen Product B / NEMORI Berry reference pack.\n\nPrompt:\n\u201cNEMORI Berry bottle on a brushed stainless-steel counter with condensation nearby, cool lavender studio light, three-quarter premium product photograph. Preserve the exact product identity and packaging.\u201d\n\nCovers:\n- V3 product lock\n- geometry\n- cap\n- label/mark fidelity\n- dynamic role selection",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "product-b"
+      ]
+    },
+    {
+      "id": "entities",
+      "images": 1,
+      "covers": [
+        "V3 two characters and product",
+        "entity distinction"
+      ],
+      "number": 8,
+      "prompt": "Maya and Sofia sitting at a modern railway-station caf\u00e9. Sofia is holding the NEMORI Berry bottle. Keep Maya and Sofia visually distinct and preserve the exact product identity. Natural candid editorial photography.",
+      "instructions": "MULTI-ENTITY STRESS\nImages: 1\n\nUse:\nCharacter A / Maya\nCharacter B / Sofia\nProduct B / NEMORI Berry\n\nPrompt:\n\u201cMaya and Sofia sitting at a modern railway-station caf\u00e9. Sofia is holding the NEMORI Berry bottle. Keep Maya and Sofia visually distinct and preserve the exact product identity. Natural candid editorial photography.\u201d\n\nCovers:\n- two characters\n- one product\n- 8-image entity budget\n- identity distinction\n- no reference feature merging\n- product ownership in scene",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "character-a",
+        "character-b",
+        "product-b"
+      ]
+    },
+    {
+      "id": "game-grounding",
+      "images": 1,
+      "covers": [
+        "V4 web and visual",
+        "provenance"
+      ],
+      "number": 10,
+      "prompt": "Research Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.",
+      "instructions": "GAME GROUNDING\nImages: 1\n\nPrompt:\n\u201cResearch Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.\u201d\n\nCovers:\n- V4 searchNeeded\n- factual web grounding\n- visual grounding\n- provenance\n- grounding limits\n- grounded generation\n\nRequirements:\n- use real grounding pipeline\n- record sources\n- \u22643 web queries\n- \u22642 visual queries\n- \u22648 sources\n- do not hardcode KSP-specific behavior",
+      "maxRepairs": 0
+    },
+    {
+      "id": "location-grounding",
+      "images": 1,
+      "covers": [
+        "V4 current facts",
+        "cache reuse"
+      ],
+      "number": 11,
+      "prompt": "Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie\u2019s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.",
+      "instructions": "LOCATION GROUNDING\nImages: 1\n\nPrompt:\n\u201cResearch current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie\u2019s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.\u201d\n\nCovers:\n- V4 real-world/current grounding\n- web + visual references\n- provenance\n- grounding cache\n\nAfter grounding is created:\nperform a NON-IMAGE grounding-plan/cache lookup for the same request and verify the existing grounding snapshot is reused.\n\nDo not generate a second image for cache testing.",
+      "maxRepairs": 0,
+      "cacheLookupWithoutImage": true
+    }
+  ]
+}

@@ -106,7 +106,7 @@ test("jobs.$id.run.ts keeps source download before references and does not push 
   );
   assert.match(src, /editMask/);
   assert.doesNotMatch(src, /referenceImages\.push\(\s*editMask/);
-  assert.doesNotMatch(src, /referenceImages\.push\(.*mask/s);
+  assert.doesNotMatch(src, /referenceImages\.push\([^)]*mask/);
 });
 
 test("jobs.$id.run.ts fails the job and refunds when assembleJobImages throws", () => {

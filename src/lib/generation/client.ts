@@ -1,3 +1,4 @@
+import type { TemporalSupport } from "./grounding/temporal";
 // Native image generation — authenticated client fetch + polling.
 //
 // The /api/generation/* routes are plain file-route API endpoints, not
@@ -47,6 +48,7 @@ async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
 // opaque, signed planToken that POST /jobs merely verifies. See job-request.ts.
 
 export interface CreatePlanRequest {
+  refreshGrounding?: boolean;
   entityIds?: string[];
   /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
   prompt: string;
@@ -74,6 +76,11 @@ export interface DisplayPlan {
 }
 
 export interface CreatePlanResponse {
+  grounding?: {
+    temporalSupport?: TemporalSupport;
+    sources: Array<{ id: string; url: string; title: string }>;
+    createdAt: string;
+  } | null;
   plan: DisplayPlan;
   planToken: string;
 }
@@ -119,6 +126,14 @@ export function startGenerationJob(jobId: string, referencePaths: string[]): Pro
 }
 
 export interface JobStatusResponse {
+  refining?: boolean;
+  validation?: {
+    verdict: "pass" | "pass_with_limitation" | "repairable" | "fail";
+    temporalSupport?: TemporalSupport;
+    repairAttempts: number;
+    refinementPending?: boolean;
+    warning?: boolean;
+  };
   jobId: string;
   sessionId: string;
   status: "queued" | "running" | "succeeded" | "failed" | "cancelled";
@@ -135,6 +150,7 @@ export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {
 }
 
 export interface SessionVersion {
+  job_id?: string;
   id: string;
   parent_version_id: string | null;
   storage_path: string;
@@ -181,4 +197,8 @@ export function uploadEditMask(
     method: "POST",
     body: JSON.stringify({ sourceVersionId, dataUrl }),
   });
+}
+
+export function refineGenerationSession(sessionId: string): Promise<unknown> {
+  return generationJson(`/api/generation/sessions/${sessionId}/refine`, { method: "POST" });
 }

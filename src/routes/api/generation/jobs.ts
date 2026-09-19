@@ -1,3 +1,6 @@
+import { authorizeExecution } from "@/lib/generation/execution-auth";
+import { buildJobValidationPlans } from "@/lib/generation/validation/contract";
+import { groundingBrief } from "@/lib/generation/grounding/service";
 import { buildEntityPreamble } from "@/lib/generation/entity-preamble";
 import { createFileRoute } from "@tanstack/react-router";
 import { corsHeaders, getClientIp, jsonError, rateLimitExceeded } from "@/lib/api/public-route";
@@ -79,7 +82,8 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
     payload.entities ?? [],
     payload.referenceAssetIds.length + (payload.sourceVersionId ? 1 : 0),
   );
-  const withEntities = (prompt: string) => (preamble ? `${preamble}\n\n${prompt}` : prompt);
+  const withEntities = (prompt: string) =>
+    [preamble, groundingBrief(payload.grounding), prompt].filter(Boolean).join("\n\n");
   if (payload.plan.mode !== "series") {
     if (payload.maskPath || payload.maskAssetId) {
       return [
@@ -87,6 +91,7 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
           prompt: withPrecisionEditPreamble(
             withEntities(payload.prompt),
             payload.intent.must_preserve,
+            payload.userInput,
           ),
           label: null,
         },
@@ -218,7 +223,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
           payload.plan,
           payload.referenceAssetIds,
           payload.sourceVersionId,
-          payload.entities?.length ?? 0,
+          payload.entities?.reduce((n, entity) => n + entity.resolvedReferences.length, 0) ?? 0,
+          payload.grounding?.bundle.visualReferences.length ?? 0,
         );
         const model = resolveGenerationModel({
           operation,
@@ -255,12 +261,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
           );
         }
 
-        if (
-          operation === "edit" &&
-          payload.referenceAssetIds.length === 0 &&
-          !payload.entities?.length &&
-          !payload.sourceVersionId
-        ) {
+        if (payload.plan.mode === "edit" && operation === "generate" && !payload.grounding) {
           return jsonError("Editing requires a sourceVersionId or a reference image", 400);
         }
 
@@ -281,7 +282,31 @@ export const Route = createFileRoute("/api/generation/jobs")({
         // display plan -- see execution-plan.ts -- because /run needs the
         // reference paths this token carried, and it must never trust a
         // client-supplied list at execution time.
+        let validationSnapshot;
+        if (process.env.VALIDATION_REPAIR_ENABLED === "true") {
+          try {
+            validationSnapshot = buildJobValidationPlans({
+              groundingBundle: payload.grounding?.bundle,
+              intent: payload.intent,
+              entities: payload.entities ?? [],
+              selectedCount: selected,
+              prompt: payload.userInput,
+              hasMask: !!payload.maskPath,
+              children: children.map((child, index) => ({
+                key: expectedIdempotencyKeys[index],
+                prompt: child.prompt,
+              })),
+              userId,
+              secret,
+            });
+          } catch {
+            return jsonError("Could not prepare image requirements. Please try again.", 502);
+          }
+        }
         const executionPlan = buildExecutionPlanJson({
+          validation: validationSnapshot,
+          grounding: payload.grounding,
+          groundingUsage: payload.groundingUsage,
           entities: payload.entities,
           plan: payload.plan,
           selectedCount: selected,
@@ -291,13 +316,27 @@ export const Route = createFileRoute("/api/generation/jobs")({
           maskPath: payload.maskPath ?? null,
           children,
         });
+        const signedExecutionPlan = {
+          ...executionPlan,
+          executionAuthorization: authorizeExecution(executionPlan, {
+            operation,
+            width: size.width,
+            height: size.height,
+            userId,
+            secret,
+            children: children.map((child, index) => ({
+              key: expectedIdempotencyKeys[index],
+              prompt: child.prompt,
+            })),
+          }),
+        };
         const { data: insertedSession, error: sessionError } = await supabase
           .from("generation_sessions")
           .insert({
             user_id: userId,
             source_type: req.sourceContextType,
             source_id: req.sourceContextId,
-            plan_json: executionPlan,
+            plan_json: signedExecutionPlan,
             create_idempotency_key: req.idempotencyKey,
           })
           .select("id")
@@ -342,6 +381,9 @@ export const Route = createFileRoute("/api/generation/jobs")({
             case "reuse":
               if (
                 !executionPlanIdentityMatches(existingSession.plan_json, {
+                  validation: validationSnapshot,
+                  grounding: payload.grounding,
+                  groundingUsage: payload.groundingUsage,
                   entities: payload.entities,
                   plan: payload.plan,
                   selectedCount: selected,

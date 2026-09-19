@@ -1,3 +1,4 @@
+import { isRepairInProgress } from "./result-state.ts";
 import type { JobStatusResponse, SessionVersion } from "./client.ts";
 
 export interface LivePollJobRow {
@@ -8,6 +9,7 @@ export interface LivePollJobRow {
   width: number | null;
   height: number | null;
   safe_error_message: string | null;
+  usage_json?: { validation?: JobStatusResponse["validation"] } | null;
   session_id: string;
   series_index: number | null;
   series_label: string | null;
@@ -39,16 +41,19 @@ export function assembleLivePoll(
   jobs: LivePollJobRow[],
   versions: LivePollVersionRow[],
   signedUrls: Map<string, string | null>,
+  repair: { job_id: string | null; state: string; started_at: string } | null = null,
 ): LivePollSnapshot {
   const versionsByJob = new Map<string, LivePollVersionRow>();
   for (const version of versions) {
-    if (!versionsByJob.has(version.job_id)) versionsByJob.set(version.job_id, version);
+    versionsByJob.set(version.job_id, version);
   }
 
   return {
     jobs: jobs.map((job) => {
       const version = job.status === "succeeded" ? (versionsByJob.get(job.id) ?? null) : null;
       return {
+        ...(job.usage_json?.validation ? { validation: job.usage_json.validation } : {}),
+        refining: isRepairInProgress(job.id, repair),
         jobId: job.id,
         sessionId: job.session_id,
         status: job.status as JobStatusResponse["status"],
@@ -70,6 +75,7 @@ export function assembleLivePoll(
       };
     }),
     versions: versions.map((version) => ({
+      job_id: version.job_id,
       id: version.id,
       parent_version_id: version.parent_version_id,
       storage_path: version.storage_path,

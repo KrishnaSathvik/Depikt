@@ -22,7 +22,7 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
       db
         .from("generation_jobs")
         .select(
-          "id, status, operation, model, width, height, safe_error_message, session_id, series_index, series_label",
+          "id, status, operation, model, width, height, safe_error_message, session_id, series_index, series_label, usage_json",
         )
         .eq("session_id", sessionId)
         .order("series_index", { ascending: true }),
@@ -55,5 +55,16 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
       }),
   );
 
-  return assembleLivePoll(jobs, versions, signedUrls);
+  const repair = jobs.some((job) => job.usage_json?.validation?.refinementPending)
+    ? await db
+        .from("generation_request_repairs")
+        .select("job_id,state,started_at")
+        .eq("session_id", sessionId)
+        .maybeSingle()
+        .then(
+          ({ data, error }) => (error ? null : data),
+          () => null,
+        )
+    : null;
+  return assembleLivePoll(jobs, versions, signedUrls, repair);
 }

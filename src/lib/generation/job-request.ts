@@ -68,6 +68,7 @@ function parseSourceContext(value: unknown): ParsedSourceContext | { error: stri
 // ---------- POST /api/generation/plans ----------
 
 export interface ValidatedCreatePlanRequest {
+  refreshGrounding: boolean;
   /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
   prompt: string;
   /** The original human request, when different from `prompt` (Build/Critique). Series decomposition must use this — see decompose-series.ts. */
@@ -99,6 +100,22 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
 
+  if (
+    [
+      "validation",
+      "repair",
+      "repairPolicy",
+      "grounding",
+      "facts",
+      "sources",
+      "visualReferences",
+      "groundingPlan",
+    ].some((k) => k in b)
+  )
+    return { ok: false, error: "Grounding is resolved by the server" };
+  if (b.refreshGrounding !== undefined && typeof b.refreshGrounding !== "boolean")
+    return { ok: false, error: "refreshGrounding must be a boolean" };
+
   // The browser may submit a server-issued maskAssetId, never a raw storage
   // path — /plans derives maskPath server-side. See storage-paths.ts.
   if ("maskPath" in b || "mask" in b) {
@@ -127,6 +144,18 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
   if (b.userInput !== undefined && b.userInput !== null) {
     if (!isNonEmptyString(b.userInput)) return { ok: false, error: "userInput must be a string" };
     userInput = b.userInput;
+  }
+
+  // Generate cannot fulfill an explicit instruction to avoid AI image models.
+  // Reject before intent analysis, research, reservations or image execution.
+  const forbidsAiImages =
+    /(?:^|[.!?\n]\s*)(?:please\s+)?(?:do not|don't|don’t|never)\s+use\s+(?:an?\s+)?AI\s+image\s+(?:models?|generators?)\b/i;
+  if ([b.prompt, userInput].some((text) => text && forbidsAiImages.test(text))) {
+    return {
+      ok: false,
+      error:
+        "This request forbids AI image generation. Generate uses an AI image model; use your code-based renderer for this request.",
+    };
   }
 
   if (b.intent !== undefined && b.intent !== null && typeof b.intent !== "object") {
@@ -177,6 +206,7 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
   return {
     ok: true,
     request: {
+      refreshGrounding: b.refreshGrounding === true,
       prompt: b.prompt,
       userInput,
       intent: b.intent ?? null,
@@ -212,6 +242,13 @@ export type CreateJobsFromPlanValidationResult =
 // than silently ignored, so a stale/crafted client fails loudly instead of
 // quietly losing the protection the token provides.
 const FORBIDDEN_FIELDS = [
+  "validation",
+  "repair",
+  "repairPolicy",
+  "grounding",
+  "facts",
+  "sources",
+  "visualReferences",
   "plan",
   "count",
   "children",

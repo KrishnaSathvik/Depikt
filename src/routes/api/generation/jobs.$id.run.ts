@@ -1,3 +1,13 @@
+import { automaticRepairEnabled } from "@/lib/generation/economic-policy";
+import { refineGenerationSession } from "@/lib/generation/validation/session-repair";
+import { verifyExecutionAuthorization } from "@/lib/generation/execution-auth";
+import { verifyValidationPlan } from "@/lib/generation/validation/contract";
+import { createValidationProviders } from "@/lib/generation/validation/providers";
+import { validationDataAccess } from "@/lib/generation/validation/data-access";
+import type { ValidationRuntime } from "@/lib/generation/validation/runtime";
+import { extractStoredEntities } from "@/lib/generation/stored-entities";
+import { verifyGroundingSnapshot } from "@/lib/generation/grounding/service";
+import { createGroundingProvider } from "@/lib/generation/grounding/provider";
 import {
   extractStoredEntityReferencePaths,
   EntityReferenceUnavailableError,
@@ -54,7 +64,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         const { data: job, error } = await supabase
           .from("generation_jobs")
           .select(
-            "id, user_id, session_id, operation, model, prompt, width, height, idempotency_key, source_version_id, status",
+            "id, user_id, session_id, operation, model, prompt, width, height, idempotency_key, source_version_id, status, series_index",
           )
           .eq("user_id", userId)
           .eq("id", params.id)
@@ -140,8 +150,24 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         }
         let referenceImages: StoredImage[];
         let editMask: StoredImage | null;
+        let validationRuntime: ValidationRuntime | undefined;
         try {
           if (!session) throw new EntityReferenceUnavailableError();
+          verifyExecutionAuthorization(
+            session.plan_json,
+            {
+              userId,
+              idempotencyKey: job.idempotency_key,
+              prompt: job.prompt,
+              operation: job.operation,
+              width: job.width,
+              height: job.height,
+              sourceVersionId: job.source_version_id ?? null,
+            },
+            process.env.GENERATION_PLAN_SECRET ?? "",
+            process.env.GROUNDING_ENABLED === "true" ||
+              process.env.VALIDATION_REPAIR_ENABLED === "true",
+          );
           const entityReferencePaths = extractStoredEntityReferencePaths(session.plan_json, userId);
           if (entityReferencePaths.length && job.source_version_id && !sourcePath)
             throw new EntityReferenceUnavailableError();
@@ -154,6 +180,61 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           });
           referenceImages = assembled.referenceImages;
           editMask = assembled.editMask;
+          if (session.plan_json?.grounding) {
+            const snapshot = verifyGroundingSnapshot(
+              session.plan_json.grounding,
+              userId,
+              process.env.GENERATION_PLAN_SECRET ?? "",
+            );
+            const transient = await createGroundingProvider().loadImages(snapshot.bundle);
+            referenceImages.push(...transient);
+          }
+          if (process.env.VALIDATION_REPAIR_ENABLED === "true" && session.plan_json?.validation) {
+            const validationPlan = verifyValidationPlan(
+              session.plan_json.validation[job.idempotency_key],
+              userId,
+              process.env.GENERATION_PLAN_SECRET ?? "",
+            );
+            const { count, error: countError } = await supabase
+              .from("generation_jobs")
+              .select("id", { count: "exact", head: true })
+              .eq("session_id", job.session_id)
+              .eq("user_id", userId);
+            if (countError || count === null) throw new Error("Could not measure series count");
+            const resolvedEntities = extractStoredEntities(session.plan_json, userId);
+            let referenceIndex = (sourcePath ? 1 : 0) + referencePaths.length;
+            const referenceBindings = resolvedEntities.map((entity) => ({
+              entityId: entity.id,
+              name: entity.name,
+              type: entity.type,
+              imageIndices: entity.resolvedReferences.map(() => referenceIndex++),
+            }));
+            const validationProviders = createValidationProviders();
+            validationRuntime = {
+              providerTelemetry: validationProviders.telemetry,
+              plan: validationPlan,
+              context: {
+                width: job.width,
+                height: job.height,
+                seriesCount: count,
+                references: referenceImages,
+                source: sourcePath ? referenceImages[0] : undefined,
+                mask: editMask,
+                entityIds: resolvedEntities.map((e) => e.id),
+                referenceBindings,
+                ...validationProviders,
+              },
+              repairPolicy: "disabled",
+              refinementPending: automaticRepairEnabled(),
+              ...validationDataAccess(
+                supabase,
+                job.id,
+                userId,
+                job.session_id,
+                process.env.GENERATION_PLAN_SECRET ?? "",
+              ),
+            };
+          }
         } catch (error) {
           const failure = await failImageInputJob({
             error,
@@ -178,15 +259,30 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             idempotencyKey: job.idempotency_key as string,
             referenceImages,
             editMask,
+            groundingCostUsd:
+              job.series_index == null || job.series_index === 0
+                ? (session?.plan_json?.groundingUsage?.costUsd ??
+                  (session?.plan_json?.grounding ? null : 0))
+                : 0,
           },
           (job.source_version_id as string | null) ?? null,
           {
             data,
+            validation: validationRuntime,
             apiKey,
             decodeBase64: (b64) => Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)),
           },
         );
 
+        if (outcome.outcome === "succeeded" && automaticRepairEnabled()) {
+          await refineGenerationSession({
+            db: supabase,
+            userId,
+            sessionId: job.session_id,
+            apiKey,
+            secret: process.env.GENERATION_PLAN_SECRET ?? "",
+          }).catch(() => {});
+        }
         return new Response(JSON.stringify({ claimed: true, ...outcome }), {
           status: 200,
           headers: { "Content-Type": "application/json", ...corsHeaders },

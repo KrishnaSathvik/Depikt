@@ -402,3 +402,220 @@ test("categorizeError never leaks the raw OpenAI message into safeErrorMessage",
 
   assert.equal(capturedSafeMessage.includes(secretDetail), false);
 });
+
+// VNext 5: mocked image responses only; no provider requests leave this test.
+test("validation repairs once, revalidates, records both image costs and charges one credit", async () => {
+  const { encodeRgbaPng } = await import("../../src/lib/generation/png-mask.ts");
+  const bytes = encodeRgbaPng(new Uint8Array([255, 255, 255, 255]), 1, 1);
+  const fake = makeFakeDataAccess();
+  let requests = 0,
+    ocr = 0,
+    claims = 0;
+  const audits: number[] = [];
+  let usage: unknown;
+  const mark = fake.access.markJobSucceeded;
+  fake.access.markJobSucceeded = async (id, patch) => {
+    usage = patch;
+    return mark(id, patch);
+  };
+  const outcome = await runGenerationJob(baseJob({ width: 1, height: 1 }), null, {
+    data: fake.access,
+    apiKey: "fixture",
+    decodeBase64: () => bytes,
+    fetchImpl: async (url) => {
+      requests++;
+      assert.ok(String(url).endsWith(requests === 1 ? "/generations" : "/edits"));
+      return new Response(
+        JSON.stringify({ data: [{ b64_json: "fixture" }], usage: { output_tokens: 10 } }),
+      );
+    },
+    validation: {
+      plan: {
+        expectedSeriesCount: 1,
+        checks: [{ id: "text", kind: "exact_text", target: "headline", expectedText: ["HELLO"] }],
+      },
+      context: {
+        width: 1,
+        height: 1,
+        seriesCount: 1,
+        references: [],
+        entityIds: [],
+        ocr: { read: async () => ({ text: ++ocr === 1 ? "WRONG" : "HELLO", confidence: 1 }) },
+      },
+      repairPolicy: "platform_absorbs_one_per_request",
+      claimRepair: async () => {
+        claims++;
+        return true;
+      },
+      save: async (_, attempt) => {
+        audits.push(attempt);
+      },
+    },
+  });
+  assert.equal(outcome.outcome, "succeeded");
+  assert.equal(requests, 2);
+  assert.equal(claims, 1);
+  assert.deepEqual(audits, [0, 1]);
+  assert.deepEqual(fake.finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
+  const patch = usage as {
+    usage: { imageAttempts: unknown[]; validation: { repairAttempts: number } };
+    estimatedApiCostUsd: number;
+  };
+  assert.equal(patch.usage.imageAttempts.length, 2);
+  assert.equal(patch.usage.validation.repairAttempts, 1);
+  assert.ok(patch.estimatedApiCostUsd > 0);
+});
+
+test("imperfect repair retains original output, charges once and never makes a third call", async () => {
+  const fake = makeFakeDataAccess();
+  let requests = 0;
+  const outcome = await runGenerationJob(baseJob(), null, {
+    data: fake.access,
+    apiKey: "fixture",
+    decodeBase64: () => new Uint8Array([1]),
+    fetchImpl: async () => {
+      requests++;
+      return new Response(
+        JSON.stringify({ data: [{ b64_json: "fixture" }], usage: { output_tokens: 10 } }),
+      );
+    },
+    validation: {
+      plan: {
+        expectedSeriesCount: 1,
+        checks: [{ id: "text", kind: "exact_text", target: "headline", expectedText: ["HELLO"] }],
+      },
+      context: {
+        width: 1024,
+        height: 1024,
+        seriesCount: 1,
+        references: [],
+        entityIds: [],
+        ocr: { read: async () => ({ text: "WRONG", confidence: 1 }) },
+      },
+      repairPolicy: "platform_absorbs_one_per_request",
+      claimRepair: async () => true,
+      save: async () => {},
+    },
+  });
+  assert.equal(outcome.outcome, "succeeded");
+  assert.equal(requests, 2);
+  assert.equal(fake.versions.length, 1);
+  assert.deepEqual(fake.finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
+});
+
+test("masked repair retries original source and signed mask, never the drifted result", async () => {
+  const { encodeRgbaPng } = await import("../../src/lib/generation/png-mask.ts");
+  const original = encodeRgbaPng(new Uint8Array([0, 0, 0, 255, 0, 0, 0, 255]), 2, 1);
+  const drifted = encodeRgbaPng(new Uint8Array([255, 255, 255, 255, 0, 0, 0, 255]), 2, 1);
+  const maskBytes = encodeRgbaPng(new Uint8Array([0, 0, 0, 255, 0, 0, 0, 0]), 2, 1);
+  const source = { bytes: original, filename: "source.png", mimeType: "image/png" };
+  const mask = { bytes: maskBytes, filename: "mask.png", mimeType: "image/png" };
+  const fake = makeFakeDataAccess();
+  let calls = 0;
+  const outcome = await runGenerationJob(
+    baseJob({ operation: "edit", width: 2, height: 1, referenceImages: [source], editMask: mask }),
+    "source-id",
+    {
+      data: fake.access,
+      apiKey: "fixture",
+      decodeBase64: (b) => (b === "bad" ? drifted : original),
+      fetchImpl: async (_, init) => {
+        calls++;
+        const form = init?.body as FormData;
+        const image = form.get("image[]") as File;
+        const suppliedMask = form.get("mask") as File;
+        assert.deepEqual(new Uint8Array(await image.arrayBuffer()), original);
+        assert.deepEqual(new Uint8Array(await suppliedMask.arrayBuffer()), maskBytes);
+        return new Response(JSON.stringify({ data: [{ b64_json: calls === 1 ? "bad" : "good" }] }));
+      },
+      validation: {
+        plan: {
+          expectedSeriesCount: 1,
+          checks: [{ id: "preserve", kind: "edit_preservation", target: "outside mask" }],
+        },
+        context: {
+          width: 2,
+          height: 1,
+          seriesCount: 1,
+          references: [source],
+          source,
+          mask,
+          entityIds: [],
+        },
+        repairPolicy: "platform_absorbs_one_per_request",
+        claimRepair: async () => true,
+        save: async () => {},
+      },
+    },
+  );
+  assert.equal(outcome.outcome, "succeeded");
+  assert.equal(calls, 2);
+});
+
+test("grounding-only visual references reach edits multipart; facts-only reaches generations", async () => {
+  const { resolveOperation, buildGenerationPlan } =
+    await import("../../src/lib/generation/plan.ts");
+  const { loadVnext1Cases } = await import("../image-evals/vnext-1/load-cases.ts");
+  const { createGroundingProvider } =
+    await import("../../src/lib/generation/grounding/provider.ts");
+  const plan = buildGenerationPlan(
+    loadVnext1Cases()[0]!.fixture_intent,
+    "Research camera appearance",
+  );
+  const reference = new Uint8Array([11, 22, 33]);
+  const groundingProvider = createGroundingProvider(
+    { GROUNDING_PROVIDER_URL: "https://example.com/gateway", GROUNDING_PROVIDER_TOKEN: "fixture" },
+    async () => new Response(reference, { headers: { "Content-Type": "image/png" } }),
+  );
+  for (const visual of [false, true]) {
+    const bundle = {
+      facts: [{ text: "Camera has a square mount", sourceId: "s1" }],
+      sources: [
+        {
+          id: "s1",
+          url: "https://example.com/camera",
+          title: "Camera",
+          quality: "official_product" as const,
+        },
+      ],
+      visualReferences: visual
+        ? [
+            {
+              imageUrl: "https://example.com/camera.png",
+              sourceId: "s1",
+              description: "Camera appearance",
+            },
+          ]
+        : [],
+      queries: [],
+      createdAt: "2026-09-18T00:00:00Z",
+    };
+    const images = await groundingProvider.loadImages(bundle);
+    const operation = resolveOperation(plan, [], null, 0, bundle.visualReferences.length);
+    const { access, finalizeCalls } = makeFakeDataAccess();
+    let calls = 0;
+    const result = await runGenerationJob(
+      baseJob({ operation, model: visual ? "sunburst" : "flare", referenceImages: images }),
+      null,
+      {
+        data: access,
+        apiKey: "fixture",
+        decodeBase64: () => new Uint8Array([1]),
+        fetchImpl: async (url, init) => {
+          calls++;
+          assert.ok(String(url).endsWith(visual ? "/images/edits" : "/images/generations"));
+          if (visual) {
+            assert.ok(init?.body instanceof FormData);
+            const file = init.body.get("image[]");
+            assert.ok(file instanceof Blob);
+            assert.deepEqual(new Uint8Array(await file.arrayBuffer()), reference);
+          } else assert.ok(typeof init?.body === "string");
+          return new Response(JSON.stringify({ data: [{ b64_json: "AA==" }] }));
+        },
+      },
+    );
+    assert.equal(result.outcome, "succeeded");
+    assert.equal(calls, 1);
+    assert.deepEqual(finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
+  }
+});
