@@ -1,10 +1,17 @@
+import { authoritySubject, wantsAuthority } from "./authority.ts";
 import type { Intent } from "../../prompt-engine/intent.ts";
 import type { GroundingPlan } from "./contract.ts";
 
-export function planGrounding(intent: Intent, prompt: string, searchNeeded = false): GroundingPlan {
-  const explicit = /\b(research|look up|search|verify|fact.check|reference photographs?)\b/i.test(
-    prompt,
-  );
+export function planGrounding(
+  intent: Intent,
+  prompt: string,
+  searchNeeded = false,
+  ownedEntityCount = 0,
+): GroundingPlan {
+  const explicit =
+    /(?:^|[.!?;]\s*|\b(?:please|then|and)\s+)(?:research|look up|search(?: for)?|verify|fact.check)\b|\b(?:external|web|official)\s+(?:factual\s+|visual\s+)?(?:grounding|references?|research)\b/i.test(
+      prompt.trim(),
+    );
   const current = /\b(current|today|tonight|latest|real.world|real location)\b/i.test(prompt);
   const exactProduct =
     intent.category === "product" && /\b(exact|real|accurate|authentic)\b/i.test(prompt);
@@ -12,7 +19,15 @@ export function planGrounding(intent: Intent, prompt: string, searchNeeded = fal
     /\b(compatible|compatibility|DLCs?|what can actually|available assets|mechanics)\b/i.test(
       prompt,
     );
-  const needed = explicit || current || exactProduct || factual || searchNeeded;
+  const authoritative =
+    ownedEntityCount > 0 || /\b(fictional|invented|imaginary|made.up)\b/i.test(prompt);
+  const declined =
+    /\b(?:no|without|skip|avoid)\s+(?:research|search|external grounding)\b|\bdo not (?:research|search)\b/i.test(
+      prompt,
+    );
+  const needed =
+    !declined &&
+    (explicit || current || (!authoritative && (exactProduct || factual || searchNeeded)));
   if (!needed)
     return { needed: false, mode: "none", queries: [], factualNeeds: [], visualNeeds: [] };
   const text = prompt.replace(/\s+/g, " ").trim().slice(0, 360);
@@ -21,7 +36,12 @@ export function planGrounding(intent: Intent, prompt: string, searchNeeded = fal
   return {
     needed: true,
     mode: visualOnly ? "visual" : webOnly ? "web" : "web_and_visual",
-    queries: [text, `${text} official documentation reference photographs`.slice(0, 500)],
+    queries: wantsAuthority(prompt)
+      ? [
+          `${authoritySubject(prompt)} official references`,
+          `${authoritySubject(prompt)} current appearance photographs`,
+        ]
+      : [text, `${text} official documentation reference photographs`.slice(0, 500)],
     factualNeeds: visualOnly
       ? []
       : [

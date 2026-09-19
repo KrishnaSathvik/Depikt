@@ -228,12 +228,18 @@ export const Route = createFileRoute("/api/generation/plans")({
         let grounding;
         let groundingUsage: GroundingUsage | undefined;
         if (process.env.GROUNDING_ENABLED === "true") {
-          const groundingPlan = planGrounding(intent, userInput, plan.searchNeeded);
+          const groundingPlan = planGrounding(
+            intent,
+            userInput,
+            plan.searchNeeded,
+            entities.length,
+          );
           plan.searchNeeded = groundingPlan.needed;
           if (groundingPlan.needed) {
             try {
               grounding = await resolveGrounding({
                 plan: groundingPlan,
+                intent,
                 prompt: userInput,
                 userId,
                 secret,
@@ -274,7 +280,11 @@ export const Route = createFileRoute("/api/generation/plans")({
             plan: toDisplayPlan(plan),
             planToken,
             grounding: grounding
-              ? { sources: grounding.bundle.sources, createdAt: grounding.bundle.createdAt }
+              ? {
+                  sources: grounding.bundle.sources,
+                  createdAt: grounding.bundle.createdAt,
+                  temporalSupport: grounding.bundle.temporalSupport,
+                }
               : null,
           }),
           {

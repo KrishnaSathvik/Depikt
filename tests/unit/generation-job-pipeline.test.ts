@@ -551,3 +551,71 @@ test("masked repair retries original source and signed mask, never the drifted r
   assert.equal(outcome.outcome, "succeeded");
   assert.equal(calls, 2);
 });
+
+test("grounding-only visual references reach edits multipart; facts-only reaches generations", async () => {
+  const { resolveOperation, buildGenerationPlan } =
+    await import("../../src/lib/generation/plan.ts");
+  const { loadVnext1Cases } = await import("../image-evals/vnext-1/load-cases.ts");
+  const { createGroundingProvider } =
+    await import("../../src/lib/generation/grounding/provider.ts");
+  const plan = buildGenerationPlan(
+    loadVnext1Cases()[0]!.fixture_intent,
+    "Research camera appearance",
+  );
+  const reference = new Uint8Array([11, 22, 33]);
+  const groundingProvider = createGroundingProvider(
+    { GROUNDING_PROVIDER_URL: "https://example.com/gateway", GROUNDING_PROVIDER_TOKEN: "fixture" },
+    async () => new Response(reference, { headers: { "Content-Type": "image/png" } }),
+  );
+  for (const visual of [false, true]) {
+    const bundle = {
+      facts: [{ text: "Camera has a square mount", sourceId: "s1" }],
+      sources: [
+        {
+          id: "s1",
+          url: "https://example.com/camera",
+          title: "Camera",
+          quality: "official_product" as const,
+        },
+      ],
+      visualReferences: visual
+        ? [
+            {
+              imageUrl: "https://example.com/camera.png",
+              sourceId: "s1",
+              description: "Camera appearance",
+            },
+          ]
+        : [],
+      queries: [],
+      createdAt: "2026-09-18T00:00:00Z",
+    };
+    const images = await groundingProvider.loadImages(bundle);
+    const operation = resolveOperation(plan, [], null, 0, bundle.visualReferences.length);
+    const { access, finalizeCalls } = makeFakeDataAccess();
+    let calls = 0;
+    const result = await runGenerationJob(
+      baseJob({ operation, model: visual ? "sunburst" : "flare", referenceImages: images }),
+      null,
+      {
+        data: access,
+        apiKey: "fixture",
+        decodeBase64: () => new Uint8Array([1]),
+        fetchImpl: async (url, init) => {
+          calls++;
+          assert.ok(String(url).endsWith(visual ? "/images/edits" : "/images/generations"));
+          if (visual) {
+            assert.ok(init?.body instanceof FormData);
+            const file = init.body.get("image[]");
+            assert.ok(file instanceof Blob);
+            assert.deepEqual(new Uint8Array(await file.arrayBuffer()), reference);
+          } else assert.ok(typeof init?.body === "string");
+          return new Response(JSON.stringify({ data: [{ b64_json: "AA==" }] }));
+        },
+      },
+    );
+    assert.equal(result.outcome, "succeeded");
+    assert.equal(calls, 1);
+    assert.deepEqual(finalizeCalls, [{ outcome: "charged", jobId: "job-1" }]);
+  }
+});

@@ -427,3 +427,61 @@ test("production OCR and judge adapters send only bounded structured requests th
   assert.equal(calls[0].model, "gpt-5.6-luna");
   assert.equal(calls[1].model, "gpt-5.6-terra");
 });
+
+test("attribute edits measure structure inside mask independently from outside preservation", async () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  const plan = buildValidationPlan({
+    intent,
+    entities: [],
+    selectedCount: 1,
+    prompt: "Change only the teapot to matte ivory. Preserve the pears.",
+    hasMask: true,
+  });
+  const structural = plan.checks.find((c) => c.kind === "inside_mask_structure");
+  assert.ok(structural);
+  const mask = { ...image, bytes: encodeRgbaPng(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 255]), 2, 1) };
+  let judgments = 0;
+  const result = await validateResult(plan, {
+    ...context,
+    source: image,
+    mask,
+    references: [image],
+    judge: {
+      judge: async (input) => {
+        judgments++;
+        assert.equal(input.source, image);
+        assert.equal(input.mask, mask);
+        return input.checks.map((c) => ({
+          id: c.id,
+          passed: c.kind !== "inside_mask_structure",
+          confidence: 0.95,
+          evidence:
+            c.kind === "inside_mask_structure"
+              ? "Handle and silhouette changed"
+              : "Requested attribute satisfied",
+        }));
+      },
+    },
+  });
+  assert.equal(judgments, 1);
+  assert.equal(result.checks.find((c) => c.kind === "edit_preservation")?.status, "pass");
+  assert.equal(result.checks.find((c) => c.kind === "inside_mask_structure")?.status, "fail");
+  assert.equal(result.verdict, "repairable");
+  const unavailable = await validateResult(
+    { checks: [structural], expectedSeriesCount: 1 },
+    context,
+  );
+  assert.equal(unavailable.checks[0].status, "unavailable");
+  assert.equal(planRepair(unavailable, { hasMask: true, hasReferences: true }), null);
+  for (const prompt of ["Replace teapot with a vase", "Remove teapot", "Add a teapot"]) {
+    assert.ok(
+      !buildValidationPlan({
+        intent,
+        entities: [],
+        selectedCount: 1,
+        prompt,
+        hasMask: true,
+      }).checks.some((c) => c.kind === "inside_mask_structure"),
+    );
+  }
+});

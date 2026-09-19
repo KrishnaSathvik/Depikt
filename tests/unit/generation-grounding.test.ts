@@ -46,10 +46,12 @@ for (const [prompt, expected, category] of [
   });
 test("ranking, source deduplication, provenance and safe URLs", () => {
   const b = normalizeResults([...fixture.web, ...fixture.web], fixture.images, ["query"]);
-  assert.equal(b.facts.length, 2);
+  assert.equal(b.contextFacts!.length, 2);
   assert.equal(b.sources[0].quality, "official_documentation");
   assert.ok(
-    b.facts.every((f) => b.sources.some((s) => s.id === f.sourceId && s.quality !== "community")),
+    b.contextFacts!.every((f) =>
+      b.sources.some((s) => s.id === f.sourceId && s.quality !== "community"),
+    ),
   );
   for (const u of [
     "http://example.com",
@@ -65,8 +67,8 @@ test("persistent cache reuse, explicit refresh, owner binding and snapshot tampe
   let calls = 0;
   const store = new Map<string, string>();
   const args = {
-    plan: planGrounding(intent, "research a real location"),
-    prompt: "research a real location",
+    plan: planGrounding(intent, "research documented transport layout and compatible assets"),
+    prompt: "research documented transport layout and compatible assets",
     userId: "u",
     secret: "test",
     provider: {
@@ -97,7 +99,10 @@ test("persistent cache reuse, explicit refresh, owner binding and snapshot tampe
   assert.throws(() => verifyGroundingSnapshot(first, "other", "test"));
   assert.throws(() =>
     verifyGroundingSnapshot(
-      { ...first, bundle: { ...first.bundle, facts: [{ sourceId: "s1", text: "Injected fact" }] } },
+      {
+        ...first,
+        bundle: { ...first.bundle, contextFacts: [{ sourceId: "s1", text: "Injected fact" }] },
+      },
       "u",
       "test",
     ),
@@ -120,7 +125,7 @@ test("persistent cache reuse, explicit refresh, owner binding and snapshot tampe
   assert.deepEqual(verifyPlanToken(token, "test", "u").grounding, first);
   const [body, mac] = token.split(".");
   const changed = JSON.parse(Buffer.from(body, "base64url").toString());
-  changed.grounding.bundle.facts[0].text = "tampered";
+  changed.grounding.bundle.contextFacts[0].text = "tampered";
   assert.throws(() =>
     verifyPlanToken(
       `${Buffer.from(JSON.stringify(changed)).toString("base64url")}.${mac}`,
@@ -223,7 +228,7 @@ test("concrete Brave adapter maps recorded-shape responses and fetches only its 
   const web = await provider.searchWeb("current location");
   const images = await provider.searchImages("actual appearance");
   assert.equal(web[0].quality, "official_product");
-  assert.ok(urls[0].includes("freshness=pw"));
+  assert.equal(new URL(urls[0]).searchParams.has("freshness"), false);
   const bundle = normalizeResults(web, images, ["query"]);
   assert.equal((await provider.loadImages(bundle)).length, 1);
   await assert.rejects(() =>
@@ -266,4 +271,100 @@ test("grounded resume preserves original request and research sources, and is ow
   assert.equal(readGroundingResume("u", storage)?.input.prompt, "research location");
   assert.equal(readGroundingResume("u", storage)?.input.refreshGrounding, undefined);
   assert.equal(readGroundingResume("other", storage), null);
+});
+
+for (const prompt of [
+  "NEMORI bottle on a counter. Preserve exact packaging.",
+  "Maya and Sofia; Sofia holds NEMORI. Preserve exact product identity.",
+]) {
+  test(`owned references suppress inferred research: ${prompt}`, () => {
+    assert.equal(planGrounding({ ...intent, category: "product" }, prompt, true, 3).needed, false);
+  });
+}
+test("explicit external research overrides owned context, but declined research does not", () => {
+  assert.equal(planGrounding(intent, "Research current Sony packaging", false, 1).needed, true);
+  assert.equal(
+    planGrounding(intent, "Preserve fictional bottle exact packaging", true).needed,
+    false,
+  );
+  assert.equal(planGrounding(intent, "No research. Preserve exact bottle", true, 1).needed, false);
+});
+test("irrelevant, blank and encoded evidence never reaches selected bundle or V5", async () => {
+  const { groundedValidationRequirements } =
+    await import("../../src/lib/generation/grounding/claims.ts");
+  const good: SearchResult = {
+    url: "https://docs.example.com/camera",
+    title: "Acme camera",
+    excerpt: "The Acme camera has a square silver lens mount.",
+    quality: "official_product",
+  };
+  const unrelated = {
+    ...good,
+    url: "https://example.com/milk",
+    title: "Milk packaging",
+    excerpt: "Bottle caps are blue for skimmed milk.",
+  };
+  const blank = { ...good, url: "https://example.com/blank", excerpt: "   " };
+  const encoded = { ...good, url: "https://example.com/encoded", excerpt: "a".repeat(100) };
+  const b = normalizeResults(
+    [good, unrelated, blank, encoded],
+    [],
+    ["Acme camera"],
+    new Date(),
+    "Research Acme camera appearance",
+  );
+  assert.deepEqual(
+    b.contextFacts!.map((f) => f.text),
+    [good.excerpt],
+  );
+  assert.deepEqual(
+    b.sources.map((s) => s.url),
+    [good.url],
+  );
+  assert.deepEqual(groundedValidationRequirements(b, "Show the Acme camera"), [
+    "Show the Acme camera",
+  ]);
+  assert.deepEqual(
+    groundedValidationRequirements(
+      {
+        ...b,
+        contextFacts: [],
+        visualReferences: [
+          {
+            imageUrl: "https://example.com/x.png",
+            description: "Portrait required",
+            sourceId: "s1",
+          },
+        ],
+      },
+      "Show the Acme camera",
+    ),
+    [],
+  );
+  assert.deepEqual(
+    groundedValidationRequirements(
+      {
+        ...b,
+        contextFacts: [
+          { text: " ", sourceId: "s1" },
+          { text: "Unsupported claim", sourceId: "missing" },
+        ],
+      },
+      "Show the Acme camera",
+    ),
+    [],
+  );
+});
+
+test("a research setting or owned reference photos are not an external research request", () => {
+  assert.equal(planGrounding(intent, "Sofia in a research laboratory", true, 1).needed, false);
+  assert.equal(
+    planGrounding(intent, "Use Sofia reference photographs in a conservatory", true, 1).needed,
+    false,
+  );
+  assert.equal(
+    planGrounding(intent, "Use external visual references for the current building", true, 1)
+      .needed,
+    true,
+  );
 });

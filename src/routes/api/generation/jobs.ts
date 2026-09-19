@@ -91,6 +91,7 @@ async function resolveChildren(payload: PlanTokenPayload, selected: number): Pro
           prompt: withPrecisionEditPreamble(
             withEntities(payload.prompt),
             payload.intent.must_preserve,
+            payload.userInput,
           ),
           label: null,
         },
@@ -222,8 +223,8 @@ export const Route = createFileRoute("/api/generation/jobs")({
           payload.plan,
           payload.referenceAssetIds,
           payload.sourceVersionId,
-          (payload.entities?.length ?? 0) +
-            (payload.grounding?.bundle.visualReferences.length ?? 0),
+          payload.entities?.reduce((n, entity) => n + entity.resolvedReferences.length, 0) ?? 0,
+          payload.grounding?.bundle.visualReferences.length ?? 0,
         );
         const model = resolveGenerationModel({
           operation,
@@ -260,12 +261,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
           );
         }
 
-        if (
-          operation === "edit" &&
-          payload.referenceAssetIds.length === 0 &&
-          !payload.entities?.length &&
-          !payload.sourceVersionId
-        ) {
+        if (payload.plan.mode === "edit" && operation === "generate" && !payload.grounding) {
           return jsonError("Editing requires a sourceVersionId or a reference image", 400);
         }
 
@@ -290,12 +286,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
         if (process.env.VALIDATION_REPAIR_ENABLED === "true") {
           try {
             validationSnapshot = buildJobValidationPlans({
-              groundedRequirements: payload.grounding
-                ? [
-                    ...payload.grounding.bundle.facts.map((f) => f.text),
-                    ...payload.grounding.bundle.visualReferences.map((r) => r.description),
-                  ]
-                : undefined,
+              groundingBundle: payload.grounding?.bundle,
               intent: payload.intent,
               entities: payload.entities ?? [],
               selectedCount: selected,

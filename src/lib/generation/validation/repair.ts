@@ -33,7 +33,11 @@ export function planRepair(
     !context.hasReferences
   )
     return null;
-  if (failed.some((c) => c.kind === "edit_preservation") && !context.hasMask) return null;
+  if (
+    failed.some((c) => ["edit_preservation", "inside_mask_structure"].includes(c.kind)) &&
+    !context.hasMask
+  )
+    return null;
   const action: RepairAction = context.hasMask
     ? "retry_masked_edit"
     : failed.some((c) =>
@@ -78,6 +82,7 @@ const PRIORITY: Record<string, number> = {
   unwanted_text: 1,
   edit_preservation: 2,
   requested_edit: 2,
+  inside_mask_structure: 2,
   object_count: 3,
   missing_entity: 3,
   grounding_consistency: 4,

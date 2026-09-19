@@ -53,8 +53,36 @@ test("jobs.ts uses withPrecisionEditPreamble for masked non-series jobs and with
 
   assert.match(
     resolveChildren,
-    /withPrecisionEditPreamble\(\s*withEntities\(payload\.prompt\),\s*payload\.intent\.must_preserve,?\s*\)/,
+    /withPrecisionEditPreamble\(\s*withEntities\(payload\.prompt\),\s*payload\.intent\.must_preserve,\s*payload\.userInput,?\s*\)/,
   );
   assert.match(resolveChildren, /withFidelityPreamble\(payload\.prompt,\s*payload\.intent\)/);
   assert.match(resolveChildren, /maskPath|maskAssetId/);
+});
+
+test("attribute-only edit explicitly preserves selected-object geometry", () => {
+  const out = withPrecisionEditPreamble(
+    "Change only the cobalt-blue teapot to matte ivory. Preserve the pears.",
+  );
+  assert.match(
+    out,
+    /Preserve shape, silhouette, dimensions, perspective, pose and internal geometry/,
+  );
+  assert.match(out, /Change only the requested attribute/);
+});
+test("replacement, removal and addition have distinct local geometry semantics", async () => {
+  const { classifyLocalEdit } = await import("../../src/lib/generation/local-edit-intent.ts");
+  for (const [request, kind] of [
+    ["Replace the blue teapot with a vase", "replacement"],
+    ["Remove the red teapot", "removal"],
+    ["Add a silver handle", "addition"],
+    ["Change the material to ceramic", "attribute_change"],
+    ["Recolor the jacket turquoise", "attribute_change"],
+  ]) {
+    assert.equal(classifyLocalEdit(request), kind, request);
+    if (kind !== "attribute_change")
+      assert.doesNotMatch(
+        withPrecisionEditPreamble(request),
+        /Change only the requested attribute/,
+      );
+  }
 });

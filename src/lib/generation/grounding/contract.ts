@@ -1,3 +1,4 @@
+import { AppearanceEvidenceSchema, TemporalSupportSchema } from "./temporal.ts";
 import { z } from "zod";
 
 import { LAUNCH_ECONOMIC_POLICY } from "../economic-policy.ts";
@@ -44,13 +45,38 @@ export const GroundingSourceSchema = z.strictObject({
   url,
   title: z.string().max(200),
   quality: SourceQualitySchema,
+  appearanceEvidence: AppearanceEvidenceSchema.optional(),
 });
 export type GroundingSource = z.infer<typeof GroundingSourceSchema>;
+const ContextFactSchema = z.strictObject({
+  text: z.string().min(1).max(400),
+  sourceId: z.string().max(80),
+});
+export const GroundedValidationClaimSchema = z.strictObject({
+  requirement: z.string().min(1).max(600),
+  origin: z.literal("user"),
+  supportedBy: z.array(z.string().max(80)).min(1).max(8),
+  checkableVisually: z.boolean(),
+});
+export type GroundedValidationClaim = z.infer<typeof GroundedValidationClaimSchema>;
 export const GroundingBundleSchema = z
   .strictObject({
-    facts: z
-      .array(z.strictObject({ text: z.string().min(1).max(400), sourceId: z.string().max(80) }))
-      .max(12),
+    // Legacy signed snapshots remain readable without changing their sealed bytes.
+    facts: z.array(ContextFactSchema).max(12).optional(),
+    contextFacts: z.array(ContextFactSchema).max(12).optional(),
+    validationClaims: z.array(GroundedValidationClaimSchema).max(8).optional(),
+    temporalSupport: TemporalSupportSchema.optional(),
+    retrieval: z
+      .strictObject({
+        authorityRequested: z.boolean(),
+        authorityFallbackQuery: z.string().max(400).optional(),
+        authoritativeWebFound: z.boolean(),
+        authoritativeVisualFound: z.boolean(),
+      })
+      .optional(),
+    authorityStatus: z
+      .enum(["not_required", "available", "official evidence unavailable"])
+      .optional(),
     visualReferences: z
       .array(
         z.strictObject({
@@ -68,12 +94,19 @@ export const GroundingBundleSchema = z
     const ids = new Set(b.sources.map((s) => s.id));
     if (
       ids.size !== b.sources.length ||
-      [...b.facts, ...b.visualReferences].some((f) => !ids.has(f.sourceId))
+      [...(b.contextFacts ?? b.facts ?? []), ...b.visualReferences].some(
+        (f) => !ids.has(f.sourceId),
+      ) ||
+      (b.validationClaims ?? []).some((c) => c.supportedBy.some((id) => !ids.has(id))) ||
+      (b.contextFacts === undefined) === (b.facts === undefined)
     )
       ctx.addIssue({ code: "custom", message: "Invalid grounding provenance" });
   });
 export type GroundingBundle = z.infer<typeof GroundingBundleSchema>;
-export type GroundedFact = GroundingBundle["facts"][number];
+export type GroundedFact = z.infer<typeof ContextFactSchema>;
+export function contextFacts(bundle: GroundingBundle): GroundedFact[] {
+  return bundle.contextFacts ?? bundle.facts ?? [];
+}
 export type GroundedVisualReference = GroundingBundle["visualReferences"][number];
 
 export interface SearchResult {
@@ -82,10 +115,13 @@ export interface SearchResult {
   excerpt: string;
   /** Classification must be supplied by a trusted provider, never inferred from page text. */
   quality: SourceQuality;
+  appearanceEvidence?: z.infer<typeof AppearanceEvidenceSchema>;
   imageUrl?: string;
 }
 export interface GroundingProvider {
   readonly cacheNamespace: string;
+  /** Pure trusted subject/domain lookup; must not perform network calls. */
+  authorityDomains?: (prompt: string) => string[];
   searchWeb(query: string): Promise<SearchResult[]>;
   searchImages(query: string): Promise<SearchResult[]>;
 }

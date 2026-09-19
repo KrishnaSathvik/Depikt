@@ -1,8 +1,10 @@
+import { TemporalSupportSchema } from "../grounding/temporal.ts";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { CheckSpecSchema, type ValidationResult } from "./contract.ts";
 const schema = z.object({
-  verdict: z.enum(["pass", "repairable", "fail"]),
+  verdict: z.enum(["pass", "pass_with_limitation", "repairable", "fail"]),
+  temporalSupport: TemporalSupportSchema.optional(),
   checks: z
     .array(
       CheckSpecSchema.extend({

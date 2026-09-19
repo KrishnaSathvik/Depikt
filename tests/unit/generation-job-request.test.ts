@@ -30,6 +30,32 @@ test("plans: accepts a minimal valid request", () => {
   }
 });
 
+test("plans: rejects the deterministic Astra request before it can become an image job", () => {
+  const prompt = read("tests/fixtures/astra-opengraph-request.txt");
+  for (const body of [
+    { prompt, referenceAssetIds: ["user/reference.png"] },
+    { prompt: "Create an Open Graph image", userInput: prompt, intent: { task: "create" } },
+  ]) {
+    const result = validateCreatePlanBody(body);
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.match(result.error, /forbids AI image generation/);
+  }
+});
+
+test("plans: honors explicit no-AI instructions without rejecting ordinary reference requests", () => {
+  for (const prompt of [
+    "Do not use an AI image model. Render this logo with code.",
+    "Create a banner. Please don't use AI image generators.",
+    "Create a banner.\nNever use an AI image model.",
+  ])
+    assert.equal(validateCreatePlanBody({ prompt }).ok, false, prompt);
+  for (const prompt of [
+    "Create an image using this logo as reference. Do not redraw the logo.",
+    'Create a poster with the headline "Do not use an AI image model".',
+  ])
+    assert.equal(validateCreatePlanBody({ prompt }).ok, true, prompt);
+});
+
 test("plans: rejects a non-object body", () => {
   assert.equal(validateCreatePlanBody(null).ok, false);
   assert.equal(validateCreatePlanBody("nope").ok, false);

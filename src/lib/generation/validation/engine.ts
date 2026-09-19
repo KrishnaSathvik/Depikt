@@ -19,6 +19,8 @@ export interface VisualJudge {
     references: StoredImage[];
     checks: CheckSpec[];
     referenceBindings?: ReferenceBinding[];
+    source?: StoredImage;
+    mask?: StoredImage | null;
   }): Promise<Array<{ id: string; passed: boolean; confidence: number; evidence: string }>>;
 }
 export interface ValidationContext {
@@ -121,6 +123,11 @@ export async function validateResult(
         }
         break;
       }
+      case "inside_mask_structure": {
+        if (!context.source || !context.mask) unavailable(spec, "visual_judge");
+        else subjective.push(spec);
+        break;
+      }
       case "edit_preservation": {
         if (context.mask && context.source) {
           try {
@@ -152,6 +159,8 @@ export async function validateResult(
         references: context.references,
         checks: subjective,
         referenceBindings: context.referenceBindings,
+        source: context.source,
+        mask: context.mask,
       });
       for (const spec of subjective) {
         const matching = decisions.filter((d) => d.id === spec.id);
@@ -174,10 +183,15 @@ export async function validateResult(
   }
   const result: ValidationResult = {
     checks,
-    verdict: checks.every((c) => c.status === "pass") ? "pass" : "fail",
+    verdict: checks.every((c) => c.status === "pass")
+      ? plan.temporalSupport?.status === "unverified"
+        ? "pass_with_limitation"
+        : "pass"
+      : "fail",
+    ...(plan.temporalSupport ? { temporalSupport: plan.temporalSupport } : {}),
   };
   if (
-    result.verdict !== "pass" &&
+    result.verdict === "fail" &&
     planRepair(result, { hasMask: !!context.mask, hasReferences: !!context.references.length })
   )
     result.verdict = "repairable";

@@ -1,3 +1,15 @@
+import {
+  TemporalSupportSchema,
+  temporalSupport,
+  visualRequirement,
+  type TemporalSupport,
+} from "../grounding/temporal.ts";
+import { classifyLocalEdit, ATTRIBUTE_GEOMETRY_REQUIREMENT } from "../local-edit-intent.ts";
+import {
+  compileGroundedValidationClaims,
+  groundedValidationRequirements,
+} from "../grounding/claims.ts";
+import type { GroundingBundle } from "../grounding/contract.ts";
 import { z } from "zod";
 import { HARD_SERIES_CAP } from "../plan.ts";
 import { createHmac, timingSafeEqual } from "node:crypto";
@@ -20,6 +32,7 @@ export const CheckKindSchema = z.enum([
   "grounding_consistency",
   "strict_preservation",
   "requested_edit",
+  "inside_mask_structure",
 ]);
 export type CheckKind = z.infer<typeof CheckKindSchema>;
 export const CheckSpecSchema = z.strictObject({
@@ -31,6 +44,7 @@ export const CheckSpecSchema = z.strictObject({
 });
 export type CheckSpec = z.infer<typeof CheckSpecSchema>;
 export const ValidationPlanSchema = z.strictObject({
+  temporalSupport: TemporalSupportSchema.optional(),
   checks: z.array(CheckSpecSchema).max(30),
   expectedSeriesCount: z.number().int().min(1).max(HARD_SERIES_CAP),
 });
@@ -47,7 +61,8 @@ export interface ValidationCheck extends CheckSpec {
 }
 export interface ValidationResult {
   checks: ValidationCheck[];
-  verdict: "pass" | "repairable" | "fail";
+  verdict: "pass" | "pass_with_limitation" | "repairable" | "fail";
+  temporalSupport?: TemporalSupport;
 }
 export { MAX_AUTO_REPAIR_ATTEMPTS_PER_REQUEST } from "../economic-policy.ts";
 
@@ -57,7 +72,7 @@ export function buildValidationPlan(args: {
   selectedCount: number;
   prompt: string;
   hasMask: boolean;
-  groundedRequirements?: string[];
+  groundingBundle?: GroundingBundle;
 }): ValidationPlan {
   const checks: CheckSpec[] = [
     { id: "dimensions", kind: "dimensions", target: "output canvas" },
@@ -93,7 +108,13 @@ export function buildValidationPlan(args: {
       "requested_edit",
       args.intent.requested_changes.join("; ").slice(0, 600) || args.prompt.slice(0, 600),
     );
-  for (const requirement of args.groundedRequirements?.slice(0, 8) ?? [])
+  if (args.hasMask && classifyLocalEdit(args.prompt) === "attribute_change")
+    add("inside_mask_structure", ATTRIBUTE_GEOMETRY_REQUIREMENT);
+  for (const requirement of groundedValidationRequirements(
+    args.groundingBundle,
+    args.prompt,
+    args.intent,
+  ))
     add("grounding_consistency", requirement.slice(0, 600));
   if (
     /\b(keep|preserve|exact|same|recreate|reproduce)\b/i.test(args.prompt) &&
@@ -101,7 +122,7 @@ export function buildValidationPlan(args: {
     !args.entities.length &&
     !args.intent.exact_text.length
   )
-    add("strict_preservation", args.prompt.slice(0, 600));
+    add("strict_preservation", visualRequirement(args.prompt).slice(0, 600));
   if (args.intent.reference_intent === "composition") add("composition", "reference composition");
   const count = args.prompt.match(
     /\b(?:exactly\s+)(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\s+([\p{L} -]{1,60})(?:[,.!;]|$)/iu,
@@ -123,7 +144,22 @@ export function buildValidationPlan(args: {
     const n = /^\d+$/.test(count[1]) ? Number(count[1]) : words.indexOf(count[1].toLowerCase());
     if (n >= 0) add("object_count", count[2].trim(), { expectedCount: n });
   }
-  return ValidationPlanSchema.parse({ checks, expectedSeriesCount: args.selectedCount });
+  const boundBundle = args.groundingBundle
+    ? {
+        ...args.groundingBundle,
+        ...compileGroundedValidationClaims({
+          prompt: args.prompt,
+          bundle: args.groundingBundle,
+          intent: args.intent,
+        }),
+      }
+    : undefined;
+  const temporal = temporalSupport(args.prompt, boundBundle, args.intent);
+  return ValidationPlanSchema.parse({
+    checks,
+    expectedSeriesCount: args.selectedCount,
+    ...(temporal ? { temporalSupport: temporal } : {}),
+  });
 }
 function signature(plan: ValidationPlan, userId: string, secret: string): string {
   // Parse into the schema's stable property order after JSONB has reordered keys.
@@ -161,7 +197,7 @@ export function buildJobValidationPlans(args: {
   selectedCount: number;
   prompt: string;
   hasMask: boolean;
-  groundedRequirements?: string[];
+  groundingBundle?: GroundingBundle;
   children: Array<{ key: string; prompt: string }>;
   userId: string;
   secret: string;

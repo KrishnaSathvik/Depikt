@@ -109,9 +109,10 @@ test("jobs.ts derives operation from resolveOperation(plan, referenceAssetIds, s
   const jobsRoute = read("src/routes/api/generation/jobs.ts");
   assert.match(jobsRoute, /resolveOperation,/);
   assert.match(jobsRoute, /from "@\/lib\/generation\/plan"/);
-  assert.match(
+  assert.match(jobsRoute, /payload\.grounding\?\.bundle\.visualReferences\.length/);
+  assert.doesNotMatch(
     jobsRoute,
-    /resolveOperation\(\s*payload\.plan,\s*payload\.referenceAssetIds,\s*payload\.sourceVersionId,\s*\(payload\.entities\?\.length \?\? 0\) \+\s*\(payload\.grounding\?\.bundle\.visualReferences\.length \?\? 0\),?\s*\)/,
+    /operation === "edit" &&\s*payload\.referenceAssetIds\.length === 0/,
   );
   // The old, buggy ternary must be gone.
   assert.doesNotMatch(jobsRoute, /payload\.plan\.mode === "edit" \? "edit" : "generate"/);

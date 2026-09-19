@@ -186,7 +186,21 @@ test("generic dragon uses deterministic tier; strict instructions add targeted c
   assert.ok(
     buildValidationPlan({
       ...args,
-      groundedRequirements: ["The bottle has a square cap"],
+      prompt: "Show the bottle with a square cap",
+      groundingBundle: {
+        facts: [{ text: "The bottle has a square cap", sourceId: "s1" }],
+        sources: [
+          {
+            id: "s1",
+            url: "https://example.com/bottle",
+            title: "Bottle",
+            quality: "official_product",
+          },
+        ],
+        visualReferences: [],
+        queries: [],
+        createdAt: "2026-09-18T00:00:00Z",
+      },
     }).checks.some((c) => c.kind === "grounding_consistency"),
   );
   assert.ok(
@@ -202,7 +216,7 @@ test("grounding caps three web/two visual queries, eight sources, and reuses cac
   const results = Array.from({ length: 12 }, (_, i) => ({
     url: `https://example.com/source-${i}`,
     title: `Source ${i}`,
-    excerpt: `Fact ${i}`,
+    excerpt: `Subject fact ${i}`,
     quality: "official_documentation" as const,
   }));
   const args = {

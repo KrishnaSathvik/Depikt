@@ -146,6 +146,18 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
     userInput = b.userInput;
   }
 
+  // Generate cannot fulfill an explicit instruction to avoid AI image models.
+  // Reject before intent analysis, research, reservations or image execution.
+  const forbidsAiImages =
+    /(?:^|[.!?\n]\s*)(?:please\s+)?(?:do not|don't|don’t|never)\s+use\s+(?:an?\s+)?AI\s+image\s+(?:models?|generators?)\b/i;
+  if ([b.prompt, userInput].some((text) => text && forbidsAiImages.test(text))) {
+    return {
+      ok: false,
+      error:
+        "This request forbids AI image generation. Generate uses an AI image model; use your code-based renderer for this request.",
+    };
+  }
+
   if (b.intent !== undefined && b.intent !== null && typeof b.intent !== "object") {
     return { ok: false, error: "intent must be an object" };
   }

@@ -1,8 +1,10 @@
+import type { TemporalSupport } from "./temporal.ts";
 import type { SubmitInput } from "../use-generation.ts";
 import { isPublicHttpsUrl } from "./contract.ts";
 type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 const key = "depikt.grounding.resume.v1";
 export interface GroundingSummary {
+  temporalSupport?: TemporalSupport;
   sources: Array<{ id: string; url: string; title: string }>;
   createdAt: string;
 }

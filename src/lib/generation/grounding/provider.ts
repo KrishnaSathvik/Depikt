@@ -1,3 +1,4 @@
+import { AppearanceEvidenceSchema } from "./temporal.ts";
 import { createBraveGroundingProvider } from "./brave-provider.ts";
 import { z } from "zod";
 import {
@@ -15,6 +16,7 @@ const resultsSchema = z
       title: z.string().max(200),
       excerpt: z.string().max(400),
       quality: SourceQualitySchema,
+      appearanceEvidence: AppearanceEvidenceSchema.optional(),
       imageUrl: z.string().max(2048).optional(),
     }),
   )

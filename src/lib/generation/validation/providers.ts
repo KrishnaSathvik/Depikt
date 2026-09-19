@@ -56,6 +56,8 @@ export function createValidationProviders(
             references: input.references.map(image),
             checks: input.checks,
             referenceBindings: input.referenceBindings,
+            source: input.source ? image(input.source) : undefined,
+            mask: input.mask ? image(input.mask) : undefined,
           }),
         ),
     },
