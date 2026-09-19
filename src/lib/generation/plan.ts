@@ -19,10 +19,12 @@ export const HARD_SERIES_CAP = 20;
 const CONTACT_SHEET_RE = /\b(contact\s*sheet|sticker\s*sheet)\b/i;
 const GRID_RE = /\b\d+\s*[x×]\s*\d+\b/;
 const GRID_CONTEXT_RE = /\b(sheet|grid|panel|panels)\b/i;
-const COLLAGE_RE = /\b((?<!not\s+a\s+)collage|mood\s*board|moodboard|comparison\s*board)\b/i;
+const COLLAGE_RE = /\b(collage|mood\s*board|moodboard|comparison\s*board)\b/i;
+const NO_COLLAGE_RE =
+  /\b(?:no|not(?:\s+as)?(?:\s+a)?|without|avoid|do not (?:make|create)(?:\s+a)?)\s+(?:collages?|mood\s*boards?|comparison\s*boards?)\b/i;
 const OVERVIEW_RE = /\boverview\b/i;
 const SEPARATE_ASSETS_RE =
-  /\b(separate\s+(images|files|assets)|individual\s+images|each\s+(as|should\s+be)\s+(its\s+own|a\s+separate)|standalone\s+images?)\b/i;
+  /\b(?:(?:separate|individual|standalone)\s+(?:[\w-]+\s+){0,4}(?:images?|files?|assets?|photos?)|each\s+(?:(?:must|should)\s+be\s+|as\s+|be\s+)?(?:its\s+own|a\s+separate))\b/i;
 const WORD_COUNT_RE =
   "two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty";
 const DELIVERABLE_COUNT_RE = new RegExp(
@@ -50,16 +52,16 @@ export function buildGenerationPlan(
     return finish("edit", 1, false, searchNeeded(userPrompt));
   }
 
+  const separate = SEPARATE_ASSETS_RE.test(userPrompt);
+  const noCollage = NO_COLLAGE_RE.test(userPrompt);
   if (
-    CONTACT_SHEET_RE.test(userPrompt) ||
-    (GRID_RE.test(userPrompt) && GRID_CONTEXT_RE.test(userPrompt))
+    !separate &&
+    (CONTACT_SHEET_RE.test(userPrompt) ||
+      (GRID_RE.test(userPrompt) && GRID_CONTEXT_RE.test(userPrompt)))
   ) {
     return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
   }
-  if (
-    (COLLAGE_RE.test(userPrompt) || OVERVIEW_RE.test(userPrompt)) &&
-    !SEPARATE_ASSETS_RE.test(userPrompt)
-  ) {
+  if ((COLLAGE_RE.test(userPrompt) || OVERVIEW_RE.test(userPrompt)) && !separate && !noCollage) {
     return finish("collage", 1, false, searchNeeded(userPrompt));
   }
 
@@ -69,7 +71,7 @@ export function buildGenerationPlan(
     intent.series.enabled && intent.series.count && intent.series.count > 1
       ? intent.series.count
       : null;
-  const panelWantsSeparate = intent.series.unit === "panel" && SEPARATE_ASSETS_RE.test(userPrompt);
+  const panelWantsSeparate = intent.series.unit === "panel" && (separate || noCollage);
 
   if (intent.series.unit === "panel" && !panelWantsSeparate && intent.series.enabled) {
     return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
@@ -85,7 +87,7 @@ export function buildGenerationPlan(
   if (seriesFromIntent || seriesFromPrompt) {
     const desired = Math.max(
       2,
-      intentCount ?? explicit ?? (listed >= 2 ? listed : AUTO_SERIES_CAP),
+      explicit ?? intentCount ?? (listed >= 2 ? listed : AUTO_SERIES_CAP),
     );
     return finish("series", desired, true, searchNeeded(userPrompt));
   }
@@ -124,8 +126,8 @@ export function resolveSelectedCount(plan: GenerationPlan, selectedCount?: numbe
 }
 
 /**
- * Chooses the real OpenAI operation for a plan. `plan.mode === "edit"` is
- * one way in, but not the only one: a signed plan for a plain `single`/
+ * Chooses the real OpenAI operation from provider-bound inputs, never the mode label. `plan.mode === "edit"` is
+ * a UI label, not evidence of an input: a signed plan for a plain `single`/
  * `series` request can still carry attached reference images (Library's
  * "Use as reference", a Gallery handoff, or a manual attach on Generate) or
  * a `sourceVersionId` from a prior result. Those requests must call
@@ -136,15 +138,19 @@ export function resolveSelectedCount(plan: GenerationPlan, selectedCount?: numbe
  * an unrelated image. See generate-reference-upload.test.ts.
  */
 export function resolveOperation(
-  plan: GenerationPlan,
+  _plan: GenerationPlan,
   referenceAssetIds: string[],
   sourceVersionId: string | null,
-  entityCount = 0,
+  entityReferenceCount = 0,
+  groundingReferenceCount = 0,
 ): "generate" | "edit" {
-  if (plan.mode === "edit") return "edit";
-  if (referenceAssetIds.length > 0 || entityCount > 0) return "edit";
-  if (sourceVersionId) return "edit";
-  return "generate";
+  return referenceAssetIds.length +
+    entityReferenceCount +
+    groundingReferenceCount +
+    (sourceVersionId ? 1 : 0) >
+    0
+    ? "edit"
+    : "generate";
 }
 
 function finish(
@@ -202,25 +208,33 @@ function explicitDeliverableCount(userPrompt: string): number | null {
   return n !== null && n >= 2 ? n : null;
 }
 
-/** Slash, " or ", and comma-separated visual variants. Generic — not a domain list. */
+/** Count complete variant lists, never fragments collected across unrelated instructions. */
 function countListedVariants(userPrompt: string): number {
-  // A single comma-rich sentence (breakfast ingredients) is not a variant list.
-  // Require either a slash/`or` split of 2+, or 3+ short comma phrases after a period.
-  if (/\//.test(userPrompt) || /\bor\b/i.test(userPrompt)) {
-    const bits = userPrompt
-      .split(/\s+or\s+|\/+/i)
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0 && s.length < 80);
-    return bits.length;
+  // Paths and URLs describe inputs/implementation, not output alternatives.
+  const text = userPrompt
+    .replace(/\b(?:https?:\/\/|www\.)\S+/gi, "reference")
+    .replace(/\b[\w.-]+(?:[/\\][\w.-]+)*[/\\][\w.-]+\.[a-z\d]{1,10}\b/gi, "reference");
+  const clauses = text
+    .split(/(?:[.!?](?:\s+|$)|[\r\n]+)/)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const constraint =
+    /^(?:no\b|do not\b|don't\b|don’t\b|without\b|avoid\b|use\b|keep\b|preserve\b)/i;
+  let variants = 0;
+  for (const clause of clauses) {
+    // A noun elsewhere in a long brief must not turn style choices into outputs.
+    if (constraint.test(clause) || !PLURAL_DELIVERABLE_RE.test(clause)) continue;
+    const parts = clause.split(/\s+or\s+|\/+/i).map((part) => part.trim());
+    if (parts.length >= 2 && parts.every((part) => part.length > 0 && part.length < 80))
+      variants = Math.max(variants, parts.length);
   }
-  const sentences = userPrompt
-    .split(".")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-  const afterLastPeriod = sentences.pop() ?? "";
-  const phrases = afterLastPeriod
-    .split(",")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && s.length < 60);
-  return phrases.length >= 3 ? phrases.length : 0;
+  if (variants) return variants;
+
+  // Preserve the existing trailing list form: "Build regional layouts. Coast, city, hills."
+  const last = clauses.at(-1) ?? "";
+  if (constraint.test(last)) return 0;
+  const phrases = last.split(",").map((part) => part.trim());
+  return phrases.length >= 3 && phrases.every((part) => part.length > 0 && part.length < 60)
+    ? phrases.length
+    : 0;
 }

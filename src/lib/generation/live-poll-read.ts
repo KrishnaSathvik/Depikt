@@ -55,5 +55,16 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
       }),
   );
 
-  return assembleLivePoll(jobs, versions, signedUrls);
+  const repair = jobs.some((job) => job.usage_json?.validation?.refinementPending)
+    ? await db
+        .from("generation_request_repairs")
+        .select("job_id,state,started_at")
+        .eq("session_id", sessionId)
+        .maybeSingle()
+        .then(
+          ({ data, error }) => (error ? null : data),
+          () => null,
+        )
+    : null;
+  return assembleLivePoll(jobs, versions, signedUrls, repair);
 }

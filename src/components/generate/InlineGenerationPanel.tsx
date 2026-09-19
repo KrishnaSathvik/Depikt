@@ -64,20 +64,34 @@ export function InlineGenerationPanel({
       )}
     >
       <ScrollIntoViewOnMount targetRef={panelRef} />
-      {gen.jobs.length > 1 ? (
-        <SeriesJobsGrid jobs={gen.jobs} />
+      {gen.jobs.length > 1 && !editing ? (
+        <SeriesJobsGrid
+          jobs={gen.jobs}
+          onDownload={(id) => gen.download(id)}
+          onEdit={(id) => {
+            gen.setActiveVersionId(id);
+            setEditing(true);
+            setEditPrompt("");
+          }}
+          onRegenerate={(id) => gen.regenerate(id)}
+        />
       ) : (
         <GenerationCanvas
           state={
-            gen.phase === "starting" || gen.phase === "polling"
-              ? "generating"
-              : gen.phase === "result" || gen.phase === "awaiting_result_url"
-                ? "result"
-                : "error"
+            gen.resultUrl
+              ? "result"
+              : gen.phase === "starting" || gen.phase === "polling"
+                ? "generating"
+                : gen.phase === "result" || gen.phase === "awaiting_result_url"
+                  ? "result"
+                  : "error"
           }
           aspectRatio={resolvedSize.ratioLabel}
           orientation={resolvedSize.orientation}
           imageUrl={gen.resultUrl}
+          refining={gen.job?.refining}
+          warning={gen.job?.validation?.warning}
+          validationMessage={gen.job?.validation?.temporalSupport?.message}
           errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
           onRetry={() => gen.regenerate()}
           jobStatus={
@@ -90,7 +104,7 @@ export function InlineGenerationPanel({
           actions={
             editing ? undefined : (
               <GenerationActions
-                onDownload={gen.download}
+                onDownload={() => gen.download()}
                 onEdit={() => setEditing((e) => !e)}
                 onRegenerate={() => gen.regenerate()}
               />
@@ -98,7 +112,7 @@ export function InlineGenerationPanel({
           }
         />
       )}
-      {gen.jobs.length <= 1 && gen.phase === "result" && editing && (
+      {gen.resultUrl && editing && (
         <GenerationEditForm
           value={editPrompt}
           onChange={setEditPrompt}

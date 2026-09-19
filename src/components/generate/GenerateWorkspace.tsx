@@ -161,6 +161,7 @@ export function GenerateWorkspace() {
     setPrompt("");
     setStructuredRatio(null);
     setRoutingHints(null);
+    setSourceContext({ type: "direct" });
     setEditing(false);
     setEditPrompt("");
   }
@@ -228,8 +229,9 @@ export function GenerateWorkspace() {
   }
 
   // ---------- generating / result / edit / error-with-job: two-pane workspace ----------
-  const canvasState =
-    gen.phase === "starting" || gen.phase === "polling"
+  const canvasState = gen.resultUrl
+    ? "result"
+    : gen.phase === "starting" || gen.phase === "polling"
       ? "generating"
       : gen.phase === "result" || gen.phase === "awaiting_result_url"
         ? "result"
@@ -261,7 +263,10 @@ export function GenerateWorkspace() {
             />
           ) : (
             <div className="space-y-3">
-              <PromptSurface label="Prompt">{gen.job?.errorMessage ?? prompt}</PromptSurface>
+              <PromptSurface label="Prompt">
+                {gen.job?.errorMessage ??
+                  (prompt || gen.requestPrompt || active?.prompt || "Your image request")}
+              </PromptSurface>
               {gen.references.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {gen.references.map((r, i) => (
@@ -289,17 +294,12 @@ export function GenerateWorkspace() {
                   Preparing your request and researching references when needed…
                 </p>
               )}
-              {gen.job?.validation?.refinementPending && (
-                <p role="status" className="text-body-sm">
-                  Refining details…
-                </p>
-              )}
-              {gen.phase === "result" && gen.job?.validation?.warning && (
-                <p className="text-body-sm">Some requested details may not be exact.</p>
-              )}
               {gen.grounding && (
                 <details className="text-body-sm">
-                  <summary>Grounded with {gen.grounding.sources.length} sources</summary>
+                  <summary>
+                    {gen.grounding.temporalSupport?.message ??
+                      `Grounded with ${gen.grounding.sources.length} sources`}
+                  </summary>
                   <ul>
                     {gen.grounding.sources.map((source) => (
                       <li key={source.id}>
@@ -316,7 +316,7 @@ export function GenerateWorkspace() {
                   )}
                 </details>
               )}
-              {gen.phase === "result" && gen.versions.length > 1 && (
+              {gen.phase === "result" && gen.jobs.length <= 1 && gen.versions.length > 1 && (
                 <VersionStrip
                   versions={gen.versions}
                   activeId={gen.activeVersionId}
@@ -327,17 +327,28 @@ export function GenerateWorkspace() {
           )}
         </div>
 
-        {/* RIGHT — a confirmed series (>1 child job) gets a simple grid of
-            slots instead of the single-image canvas; everything else keeps
-            the shared GenerationCanvas. */}
-        {gen.jobs.length > 1 ? (
-          <SeriesJobsGrid jobs={gen.jobs} />
+        {/* Series and individual images share the same canvas and controls. */}
+        {gen.jobs.length > 1 && !editing ? (
+          <SeriesJobsGrid
+            jobs={gen.jobs}
+            onDownload={(id) => gen.download(id)}
+            onEdit={(id) => {
+              gen.setActiveVersionId(id);
+              setEditing(true);
+              setEditPrompt("");
+            }}
+            onRegenerate={(id) => gen.regenerate(id)}
+            onNew={startNew}
+          />
         ) : (
           <GenerationCanvas
             state={canvasState}
             aspectRatio={resolvedSize.ratioLabel}
             orientation={resolvedSize.orientation}
             imageUrl={gen.resultUrl}
+            refining={gen.job?.refining}
+            warning={gen.job?.validation?.warning}
+            validationMessage={gen.job?.validation?.temporalSupport?.message}
             errorMessage={gen.errorMessage}
             onRetry={gen.reset}
             jobStatus={
@@ -350,9 +361,9 @@ export function GenerateWorkspace() {
             actions={
               editing ? undefined : (
                 <GenerationActions
-                  onDownload={gen.download}
+                  onDownload={() => gen.download()}
                   onEdit={() => setEditing((e) => !e)}
-                  onRegenerate={gen.regenerate}
+                  onRegenerate={() => gen.regenerate()}
                   onNew={startNew}
                 />
               )

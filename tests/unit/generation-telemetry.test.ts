@@ -80,7 +80,7 @@ test("fresh submissions seed poll baseline from /jobs queued jobs; resume seeds 
   assert.match(executePlanFn, /pollSession\(res\.sessionId, res\.jobs\)/);
   assert.match(
     hook,
-    /if \(sessionId\) pollSession\(sessionId\);/,
+    /if \(!activeSessionId\) return;[\s\S]*pollSession\(activeSessionId\);/,
     "resume omits queuedJobs so first poll seeds without emitting",
   );
 });

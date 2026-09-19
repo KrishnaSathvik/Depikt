@@ -142,7 +142,7 @@ test("resolveOperation: a reference image or a source version forces edit even w
   assert.equal(resolveOperation(seriesPlan, [], null), "generate");
 
   const editPlan: GenerationPlan = { ...singlePlan, mode: "edit" };
-  assert.equal(resolveOperation(editPlan, [], null), "edit");
+  assert.equal(resolveOperation(editPlan, [], null), "generate");
 });
 
 test("listed variants with a coordinating deliverable noun infer a series", () => {
@@ -154,4 +154,87 @@ test("listed variants with a coordinating deliverable noun infer a series", () =
   assert.equal(plan.mode, "series");
   assert.equal(plan.desiredCount, 4);
   assert.equal(plan.searchNeeded, true);
+});
+
+test("Astra Open Graph brief requests one output despite paths and negative instructions", () => {
+  const prompt = readFileSync(
+    new URL("../fixtures/astra-opengraph-request.txt", import.meta.url),
+    "utf8",
+  );
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  for (const text of [prompt, prompt.replace("Do not use an AI image model.\n", "")]) {
+    const plan = buildGenerationPlan(intent, text);
+    assert.equal(plan.mode, "single");
+    assert.equal(plan.desiredCount, 1);
+    assert.equal(plan.autoCount, 1);
+    assert.equal(resolveSelectedCount(plan), 1);
+    assert.equal(resolveOperation(plan, ["user/reference.png"], null), "edit");
+  }
+});
+
+test("paths, URLs and style alternatives cannot multiply a single deliverable", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  for (const prompt of [
+    "Create an image using public/logo.png. Route: /\nEntry: src/app/opengraph-image.tsx",
+    "Create an image using https://example.com/assets/brand/logo.png",
+    "Create an image. Use red or blue or green. Keep the logo intact.",
+    "Create an image. No cards, pills, or robots.",
+    "Create an image. Use references from public/images/logo.png or public/images/mark.png.",
+    "Create an image. No cards, pills, robots, fake UI.",
+  ]) {
+    assert.equal(buildGenerationPlan(intent, prompt).desiredCount, 1, prompt);
+  }
+});
+
+test("real slash/or variants still form a series beside unrelated file paths", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  for (const prompt of [
+    "Create images of forests/deserts/oceans. Use public/logo.png.",
+    "Create images of forests or deserts or oceans. Use public/logo.png.",
+  ]) {
+    assert.equal(buildGenerationPlan(intent, prompt).desiredCount, 3, prompt);
+  }
+});
+
+for (const [prompt, mode, count] of [
+  ["two separate images", "series", 2],
+  ["three standalone images, no collage", "series", 3],
+  [
+    "Create two separate standalone cinematic images: sunrise exterior and night control room. Each must be its own image. No collage.",
+    "series",
+    2,
+  ],
+  ["four individual cinematic images, each its own file", "series", 4],
+  ["one 2×3 contact sheet", "contact_sheet", 1],
+  ["collage of four photos", "collage", 1],
+  ["An observatory. No collage.", "single", 1],
+] as const) {
+  test(`explicit output semantics: ${prompt}`, () => {
+    const intent = loadVnext1Cases()[0]!.fixture_intent;
+    const plan = buildGenerationPlan(intent, prompt);
+    assert.equal(plan.mode, mode);
+    assert.equal(plan.desiredCount, count);
+  });
+}
+test("explicit separate count overrides model panel/count inference", () => {
+  const intent = loadVnext1Cases()[0]!.fixture_intent;
+  const plan = buildGenerationPlan(
+    { ...intent, series: { ...intent.series, enabled: true, unit: "panel", count: 6 } },
+    "Three standalone images, no collage",
+  );
+  assert.equal(plan.mode, "series");
+  assert.equal(plan.desiredCount, 3);
+});
+
+test("grounding operation depends on visual inputs, not research or plan mode", () => {
+  const plan = {
+    ...buildGenerationPlan(loadVnext1Cases()[0]!.fixture_intent, "Research a camera"),
+    mode: "edit" as const,
+    searchNeeded: true,
+  };
+  assert.equal(resolveOperation(plan, [], null, 0, 0), "generate");
+  assert.equal(resolveOperation(plan, [], null, 0, 2), "edit");
+  assert.equal(resolveOperation(plan, [], null, 3, 0), "edit");
+  assert.equal(resolveOperation(plan, ["owned/ref.png"], null, 0, 0), "edit");
+  assert.equal(resolveOperation(plan, [], "source", 0, 0), "edit");
 });

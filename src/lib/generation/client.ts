@@ -1,3 +1,4 @@
+import type { TemporalSupport } from "./grounding/temporal";
 // Native image generation — authenticated client fetch + polling.
 //
 // The /api/generation/* routes are plain file-route API endpoints, not
@@ -76,6 +77,7 @@ export interface DisplayPlan {
 
 export interface CreatePlanResponse {
   grounding?: {
+    temporalSupport?: TemporalSupport;
     sources: Array<{ id: string; url: string; title: string }>;
     createdAt: string;
   } | null;
@@ -124,8 +126,10 @@ export function startGenerationJob(jobId: string, referencePaths: string[]): Pro
 }
 
 export interface JobStatusResponse {
+  refining?: boolean;
   validation?: {
-    verdict: "pass" | "repairable" | "fail";
+    verdict: "pass" | "pass_with_limitation" | "repairable" | "fail";
+    temporalSupport?: TemporalSupport;
     repairAttempts: number;
     refinementPending?: boolean;
     warning?: boolean;
@@ -146,6 +150,7 @@ export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {
 }
 
 export interface SessionVersion {
+  job_id?: string;
   id: string;
   parent_version_id: string | null;
   storage_path: string;

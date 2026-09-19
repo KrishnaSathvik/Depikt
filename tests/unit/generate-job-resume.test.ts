@@ -29,10 +29,9 @@ function read(rel: string): string {
 test("the active generation session id survives a refresh and is resumed on mount", () => {
   const g = read("src/lib/generation/use-generation.ts");
 
-  assert.match(g, /const ACTIVE_SESSION_KEY = "depikt\.generate\.activeSessionId"/);
+  assert.match(g, /activeSessionStore\(user.id, sourceContextRef.current.type\).read\(\)/);
   assert.match(g, /function saveActiveSession\(sessionId: string\)/);
   assert.match(g, /function clearActiveSession\(\)/);
-  assert.match(g, /function readActiveSession\(\): string \| null/);
   // The old, one-job-only key must be gone entirely.
   assert.equal(/ACTIVE_JOB_KEY/.test(g), false);
 
@@ -82,8 +81,12 @@ test("the active generation session id survives a refresh and is resumed on moun
   // resume effect.
   assert.match(
     g,
-    /const activeSessionId = readActiveSession\(\);[\s\S]*const sessionId = activeSessionId \?\? resumed\?\.sessionId;\s*if \(sessionId\) pollSession\(sessionId\);/,
+    /const activeSessionId = activeSessionStore[\s\S]*if \(!activeSessionId\) return;[\s\S]*pollSession\(activeSessionId\);/,
   );
+
+  assert.doesNotMatch(g, /activeSessionId \?\? resumed/);
+  assert.match(pollSessionFn, /readRestorableSession\(sessionId, readGenerationSessionLive\)/);
+  assert.match(pollSessionFn, /if \(queuedJobs\) setPhase\("polling"\)/);
 
   // A resumed job has no local `prompt` to resolve a ratio from; once the
   // job itself loads, its own width/height must be used instead of
@@ -107,10 +110,10 @@ test("Build and Critique inline generation renders every series child", () => {
   const workspace = read("src/components/generate/GenerateWorkspace.tsx");
 
   assert.match(inline, /import \{ SeriesJobsGrid \} from/);
-  assert.match(inline, /gen\.jobs\.length > 1 \?/);
-  assert.match(inline, /<SeriesJobsGrid jobs=\{gen\.jobs\} \/>/);
+  assert.match(inline, /gen\.jobs\.length > 1 && !editing \?/);
+  assert.match(inline, /<SeriesJobsGrid\s+jobs=\{gen\.jobs\}/g);
   assert.match(workspace, /import \{ SeriesJobsGrid \} from/);
-  assert.match(workspace, /<SeriesJobsGrid jobs=\{gen\.jobs\} \/>/);
+  assert.match(workspace, /<SeriesJobsGrid\s+jobs=\{gen\.jobs\}/g);
 });
 
 test("jobs from a session are given full per-job detail, not just id/status", () => {

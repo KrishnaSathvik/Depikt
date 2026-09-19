@@ -29,6 +29,9 @@ export interface GenerationCanvasProps {
   className?: string;
   /** queued/running while generating — drives thinking-stage copy. */
   jobStatus?: GenerationJobUiStatus;
+  refining?: boolean;
+  warning?: boolean;
+  validationMessage?: string;
 }
 
 /** Resolves a concrete pixel box for `ratioLabel` against the orientation-based
@@ -82,6 +85,9 @@ export function GenerationCanvas({
   actions,
   className,
   jobStatus,
+  refining,
+  warning,
+  validationMessage,
 }: GenerationCanvasProps) {
   const box = resolveFrameBox(aspectRatio, orientation);
 
@@ -108,6 +114,16 @@ export function GenerationCanvas({
           >
             <img src={imageUrl} alt={imageAlt} className="h-full w-full object-contain" />
           </div>
+          {refining && (
+            <p role="status" className="text-center text-body-sm">
+              Refining details…
+            </p>
+          )}
+          {!refining && (warning || validationMessage) && (
+            <p role="status" className="text-center text-body-sm">
+              {validationMessage ?? "Some requested details may not be exact."}
+            </p>
+          )}
           {actions && (
             <div className="mx-auto w-full" style={{ maxWidth: box.width }}>
               {actions}
