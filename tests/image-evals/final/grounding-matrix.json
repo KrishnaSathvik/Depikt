@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "status": "frozen-not-executed",
+  "runId": "final-grounding-claims-2026-09",
+  "maxScenarios": 2,
+  "maxInitialImages": 2,
+  "maxRepairImages": 1,
+  "maxTotalProviderImages": 3,
+  "sourceRunId": "targeted-vnext-blockers-2026-09",
+  "scenarios": [
+    {
+      "id": "game-grounding",
+      "images": 1,
+      "covers": [
+        "V4 web and visual",
+        "provenance"
+      ],
+      "number": 10,
+      "prompt": "Research Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.",
+      "instructions": "GAME GROUNDING\nImages: 1\n\nPrompt:\n“Research Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.”\n\nCovers:\n- V4 searchNeeded\n- factual web grounding\n- visual grounding\n- provenance\n- grounding limits\n- grounded generation\n\nRequirements:\n- use real grounding pipeline\n- record sources\n- ≤3 web queries\n- ≤2 visual queries\n- ≤8 sources\n- do not hardcode KSP-specific behavior",
+      "maxRepairs": 0
+    },
+    {
+      "id": "location-grounding",
+      "images": 1,
+      "covers": [
+        "V4 current facts",
+        "cache reuse"
+      ],
+      "number": 11,
+      "prompt": "Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.",
+      "instructions": "LOCATION GROUNDING\nImages: 1\n\nPrompt:\n“Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.”\n\nCovers:\n- V4 real-world/current grounding\n- web + visual references\n- provenance\n- grounding cache\n\nAfter grounding is created:\nperform a NON-IMAGE grounding-plan/cache lookup for the same request and verify the existing grounding snapshot is reused.\n\nDo not generate a second image for cache testing.",
+      "maxRepairs": 0,
+      "cacheLookupWithoutImage": true
+    }
+  ]
+}

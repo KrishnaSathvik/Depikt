@@ -50,3 +50,8 @@ research/images-2-5-community/openai-assets/
 # OG card attempts (approved crops are copied to public/og/)
 research/og-images/runs/
 .playwright-mcp/
+.playwright-cli/
+
+# Local verification dumps (images, live preflight, Playwright sessions)
+output/
+outputs/

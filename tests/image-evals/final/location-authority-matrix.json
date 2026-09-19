@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "status": "frozen-not-executed",
+  "runId": "final-location-authority-2026-09",
+  "maxScenarios": 1,
+  "maxInitialImages": 1,
+  "maxRepairImages": 1,
+  "maxTotalProviderImages": 2,
+  "sourceRunId": "final-grounding-claims-2026-09",
+  "scenarios": [
+    {
+      "id": "location-grounding",
+      "images": 1,
+      "covers": [
+        "V4 current facts",
+        "cache reuse"
+      ],
+      "number": 11,
+      "prompt": "Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.",
+      "instructions": "LOCATION GROUNDING\nImages: 1\n\nPrompt:\n“Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.”\n\nCovers:\n- V4 real-world/current grounding\n- web + visual references\n- provenance\n- grounding cache\n\nAfter grounding is created:\nperform a NON-IMAGE grounding-plan/cache lookup for the same request and verify the existing grounding snapshot is reused.\n\nDo not generate a second image for cache testing.",
+      "maxRepairs": 0,
+      "cacheLookupWithoutImage": true
+    }
+  ]
+}

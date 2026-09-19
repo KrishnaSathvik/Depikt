@@ -46,7 +46,7 @@ test("production Worker runtime explicitly disables grounding, validation and au
   assert.equal(automaticRepairEnabled(config.vars), false);
 });
 
-test("verification activation preserves launch caps and the byte-identical frozen matrix", () => {
+test("verification preserves launch caps, original matrix and frozen final matrix", () => {
   assert.equal(MAX_AUTO_REPAIR_ATTEMPTS_PER_REQUEST, 1);
   assert.equal(LAUNCH_ECONOMIC_POLICY.maxAutomaticRepairsPerRequest, 1);
   assert.deepEqual(
@@ -57,12 +57,23 @@ test("verification activation preserves launch caps and the byte-identical froze
     ],
     [3, 2, 8],
   );
+  const original = readFileSync(new URL("../image-evals/final/matrix-v1.json", import.meta.url));
+  assert.equal(
+    createHash("sha256").update(original).digest("hex"),
+    "d49ffa6119afb0d63b5040ab4106fbc2a7d9b14508dd85ea8d97111883621aa2",
+  );
   const bytes = readFileSync(new URL("../image-evals/final/matrix.json", import.meta.url));
   assert.equal(
     createHash("sha256").update(bytes).digest("hex"),
-    "d49ffa6119afb0d63b5040ab4106fbc2a7d9b14508dd85ea8d97111883621aa2",
+    "082a3cb04029a1763e7750f9e1a63a1f1d4356c3570800d35d9efc86de22dff1",
   );
   const matrix = JSON.parse(bytes.toString());
+  assert.equal(matrix.version, 2);
+  assert.equal(matrix.maxTotalProviderImages, 19);
+  assert.equal(
+    matrix.scenarios.reduce((sum: number, s: { images: number }) => sum + s.images, 0),
+    18,
+  );
   assert.equal(matrix.status, "frozen-not-executed");
   assert.equal(matrix.scenarios.length, 14);
   assert.deepEqual(

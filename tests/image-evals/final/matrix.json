@@ -1,51 +1,230 @@
 {
-  "version": 1,
+  "version": 2,
   "status": "frozen-not-executed",
   "maxScenarios": 14,
   "maxInitialImages": 18,
   "maxRepairImages": 1,
   "requires": [
-    "VNext 5 merged",
-    "final economic policy agreed",
-    "explicit activation of live verification"
+    "Non-billable preflight passed",
+    "Configured real grounding provider",
+    "Verified QA balance of at least 18 credits",
+    "Enforced global provider-output and repair caps"
   ],
   "scenarios": [
-    { "id": "single", "images": 1, "covers": ["V1 single"] },
-    { "id": "series", "images": 3, "covers": ["V1 planning", "count", "resume"] },
-    { "id": "contact-sheet", "images": 1, "covers": ["V1 output semantics"] },
-    { "id": "precision-edit", "images": 1, "covers": ["V2 mask", "outside-mask preservation"] },
-    { "id": "whole-edit", "images": 1, "covers": ["V2 regression"] },
-    { "id": "character", "images": 1, "covers": ["V3 character identity"] },
-    { "id": "product", "images": 1, "covers": ["V3 product identity"] },
+    {
+      "id": "single",
+      "images": 1,
+      "covers": [
+        "V1 single"
+      ],
+      "number": 1,
+      "prompt": "Photorealistic editorial still life of a cobalt-blue ceramic teapot and two pears on a walnut table, soft north-window light, clean composition, no text, 4:5.",
+      "instructions": "SINGLE\nImages: 1\n\nPrompt:\n“Photorealistic editorial still life of a cobalt-blue ceramic teapot and two pears on a walnut table, soft north-window light, clean composition, no text, 4:5.”\n\nCovers:\n- V1 single\n- normal no-entity generation\n- aspect handling\n\nSave this result because scenarios 4 and 5 reuse it as their edit source.",
+      "maxRepairs": 0
+    },
+    {
+      "id": "series",
+      "images": 2,
+      "covers": [
+        "V1 planning",
+        "count",
+        "resume"
+      ],
+      "number": 2,
+      "prompt": "Create two separate standalone cinematic images of a fictional desert astronomy observatory:\n1. sunrise exterior\n2. night control room\nEach must be its own image. No collage. No text.",
+      "instructions": "SERIES\nImages: 2\n\nPrompt:\n“Create two separate standalone cinematic images of a fictional desert astronomy observatory:\n1. sunrise exterior\n2. night control room\nEach must be its own image. No collage. No text.”\n\nCovers:\n- V1 series planning\n- count\n- separate assets\n- child execution\n- session/resume\n\nExpected:\n2 independent images, never one collage.",
+      "maxRepairs": 0
+    },
+    {
+      "id": "contact-sheet",
+      "images": 1,
+      "covers": [
+        "V1 output semantics"
+      ],
+      "number": 3,
+      "prompt": "Create the same fictional orange-and-white service robot in six distinct expressions or poses, clean 2×3 contact sheet, consistent robot design across all six panels, no text.",
+      "instructions": "CONTACT SHEET\nImages: 1\n\nPrompt:\n“Create the same fictional orange-and-white service robot in six distinct expressions or poses, clean 2×3 contact sheet, consistent robot design across all six panels, no text.”\n\nCovers:\n- contact-sheet semantics\n- one image rather than six child jobs\n- within-image consistency",
+      "maxRepairs": 0
+    },
+    {
+      "id": "precision-edit",
+      "images": 1,
+      "covers": [
+        "V2 mask",
+        "outside-mask preservation"
+      ],
+      "number": 4,
+      "prompt": "Change only the cobalt-blue teapot to matte ivory. Preserve the pears, walnut table, composition, shadows, reflections, lighting and background.",
+      "instructions": "PRECISION EDIT\nImages: 1\n\nSource:\nScenario 1 result.\n\nMask:\nteapot only.\n\nPrompt:\n“Change only the cobalt-blue teapot to matte ivory. Preserve the pears, walnut table, composition, shadows, reflections, lighting and background.”\n\nCovers:\n- V2 precision mask\n- source remains image[0]\n- outside-mask preservation\n- Sunburst masked edit\n- version chain",
+      "maxRepairs": 0,
+      "source": "single:original",
+      "mask": "teapot only"
+    },
+    {
+      "id": "whole-edit",
+      "images": 1,
+      "covers": [
+        "V2 regression"
+      ],
+      "number": 5,
+      "prompt": "Make the entire scene feel like a cool rainy afternoon with softer, moodier ambient light. Preserve the object layout and composition.",
+      "instructions": "WHOLE IMAGE EDIT\nImages: 1\n\nSource:\nScenario 1 ORIGINAL result, not Scenario 4 unless current edit semantics require otherwise.\n\nNo mask.\n\nPrompt:\n“Make the entire scene feel like a cool rainy afternoon with softer, moodier ambient light. Preserve the object layout and composition.”\n\nCovers:\n- V2 whole-image edit regression\n- no mask path\n- source dimensions/version chain",
+      "maxRepairs": 0,
+      "source": "single:original",
+      "mask": null
+    },
+    {
+      "id": "character",
+      "images": 1,
+      "covers": [
+        "V3 character identity"
+      ],
+      "number": 6,
+      "prompt": "Sofia browsing inside a glass-roofed botanical conservatory on a rainy afternoon, candid waist-up editorial photograph, natural overcast light. Preserve Sofia’s identity.",
+      "instructions": "CHARACTER LOCK\nImages: 1\n\nUse:\napproved frozen Character B / Sofia reference pack.\n\nUse a NEW scene not used in previous VNext 3 scoring.\n\nPrompt:\n“Sofia browsing inside a glass-roofed botanical conservatory on a rainy afternoon, candid waist-up editorial photograph, natural overcast light. Preserve Sofia’s identity.”\n\nCovers:\n- V3 character lock\n- dynamic reference selection\n- identity preservation\n\nDo not generate a new character fixture.",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "character-b"
+      ]
+    },
+    {
+      "id": "product",
+      "images": 1,
+      "covers": [
+        "V3 product identity"
+      ],
+      "number": 7,
+      "prompt": "NEMORI Berry bottle on a brushed stainless-steel counter with condensation nearby, cool lavender studio light, three-quarter premium product photograph. Preserve the exact product identity and packaging.",
+      "instructions": "PRODUCT LOCK\nImages: 1\n\nUse:\napproved frozen Product B / NEMORI Berry reference pack.\n\nPrompt:\n“NEMORI Berry bottle on a brushed stainless-steel counter with condensation nearby, cool lavender studio light, three-quarter premium product photograph. Preserve the exact product identity and packaging.”\n\nCovers:\n- V3 product lock\n- geometry\n- cap\n- label/mark fidelity\n- dynamic role selection",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "product-b"
+      ]
+    },
     {
       "id": "entities",
       "images": 1,
-      "covers": ["V3 two characters and product", "entity distinction"]
+      "covers": [
+        "V3 two characters and product",
+        "entity distinction"
+      ],
+      "number": 8,
+      "prompt": "Maya and Sofia sitting at a modern railway-station café. Sofia is holding the NEMORI Berry bottle. Keep Maya and Sofia visually distinct and preserve the exact product identity. Natural candid editorial photography.",
+      "instructions": "MULTI-ENTITY STRESS\nImages: 1\n\nUse:\nCharacter A / Maya\nCharacter B / Sofia\nProduct B / NEMORI Berry\n\nPrompt:\n“Maya and Sofia sitting at a modern railway-station café. Sofia is holding the NEMORI Berry bottle. Keep Maya and Sofia visually distinct and preserve the exact product identity. Natural candid editorial photography.”\n\nCovers:\n- two characters\n- one product\n- 8-image entity budget\n- identity distinction\n- no reference feature merging\n- product ownership in scene",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "character-a",
+        "character-b",
+        "product-b"
+      ]
     },
-    { "id": "brand-series", "images": 3, "covers": ["V3 brand consistency"] },
-    { "id": "game-grounding", "images": 1, "covers": ["V4 web and visual", "provenance"] },
-    { "id": "location-grounding", "images": 1, "covers": ["V4 current facts", "cache reuse"] },
-    { "id": "exact-text", "images": 1, "covers": ["V5 OCR", "constraints"] },
+    {
+      "id": "brand-series",
+      "images": 3,
+      "covers": [
+        "V3 brand consistency"
+      ],
+      "number": 9,
+      "prompt": "Create three separate standalone VELORA advertisements with consistent brand identity:\n1. independent bookstore counter\n2. sunlit greenhouse\n3. elegant rooftop lounge at night\n\nEach should be its own image.\nDo not render scene names as text.\nDo not add headlines or captions unless explicitly supplied.\nPreserve existing VELORA logo and product text.",
+      "instructions": "BRAND SERIES\nImages: 3\n\nUse:\napproved VELORA brand pack.\n\nPrompt:\n“Create three separate standalone VELORA advertisements with consistent brand identity:\n1. independent bookstore counter\n2. sunlit greenhouse\n3. elegant rooftop lounge at night\n\nEach should be its own image.\nDo not render scene names as text.\nDo not add headlines or captions unless explicitly supplied.\nPreserve existing VELORA logo and product text.”\n\nCovers:\n- V3 brand lock\n- V1 series\n- exact_text sanitization regression\n- brand consistency across new scenes\n\nExpected:\n3 individual images.\nNo BOOKSTORE / GREENHOUSE / ROOFTOP scene labels.",
+      "maxRepairs": 0,
+      "referencePacks": [
+        "brand-a"
+      ]
+    },
+    {
+      "id": "game-grounding",
+      "images": 1,
+      "covers": [
+        "V4 web and visual",
+        "provenance"
+      ],
+      "number": 10,
+      "prompt": "Research Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.",
+      "instructions": "GAME GROUNDING\nImages: 1\n\nPrompt:\n“Research Kerbal Space Program 1 stock-game parts and authentic game visuals, then create a game-faithful image of a compact stock-style Mun lander on the Mun surface. Use only visual/mechanical concepts supported by the actual game. One standalone image, no labels or infographic layout.”\n\nCovers:\n- V4 searchNeeded\n- factual web grounding\n- visual grounding\n- provenance\n- grounding limits\n- grounded generation\n\nRequirements:\n- use real grounding pipeline\n- record sources\n- ≤3 web queries\n- ≤2 visual queries\n- ≤8 sources\n- do not hardcode KSP-specific behavior",
+      "maxRepairs": 0
+    },
+    {
+      "id": "location-grounding",
+      "images": 1,
+      "covers": [
+        "V4 current facts",
+        "cache reuse"
+      ],
+      "number": 11,
+      "prompt": "Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.",
+      "instructions": "LOCATION GROUNDING\nImages: 1\n\nPrompt:\n“Research current official and recent visual references, then create a photorealistic blue-hour view from Mrs Macquarie’s Point in Sydney showing the Sydney Opera House and Harbour Bridge in their correct relative placement as they appear today. Do not invent skyline landmarks. No text.”\n\nCovers:\n- V4 real-world/current grounding\n- web + visual references\n- provenance\n- grounding cache\n\nAfter grounding is created:\nperform a NON-IMAGE grounding-plan/cache lookup for the same request and verify the existing grounding snapshot is reused.\n\nDo not generate a second image for cache testing.",
+      "maxRepairs": 0,
+      "cacheLookupWithoutImage": true
+    },
+    {
+      "id": "exact-text",
+      "images": 1,
+      "covers": [
+        "V5 OCR",
+        "constraints"
+      ],
+      "number": 12,
+      "prompt": "Create a clean premium 4:5 conference poster containing exactly the following text and no other text:\n\nORBITAL\nDESIGN SYSTEMS DAY\nOCTOBER 24, 2026\n10:00 AM\nKANSAS CITY, MO\nBUILD ONCE. SCALE EVERYWHERE.",
+      "instructions": "EXACT TEXT\nImages: 1\n\nPrompt:\n“Create a clean premium 4:5 conference poster containing exactly the following text and no other text:\n\nORBITAL\nDESIGN SYSTEMS DAY\nOCTOBER 24, 2026\n10:00 AM\nKANSAS CITY, MO\nBUILD ONCE. SCALE EVERYWHERE.”\n\nCovers:\n- V5 OCR/exact-text validation\n- strict constraints\n- typography path\n\nHard requirement:\nNo missing, misspelled or additional visible text.",
+      "maxRepairs": 0
+    },
     {
       "id": "repair",
       "images": 1,
       "maxRepairs": 1,
-      "covers": ["V5 repair budget", "revalidation", "credits"]
+      "covers": [
+        "V5 repair budget",
+        "revalidation",
+        "credits"
+      ],
+      "number": 13,
+      "prompt": "Create a clean top-down white tabletop composition containing exactly five enamel pins arranged around one centered card. The card must read exactly:\n\nFIVE IDEAS. ONE SYSTEM.\n\nNo other objects and no other text.",
+      "instructions": "VALIDATION / REPAIR\nImages: 1 initial\nMaximum automatic repairs: 1\n\nPrompt:\n“Create a clean top-down white tabletop composition containing exactly five enamel pins arranged around one centered card. The card must read exactly:\n\nFIVE IDEAS. ONE SYSTEM.\n\nNo other objects and no other text.”\n\nCovers:\n- V5 object-count validation\n- exact-text validation\n- repair decision\n- repair budget\n- revalidation\n- credit policy\n\nRules:\n- Let production validation decide naturally.\n- Do NOT deliberately corrupt the result.\n- Do NOT force a repair if validation passes.\n- If validation returns repairable and confidence meets the normal production threshold, allow exactly ONE automatic repair.\n- The repair must consume ZERO extra user credits.\n- Revalidate once afterward.\n- If repair fails or remains uncertain, preserve the best usable image and STOP.\n- No second repair.\n\nGlobal final-verification repair cap is also 1, even though production policy is one per session."
     },
-    { "id": "plain-regression", "images": 1, "covers": ["no entities", "no search", "regenerate"] }
+    {
+      "id": "plain-regression",
+      "images": 2,
+      "covers": [
+        "no entities",
+        "no search",
+        "regenerate"
+      ],
+      "number": 14,
+      "prompt": "Sunlit bowl of blood oranges on wrinkled natural linen, quiet editorial food photograph, natural colors, no people, no text.",
+      "instructions": "PLAIN REGRESSION + REGENERATE\nImages: 2 total\n\nInitial prompt:\n“Sunlit bowl of blood oranges on wrinkled natural linen, quiet editorial food photograph, natural colors, no people, no text.”\n\nRequirements:\n- no entities\n- no search\n- normal model routing\n- no grounding\n- ordinary generation\n\nThen press/use Regenerate ONCE.\n\nThe regenerated image is the second image in this scenario and is INCLUDED in the 18-image initial/requested budget.\n\nCovers:\n- no-entity regression\n- no-search regression\n- manual regenerate\n- credits\n- session behavior\n\nNo additional regenerate.",
+      "maxRepairs": 0,
+      "regenerateCount": 1
+    }
   ],
   "browserPass": [
     "Generate",
     "Series",
+    "Contact sheet/result presentation",
     "Edit",
+    "Mask editing",
     "Reference packs",
-    "Grounding",
-    "Validation",
-    "Repair",
+    "Locked chips/budget",
+    "Grounding status/sources",
+    "Validation state",
+    "Repair state if one occurred",
     "Regenerate",
     "Refresh/resume",
     "Credits",
-    "Mobile",
-    "Desktop"
-  ]
+    "Account References",
+    "Download",
+    "Result/version navigation",
+    "Desktop",
+    "Mobile/responsive"
+  ],
+  "maxTotalProviderImages": 19,
+  "executionPolicy": {
+    "noPromptChangesAfterStart": true,
+    "noRetries": true,
+    "maxAutomaticRepairsAcrossRun": 1,
+    "automaticRepairScenario": 13,
+    "manualEditsAndRegenerateIncludedInInitialCap": true,
+    "providerFailure": "record and refund; do not retry",
+    "productionActivation": false
+  }
 }
