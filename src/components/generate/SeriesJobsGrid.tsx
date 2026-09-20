@@ -1,4 +1,5 @@
 import { resultRatioLabel } from "@/lib/generation/result-state";
+import { resultStatusLines } from "@/lib/generation/result-status";
 import type { GenerationChildJob } from "@/lib/generation/use-generation";
 import { GenerationCanvas } from "./GenerationCanvas";
 import { GenerationActions } from "./GenerationActions";
@@ -42,8 +43,10 @@ export function SeriesJobsGrid({
               onRetry={onNew}
               jobStatus={job.status === "queued" ? "queued" : "running"}
               refining={job.refining}
-              warning={job.validation?.warning}
-              validationMessage={job.validation?.temporalSupport?.message}
+              statusLines={resultStatusLines({
+                temporalSupport: job.validation?.temporalSupport,
+                validation: job.validation,
+              })}
               actions={
                 versionId ? (
                   <GenerationActions

@@ -105,8 +105,8 @@ function EmailMark() {
 /**
  * The one auth surface. /sign-in and /sign-up render it full-size with the
  * mode switch; the Generate/billing choosers render it compact inside a
- * dialog. Email (passwordless magic link) is primary; Google/Apple/
- * Microsoft/Lovable follow in a 2x2 grid on desktop, one column on mobile.
+ * dialog. Google is the primary action; Apple and Microsoft are secondary;
+ * email is an outline option; Lovable is visually demoted.
  */
 export function AuthSurface({
   mode,
@@ -267,61 +267,91 @@ export function AuthSurface({
         </p>
       )}
 
+      {providers.includes("google") && (
+        <Button
+          type="button"
+          size="lg"
+          className="w-full justify-center gap-2.5"
+          disabled={busy !== null}
+          onClick={() => void startProvider("google")}
+          data-analytics-id={`auth-${mode}-google`}
+        >
+          <ProviderMark id="google" />
+          {busy === "google" ? busyLabel : providerLabel("google")}
+        </Button>
+      )}
+
+      {providers.filter((id) => id !== "google" && id !== "lovable").length > 0 && (
+        <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {providers
+            .filter((id) => id !== "google" && id !== "lovable")
+            .map((id) => (
+              <Button
+                key={id}
+                type="button"
+                variant="outline"
+                size="lg"
+                className="w-full justify-center gap-2.5"
+                disabled={busy !== null}
+                onClick={() => void startProvider(id)}
+                data-analytics-id={`auth-${mode}-${id}`}
+              >
+                <ProviderMark id={id} />
+                {busy === id ? busyLabel : providerLabel(id)}
+              </Button>
+            ))}
+        </div>
+      )}
+
       {emailEnabled && (
-        <form onSubmit={(e) => void submitEmail(e)} className="space-y-2">
-          <label htmlFor="auth-email" className="sr-only">
-            {AUTH_COPY.emailLabel}
-          </label>
-          <Input
-            id="auth-email"
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            placeholder={AUTH_COPY.emailPlaceholder}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={busy !== null}
-          />
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full justify-center"
-            disabled={busy !== null || !EMAIL_RE.test(email)}
-          >
-            <EmailMark />
-            {busy === "email" ? AUTH_COPY.sendingLink : AUTH_COPY.continueWithEmail}
-          </Button>
-        </form>
-      )}
-
-      {emailEnabled && providers.length > 0 && (
-        <div className="my-5 flex items-center gap-3">
-          <div className="h-px flex-1 bg-[color:var(--border-subtle)]" />
-          <span className="text-[12px] text-[color:var(--text-tertiary)]">
-            {AUTH_COPY.orContinueWith}
-          </span>
-          <div className="h-px flex-1 bg-[color:var(--border-subtle)]" />
-        </div>
-      )}
-
-      {providers.length > 0 && (
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-          {providers.map((id) => (
-            <Button
-              key={id}
-              type="button"
-              variant="outline"
-              size="lg"
-              className="w-full justify-center gap-2.5"
+        <>
+          {providers.length > 0 && (
+            <div className="my-5 flex items-center gap-3">
+              <div className="h-px flex-1 bg-[color:var(--border-subtle)]" />
+              <span className="text-[12px] text-[color:var(--text-tertiary)]">
+                {AUTH_COPY.orContinueWith}
+              </span>
+              <div className="h-px flex-1 bg-[color:var(--border-subtle)]" />
+            </div>
+          )}
+          <form onSubmit={(e) => void submitEmail(e)} className="space-y-2">
+            <label htmlFor="auth-email" className="sr-only">
+              {AUTH_COPY.emailLabel}
+            </label>
+            <Input
+              id="auth-email"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder={AUTH_COPY.emailPlaceholder}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={busy !== null}
-              onClick={() => void startProvider(id)}
-              data-analytics-id={`auth-${mode}-${id}`}
+            />
+            <Button
+              type="submit"
+              size="lg"
+              variant="outline"
+              className="w-full justify-center"
+              disabled={busy !== null || !EMAIL_RE.test(email)}
             >
-              <ProviderMark id={id} />
-              {busy === id ? busyLabel : providerLabel(id)}
+              <EmailMark />
+              {busy === "email" ? AUTH_COPY.sendingLink : AUTH_COPY.continueWithEmail}
             </Button>
-          ))}
-        </div>
+          </form>
+        </>
+      )}
+
+      {providers.includes("lovable") && (
+        <button
+          type="button"
+          disabled={busy !== null}
+          onClick={() => void startProvider("lovable")}
+          data-analytics-id={`auth-${mode}-lovable`}
+          className="mt-4 w-full text-center text-body-sm font-medium text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+        >
+          {busy === "lovable" ? busyLabel : `Continue with ${providerLabel("lovable")}`}
+        </button>
       )}
 
       {(isSignUp || compact) && (

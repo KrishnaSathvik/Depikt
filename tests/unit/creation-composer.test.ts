@@ -77,7 +77,7 @@ test("reference attachment lives inside the composer's referencesSlot, not a sep
 
 // ---------- Generate matches Prompt's visual chrome (header + reference control) ----------
 
-test("Generate is merged into /prompt as a third mode and shares its page chrome (1040px container, one eyebrow)", () => {
+test("Generate is merged into /prompt as a third mode and shares its page chrome (1040px container)", () => {
   const prompt = read("src/routes/prompt.tsx");
   const gen = read("src/components/generate/GenerateWorkspace.tsx");
   // The container/eyebrow are owned once by the parent page, same as
@@ -104,9 +104,9 @@ test("Generate is merged into /prompt as a third mode and shares its page chrome
 
 test("the unified workspace has three tabs — Generate, Build, Critique — and Generate is gated by the feature flag", () => {
   const prompt = read("src/routes/prompt.tsx");
-  assert.match(prompt, /id: "generate", label: "Generate"/);
-  assert.match(prompt, /id: "build", label: "Build"/);
-  assert.match(prompt, /id: "critique", label: "Critique"/);
+  assert.match(prompt, /id: "generate", label: TOOL.generate/);
+  assert.match(prompt, /id: "build", label: TOOL.improvePrompt/);
+  assert.match(prompt, /id: "critique", label: TOOL.critique/);
   assert.match(prompt, /isNativeGenerationEnabled\(\)/);
   assert.match(prompt, /ALL_MODES\.filter/);
 });

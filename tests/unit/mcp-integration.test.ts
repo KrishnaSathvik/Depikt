@@ -51,10 +51,10 @@ test("MCP page has its own SEO entry and OG card", () => {
   assert.equal(OG_ROUTE_IMAGES.mcp, "/og/mcp.png");
 });
 
-test("MCP is linked from the homepage, the Library, and the sitemap", () => {
-  assert.match(read("src/routes/index.tsx"), /<Assistants \/>/);
-  assert.match(read("src/routes/index.tsx"), /MCP\.pagePath/);
-  assert.match(read("src/routes/library.tsx"), /MCP\.libraryLink/);
+test("MCP is linked from the footer and the sitemap, not first-session product chrome", () => {
+  assert.match(read("src/components/Footer.tsx"), /MCP\.pagePath/);
+  assert.doesNotMatch(read("src/routes/index.tsx"), /MCP\.pagePath|<Assistants/);
+  assert.doesNotMatch(read("src/components/Header.tsx"), /MCP\.pagePath|\/integrations\/mcp/);
   assert.match(read("src/routes/sitemap[.]xml.tsx"), /MCP\.pagePath/);
 });
 

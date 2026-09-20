@@ -152,7 +152,7 @@ function RootComponent() {
           <BuyCreditsProvider>
             <AccountHubProvider>
               <Analytics />
-              <DevAuthBanner />
+              {import.meta.env.DEV ? <DevAuthBanner /> : null}
               <Outlet />
             </AccountHubProvider>
           </BuyCreditsProvider>

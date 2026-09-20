@@ -7,6 +7,7 @@ import {
   formatGenerationElapsed,
   type GenerationJobUiStatus,
 } from "@/lib/product";
+import type { ResultStatusLine } from "@/lib/generation/result-status";
 
 // No "ready" state: ThinkingField (and this canvas generally) is mounted
 // only once an image operation is actually running. /generate's idle
@@ -32,6 +33,7 @@ export interface GenerationCanvasProps {
   refining?: boolean;
   warning?: boolean;
   validationMessage?: string;
+  statusLines?: ResultStatusLine[];
 }
 
 /** Resolves a concrete pixel box for `ratioLabel` against the orientation-based
@@ -88,6 +90,7 @@ export function GenerationCanvas({
   refining,
   warning,
   validationMessage,
+  statusLines,
 }: GenerationCanvasProps) {
   const box = resolveFrameBox(aspectRatio, orientation);
 
@@ -119,7 +122,22 @@ export function GenerationCanvas({
               Refining details…
             </p>
           )}
-          {!refining && (warning || validationMessage) && (
+          {!refining && statusLines && statusLines.length > 0 && (
+            <div role="status" className="mx-auto space-y-2 text-center text-body-sm">
+              {statusLines.map((line) => (
+                <p key={`${line.title}:${line.detail ?? ""}`}>
+                  <span className="font-medium text-[color:var(--text-primary)]">{line.title}</span>
+                  {line.detail ? (
+                    <>
+                      <span className="text-[color:var(--text-tertiary)]"> · </span>
+                      <span className="text-[color:var(--text-secondary)]">{line.detail}</span>
+                    </>
+                  ) : null}
+                </p>
+              ))}
+            </div>
+          )}
+          {!refining && !statusLines && (warning || validationMessage) && (
             <p role="status" className="text-center text-body-sm">
               {validationMessage ?? "Some requested details may not be exact."}
             </p>

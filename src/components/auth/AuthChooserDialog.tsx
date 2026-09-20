@@ -21,7 +21,9 @@ export function AuthChooserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[min(85dvh,720px)] w-[calc(100%-2rem)] max-w-[440px] gap-0 overflow-y-auto rounded-lg p-6 sm:w-full sm:p-8">
         <DialogTitle className="pr-8 text-heading-sm">{title}</DialogTitle>
-        <DialogDescription className="sr-only">{title}</DialogDescription>
+        <DialogDescription className="sr-only">
+          Sign in to continue. Your prompt is saved and we will continue with this image.
+        </DialogDescription>
         <div className="mt-4">{children}</div>
       </DialogContent>
     </Dialog>

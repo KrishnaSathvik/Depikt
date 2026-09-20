@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { DeleteCreationDialog } from "@/components/account/DeleteCreationDialog";
 import { PromptSurface } from "@/components/PromptSurface";
 import { simplifyRatioLabel } from "@/lib/generation/use-generation";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { downloadFile } from "@/lib/download-file";
-import type { CreationItem } from "@/lib/profile/client";
-import { ROUTES } from "@/lib/product";
+import { deleteCreation, type CreationItem } from "@/lib/profile/client";
+import { CREATIONS_COPY, ROUTES } from "@/lib/product";
+import { promptCaption, userFacingPrompt } from "@/lib/generation/user-facing-prompt";
 import { trackEvent } from "@/lib/analytics";
 
 function orientationOf(width: number, height: number): "Square" | "Portrait" | "Landscape" {
@@ -26,8 +30,16 @@ function formatCreationDate(iso: string): string {
  * "creation-detail" view body. No Dialog of its own; the hub shell
  * supplies the surrounding chrome (title, back arrow, close).
  */
-export function CreationDetailView({ creation }: { creation: CreationItem }) {
+export function CreationDetailView({
+  creation,
+  onDeleted,
+}: {
+  creation: CreationItem;
+  onDeleted?: () => void;
+}) {
   const navigate = useNavigate();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   function download() {
     if (!creation.url) return;
@@ -39,7 +51,7 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
   function openInGenerate() {
     trackEvent("creation_opened_in_generate", {});
     saveGenerationHandoff({
-      prompt: creation.prompt,
+      prompt: userFacingPrompt(creation.prompt),
       references: [],
       sourceType: "direct",
       sourceVersion: {
@@ -55,13 +67,28 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
     void navigate({ to: ROUTES.legacyBuilder });
   }
 
+  async function confirmDelete() {
+    setDeleting(true);
+    try {
+      await deleteCreation(creation.id);
+      trackEvent("creation_deleted", {});
+      setConfirmOpen(false);
+      toast.success("Image deleted.");
+      onDeleted?.();
+    } catch {
+      toast.error("Could not delete this image. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
     <div>
       <div className="bg-[color:var(--bg-subtle)] p-4">
         {creation.url ? (
           <img
             src={creation.url}
-            alt=""
+            alt={promptCaption(creation.prompt, 120) || "Generated image"}
             className="mx-auto max-h-[55vh] w-auto rounded-md object-contain"
           />
         ) : (
@@ -73,20 +100,28 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
       <div className="space-y-4 p-5">
         <div>
           <p className="text-body-sm text-[color:var(--text-secondary)]">
-            {creation.operation === "edit" ? "Edited" : "Generated"}{" "}
+            {creation.operation === "edit"
+              ? CREATIONS_COPY.edited
+              : creation.parentVersionId
+                ? CREATIONS_COPY.updated
+                : CREATIONS_COPY.generated}{" "}
             {formatCreationDate(creation.createdAt)}
           </p>
           <p className="text-body-sm text-[color:var(--text-tertiary)]">
             {simplifyRatioLabel(creation.width, creation.height)} ·{" "}
             {orientationOf(creation.width, creation.height)}
-            {creation.parentVersionId && " · Edited from a previous version"}
+            {creation.seriesLabel ? ` · ${creation.seriesLabel}` : ""}
+            {creation.parentVersionId &&
+              (creation.operation === "edit"
+                ? " · Edited from a previous version"
+                : " · From a previous version")}
           </p>
         </div>
 
         <div>
           <p className="eyebrow">Prompt</p>
           <div className="mt-2">
-            <PromptSurface>{creation.prompt}</PromptSurface>
+            <PromptSurface>{userFacingPrompt(creation.prompt)}</PromptSurface>
           </div>
         </div>
 
@@ -96,6 +131,9 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
           </Button>
           <Button size="sm" onClick={openInGenerate}>
             Open in Generate
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(true)}>
+            Delete
           </Button>
         </div>
 
@@ -113,6 +151,13 @@ export function CreationDetailView({ creation }: { creation: CreationItem }) {
           </dl>
         </details>
       </div>
+
+      <DeleteCreationDialog
+        open={confirmOpen}
+        deleting={deleting}
+        onOpenChange={setConfirmOpen}
+        onConfirm={() => void confirmDelete()}
+      />
     </div>
   );
 }

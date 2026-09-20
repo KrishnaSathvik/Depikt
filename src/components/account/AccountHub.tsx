@@ -16,7 +16,7 @@ import { useAccountHub, type HubView } from "@/components/account/AccountHubProv
 import { useAuth } from "@/lib/auth-context";
 import { useProfile } from "@/lib/profile/profile-context";
 import { getAccountSummary } from "@/lib/billing/client";
-import { AUTH_COPY } from "@/lib/product";
+import { AUTH_COPY, CREATIONS_COPY } from "@/lib/product";
 import { cn } from "@/lib/utils";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
@@ -111,6 +111,9 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
       <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-5">
         <AccountContentTabs>
           <div className="mt-4">
+            <p className="mb-3 text-body-sm text-[color:var(--text-secondary)]">
+              {CREATIONS_COPY.subline}
+            </p>
             <CreationsGrid onSelect={hub.openCreationDetail} />
           </div>
         </AccountContentTabs>
@@ -176,7 +179,9 @@ export function AccountHub() {
       body = <HomeView summary={summary} />;
       break;
     case "creation-detail":
-      body = selectedCreation ? <CreationDetailView creation={selectedCreation} /> : null;
+      body = selectedCreation ? (
+        <CreationDetailView creation={selectedCreation} onDeleted={back} />
+      ) : null;
       break;
     case "edit-profile":
       body = <EditProfileForm onDone={back} />;

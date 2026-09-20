@@ -29,39 +29,48 @@ export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COU
 
 /**
  * Visible tool names. The public product model is:
- *   Prompt
- *   ├── Build mode
- *   └── Critique mode
- * "Prompt Builder" and "Prompt Critic" are no longer current product names;
- * they survive only in historical blog copy, internal APIs, and engine files.
+ *   Generate
+ *   ├── Improve prompt (internal Build mode)
+ *   └── Critique
+ * "Prompt Builder" and "Prompt Critic" survive only in historical blog copy,
+ * internal APIs, and engine files. Generate is the primary destination.
  */
 export const TOOL = {
-  library: "Library",
-  /** Unified workspace (navigation label). Build and Critique are its modes. */
+  library: "Prompt Library",
+  /** Internal workspace name; not a primary nav destination once Generate is live. */
   prompt: "Prompt",
-  buildMode: "Prompt — Build mode",
-  critiqueMode: "Prompt — Critique mode",
-  /** Locked header label once native generation is live. Header inserts it after Prompt only when the native-generation feature flag is on (see lib/generation/feature-flag.ts). */
+  buildMode: "Improve prompt",
+  critiqueMode: "Critique",
+  /** Locked header label once native generation is live. Header inserts it first when the native-generation feature flag is on (see lib/generation/feature-flag.ts). */
   generate: "Generate",
   gallery: "Gallery",
   templates: "Templates",
   blog: "Blog",
+  improvePrompt: "Improve prompt",
+  critique: "Critique",
 } as const;
 
 /** Visible calls to action. */
 export const CTA = {
-  build: "Build Prompt",
+  build: "Improve prompt",
   buildHero: "Build a Prompt",
-  building: "Building prompt…",
+  building: "Improving prompt…",
   newPrompt: "New Prompt",
-  critique: "Critique Prompt",
+  critique: "Critique",
   critiquing: "Critiquing…",
-  critiqueAnother: "Critique Another Prompt",
-  /** Rebuild the text prompt (Build mode) — not image generation. */
-  rebuildPrompt: "Rebuild prompt",
+  critiqueAnother: "Critique another prompt",
+  /** Rebuild the text prompt (Improve prompt) — not image generation. */
+  rebuildPrompt: "Improve again",
   browse: `Browse ${LIBRARY_PROMPT_COUNT} Prompts`,
-  browseShort: "Browse Prompts",
-  remix: "Remix in Prompt",
+  browseShort: "Browse Prompt Library",
+  /** Optional Library action: send the prompt into Improve prompt. */
+  remix: "Edit prompt",
+  copyPrompt: "Copy prompt",
+  generateWithPrompt: "Generate with this prompt",
+  useAsReference: "Use as reference",
+  continueToGenerate: "Continue to Generate",
+  improvePrompt: "Improve prompt",
+  more: "More",
   openImago: "Open in Imago",
   /** Behind the native-generation feature flag. Kept for the count-1 case; a
    *  confirmed series uses generateImages(n) below instead. */
@@ -69,7 +78,7 @@ export const CTA = {
   generateRewrite: "Generate rewrite",
   /** Image job re-run — distinct from rebuildPrompt. */
   regenerateImage: "Regenerate image",
-  critiqueThis: "Critique this prompt",
+  critiqueThis: "Critique",
   /** A plan's autoCount (or a confirmed count) when it's more than one image. */
   generateImages: (n: number) => `Generate ${n} images · ${n} credits`,
   /** useGeneration's "confirm" phase — a plan came back with requiresCountConfirmation. */
@@ -79,24 +88,48 @@ export const CTA = {
 } as const;
 
 /**
- * Idle heroes for the three /prompt modes. The page eyebrow already names
- * the mode (Generate / Build / Critique), so these lines must not restate it.
- * Parallel "From … to …" titles keep the workspace feeling like one tool.
+ * Idle heroes for the three /prompt modes. Compact workspace titles — the
+ * homepage launch module owns display-scale type, not these tool pages.
  */
 export const PROMPT_MODE_COPY = {
   generate: {
-    title: "From prompt to picture.",
-    body: "Write what you want. Add a reference if identity or layout matters.",
+    title: "What do you want to make?",
+    body: "Describe the image you want. Add a reference if identity or layout matters.",
   },
   build: {
-    title: "From idea to prompt.",
-    body: "Describe what you're after — we write the full prompt.",
-    bodyTemplate: "Your template answers are below. Add anything else, then build.",
+    title: "Improve this prompt.",
+    body: "We'll refine what you wrote into a stronger image prompt.",
+    bodyTemplate: "Your template answers are below. Add anything else, then continue.",
   },
   critique: {
-    title: "From draft to sharper.",
+    title: "Critique this prompt.",
     body: "Paste a prompt for a score, what's weak, and a rewrite. Attach a source image if it edits one.",
   },
+} as const;
+
+/** Compact product-action copy that follows the Images 2.5 launch hero. */
+export const HOME_ACTION = {
+  title: "Make something with Depikt",
+  body: "Describe the image you want, start from an existing prompt, or add references.",
+  generate: {
+    title: "Generate",
+    body: "Start with an idea and create an image.",
+  },
+  library: {
+    title: "Prompt Library",
+    body: "Explore prompts behind strong results.",
+  },
+  templates: {
+    title: "Templates",
+    body: "Start from a guided brief.",
+  },
+  gallery: {
+    title: "Gallery",
+    body: "Browse visual inspiration and use an image as a reference.",
+  },
+  pricingTitle: "5 free image credits to start.",
+  pricingBody: "1 credit = one generate, one edit, or one regenerate.",
+  finalTitle: "Your next image starts here.",
 } as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
@@ -131,12 +164,10 @@ export const ROUTES = {
 } as const;
 
 /**
- * Header nav. The unified Generate/Build/Critique workspace has no entry of
- * its own here — Header.tsx inserts one between Library and Gallery, labeled
- * Generate (-> ROUTES.legacyBuilder) when the native-generation feature
- * flag is on, or Prompt (-> ROUTES.prompt) when it's off (Build/Critique
- * predate the flag and must stay reachable without it). Templates and Blog
- * follow Gallery; MCP stays footer-only.
+ * Header nav after the workspace entry. Header.tsx prepends Generate
+ * (flag on) or Prompt (flag off). Order is Prompt Library · Templates ·
+ * Gallery. Pricing sits on the right with Sign in. Blog and MCP stay
+ * footer-only so first-session nav is the four core surfaces.
  */
 export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
@@ -144,9 +175,8 @@ export const NAV_ITEMS: ReadonlyArray<{
   exact?: boolean;
 }> = [
   { to: ROUTES.library, label: TOOL.library, exact: true },
-  { to: ROUTES.gallery, label: TOOL.gallery },
   { to: ROUTES.templates, label: TOOL.templates },
-  { to: ROUTES.blog, label: TOOL.blog },
+  { to: ROUTES.gallery, label: TOOL.gallery },
 ];
 
 export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago";
@@ -418,7 +448,7 @@ export const SEO: Record<
   },
   history: {
     title: "History | Depikt",
-    description: "Your recent Build and Critique drafts, stored on this device.",
+    description: "Your recent Improve prompt and Critique drafts, stored on this device.",
     robots: "noindex, nofollow",
   },
 };
@@ -430,7 +460,8 @@ export const AUTH_COPY = {
   signInSubtitle: "Continue where you left off.",
   signUpTitle: "Create your Depikt account",
   signUpSubtitle: "Save your creations, get 5 image credits, and continue your work anywhere.",
-  starterCreditsLine: "5 image credits included.",
+  starterCreditsLine: "5 free credits included.",
+  continuePromise: "Sign in to continue. Your prompt is saved and we'll continue with this image.",
   signingIn: "Signing you in…",
   redirecting: "Redirecting…",
   welcomeToast: "Welcome to Depikt — 5 image credits added.",
@@ -527,11 +558,11 @@ export const JSONLD_NAMES = {
 } as const;
 
 export const JSONLD_DESCRIPTIONS = {
-  prompt: `Prompt workspace for ${TARGET_MODEL_NAME} with two modes: Build turns a rough idea or reference image into a structured image prompt, Critique scores an existing prompt and returns a rewrite.`,
-  app: `Depikt connects image prompt discovery, prompt building and critique, a visual reference gallery, reusable templates, and native image generation and editing for ${TARGET_MODEL_NAME}. Generation is routed internally between GPT Image 2.5 models; users describe what they want rather than choosing a model.`,
-  library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} recipes with reviewed results.`,
+  prompt: `Generate, improve, and critique image prompts for ${TARGET_MODEL_NAME}. Generate is the primary workspace; Improve prompt and Critique are optional tools.`,
+  app: `Depikt is an AI image generator for ${TARGET_MODEL_NAME}, with a prompt library, templates, a reference gallery, and optional prompt-improvement tools. Generation is routed internally between GPT Image 2.5 models; users describe what they want rather than choosing a model.`,
+  library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} prompts with reviewed results.`,
   gallery:
-    "A gallery of reference images you can carry into the Prompt workspace in Build mode, or generate with directly, as a style, subject, or composition reference.",
+    "A gallery of reference images you can attach in Generate as a style, subject, or composition reference.",
   /** Behind the native-generation feature flag. */
   generate:
     "Generate and edit images from a prompt and optional reference images. Depikt resolves the requested format automatically and routes generation between GPT Image 2.5 Flare and Sunburst internally; there is no model or quality selector. Supports editing, regeneration, and version history.",
@@ -540,8 +571,8 @@ export const JSONLD_DESCRIPTIONS = {
 // ---------- library collection copy ----------
 
 export const LIBRARY_COPY = {
-  headline: `${LIBRARY_PROMPT_COUNT} prompts to learn from, remix, and use.`,
-  subline: "Posters, edits, references, infographics, UI concepts, and more.",
+  headline: "Explore prompts behind strong image results.",
+  subline: "Start from one, customize it, and generate your own image.",
   collections: `${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} · ${IMAGES_25_LIBRARY_COUNT} tested Images 2.5`,
   collectionBadge: `${LEGACY_MODEL_NAME} collection`,
 } as const;
@@ -673,7 +704,7 @@ export function describeIntent(intent: Record<string, unknown> | null | undefine
 // ---------- history (visible labels only; stored kind values unchanged) ----------
 
 export function historyKindLabel(kind: string): string {
-  return kind === "critique" ? "Critique" : "Build";
+  return kind === "critique" ? "Critique" : "Improve prompt";
 }
 
 export const REFERENCES_COPY = {
@@ -690,7 +721,10 @@ export const REFERENCES_COPY = {
     brand: "Describe the logo, colors and visual language.",
   },
   locked: "Identity locked",
+  lockedHint: "Identity stays consistent across images.",
   limit: "Up to 4 packs and 8 total input images.",
+  imageBudget: (used: number, max: number) => `${used} of ${max} input images`,
+  attached: "Attached",
   name: "Name",
   description: "Identity description",
   type: "Type",
@@ -698,8 +732,51 @@ export const REFERENCES_COPY = {
   remove: "Delete pack",
   upload: "Add image",
   role: "Reference view",
+  roles: {
+    primary: "Primary",
+    front: "Front",
+    three_quarter: "Three-quarter",
+    profile: "Profile",
+    full_body: "Full body",
+    back: "Back",
+    side: "Side",
+    detail: "Detail",
+    logo: "Logo",
+    style_reference: "Style",
+    product_shot: "Product shot",
+  } as Record<string, string>,
   primary: "Add the primary reference first.",
   cancel: "Cancel",
   loading: "Loading reference packs…",
   signIn: "Sign in to manage reference packs.",
 };
+
+export const RESULT_STATUS = {
+  grounded: "Grounded",
+  sources: (n: number) => (n === 1 ? "1 source" : `${n} sources`),
+  validated: "Validated",
+  validatedDetail: "All requested visual details passed",
+  limitation: "Some requested details may not be exact.",
+  refined: "Refined automatically",
+  refinedDetail: (n: number) =>
+    n === 1 ? "1 issue corrected at no extra credit" : `${n} issues corrected at no extra credit`,
+  refining: "Refining details…",
+  refreshResearch: "Regenerate with fresh research · 1 credit",
+} as const;
+
+export const VERSION_LABELS = {
+  original: "Original",
+  edit: "Edit",
+  refinement: "Automatic refinement",
+  regenerate: "Regenerate",
+} as const;
+
+export const CREATIONS_COPY = {
+  title: "Creations",
+  subline: "Images you generate and edit. Prompt Library favorites stay in Prompt Library.",
+  empty: "Nothing here yet — images you generate or edit will show up here.",
+  series: (n: number) => `Series · ${n} images`,
+  generated: "Generated",
+  edited: "Edited",
+  updated: "Updated",
+} as const;

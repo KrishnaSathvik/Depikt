@@ -1,4 +1,5 @@
 import { authoritySubject, wantsAuthority } from "./authority.ts";
+import { groundingNeeded } from "./need.ts";
 import type { Intent } from "../../prompt-engine/intent.ts";
 import type { GroundingPlan } from "./contract.ts";
 
@@ -8,26 +9,11 @@ export function planGrounding(
   searchNeeded = false,
   ownedEntityCount = 0,
 ): GroundingPlan {
-  const explicit =
-    /(?:^|[.!?;]\s*|\b(?:please|then|and)\s+)(?:research|look up|search(?: for)?|verify|fact.check)\b|\b(?:external|web|official)\s+(?:factual\s+|visual\s+)?(?:grounding|references?|research)\b/i.test(
-      prompt.trim(),
-    );
-  const current = /\b(current|today|tonight|latest|real.world|real location)\b/i.test(prompt);
-  const exactProduct =
-    intent.category === "product" && /\b(exact|real|accurate|authentic)\b/i.test(prompt);
-  const factual =
-    /\b(compatible|compatibility|DLCs?|what can actually|available assets|mechanics)\b/i.test(
-      prompt,
-    );
-  const authoritative =
-    ownedEntityCount > 0 || /\b(fictional|invented|imaginary|made.up)\b/i.test(prompt);
-  const declined =
-    /\b(?:no|without|skip|avoid)\s+(?:research|search|external grounding)\b|\bdo not (?:research|search)\b/i.test(
-      prompt,
-    );
-  const needed =
-    !declined &&
-    (explicit || current || (!authoritative && (exactProduct || factual || searchNeeded)));
+  void searchNeeded;
+  const needed = groundingNeeded(prompt, {
+    ownedEntityCount,
+    category: intent.category,
+  });
   if (!needed)
     return { needed: false, mode: "none", queries: [], factualNeeds: [], visualNeeds: [] };
   const text = prompt.replace(/\s+/g, " ").trim().slice(0, 360);

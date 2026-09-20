@@ -123,11 +123,15 @@ function AccountPage() {
     }
   }, [user, buy, openBuyCredits, navigate]);
 
-  if (!user) {
+  if (loading || !user) {
     return (
       <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
         <Header />
-        <main className="flex-1" />
+        <main className="flex-1 px-4 py-8">
+          {loading ? (
+            <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
+          ) : null}
+        </main>
         <Footer />
       </div>
     );

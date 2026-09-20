@@ -4,14 +4,14 @@
 // Lovable's hosted-only OAuth proxy).
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { devAuthCredentials, devSignIn, isDevAuthEnabled } from "@/lib/dev-auth";
+import { devAuthCredentials, devSignIn, isDevAuthEnabled, isLocalDevHost } from "@/lib/dev-auth";
 
 export function DevAuthBanner() {
   const { user, loading, signOut } = useAuth();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!isDevAuthEnabled() || loading) return null;
+  if (!isDevAuthEnabled() || !isLocalDevHost() || loading) return null;
   const creds = devAuthCredentials();
 
   async function handleSignIn() {

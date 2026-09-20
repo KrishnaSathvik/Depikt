@@ -22,7 +22,7 @@ export interface CreationComposerProps {
  * share one input density. Critique may append `font-mono` for pasted prompts.
  */
 export const COMPOSER_TEXTAREA_CLASS =
-  "resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px] min-h-[220px]";
+  "resize-y text-[17px] leading-[1.6] px-5 py-4 sm:text-[18px] min-h-[148px]";
 
 /**
  * The one visual shell for a creation input — Generate, Prompt Build, and

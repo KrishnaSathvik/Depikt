@@ -1,8 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { getCreations, type CreationItem } from "@/lib/profile/client";
+import { DeleteCreationDialog } from "@/components/account/DeleteCreationDialog";
+import { deleteCreation, getCreations, type CreationItem } from "@/lib/profile/client";
 import { readCreationsCache, writeCreationsCache } from "@/lib/profile/creations-cache";
 import { trackEvent } from "@/lib/analytics";
+import { CREATIONS_COPY } from "@/lib/product";
+import { promptCaption } from "@/lib/generation/user-facing-prompt";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | "generated" | "edited";
@@ -14,6 +19,116 @@ const FILTERS: ReadonlyArray<{ id: Filter; label: string }> = [
 
 function formatShort(iso: string): string {
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function creationKindLabel(item: CreationItem): string {
+  if (item.operation === "edit") return CREATIONS_COPY.edited;
+  if (item.parentVersionId) return CREATIONS_COPY.updated;
+  return CREATIONS_COPY.generated;
+}
+
+type GridRow = { kind: "single"; item: CreationItem } | { kind: "series"; items: CreationItem[] };
+
+function groupCreations(items: CreationItem[]): GridRow[] {
+  const rows: GridRow[] = [];
+  let i = 0;
+  while (i < items.length) {
+    const item = items[i];
+    const sessionId = item.sessionId;
+    const isSeries = sessionId && item.seriesIndex != null;
+    if (!isSeries) {
+      rows.push({ kind: "single", item });
+      i += 1;
+      continue;
+    }
+    const group = [item];
+    let j = i + 1;
+    while (j < items.length && items[j].sessionId === sessionId && items[j].seriesIndex != null) {
+      group.push(items[j]);
+      j += 1;
+    }
+    if (group.length > 1) rows.push({ kind: "series", items: group });
+    else rows.push({ kind: "single", item });
+    i = j;
+  }
+  return rows;
+}
+
+function batchCreationRows(
+  rows: GridRow[],
+): Array<{ kind: "single" | "series"; items: CreationItem[] }> {
+  const batches: Array<{ kind: "single" | "series"; items: CreationItem[] }> = [];
+  for (const row of rows) {
+    if (row.kind === "series") {
+      batches.push({ kind: "series", items: row.items });
+      continue;
+    }
+    const last = batches[batches.length - 1];
+    if (last?.kind === "single") last.items.push(row.item);
+    else batches.push({ kind: "single", items: [row.item] });
+  }
+  return batches;
+}
+
+function CreationTile({
+  item,
+  onSelect,
+  onDelete,
+}: {
+  item: CreationItem;
+  onSelect: (item: CreationItem) => void;
+  onDelete: (item: CreationItem) => void;
+}) {
+  const caption = promptCaption(item.prompt);
+  const kind = creationKindLabel(item);
+  return (
+    <div className="group relative mb-3 break-inside-avoid">
+      <button
+        type="button"
+        onClick={() => {
+          onSelect(item);
+          trackEvent("creation_opened", {});
+        }}
+        className="block w-full text-left"
+      >
+        {item.url ? (
+          <img
+            src={item.url}
+            alt={caption || kind}
+            style={{ aspectRatio: `${item.width} / ${item.height}` }}
+            className="w-full rounded-md object-cover transition-opacity group-hover:opacity-90"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            style={{ aspectRatio: `${item.width} / ${item.height}` }}
+            className="flex items-center justify-center rounded-md bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
+          >
+            Unavailable
+          </div>
+        )}
+        <p className="mt-1.5 line-clamp-2 text-[12px] text-[color:var(--text-secondary)]">
+          {caption || kind}
+        </p>
+        <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[color:var(--text-tertiary)]">
+          {formatShort(item.createdAt)}
+          <span aria-hidden="true">·</span>
+          <span>{kind}</span>
+        </p>
+      </button>
+      <button
+        type="button"
+        aria-label="Delete image"
+        onClick={(event) => {
+          event.stopPropagation();
+          onDelete(item);
+        }}
+        className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-100 shadow-sm transition-opacity hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
 }
 
 /**
@@ -39,11 +154,14 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
   const [loading, setLoading] = useState(() => !readCreationsCache("all"));
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<CreationItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const deletedIds = useRef(new Set<string>());
 
   const load = useCallback(async (f: Filter) => {
     const cached = readCreationsCache(f);
     if (cached) {
-      setItems(cached.items);
+      setItems(cached.items.filter((item) => !deletedIds.current.has(item.id)));
       setCursor(cached.nextCursor);
       setLoading(false);
     } else {
@@ -52,9 +170,10 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
     setError(false);
     try {
       const page = await getCreations({ type: f });
-      setItems(page.items);
+      const items = page.items.filter((item) => !deletedIds.current.has(item.id));
+      setItems(items);
       setCursor(page.nextCursor);
-      writeCreationsCache(f, page);
+      writeCreationsCache(f, { ...page, items });
     } catch {
       if (!cached) setError(true);
     } finally {
@@ -66,12 +185,33 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
     void load(filter);
   }, [filter, load]);
 
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      await deleteCreation(pendingDelete.id);
+      deletedIds.current.add(pendingDelete.id);
+      trackEvent("creation_deleted", {});
+      setItems((prev) => prev.filter((item) => item.id !== pendingDelete.id));
+      setPendingDelete(null);
+      toast.success("Image deleted.");
+    } catch {
+      toast.error("Could not delete this image. Please try again.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   async function loadMore() {
     if (!cursor) return;
     setLoadingMore(true);
     try {
       const page = await getCreations({ type: filter, cursor });
-      setItems((prev) => [...prev, ...page.items]);
+      setItems((prev) => {
+        const next = [...prev, ...page.items.filter((item) => !deletedIds.current.has(item.id))];
+        writeCreationsCache(filter, { items: next, nextCursor: page.nextCursor });
+        return next;
+      });
       setCursor(page.nextCursor);
     } catch {
       // Leave existing items visible; the button just stays available to retry.
@@ -106,49 +246,46 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
         ) : error ? (
           <p className="text-body-sm text-red-600">Could not load your creations right now.</p>
         ) : items.length === 0 ? (
-          <p className="text-body-sm text-[color:var(--text-tertiary)]">
-            Nothing here yet — images you generate or edit will show up here.
-          </p>
+          <p className="text-body-sm text-[color:var(--text-tertiary)]">{CREATIONS_COPY.empty}</p>
         ) : (
           <>
-            <div className="columns-2 gap-3 sm:columns-3 lg:columns-4">
-              {items.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    onSelect(item);
-                    trackEvent("creation_opened", {});
-                  }}
-                  className="group mb-3 block w-full break-inside-avoid text-left"
-                >
-                  {item.url ? (
-                    <img
-                      src={item.url}
-                      alt=""
-                      style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                      className="w-full rounded-md object-cover transition-opacity group-hover:opacity-90"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div
-                      style={{ aspectRatio: `${item.width} / ${item.height}` }}
-                      className="flex items-center justify-center rounded-md bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
-                    >
-                      Unavailable
+            <div className="space-y-6">
+              {batchCreationRows(groupCreations(items)).map((batch) =>
+                batch.kind === "series" ? (
+                  <div
+                    key={batch.items[0].sessionId ?? batch.items[0].id}
+                    className="rounded-md border border-[color:var(--border-subtle)] p-2 sm:p-3"
+                  >
+                    <p className="mb-2 text-[12px] text-[color:var(--text-secondary)]">
+                      {batch.items[0].seriesLabel || CREATIONS_COPY.series(batch.items.length)}
+                    </p>
+                    <div className="columns-2 gap-3 sm:columns-3">
+                      {batch.items.map((item) => (
+                        <CreationTile
+                          key={item.id}
+                          item={item}
+                          onSelect={onSelect}
+                          onDelete={setPendingDelete}
+                        />
+                      ))}
                     </div>
-                  )}
-                  <p className="mt-1.5 flex items-center gap-1.5 text-[12px] text-[color:var(--text-tertiary)]">
-                    {formatShort(item.createdAt)}
-                    {item.operation && (
-                      <>
-                        <span aria-hidden="true">·</span>
-                        <span>{item.operation === "edit" ? "Edited" : "Generated"}</span>
-                      </>
-                    )}
-                  </p>
-                </button>
-              ))}
+                  </div>
+                ) : (
+                  <div
+                    key={batch.items[0].id}
+                    className="columns-2 gap-3 sm:columns-3 lg:columns-4"
+                  >
+                    {batch.items.map((item) => (
+                      <CreationTile
+                        key={item.id}
+                        item={item}
+                        onSelect={onSelect}
+                        onDelete={setPendingDelete}
+                      />
+                    ))}
+                  </div>
+                ),
+              )}
             </div>
 
             {cursor && (
@@ -166,6 +303,15 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
           </>
         )}
       </div>
+
+      <DeleteCreationDialog
+        open={pendingDelete !== null}
+        deleting={deleting}
+        onOpenChange={(open) => {
+          if (!open && !deleting) setPendingDelete(null);
+        }}
+        onConfirm={() => void confirmDelete()}
+      />
     </div>
   );
 }

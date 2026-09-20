@@ -15,12 +15,15 @@ import {
   type TemplateGroup,
 } from "@/data/templates";
 import {
+  composeTemplateBrief,
   previewFieldLabels,
   saveTemplateValues,
   type TemplateValues,
 } from "@/lib/template-context";
 import { trackEvent } from "@/lib/analytics";
-import { SEO, TOOL } from "@/lib/product";
+import { CTA, ROUTES, SEO, TOOL } from "@/lib/product";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
@@ -59,7 +62,7 @@ export const Route = createFileRoute("/templates/")({
 });
 
 /**
- * Templates: choose a task, answer a few focused questions, continue in Prompt.
+ * Templates: choose a task, answer a few focused questions, continue in Generate.
  * Cards only help the user choose; the questions live in the setup panel, so
  * the grid never changes shape. The answered values are stored client-side
  * and Prompt receives only the template slug in the URL.
@@ -83,11 +86,22 @@ function TemplatesIndex() {
     setOpen(true);
   };
 
-  const continueInPrompt = (values: TemplateValues) => {
+  const continueToGenerate = (values: TemplateValues) => {
     if (!selected) return;
     saveTemplateValues(selected.slug, values);
     trackEvent("template_sent_to_prompt", { template: selected.slug });
     setOpen(false);
+    if (isNativeGenerationEnabled()) {
+      saveGenerationHandoff({
+        prompt: composeTemplateBrief(selected, values),
+        references: [],
+        structuredAspectRatio: null,
+        sourceType: "template",
+        sourceId: selected.slug,
+      });
+      void navigate({ to: ROUTES.legacyBuilder });
+      return;
+    }
     navigate({ to: "/prompt", search: { mode: "build" as const, template: selected.slug } });
   };
 
@@ -103,15 +117,15 @@ function TemplatesIndex() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-10 sm:px-6 sm:py-16 lg:px-12">
+      <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-12">
         <header className="max-w-[62ch]">
           <p className="eyebrow">{TOOL.templates}</p>
-          <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
+          <h1 className="mt-3 text-heading-xl sm:text-display-md text-[color:var(--text-primary)]">
             Choose what you want to make.
           </h1>
-          <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
+          <p className="mt-3 max-w-[56ch] text-body-md text-[color:var(--text-secondary)]">
             Pick a template for the image task you have in mind. Answer a few focused questions,
-            then continue in {TOOL.prompt} to build the final prompt.
+            then continue to Generate.
           </p>
         </header>
 
@@ -192,7 +206,8 @@ function TemplatesIndex() {
         template={selected}
         open={open}
         onOpenChange={setOpen}
-        onContinue={continueInPrompt}
+        onContinue={continueToGenerate}
+        continueLabel={CTA.continueToGenerate}
         returnFocusTo={trigger}
       />
     </div>

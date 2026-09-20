@@ -55,8 +55,9 @@ export function ReferencePackPicker({
             key={e.id}
             className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-body-sm"
           >
-            <Lock className="h-3 w-3" aria-label={C.locked} />
+            <Lock className="h-3 w-3" aria-hidden />
             {e.name}
+            <span className="text-[color:var(--text-tertiary)]">{C.locked}</span>
             <button
               type="button"
               aria-label={`Remove ${e.name}`}
@@ -70,7 +71,9 @@ export function ReferencePackPicker({
           {C.add}
         </Button>
         {selected.length > 0 && (
-          <span className="text-xs text-[color:var(--text-secondary)]">{count}/8 images</span>
+          <span className="text-xs text-[color:var(--text-secondary)]">
+            {C.imageBudget(count, MAX_JOB_INPUT_IMAGES_WITH_ENTITIES)}
+          </span>
         )}
       </div>
       <Dialog open={open} onOpenChange={setOpen}>

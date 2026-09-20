@@ -58,7 +58,7 @@ const within = (host: string, domain: string) => host === domain || host.endsWit
 export const isAuthoritativeQuality = (quality: SourceQuality) =>
   ["official_documentation", "official_product", "institutional"].includes(quality);
 export function wantsAuthority(prompt: string): boolean {
-  return /\b(?:official|current|as of|today|tonight|latest|accurate|present.day|authoritative|first.party|exact real.world appearance)\b/i.test(
+  return /\b(?:official|current(?:ly)?|as of|today|tonight|latest|accurate(?:ly)?|present[\s-]day|authoritative|first[\s-]party|exact real[\s-]world appearance)\b/i.test(
     prompt,
   );
 }

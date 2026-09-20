@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Wand2, Sparkles, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Pagination } from "@/components/Pagination";
 import { z } from "zod";
@@ -9,10 +9,11 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SampleImage } from "@/components/SampleImage";
 import { GALLERY_IMAGES } from "@/data/gallery-images";
+import { galleryLabel } from "@/lib/gallery-labels";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
-import { JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
+import { CTA, JSONLD_DESCRIPTIONS, JSONLD_NAMES, ROUTES, SEO, TOOL } from "@/lib/product";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { urlToProcessedImage } from "@/lib/image-utils";
@@ -74,64 +75,66 @@ function GalleryPage() {
     }
   };
 
-  const [generatingRef, setGeneratingRef] = useState(false);
+  const [attaching, setAttaching] = useState(false);
 
-  const handleUseAsReference = (filename: string) => {
+  const handleUseAsReference = async (filename: string) => {
+    if (isNativeGenerationEnabled()) {
+      setAttaching(true);
+      try {
+        const processed = await urlToProcessedImage(`/gallery/${filename}`);
+        saveGenerationHandoff({
+          prompt: "",
+          references: [{ dataUrl: processed.dataUrl }],
+          structuredAspectRatio: null,
+          sourceType: "gallery",
+          sourceId: filename,
+        });
+        void navigate({ to: ROUTES.legacyBuilder });
+      } catch {
+        toast.error("Could not use this image as a reference");
+      } finally {
+        setAttaching(false);
+      }
+      return;
+    }
     navigate({
       to: "/prompt",
       search: { mode: "build" as const, ref: `/gallery/${filename}` },
     });
   };
 
-  const handleGenerateWithReference = async (filename: string) => {
-    setGeneratingRef(true);
-    try {
-      const processed = await urlToProcessedImage(`/gallery/${filename}`);
-      saveGenerationHandoff({
-        prompt: "",
-        references: [{ dataUrl: processed.dataUrl }],
-        structuredAspectRatio: null,
-        sourceType: "gallery",
-        sourceId: filename,
-      });
-      void navigate({ to: ROUTES.legacyBuilder });
-    } catch {
-      toast.error("Could not use this image as a reference");
-    } finally {
-      setGeneratingRef(false);
-    }
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-10 sm:px-6 sm:py-16 lg:px-12">
+      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-8 sm:px-6 sm:py-10 lg:px-12">
         <p className="eyebrow">{TOOL.gallery}</p>
-        <h1 className="mt-4 text-display-md sm:text-display-lg text-[color:var(--text-primary)]">
-          Reference Gallery
+        <h1 className="mt-3 text-heading-xl sm:text-display-md text-[color:var(--text-primary)]">
+          Visual inspiration
         </h1>
-        <p className="mt-4 max-w-[56ch] text-body-lg text-[color:var(--text-secondary)]">
-          Click any image to preview it, then send it to the {TOOL.prompt} workspace as a reference.
-          You choose there how it is used: style, subject, composition, and so on.
+        <p className="mt-3 max-w-[56ch] text-body-md text-[color:var(--text-secondary)]">
+          Browse images and use one as a reference in Generate.
         </p>
 
-        <div className="mt-10 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3">
-          {paged.map((filename) => (
-            <button
-              key={filename}
-              type="button"
-              onClick={() => setSelected(filename)}
-              aria-label={`Preview gallery image ${filename}`}
-              className="group relative aspect-square cursor-pointer overflow-hidden rounded-sm bg-[color:var(--bg-subtle)]"
-            >
-              <img
-                src={`/gallery/${filename}`}
-                alt=""
-                loading="lazy"
-                className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
-              />
-            </button>
-          ))}
+        <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 lg:gap-3">
+          {paged.map((filename, i) => {
+            const label = galleryLabel(filename, (safePage - 1) * PAGE_SIZE + i);
+            return (
+              <button
+                key={filename}
+                type="button"
+                onClick={() => setSelected(filename)}
+                aria-label={`Preview ${label}`}
+                className="group relative aspect-square cursor-pointer overflow-hidden rounded-sm bg-[color:var(--bg-subtle)]"
+              >
+                <img
+                  src={`/gallery/${filename}`}
+                  alt={label}
+                  loading="lazy"
+                  className="h-full w-full object-cover transition-opacity duration-200 group-hover:opacity-90"
+                />
+              </button>
+            );
+          })}
         </div>
 
         {totalPages > 1 && (
@@ -141,40 +144,28 @@ function GalleryPage() {
 
       <Dialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto bg-[color:var(--bg-elevated)] px-4 pb-4 pt-12 sm:px-6 sm:pb-6 sm:pt-12">
-          <DialogTitle className="sr-only">Image preview</DialogTitle>
           {selected && (
-            <div className="flex flex-col items-center gap-4">
-              <SampleImage
-                src={`/gallery/${selected}`}
-                alt={`Gallery image ${selected}`}
-                maxHeightClass="max-h-[70vh]"
-                className="rounded-md"
-              />
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {isNativeGenerationEnabled() && (
-                  <Button
-                    type="button"
-                    onClick={() => handleGenerateWithReference(selected)}
-                    disabled={generatingRef}
-                  >
-                    {generatingRef ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Sparkles className="h-4 w-4" />
-                    )}
-                    Generate with reference
-                  </Button>
-                )}
+            <>
+              <DialogTitle className="sr-only">
+                {galleryLabel(selected, GALLERY_IMAGES.indexOf(selected))}
+              </DialogTitle>
+              <div className="flex flex-col items-center gap-4">
+                <SampleImage
+                  src={`/gallery/${selected}`}
+                  alt={galleryLabel(selected, GALLERY_IMAGES.indexOf(selected))}
+                  maxHeightClass="max-h-[70vh]"
+                  className="rounded-md"
+                />
                 <Button
                   type="button"
-                  variant={isNativeGenerationEnabled() ? "outline" : "default"}
                   onClick={() => handleUseAsReference(selected)}
+                  disabled={attaching}
                 >
-                  <Wand2 className="h-4 w-4" />
-                  Use in {TOOL.prompt}
+                  {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {CTA.useAsReference}
                 </Button>
               </div>
-            </div>
+            </>
           )}
         </DialogContent>
       </Dialog>

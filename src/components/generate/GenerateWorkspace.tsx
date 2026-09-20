@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { ReferencePackPicker } from "./ReferencePackPicker";
 import type { ReferenceEntity } from "@/lib/generation/entities";
 import { useEffect, useState } from "react";
@@ -32,7 +33,9 @@ import { trackEvent } from "@/lib/analytics";
 import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { ModeHero } from "@/components/prompt/ModeHero";
-import { PROMPT_MODE_COPY } from "@/lib/product";
+import { CTA, PROMPT_MODE_COPY, REFERENCES_COPY, RESULT_STATUS, TOOL } from "@/lib/product";
+import { resultStatusLines, versionLineageLabel } from "@/lib/generation/result-status";
+import { userFacingPrompt } from "@/lib/generation/user-facing-prompt";
 
 /**
  * /generate — the direct creation workspace.
@@ -175,11 +178,11 @@ export function GenerateWorkspace() {
       <>
         <AuthGateDialog gen={gen} />
         <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
-        <GenerationCreditGate gen={gen} className="mt-6" />
+        <GenerationCreditGate gen={gen} className="mt-4" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
-          <p className="mt-4 text-body-sm text-red-600">{gen.errorMessage}</p>
+          <p className="mt-3 text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
-        <div className="mt-8 space-y-5">
+        <div className="mt-5 space-y-4">
           <ComposerSurface
             prompt={prompt}
             onPromptChange={setPrompt}
@@ -190,9 +193,8 @@ export function GenerateWorkspace() {
             onSubmit={submitComposer}
             canSubmit={Boolean(prompt.trim())}
             caption={[
-              resolvedSize.source !== "fallback"
-                ? `${resolvedSize.ratioLabel} · ${resolvedSize.orientation[0].toUpperCase() + resolvedSize.orientation.slice(1)}`
-                : "Auto ratio",
+              "Auto",
+              "1 credit",
               !gen.authLoading && gen.user && gen.credits !== null
                 ? `${gen.credits} credits left`
                 : null,
@@ -200,6 +202,27 @@ export function GenerateWorkspace() {
               .filter(Boolean)
               .join(" · ")}
           />
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm">
+            <Link
+              to="/prompt"
+              search={{
+                mode: "build" as const,
+                ...(prompt.trim() ? { prefill: prompt } : {}),
+              }}
+              className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+            >
+              {CTA.improvePrompt}
+            </Link>
+            {prompt.trim() ? (
+              <Link
+                to="/prompt"
+                search={{ mode: "critique" as const, prefill: prompt }}
+                className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+              >
+                {TOOL.critique}
+              </Link>
+            ) : null}
+          </p>
           <ReferencePackPicker
             selected={selectedEntities}
             onChange={setSelectedEntities}
@@ -265,7 +288,9 @@ export function GenerateWorkspace() {
             <div className="space-y-3">
               <PromptSurface label="Prompt">
                 {gen.job?.errorMessage ??
-                  (prompt || gen.requestPrompt || active?.prompt || "Your image request")}
+                  userFacingPrompt(
+                    prompt || gen.requestPrompt || active?.prompt || "Your image request",
+                  )}
               </PromptSurface>
               {gen.references.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -284,6 +309,21 @@ export function GenerateWorkspace() {
                   ))}
                 </div>
               )}
+              {selectedEntities.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {selectedEntities.map((entity) => (
+                    <span
+                      key={entity.id}
+                      className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] px-2.5 py-1.5 text-[12px]"
+                    >
+                      {entity.name}
+                      <span className="text-[color:var(--text-tertiary)]">
+                        {REFERENCES_COPY.locked}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              )}
               <p className="text-body-sm text-[color:var(--text-secondary)]">
                 {gen.displayModel && `${MODEL_COPY[gen.displayModel].title} · `}
                 {resolvedSize.ratioLabel} · {resolvedSize.orientation}
@@ -291,16 +331,18 @@ export function GenerateWorkspace() {
 
               {gen.researching && (
                 <p role="status" className="text-body-sm">
-                  Preparing your request and researching references when needed…
+                  Preparing your request…
                 </p>
               )}
               {gen.grounding && (
                 <details className="text-body-sm">
                   <summary>
-                    {gen.grounding.temporalSupport?.message ??
-                      `Grounded with ${gen.grounding.sources.length} sources`}
+                    {RESULT_STATUS.grounded}
+                    {gen.grounding.sources.length > 0
+                      ? ` · ${RESULT_STATUS.sources(gen.grounding.sources.length)}`
+                      : ""}
                   </summary>
-                  <ul>
+                  <ul className="mt-2 space-y-1">
                     {gen.grounding.sources.map((source) => (
                       <li key={source.id}>
                         <a href={source.url} target="_blank" rel="noopener noreferrer">
@@ -310,8 +352,8 @@ export function GenerateWorkspace() {
                     ))}
                   </ul>
                   {gen.phase === "result" && (
-                    <button type="button" onClick={gen.refreshResearch} className="underline">
-                      Regenerate with fresh research · uses credits
+                    <button type="button" onClick={gen.refreshResearch} className="mt-2 underline">
+                      {RESULT_STATUS.refreshResearch}
                     </button>
                   )}
                 </details>
@@ -319,6 +361,7 @@ export function GenerateWorkspace() {
               {gen.phase === "result" && gen.jobs.length <= 1 && gen.versions.length > 1 && (
                 <VersionStrip
                   versions={gen.versions}
+                  jobs={gen.jobs}
                   activeId={gen.activeVersionId}
                   onSelect={gen.setActiveVersionId}
                 />
@@ -347,8 +390,12 @@ export function GenerateWorkspace() {
             orientation={resolvedSize.orientation}
             imageUrl={gen.resultUrl}
             refining={gen.job?.refining}
-            warning={gen.job?.validation?.warning}
-            validationMessage={gen.job?.validation?.temporalSupport?.message}
+            statusLines={resultStatusLines({
+              sourceCount: gen.grounding?.sources.length,
+              temporalSupport:
+                gen.grounding?.temporalSupport ?? gen.job?.validation?.temporalSupport,
+              validation: gen.job?.validation,
+            })}
             errorMessage={gen.errorMessage}
             onRetry={gen.reset}
             jobStatus={
@@ -439,8 +486,7 @@ function ComposerSurface({
           ))}
           {references.length < MAX_REFERENCE_IMAGES_V1 && (
             <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[color:var(--border-subtle)] px-2.5 py-1.5 text-[12px] font-mono text-[color:var(--text-tertiary)] transition-colors hover:border-[color:var(--border-default)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-secondary)]">
-              <ImagePlus className="h-3.5 w-3.5" />
-              Add reference image
+              <ImagePlus className="h-3.5 w-3.5" />+ Reference
               <span className="text-[color:var(--text-tertiary)]">
                 {references.length}/{MAX_REFERENCE_IMAGES_V1}
               </span>
@@ -468,7 +514,7 @@ function ComposerSurface({
       <Textarea
         value={prompt}
         onChange={(e) => onPromptChange(e.target.value)}
-        placeholder="Describe what you want to create..."
+        placeholder="Describe your image..."
         rows={6}
         aria-label="Image prompt"
         className={COMPOSER_TEXTAREA_CLASS}
@@ -479,30 +525,45 @@ function ComposerSurface({
 
 function VersionStrip({
   versions,
+  jobs,
   activeId,
   onSelect,
 }: {
   versions: SessionVersion[];
+  jobs: Array<{
+    jobId?: string;
+    operation?: string;
+    result?: { versionId: string } | null;
+  }>;
   activeId: string | null;
   onSelect: (id: string) => void;
 }) {
   return (
     <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-      {versions.map((v, i) => (
-        <button
-          key={v.id}
-          type="button"
-          onClick={() => onSelect(v.id)}
-          className={`shrink-0 overflow-hidden rounded border ${
-            v.id === activeId
-              ? "border-[color:var(--text-primary)]"
-              : "border-[color:var(--border-subtle)]"
-          }`}
-        >
-          {v.url && <img src={v.url} alt={`Version ${i + 1}`} className="h-16 w-16 object-cover" />}
-          <span className="sr-only">Version {i + 1}</span>
-        </button>
-      ))}
+      {versions.map((v, i) => {
+        const label = versionLineageLabel(v, versions, jobs);
+        return (
+          <button
+            key={v.id}
+            type="button"
+            onClick={() => onSelect(v.id)}
+            aria-current={v.id === activeId ? "true" : undefined}
+            className={`shrink-0 overflow-hidden rounded border text-left ${
+              v.id === activeId
+                ? "border-[color:var(--text-primary)]"
+                : "border-[color:var(--border-subtle)]"
+            }`}
+          >
+            {v.url && <img src={v.url} alt={label} className="h-16 w-16 object-cover" />}
+            <span className="block max-w-16 truncate px-1 py-0.5 text-[10px] leading-tight text-[color:var(--text-secondary)]">
+              {label}
+            </span>
+            <span className="sr-only">
+              {label}, version {i + 1}
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }

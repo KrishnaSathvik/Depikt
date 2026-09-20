@@ -77,7 +77,10 @@ test("creations route paginates rather than returning everything at once", () =>
 
 test("creations route supports the generated/edited filter via the owning job's operation", () => {
   const src = read("src/routes/api/account/creations.ts");
-  assert.match(src, /generation_jobs!image_versions_job_id_fkey!inner\(operation\)/);
+  assert.match(
+    src,
+    /generation_jobs!image_versions_job_id_fkey!inner\(operation, series_index, series_label\)/,
+  );
   assert.match(src, /"generation_jobs\.operation", "generate"/);
   assert.match(src, /"generation_jobs\.operation", "edit"/);
 });
@@ -97,4 +100,33 @@ test("creations route names the FK explicitly, never the ambiguous bare embed", 
     "bare generation_jobs!inner(...) is ambiguous between two FKs (PGRST201) -- must use generation_jobs!image_versions_job_id_fkey!inner(...)",
   );
   assert.match(src, /image_versions_job_id_fkey/);
+});
+
+test("creation delete route authenticates, never uses a service role, and checks path ownership", () => {
+  const src = read("src/routes/api/account/creations.$id.ts");
+  assert.match(src, /authenticateGenerationRequest\(request\)/);
+  assert.ok(!/service_role|SERVICE_ROLE/.test(src));
+  assert.match(src, /ownerOfStoragePath\(path\) !== userId/);
+  assert.match(src, /users\/\$\{userId\}\/sessions\//);
+  assert.match(src, /\.from\("image_versions"\)/);
+  assert.match(src, /\.delete\(\)/);
+  assert.match(src, /storage[\s\S]*\.remove\(\[path\]\)/);
+});
+
+test("creation delete is owner-only and does not cascade-delete child edits", () => {
+  const sql = read("supabase/migrations/20260919140000_allow_owner_delete_image_versions.sql");
+  assert.match(sql, /image_versions_owner_delete/);
+  assert.match(sql, /FOR DELETE USING \(auth\.uid\(\) = user_id\)/);
+  assert.match(sql, /ON DELETE SET NULL/);
+  assert.match(sql, /generation_assets_owner_delete_sessions/);
+  assert.match(sql, /\(storage\.foldername\(name\)\)\[3\] = 'sessions'/);
+  assert.ok(!/ON DELETE CASCADE/.test(sql));
+});
+
+test("creations grid delete control is a separate button that does not open the card", () => {
+  const src = read("src/components/account/CreationsGrid.tsx");
+  assert.match(src, /aria-label="Delete image"/);
+  assert.match(src, /event\.stopPropagation\(\)/);
+  assert.match(src, /onDelete=\{setPendingDelete\}/);
+  assert.match(src, /sm:group-hover:opacity-100/);
 });

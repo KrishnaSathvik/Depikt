@@ -1,5 +1,6 @@
 import { CreationsGrid } from "@/components/account/CreationsGrid";
 import { useAccountHub } from "@/components/account/AccountHubProvider";
+import { CREATIONS_COPY } from "@/lib/product";
 
 /**
  * The full-page /account fallback for the "creations" tab. Tapping a
@@ -11,8 +12,10 @@ export function CreationsTab() {
 
   return (
     <div>
-      <h1 className="text-heading-md">Creations</h1>
-      <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">Your generated images.</p>
+      <h1 className="text-heading-md">{CREATIONS_COPY.title}</h1>
+      <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
+        {CREATIONS_COPY.subline}
+      </p>
       <div className="mt-5">
         <CreationsGrid onSelect={hub.openCreationDetail} />
       </div>

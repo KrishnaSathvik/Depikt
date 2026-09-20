@@ -99,7 +99,7 @@ export function GenerationEditForm({
             variant={mode === "whole" ? "default" : "outline"}
             onClick={() => setEditMode("whole")}
           >
-            Edit whole image
+            Whole image
           </Button>
         </div>
       )}

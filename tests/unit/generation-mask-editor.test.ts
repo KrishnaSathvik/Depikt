@@ -67,7 +67,7 @@ test("the edit form offers Select area and Edit whole image with the required co
   const copy = visibleCopy(form);
   assert.match(copy, /Edit image/);
   assert.match(copy, /Select area/);
-  assert.match(copy, /Edit whole image/);
+  assert.match(copy, /Whole image/);
   assert.match(copy, /Select what you want to change\./);
   assert.match(copy, /What should change\?/);
   assert.match(copy, /Apply edit → · 1 credit/);

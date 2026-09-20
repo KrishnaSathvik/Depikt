@@ -55,11 +55,11 @@ export interface PromptSearch {
   template?: string;
 }
 
-/** Anything that is not an explicit mode falls back to Build. */
+/** Generate is the default destination. Deep links to Build and Critique stay. */
 export function parsePromptMode(value: unknown): PromptMode {
   if (value === "critique") return "critique";
-  if (value === "generate") return "generate";
-  return "build";
+  if (value === "build") return "build";
+  return "generate";
 }
 
 export const Route = createFileRoute("/prompt")({
@@ -105,9 +105,9 @@ export const Route = createFileRoute("/prompt")({
 });
 
 const ALL_MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
-  { id: "generate", label: "Generate", hint: "Create an image directly from a prompt" },
-  { id: "build", label: "Build", hint: "Write a new prompt from an idea or a reference" },
-  { id: "critique", label: "Critique", hint: "Score and rewrite a prompt you already have" },
+  { id: "generate", label: TOOL.generate, hint: "Create an image from a prompt or reference" },
+  { id: "build", label: TOOL.improvePrompt, hint: "Refine a prompt before generating" },
+  { id: "critique", label: TOOL.critique, hint: "Score and rewrite a prompt you already have" },
 ];
 
 function PromptWorkspace() {
@@ -120,7 +120,6 @@ function PromptWorkspace() {
   // mode=generate while it's off falls back to Build rather than showing an
   // empty tab with no matching panel.
   const mode = requestedMode === "generate" && !generationEnabled ? "build" : requestedMode;
-  const eyebrow = MODES.find((m) => m.id === mode)?.label ?? TOOL.prompt;
 
   /**
    * Drop consumed params (restore, prefill, seed, ref) but stay in this mode.
@@ -160,9 +159,8 @@ function PromptWorkspace() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-10 sm:px-6 sm:py-16">
-        <div className="flex items-center justify-between gap-4">
-          <p className="eyebrow">{eyebrow}</p>
+      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <div className="flex items-center justify-end gap-4">
           {/* Drafts pile up right here, so the link to past ones lives here
               too -- not buried in the footer or an auth-gated tab. Local
               (Dexie), no sign-in needed; see src/routes/history.tsx. */}
@@ -177,8 +175,8 @@ function PromptWorkspace() {
 
         <div
           role="tablist"
-          aria-label="Prompt workspace mode"
-          className="mt-5 inline-flex w-full rounded-full border border-[color:var(--border)] p-1 sm:w-auto"
+          aria-label="Creation tools"
+          className="mt-3 inline-flex w-full rounded-full border border-[color:var(--border)] p-1 sm:w-auto"
         >
           {MODES.map((m) => {
             const selected = m.id === mode;
@@ -212,7 +210,7 @@ function PromptWorkspace() {
             id="prompt-panel-generate"
             aria-labelledby="prompt-tab-generate"
             hidden={mode !== "generate"}
-            className="mt-8"
+            className="mt-5"
           >
             <GenerateWorkspace />
           </div>
@@ -223,7 +221,7 @@ function PromptWorkspace() {
           id="prompt-panel-build"
           aria-labelledby="prompt-tab-build"
           hidden={mode !== "build"}
-          className="mt-8"
+          className="mt-5"
         >
           <BuildMode
             active={mode === "build"}
@@ -245,7 +243,7 @@ function PromptWorkspace() {
           id="prompt-panel-critique"
           aria-labelledby="prompt-tab-critique"
           hidden={mode !== "critique"}
-          className="mt-8"
+          className="mt-5"
         >
           <CritiqueMode
             active={mode === "critique"}

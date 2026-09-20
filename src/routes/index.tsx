@@ -1,28 +1,25 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, ArrowUpRight, Check, Copy } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import {
+  ANNOUNCEMENT,
   CTA,
+  HOME_ACTION,
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
-  LEGACY_MODEL_NAME,
-  POSITIONING,
   ROUTES,
   SEO,
   TARGET_MODEL_NAME,
   TOOL,
-  LIBRARY_PROMPT_COUNT,
-  MCP,
 } from "@/lib/product";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LaunchModule } from "@/components/LaunchModule";
-import { PromptSurface } from "@/components/PromptSurface";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { toast } from "sonner";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import { getLatestGuides } from "@/data/posts";
+import { GALLERY_IMAGES } from "@/data/gallery-images";
+import { galleryLabel } from "@/lib/gallery-labels";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
@@ -58,89 +55,55 @@ export const Route = createFileRoute("/")({
   component: LandingPage,
 });
 
-const ROUGH_INPUT = "a poster about climate change";
-
-const POLISHED_PROMPT = `Editorial print poster, 2:3 portrait. Bold sans-serif headline "THE CLOCK IS TICKING" set in condensed grotesk, top-aligned, near-black ink on warm off-white paper stock. Below: a single full-bleed cyanotype-style image of a melting Arctic ice shelf at golden hour, deep teal sea meeting pale sky, one lone polar bear silhouette mid-frame for scale. Subtle paper grain, faint registration marks in corners. Bottom strip: small mono caption "ARCTIC SEA ICE — SEPT 2026" with a thin 6-tick data sparkline trending down. Restrained palette: ivory, deep teal, near-black, one orange accent. Risograph print feel. High legibility, museum gift-shop quality.`;
-
-// The product story: six surfaces, each with one reason to exist. The
-// tagline is the small label; the surface name stays the visible title so
-// the cards match the navigation and footer.
-const FEATURES = [
-  {
-    to: "/library" as const,
-    step: "Discover what works.",
-    title: TOOL.library,
-    body: `${LIBRARY_PROMPT_COUNT} curated prompts, each with a note on why it works.`,
-    cta: "Browse the library",
-  },
-  {
-    to: "/prompt" as const,
-    step: "Build it or improve it.",
-    title: TOOL.prompt,
-    body: "One workspace with two modes. Build turns a rough idea or a reference image into a precise prompt. Critique scores a prompt you already have and rewrites it.",
-    cta: "Open the prompt workspace",
-  },
+const START_WAYS = [
   {
     to: ROUTES.legacyBuilder,
-    step: "Make it.",
-    title: TOOL.generate,
-    body: "Generate an image from a prompt and optional references, then edit, regenerate, and keep every version. Depikt handles the format and the model routing.",
-    cta: "Generate an image",
-    /** Only shown once native generation is live — see isNativeGenerationEnabled(). */
-    flagged: true as const,
+    title: HOME_ACTION.generate.title,
+    body: HOME_ACTION.generate.body,
   },
   {
-    to: "/gallery" as const,
-    step: "Find a visual direction.",
-    title: TOOL.gallery,
-    body: "Hand-picked visual references across styles and formats. Send one straight into Build mode and describe the result you want.",
-    cta: "Open the gallery",
+    to: ROUTES.library,
+    title: HOME_ACTION.library.title,
+    body: HOME_ACTION.library.body,
   },
   {
-    to: "/templates" as const,
-    step: "Start with a structure.",
-    title: TOOL.templates,
-    body: "Reusable structures for common image jobs: posters, product shots, infographics, edits, and reference compositions. Fill one in and finish it in Build mode.",
-    cta: "Browse templates",
+    to: ROUTES.templates,
+    title: HOME_ACTION.templates.title,
+    body: HOME_ACTION.templates.body,
   },
-  {
-    to: MCP.pagePath,
-    step: "Bring Depikt into your assistant.",
-    title: "MCP",
-    body: "ChatGPT, Claude, and other compatible assistants can search the library, open prompts and templates, and read guides. Public and read-only.",
-    cta: "Connect an assistant",
-  },
-  {
-    to: "/blog" as const,
-    step: "Learn from real prompting work.",
-    title: "Field Notes",
-    body: "Guides, experiments, and comparisons from actual image-generation work, from prompt structure to precise edits and reference workflows.",
-    cta: "Read the field notes",
-  },
-];
+] as const;
 
-// Editorial capability stories. The first sentence of each body paraphrases
-// OpenAI's launch post; the second is what Depikt does about it.
+const PROOF_IMAGES = [
+  { slug: "board-game-box-cover", alt: "Board game box cover generated in Depikt" },
+  { slug: "holiday-card-exact-greeting", alt: "Holiday card with exact greeting text" },
+  { slug: "watercolor-ink-fashion-illustration", alt: "Watercolor ink fashion illustration" },
+  { slug: "architectural-minimalist-poster-pavilion", alt: "Minimalist architectural poster" },
+  { slug: "podcast-cover-art-exact-title", alt: "Podcast cover with exact title" },
+  { slug: "sticker-pack-poster", alt: "Sticker pack poster" },
+  { slug: "four-season-cabin-strip", alt: "Four-season cabin strip" },
+  { slug: "youtube-thumbnail-exact-title", alt: "YouTube thumbnail with exact title" },
+] as const;
+
 const CAPABILITIES = [
   {
-    label: "Reference fidelity",
+    label: "References",
     heading: "Keep the subject. Change the setting.",
-    body: `${TARGET_MODEL_NAME} is better at keeping the people and objects in a reference photo recognizable. Depikt asks how the reference should be used and writes that into the prompt.`,
+    body: `${TARGET_MODEL_NAME} is better at keeping people and objects recognizable. Attach a reference in Generate and say how it should be used.`,
   },
   {
-    label: "Precision edits",
+    label: "Edits",
     heading: "Change one thing. Protect everything else.",
-    body: "The model is better at editing only what you ask for. Depikt separates what changes from what must stay, and the Critic flags prompts that never say what to keep.",
+    body: "Edit an existing result in place. Say what changes and what must stay — Depikt writes that into the next request.",
   },
   {
-    label: "Complex layouts",
+    label: "Layouts",
     heading: "Control structure, hierarchy, and exact text.",
-    body: "Layouts, real-world content, and transparent backgrounds are handled more reliably. Depikt treats exact text, ratio, and hierarchy as first-class instructions.",
+    body: "Posters, cards, and other structured visuals hold type and layout more reliably when the prompt names the words and the frame.",
   },
   {
-    label: "Series consistency",
+    label: "Consistency",
     heading: "Carry approved choices forward.",
-    body: "Edits hold up better across a long conversation. Depikt restates what to preserve on every turn so a face or a product does not drift.",
+    body: "Reference Packs and regenerates keep a face, product, or brand from drifting across a series.",
   },
 ];
 
@@ -178,11 +141,12 @@ function LandingPage() {
       <Header />
       <LaunchModule />
       <main>
-        <Hero />
+        <ProductAction />
+        <ProofStrip />
+        <StartWays />
         <Capabilities />
-        <Assistants />
-        <BeforeAfter />
-        <LatestGuides />
+        <GalleryPeek />
+        <PricingNote />
         <FinalCTA />
       </main>
       <Footer />
@@ -190,109 +154,131 @@ function LandingPage() {
   );
 }
 
-/* ============================================================ */
-
-function Hero() {
+function ProductCtas({ size = "lg" }: { size?: "default" | "lg" }) {
   const generationLive = isNativeGenerationEnabled();
-  const features = FEATURES.filter((f) => !("flagged" in f && f.flagged) || generationLive);
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row">
+      <Button asChild size={size}>
+        <Link to={ROUTES.legacyBuilder}>
+          {generationLive ? CTA.generateImage : CTA.improvePrompt} <ArrowRight />
+        </Link>
+      </Button>
+      <Button asChild size={size} variant="outline">
+        <Link to={ROUTES.library}>{CTA.browseShort}</Link>
+      </Button>
+    </div>
+  );
+}
+
+function ProductAction() {
   return (
     <section>
-      <div className="mx-auto max-w-[1400px] px-4 pb-20 pt-20 sm:px-6 md:pb-32 md:pt-36 lg:px-12">
-        <h1 className="reveal max-w-[13ch] text-display-lg md:text-display-xl text-[color:var(--text-primary)]">
-          {POSITIONING.headline}
-        </h1>
-        <p
-          className="reveal mt-8 max-w-[44ch] text-body-lg text-[color:var(--text-secondary)]"
-          style={{ animationDelay: "60ms" }}
-        >
-          {generationLive
-            ? "Describe what you want, or add a reference. Depikt builds the prompt and makes the image."
-            : "Describe what you want, or add a reference. Depikt helps turn it into a clear, precise prompt."}
+      <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 md:py-16 lg:px-12">
+        <h2 className="max-w-[18ch] text-heading-xl text-[color:var(--text-primary)] md:text-display-md">
+          {HOME_ACTION.title}
+        </h2>
+        <p className="mt-3 max-w-[52ch] text-body-lg text-[color:var(--text-secondary)]">
+          {HOME_ACTION.body}
         </p>
-        <div
-          className="reveal mt-10 flex flex-col gap-3 sm:flex-row"
-          style={{ animationDelay: "120ms" }}
-        >
-          {generationLive ? (
-            <>
-              <Button asChild size="lg">
-                <Link to={ROUTES.legacyBuilder}>
-                  {CTA.generateImage} <ArrowRight />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/prompt" search={{ mode: "build" as const }}>
-                  {CTA.buildHero}
-                </Link>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button asChild size="lg">
-                <Link to="/prompt" search={{ mode: "build" as const }}>
-                  {CTA.buildHero} <ArrowRight />
-                </Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/library">{CTA.browseShort}</Link>
-              </Button>
-            </>
-          )}
+        <div className="mt-6">
+          <ProductCtas />
         </div>
-
-        {/* The surfaces, one loop: part of the opening statement, not a second section. */}
-        <Reveal className="mt-24 md:mt-32">
-          <p className="eyebrow">Discover · Build · Create</p>
-          <div className="mt-10 grid gap-12 md:grid-cols-2 md:gap-10 lg:grid-cols-3">
-            {features.map((f) => (
-              <Link key={f.to} to={f.to} className="group flex flex-col">
-                <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-5">
-                  <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-                    {f.step}
-                  </span>
-                  <ArrowUpRight className="h-4 w-4 text-[color:var(--text-quaternary)] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]" />
-                </div>
-                <h3 className="mt-6 text-heading-md text-[color:var(--text-primary)]">{f.title}</h3>
-                <p className="mt-3 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-                  {f.body}
-                </p>
-                <span className="mt-8 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
-                  {f.cta}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </Reveal>
       </div>
     </section>
   );
 }
 
-/* ============================================================ */
+function ProofStrip() {
+  return (
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-10 sm:px-6 md:py-14 lg:px-12">
+          <p className="eyebrow">Real results</p>
+          <ul className="mt-5 flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] sm:grid sm:grid-cols-4 sm:gap-3 sm:overflow-visible [&::-webkit-scrollbar]:hidden lg:grid-cols-8">
+            {PROOF_IMAGES.map((img) => (
+              <li
+                key={img.slug}
+                className="w-[42vw] shrink-0 overflow-hidden border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] sm:w-auto"
+              >
+                <Link
+                  to={ROUTES.library}
+                  search={{ page: 1, collection: ANNOUNCEMENT.primary.collection }}
+                  aria-label={img.alt}
+                  className="block aspect-[3/4]"
+                >
+                  <img
+                    src={`/library/images-2-5/${img.slug}.webp`}
+                    alt={img.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
 
-/* ============================================================ */
+function StartWays() {
+  const generationLive = isNativeGenerationEnabled();
+  const ways = generationLive
+    ? START_WAYS
+    : [
+        {
+          to: ROUTES.prompt,
+          title: TOOL.improvePrompt,
+          body: "We'll refine what you wrote into a stronger image prompt.",
+        },
+        START_WAYS[1],
+        START_WAYS[2],
+      ];
+  return (
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 md:py-16 lg:px-12">
+          <p className="eyebrow">Three ways to start</p>
+          <div className="mt-8 grid gap-10 md:grid-cols-3 md:gap-12">
+            {ways.map((f) => (
+              <Link key={f.to} to={f.to} className="group flex flex-col">
+                <div className="flex items-center justify-between border-t border-[color:var(--text-primary)] pt-4">
+                  <h3 className="text-heading-sm text-[color:var(--text-primary)]">{f.title}</h3>
+                  <ArrowUpRight className="h-4 w-4 text-[color:var(--text-quaternary)] transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]" />
+                </div>
+                <p className="mt-3 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
+                  {f.body}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
 
 function Capabilities() {
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
       <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-          <p className="eyebrow">What changed</p>
-          <h2 className="mt-4 max-w-[22ch] text-display-md text-[color:var(--text-primary)]">
-            The new model rewards prompts that say what to change, what to keep, and where the text
-            goes.
+        <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 md:py-20 lg:px-12">
+          <p className="eyebrow">References and edits</p>
+          <h2 className="mt-3 max-w-[22ch] text-heading-xl text-[color:var(--text-primary)] md:text-display-md">
+            Attach a reference, then generate or edit from there.
           </h2>
-
-          <div className="mt-16 grid gap-14 md:mt-24 md:grid-cols-2 md:gap-x-16 md:gap-y-20">
+          <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-x-16 md:gap-y-16">
             {CAPABILITIES.map((c) => (
               <div key={c.label} className="max-w-[46ch]">
                 <p className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
                   {c.label}
                 </p>
-                <h3 className="mt-4 text-heading-lg text-[color:var(--text-primary)]">
+                <h3 className="mt-3 text-heading-md text-[color:var(--text-primary)]">
                   {c.heading}
                 </h3>
-                <p className="mt-4 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
+                <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">{c.body}</p>
               </div>
             ))}
           </div>
@@ -302,201 +288,84 @@ function Capabilities() {
   );
 }
 
-/* ============================================================ */
-
-/** Small MCP section: the hero stays on the core product; this sits after the capabilities. */
-function Assistants() {
+function GalleryPeek() {
+  const peek = GALLERY_IMAGES.slice(0, 8);
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
       <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-          <div className="grid gap-12 md:grid-cols-2 md:gap-16">
+        <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 md:py-16 lg:px-12">
+          <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <p className="eyebrow">{MCP.eyebrow}</p>
-              <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-                {MCP.headline}
-              </h2>
-              <p className="mt-6 max-w-[46ch] text-body-lg text-[color:var(--text-secondary)]">
-                {MCP.body}
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Button asChild size="lg">
-                  <Link to={MCP.pagePath}>
-                    {MCP.connect} <ArrowRight />
-                  </Link>
-                </Button>
-                <Button asChild size="lg" variant="outline">
-                  <Link to="/blog/$slug" params={{ slug: MCP.postSlug }}>
-                    {MCP.learn}
-                  </Link>
-                </Button>
-              </div>
-              <p className="mt-4 text-body-sm font-medium text-[color:var(--text-tertiary)]">
-                {MCP.meta}
-              </p>
-            </div>
-            <ul className="flex flex-col self-center">
-              {MCP.capabilities.map((c) => (
-                <li
-                  key={c.tool}
-                  className="flex items-baseline justify-between gap-6 border-t border-[color:var(--border-subtle)] py-5 last:border-b"
-                >
-                  <div>
-                    <p className="text-heading-sm text-[color:var(--text-primary)]">{c.title}</p>
-                    <p className="mt-1 max-w-[40ch] text-body-sm text-[color:var(--text-secondary)]">
-                      {c.body}
-                    </p>
-                  </div>
-                  <span className="label-mono shrink-0 text-[color:var(--text-quaternary)]">
-                    {c.tool}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ============================================================ */
-
-function BeforeAfter() {
-  const [copied, setCopied] = useState(false);
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(POLISHED_PROMPT);
-      setCopied(true);
-      toast.success("Prompt copied");
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Copy failed");
-    }
-  };
-
-  return (
-    <section className="border-t border-[color:var(--border-subtle)]">
-      <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-          <p className="eyebrow">From rough idea to image-ready prompt</p>
-          <h2 className="mt-4 max-w-[16ch] text-display-md text-[color:var(--text-primary)]">
-            One sentence in. A real prompt out.
-          </h2>
-
-          <div className="mt-16 grid gap-10 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-16">
-            <div className="flex flex-col">
-              <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-                You type
-              </span>
-              <p className="mt-5 text-heading-lg text-[color:var(--text-primary)]">
-                “{ROUGH_INPUT}”
-              </p>
-              <p className="mt-6 max-w-[38ch] text-body-md text-[color:var(--text-secondary)]">
-                Build mode works out the format, the reference use, the ratio, and the exact text
-                first, then writes the prompt.
-              </p>
-              <div className="mt-8">
-                <Button asChild variant="outline">
-                  <Link to="/prompt" search={{ mode: "build" as const }}>
-                    Build one from your own idea <ArrowRight />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-
-            <PromptSurface
-              label="Your prompt · Poster · 2:3"
-              actions={
-                <button
-                  type="button"
-                  onClick={onCopy}
-                  className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
-                >
-                  {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                  {copied ? "Copied" : "Copy"}
-                </button>
-              }
-            >
-              {POLISHED_PROMPT}
-            </PromptSurface>
-          </div>
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ============================================================ */
-
-function LatestGuides() {
-  const guides = getLatestGuides(4);
-  return (
-    <section className="border-t border-[color:var(--border-subtle)]">
-      <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-20 sm:px-6 md:py-32 lg:px-12">
-          <div className="flex flex-wrap items-end justify-between gap-6">
-            <div>
-              <p className="eyebrow">From the blog</p>
-              <h2 className="mt-4 text-display-md text-[color:var(--text-primary)]">
-                Latest guides.
+              <p className="eyebrow">{HOME_ACTION.gallery.title}</p>
+              <h2 className="mt-3 max-w-[22ch] text-heading-xl text-[color:var(--text-primary)]">
+                {HOME_ACTION.gallery.body}
               </h2>
             </div>
             <Link
-              to="/blog"
+              to={ROUTES.gallery}
               className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 hover:underline"
             >
-              All posts <ArrowRight className="h-4 w-4" />
+              Open Gallery <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-
-          <div className="mt-16 grid grid-cols-2 gap-6 md:gap-10 lg:grid-cols-4">
-            {guides.map((p) => (
-              <Link
-                key={p.slug}
-                to="/blog/$slug"
-                params={{ slug: p.slug }}
-                className="group flex flex-col border-t border-[color:var(--border-subtle)] pt-5"
-              >
-                <div className="flex items-center gap-2 text-[13px] text-[color:var(--text-tertiary)]">
-                  <span>{p.category}</span>
-                  <span aria-hidden>·</span>
-                  <span className="tabular-nums">{p.read_time}</span>
-                </div>
-                <h3 className="mt-5 text-heading-sm text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
-                  {p.title}
-                </h3>
-                <p className="mt-3 line-clamp-3 text-body-sm text-[color:var(--text-secondary)]">
-                  {p.excerpt}
-                </p>
-              </Link>
+          <ul className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:gap-3">
+            {peek.map((filename, i) => (
+              <li key={filename}>
+                <Link
+                  to={ROUTES.gallery}
+                  aria-label={galleryLabel(filename, i)}
+                  className="block aspect-square overflow-hidden bg-[color:var(--bg-subtle)]"
+                >
+                  <img
+                    src={`/gallery/${filename}`}
+                    alt={galleryLabel(filename, i)}
+                    loading="lazy"
+                    className="h-full w-full object-cover"
+                  />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       </Reveal>
     </section>
   );
 }
 
-/* ============================================================ */
+function PricingNote() {
+  return (
+    <section className="border-t border-[color:var(--border-subtle)]">
+      <Reveal>
+        <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 md:py-16 lg:px-12">
+          <p className="eyebrow">Credits</p>
+          <h2 className="mt-3 max-w-[20ch] text-heading-xl text-[color:var(--text-primary)]">
+            {HOME_ACTION.pricingTitle}
+          </h2>
+          <p className="mt-3 max-w-[48ch] text-body-lg text-[color:var(--text-secondary)]">
+            {HOME_ACTION.pricingBody}
+          </p>
+          <Link
+            to={ROUTES.pricing}
+            className="mt-5 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 hover:underline"
+          >
+            See pricing <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </Reveal>
+    </section>
+  );
+}
 
 function FinalCTA() {
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
       <Reveal>
-        <div className="mx-auto max-w-[1400px] px-4 py-24 sm:px-6 md:py-40 lg:px-12">
-          <h2 className="max-w-[14ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
-            Your next image starts with a better prompt.
+        <div className="mx-auto max-w-[1400px] px-4 py-16 sm:px-6 md:py-24 lg:px-12">
+          <h2 className="max-w-[14ch] text-heading-xl md:text-display-md text-[color:var(--text-primary)]">
+            {HOME_ACTION.finalTitle}
           </h2>
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-            <Button asChild size="lg">
-              <Link to="/prompt" search={{ mode: "build" as const }}>
-                {CTA.buildHero} <ArrowRight />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link to="/library">{CTA.browseShort}</Link>
-            </Button>
+          <div className="mt-8">
+            <ProductCtas />
           </div>
         </div>
       </Reveal>

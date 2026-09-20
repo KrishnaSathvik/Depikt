@@ -5,6 +5,7 @@ import { GenerationCanvas } from "@/components/generate/GenerationCanvas";
 import { GenerationActions } from "@/components/generate/GenerationActions";
 import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
 import { SeriesJobsGrid } from "@/components/generate/SeriesJobsGrid";
+import { resultStatusLines } from "@/lib/generation/result-status";
 import { cn } from "@/lib/utils";
 
 export interface InlineGenerationPanelProps {
@@ -90,8 +91,11 @@ export function InlineGenerationPanel({
           orientation={resolvedSize.orientation}
           imageUrl={gen.resultUrl}
           refining={gen.job?.refining}
-          warning={gen.job?.validation?.warning}
-          validationMessage={gen.job?.validation?.temporalSupport?.message}
+          statusLines={resultStatusLines({
+            sourceCount: gen.grounding?.sources.length,
+            temporalSupport: gen.grounding?.temporalSupport ?? gen.job?.validation?.temporalSupport,
+            validation: gen.job?.validation,
+          })}
           errorMessage={gen.errorMessage ?? "Generation failed. Your credit was returned."}
           onRetry={() => gen.regenerate()}
           jobStatus={

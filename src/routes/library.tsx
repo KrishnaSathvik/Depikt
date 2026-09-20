@@ -13,10 +13,10 @@ import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
 import {
+  CTA,
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
   LIBRARY_COPY,
-  MCP,
   ROUTES,
   SEO,
   TOOL,
@@ -179,7 +179,7 @@ function HomePage() {
         subline is supporting, Imago is a feature mention, not a pitch.
       */}
       <section className="border-b border-[color:var(--border-subtle)]">
-        <div className="mx-auto max-w-[1400px] px-4 pt-8 pb-3 sm:px-6 md:pt-14 md:pb-6 lg:px-12">
+        <div className="mx-auto max-w-[1400px] px-4 pt-6 pb-3 sm:px-6 md:pt-8 md:pb-4 lg:px-12">
           <div className="flex items-center justify-between gap-4">
             <p className="eyebrow">{TOOL.library}</p>
             {/* Favoriting happens right on this page's cards, so the link
@@ -194,23 +194,11 @@ function HomePage() {
               Favorites{favoriteIds.size > 0 ? ` (${favoriteIds.size})` : ""}
             </Link>
           </div>
-          <h1 className="mt-4 max-w-[22ch] text-display-md md:text-display-lg text-[color:var(--text-primary)]">
+          <h1 className="mt-3 max-w-[22ch] text-heading-xl md:text-display-md text-[color:var(--text-primary)]">
             {LIBRARY_COPY.headline}
           </h1>
-          <p className="mt-3 max-w-[60ch] text-body-lg text-[color:var(--text-secondary)]">
+          <p className="mt-2 max-w-[60ch] text-body-md text-[color:var(--text-secondary)]">
             {LIBRARY_COPY.subline}
-          </p>
-          {/* Skippable on mobile: eyebrow, H1, and subline already fill
-              the screen above the fold there. Still reachable from the
-              footer's MCP link. */}
-          <p className="mt-2 hidden text-body-sm text-[color:var(--text-tertiary)] sm:block">
-            {MCP.libraryNote}{" "}
-            <Link
-              to={MCP.pagePath}
-              className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:underline"
-            >
-              {MCP.libraryLink} →
-            </Link>
           </p>
 
           {/* Search */}
@@ -236,25 +224,27 @@ function HomePage() {
               activeKey={activeCollection}
               innerClassName="gap-2 pb-1"
             >
-              {collections.map((c) => {
-                const active = activeCollection === c.value;
-                return (
-                  <button
-                    key={c.value}
-                    type="button"
-                    onClick={() => setActiveCollection(c.value)}
-                    aria-pressed={active}
-                    data-active={active ? "true" : undefined}
-                    className={`pill shrink-0 snap-start ${
-                      active
-                        ? "pill-solid"
-                        : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                    }`}
-                  >
-                    {c.label} · {c.count}
-                  </button>
-                );
-              })}
+              {collections
+                .filter((c) => c.value !== "all")
+                .map((c) => {
+                  const active = activeCollection === c.value;
+                  return (
+                    <button
+                      key={c.value}
+                      type="button"
+                      onClick={() => setActiveCollection(active ? "all" : c.value)}
+                      aria-pressed={active}
+                      data-active={active ? "true" : undefined}
+                      className={`pill shrink-0 snap-start ${
+                        active
+                          ? "pill-solid"
+                          : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
+                      }`}
+                    >
+                      {c.label} · {c.count}
+                    </button>
+                  );
+                })}
             </ScrollRow>
           </div>
         )}
@@ -294,9 +284,9 @@ function HomePage() {
             {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
           </p>
           <Button asChild size="sm" className="shrink-0">
-            <Link to="/prompt" search={{ mode: "build" as const }}>
+            <Link to={ROUTES.legacyBuilder}>
               <Wand2 className="h-3.5 w-3.5" />
-              Build your own
+              {CTA.generateImage}
             </Link>
           </Button>
         </div>

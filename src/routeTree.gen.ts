@@ -54,6 +54,7 @@ import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public
 import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
 import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
 import { Route as ApiGenerationEntitiesIdRouteImport } from './routes/api/generation/entities.$id'
+import { Route as ApiAccountCreationsIdRouteImport } from './routes/api/account/creations.$id'
 import { Route as ApiGenerationSessionsIdRefineRouteImport } from './routes/api/generation/sessions.$id.refine'
 import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
 import { Route as ApiGenerationEntitiesIdAssetsRouteImport } from './routes/api/generation/entities.$id.assets'
@@ -286,6 +287,11 @@ const ApiGenerationEntitiesIdRoute = ApiGenerationEntitiesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiGenerationEntitiesRoute,
 } as any)
+const ApiAccountCreationsIdRoute = ApiAccountCreationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAccountCreationsRoute,
+} as any)
 const ApiGenerationSessionsIdRefineRoute =
   ApiGenerationSessionsIdRefineRouteImport.update({
     id: '/refine',
@@ -334,7 +340,7 @@ export interface FileRoutesByFullPath {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
-  '/api/account/creations': typeof ApiAccountCreationsRoute
+  '/api/account/creations': typeof ApiAccountCreationsRouteWithChildren
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
@@ -352,6 +358,7 @@ export interface FileRoutesByFullPath {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/account/creations/$id': typeof ApiAccountCreationsIdRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
@@ -385,7 +392,7 @@ export interface FileRoutesByTo {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog': typeof BlogIndexRoute
   '/templates': typeof TemplatesIndexRoute
-  '/api/account/creations': typeof ApiAccountCreationsRoute
+  '/api/account/creations': typeof ApiAccountCreationsRouteWithChildren
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
@@ -403,6 +410,7 @@ export interface FileRoutesByTo {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/account/creations/$id': typeof ApiAccountCreationsIdRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
@@ -437,7 +445,7 @@ export interface FileRoutesById {
   '/integrations/mcp': typeof IntegrationsMcpRoute
   '/blog/': typeof BlogIndexRoute
   '/templates/': typeof TemplatesIndexRoute
-  '/api/account/creations': typeof ApiAccountCreationsRoute
+  '/api/account/creations': typeof ApiAccountCreationsRouteWithChildren
   '/api/account/delete': typeof ApiAccountDeleteRoute
   '/api/account/profile': typeof ApiAccountProfileRoute
   '/api/account/username-availability': typeof ApiAccountUsernameAvailabilityRoute
@@ -455,6 +463,7 @@ export interface FileRoutesById {
   '/api/generation/references': typeof ApiGenerationReferencesRoute
   '/api/public/critique-prompt': typeof ApiPublicCritiquePromptRoute
   '/api/public/generate-prompt': typeof ApiPublicGeneratePromptRoute
+  '/api/account/creations/$id': typeof ApiAccountCreationsIdRoute
   '/api/generation/entities/$id': typeof ApiGenerationEntitiesIdRouteWithChildren
   '/api/generation/jobs/$id': typeof ApiGenerationJobsIdRouteWithChildren
   '/api/generation/sessions/$id': typeof ApiGenerationSessionsIdRouteWithChildren
@@ -508,6 +517,7 @@ export interface FileRouteTypes {
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/account/creations/$id'
     | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
@@ -559,6 +569,7 @@ export interface FileRouteTypes {
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/account/creations/$id'
     | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
@@ -610,6 +621,7 @@ export interface FileRouteTypes {
     | '/api/generation/references'
     | '/api/public/critique-prompt'
     | '/api/public/generate-prompt'
+    | '/api/account/creations/$id'
     | '/api/generation/entities/$id'
     | '/api/generation/jobs/$id'
     | '/api/generation/sessions/$id'
@@ -644,7 +656,7 @@ export interface RootRouteChildren {
   IntegrationsMcpRoute: typeof IntegrationsMcpRoute
   BlogIndexRoute: typeof BlogIndexRoute
   TemplatesIndexRoute: typeof TemplatesIndexRoute
-  ApiAccountCreationsRoute: typeof ApiAccountCreationsRoute
+  ApiAccountCreationsRoute: typeof ApiAccountCreationsRouteWithChildren
   ApiAccountDeleteRoute: typeof ApiAccountDeleteRoute
   ApiAccountProfileRoute: typeof ApiAccountProfileRoute
   ApiAccountUsernameAvailabilityRoute: typeof ApiAccountUsernameAvailabilityRoute
@@ -983,6 +995,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationEntitiesIdRouteImport
       parentRoute: typeof ApiGenerationEntitiesRoute
     }
+    '/api/account/creations/$id': {
+      id: '/api/account/creations/$id'
+      path: '/$id'
+      fullPath: '/api/account/creations/$id'
+      preLoaderRoute: typeof ApiAccountCreationsIdRouteImport
+      parentRoute: typeof ApiAccountCreationsRoute
+    }
     '/api/generation/sessions/$id/refine': {
       id: '/api/generation/sessions/$id/refine'
       path: '/refine'
@@ -1013,6 +1032,17 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface ApiAccountCreationsRouteChildren {
+  ApiAccountCreationsIdRoute: typeof ApiAccountCreationsIdRoute
+}
+
+const ApiAccountCreationsRouteChildren: ApiAccountCreationsRouteChildren = {
+  ApiAccountCreationsIdRoute: ApiAccountCreationsIdRoute,
+}
+
+const ApiAccountCreationsRouteWithChildren =
+  ApiAccountCreationsRoute._addFileChildren(ApiAccountCreationsRouteChildren)
 
 interface ApiGenerationEntitiesIdAssetsRouteChildren {
   ApiGenerationEntitiesIdAssetsAssetIdRoute: typeof ApiGenerationEntitiesIdAssetsAssetIdRoute
@@ -1118,7 +1148,7 @@ const rootRouteChildren: RootRouteChildren = {
   IntegrationsMcpRoute: IntegrationsMcpRoute,
   BlogIndexRoute: BlogIndexRoute,
   TemplatesIndexRoute: TemplatesIndexRoute,
-  ApiAccountCreationsRoute: ApiAccountCreationsRoute,
+  ApiAccountCreationsRoute: ApiAccountCreationsRouteWithChildren,
   ApiAccountDeleteRoute: ApiAccountDeleteRoute,
   ApiAccountProfileRoute: ApiAccountProfileRoute,
   ApiAccountUsernameAvailabilityRoute: ApiAccountUsernameAvailabilityRoute,

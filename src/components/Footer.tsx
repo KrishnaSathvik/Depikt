@@ -41,6 +41,7 @@ function Column({ title, links }: { title: string; links: FooterLink[] }) {
  */
 export function Footer() {
   const resources: FooterLink[] = [
+    { to: ROUTES.blog, label: TOOL.blog },
     { to: MCP.pagePath, label: "MCP" },
     { to: ROUTES.help, label: "Help" },
     { to: ROUTES.pricing, label: "Pricing" },

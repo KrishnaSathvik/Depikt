@@ -51,28 +51,28 @@ const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 
 // ---------- naming ----------
 
-test("one Prompt product: Build and Critique are modes, not separate tools", () => {
-  assert.equal(TOOL.prompt, "Prompt");
-  assert.equal(TOOL.buildMode, "Prompt — Build mode");
-  assert.equal(TOOL.critiqueMode, "Prompt — Critique mode");
+test("product surfaces: Generate first, Improve prompt and Critique as tools, not equal products", () => {
+  assert.equal(TOOL.library, "Prompt Library");
+  assert.equal(TOOL.buildMode, "Improve prompt");
+  assert.equal(TOOL.critiqueMode, "Critique");
   assert.equal("builder" in TOOL, false);
   assert.equal("critic" in TOOL, false);
-  assert.equal(CTA.build, "Build Prompt");
-  assert.equal(CTA.critique, "Critique Prompt");
-  assert.equal(CTA.critiqueAnother, "Critique Another Prompt");
+  assert.equal(CTA.build, "Improve prompt");
+  assert.equal(CTA.critique, "Critique");
+  assert.equal(CTA.critiqueAnother, "Critique another prompt");
   assert.equal(CTA.newPrompt, "New Prompt");
-  assert.equal(CTA.building, "Building prompt…");
-  assert.equal(CTA.rebuildPrompt, "Rebuild prompt");
+  assert.equal(CTA.building, "Improving prompt…");
+  assert.equal(CTA.rebuildPrompt, "Improve again");
   assert.equal(CTA.regenerateImage, "Regenerate image");
-  assert.equal(CTA.critiqueThis, "Critique this prompt");
-  assert.equal(CTA.remix, "Remix in Prompt");
-  // The unified workspace's own header nav entry (labeled Generate or
-  // Prompt depending on the native-generation flag) is inserted by
-  // Header.tsx, not part of the frozen NAV_ITEMS export itself — see
-  // tests/unit/commercial-auth.test.ts / creation-composer.test.ts for that.
+  assert.equal(CTA.critiqueThis, "Critique");
+  assert.equal(CTA.remix, "Edit prompt");
+  assert.equal(CTA.generateWithPrompt, "Generate with this prompt");
+  assert.equal(CTA.useAsReference, "Use as reference");
+  assert.equal(CTA.continueToGenerate, "Continue to Generate");
+  assert.equal(CTA.copyPrompt, "Copy prompt");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Library", "Gallery", "Templates", "Blog"],
+    ["Prompt Library", "Templates", "Gallery"],
   );
 });
 
@@ -83,7 +83,7 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
 
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/gallery", "/templates", "/blog"],
+    ["/library", "/templates", "/gallery"],
   );
   assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
   // Both legacy routes redirect into /prompt with a mode; generate.tsx's
@@ -109,7 +109,7 @@ test("internal identifiers keep their historical names (documented in CLAUDE.md)
   assert.match(read("src/lib/depikt.ts"), /value: "CRITIQUE"/);
   const rec = prepareHistoryRecord({ kind: "generate", roughIdea: "x", result: {} }, "id", 1);
   assert.equal(rec.kind, "generate");
-  assert.equal(historyKindLabel("generate"), "Build");
+  assert.equal(historyKindLabel("generate"), "Improve prompt");
   assert.equal(historyKindLabel("critique"), "Critique");
   assert.match(read("CLAUDE.md"), /kind: "generate"/);
 });
@@ -193,7 +193,8 @@ test("no current-product surface still calls Build and Critique separate tools",
   // Templates link was intentionally removed from the footer per 2026-09-12 edit.
   assert.match(read("src/components/Header.tsx"), /NAV_ITEMS/);
   assert.match(read("src/lib/product.ts"), /ROUTES\.templates/);
-  assert.match(read("src/lib/product.ts"), /ROUTES\.blog/);
+  assert.match(read("src/lib/product.ts"), /blog: "\/blog"/);
+  assert.match(read("src/components/Footer.tsx"), /ROUTES\.blog/);
   // header inserts Generate (behind the feature flag); MCP is not a nav item
   const header = read("src/components/Header.tsx");
   assert.match(header, /TOOL\.generate/);
@@ -230,7 +231,7 @@ test("current product UI files carry no generator-era labels", () => {
     const s = read(f);
     for (const re of banned) assert.equal(re.test(s), false, `${f} still contains ${re}`);
   }
-  assert.match(read("src/routes/index.tsx"), /Discover · Build · Create/);
+  assert.match(read("src/routes/index.tsx"), /HOME_ACTION\.title/);
   // llms.txt now describes native generation; it must not claim otherwise.
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(
@@ -375,7 +376,7 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
     assert.ok(p.prompt.length > 0);
     assert.equal("target_model" in p, false, "generated data file not re-synced in Phase 3");
   }
-  assert.equal(LIBRARY_COPY.headline, "543 prompts to learn from, remix, and use.");
+  assert.equal(LIBRARY_COPY.headline, "Explore prompts behind strong image results.");
   assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 43 tested Images 2.5");
   assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);
   // Remix now lives in the shared PromptDetailDialog (used by /library and
@@ -394,7 +395,7 @@ test("history: v2.9 and v3 records restore under the new labels without migratio
     createdAt: 1,
   });
   assert.equal(old.kind, "generate");
-  assert.equal(historyKindLabel(old.kind), "Build");
+  assert.equal(historyKindLabel(old.kind), "Improve prompt");
   const v3 = prepareHistoryRecord(
     {
       kind: "generate",
@@ -493,6 +494,6 @@ test("Images 2.5 guides exist, cite OpenAI, and lead the homepage Latest guides"
   // Date ordering, not array ordering, drives the homepage teaser.
   const byDate = getPostsByDate();
   for (let i = 1; i < byDate.length; i++) assert.ok(byDate[i - 1].published >= byDate[i].published);
-  assert.match(read("src/routes/index.tsx"), /getLatestGuides/);
-  assert.equal(/posts\.slice\(0, 3\)/.test(read("src/routes/index.tsx")), false);
+  assert.match(read("src/components/Footer.tsx"), /TOOL\.blog/);
+  assert.equal(/getLatestGuides/.test(read("src/routes/index.tsx")), false);
 });

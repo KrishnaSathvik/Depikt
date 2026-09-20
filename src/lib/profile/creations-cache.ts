@@ -23,3 +23,13 @@ export function readCreationsCache(filter: Filter): CreationsPage | null {
 export function writeCreationsCache(filter: Filter, page: CreationsPage): void {
   cache.set(filter, page);
 }
+
+/** Drop a deleted version from every cached filter so the grid doesn't flash it back. */
+export function removeCreationFromCache(id: string): void {
+  for (const [filter, page] of cache) {
+    const items = page.items.filter((item) => item.id !== id);
+    if (items.length !== page.items.length) {
+      cache.set(filter, { ...page, items });
+    }
+  }
+}

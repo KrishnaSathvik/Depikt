@@ -45,7 +45,12 @@ export function ReferencesTab() {
     <section className="space-y-5" aria-label={C.title}>
       <div>
         <h2 className="text-heading-sm">{C.title}</h2>
-        <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{C.empty}</p>
+        {entities.length === 0 && !loading && (
+          <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{C.empty}</p>
+        )}
+        {entities.length > 0 && (
+          <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{C.lockedHint}</p>
+        )}
       </div>
       {error && (
         <p role="alert" className="text-body-sm text-red-600">
@@ -167,7 +172,9 @@ function PackCard({
         >
           {e.name}
         </button>
-        <span className="text-body-sm text-[color:var(--text-secondary)]">{e.assets.length}/8</span>
+        <span className="text-body-sm text-[color:var(--text-secondary)]">
+          {C.imageBudget(e.assets.length, 8)}
+        </span>
         <Button
           variant="ghost"
           disabled={busy}
@@ -188,15 +195,15 @@ function PackCard({
           <div key={a.id} className="w-24">
             <img
               src={a.previewUrl ?? ""}
-              alt={`${e.name}, ${a.role.replaceAll("_", " ")}`}
+              alt={`${e.name}, ${C.roles[a.role] ?? a.role.replaceAll("_", " ")}`}
               className="h-24 w-24 rounded border object-cover"
             />
-            <p className="mt-1 text-xs">{a.role.replaceAll("_", " ")}</p>
+            <p className="mt-1 text-xs">{C.roles[a.role] ?? a.role.replaceAll("_", " ")}</p>
             <button
               type="button"
               disabled={busy}
               className="text-xs underline"
-              aria-label={`Remove ${a.role} of ${e.name}`}
+              aria-label={`Remove ${C.roles[a.role] ?? a.role} of ${e.name}`}
               onClick={() =>
                 void action(async () => {
                   await entityRequest(`/${e.id}/assets/${a.id}`, "DELETE");
@@ -220,7 +227,7 @@ function PackCard({
             >
               {roles.map((r) => (
                 <option key={r} value={r}>
-                  {r.replaceAll("_", " ")}
+                  {C.roles[r] ?? r.replaceAll("_", " ")}
                 </option>
               ))}
             </select>

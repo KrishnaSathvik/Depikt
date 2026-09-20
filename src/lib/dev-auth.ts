@@ -9,17 +9,19 @@
 // standard Supabase auth method (email/password) used only to reach a
 // normal session locally, guarded so it can never activate outside dev:
 //
-//   import.meta.env.DEV                    — Vite's own dev-mode flag
+//   import.meta.env.DEV === true           — Vite dev server only
+//   import.meta.env.PROD !== true          — never a production/preview build
+//   import.meta.env.MODE === "development" — not preview/test/production
 //   VITE_DEV_AUTH_ENABLED === "true"       — explicit opt-in, unset by default
+//   hostname localhost / 127.0.0.1 / ::1   — overlay never on a hosted URL
 //
 // Credentials come from VITE_DEV_AUTH_EMAIL / VITE_DEV_AUTH_PASSWORD in
 // .env.local (git-ignored — see .gitignore's `*.local`). Nothing here is
 // wired into production code paths or committed secrets.
 import { supabase } from "@/integrations/supabase/client";
+import { isDevAuthEnabled, isLocalDevHost } from "./dev-auth-guard.ts";
 
-export function isDevAuthEnabled(): boolean {
-  return Boolean(import.meta.env.DEV) && import.meta.env.VITE_DEV_AUTH_ENABLED === "true";
-}
+export { isDevAuthEnabled, isLocalDevHost };
 
 export function devAuthCredentials(): { email: string; password: string } | null {
   const email = import.meta.env.VITE_DEV_AUTH_EMAIL as string | undefined;

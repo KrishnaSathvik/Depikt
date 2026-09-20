@@ -58,7 +58,7 @@ export function LaunchModule() {
 
         {/* Visual proof: five real results, three tall and two wide, on a white canvas. */}
         <ul
-          aria-label="Examples from the new Images 2.5 recipes"
+          aria-label="Examples from the Images 2.5 collection"
           className="reveal grid grid-cols-6 grid-rows-[auto_auto] gap-2 sm:gap-3"
           style={{ animationDelay: "80ms" }}
         >
@@ -73,7 +73,7 @@ export function LaunchModule() {
               <Link
                 to="/library"
                 search={{ page: 1, view: "browse", collection: a.primary.collection }}
-                aria-label={`${img.alt}. Explore the Images 2.5 recipes`}
+                aria-label={`${img.alt}. Explore Images 2.5`}
                 className="block h-full w-full"
               >
                 <img

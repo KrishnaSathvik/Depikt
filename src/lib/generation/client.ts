@@ -133,6 +133,8 @@ export interface JobStatusResponse {
     repairAttempts: number;
     refinementPending?: boolean;
     warning?: boolean;
+    repairOutcome?: "not_attempted" | "improved" | "not_improved" | "provider_failed";
+    selected?: "original" | "repair";
   };
   jobId: string;
   sessionId: string;
@@ -165,6 +167,7 @@ export interface SessionVersion {
 export interface SessionJobSummary {
   id: string;
   status: string;
+  operation?: "generate" | "edit";
   series_index: number | null;
   series_label: string | null;
   created_at: string;

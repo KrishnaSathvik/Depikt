@@ -52,10 +52,12 @@ test("no standalone AvatarPickerDialog/EditProfileDialog/CreationDetailDialog su
   }
 });
 
-test("AccountMenu is just the avatar trigger -- no dropdown, no dialog of its own -- it opens the one AccountHub", () => {
+test("AccountMenu opens AccountHub except when already on /account", () => {
   const src = read("src/components/auth/AccountMenu.tsx");
   assert.doesNotMatch(src, /DropdownMenu/, "the dropdown was replaced by AccountHub");
   assert.match(src, /useAccountHub\(/);
+  assert.match(src, /ROUTES\.account/);
+  assert.match(src, /onAccountPage/);
   assert.match(src, /hub\.openHub\("home"\)/);
 });
 

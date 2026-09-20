@@ -21,20 +21,16 @@ const PROMPT_SRC = read("src/routes/prompt.tsx");
 
 // ---------- eyebrow tracks the active mode ----------
 
-test("prompt eyebrow is derived from the active mode, not hardcoded to Generate", () => {
-  // The bug: `{generationEnabled ? TOOL.generate : TOOL.prompt}` never
-  // changed when the user switched to Build or Critique.
-  assert.doesNotMatch(PROMPT_SRC, /generationEnabled \? TOOL\.generate : TOOL\.prompt/);
-  assert.match(PROMPT_SRC, /<p className="eyebrow">\{eyebrow\}<\/p>/);
-  // Reuses the same canonical labels already shown on the mode tabs (MODES)
-  // instead of a second, hardcoded set of "Generate"/"Build"/"Critique" strings.
-  assert.match(PROMPT_SRC, /const eyebrow = MODES\.find\(\(m\) => m\.id === mode\)\?\.label/);
+test("prompt tabs use Generate / Improve prompt / Critique — no duplicate eyebrow", () => {
+  assert.doesNotMatch(PROMPT_SRC, /<p className="eyebrow">\{eyebrow\}<\/p>/);
+  assert.match(PROMPT_SRC, /role="tablist"/);
+  assert.match(PROMPT_SRC, /aria-label="Creation tools"/);
 });
 
-test("the three canonical mode labels used for both tabs and the eyebrow are Generate/Build/Critique", () => {
-  assert.match(PROMPT_SRC, /id: "generate", label: "Generate"/);
-  assert.match(PROMPT_SRC, /id: "build", label: "Build"/);
-  assert.match(PROMPT_SRC, /id: "critique", label: "Critique"/);
+test("the three mode labels are Generate / Improve prompt / Critique", () => {
+  assert.match(PROMPT_SRC, /id: "generate", label: TOOL.generate/);
+  assert.match(PROMPT_SRC, /id: "build", label: TOOL.improvePrompt/);
+  assert.match(PROMPT_SRC, /id: "critique", label: TOOL.critique/);
 });
 
 // ---------- mode-aware SEO/OG ----------
@@ -136,9 +132,9 @@ test("mode heroes share ModeHero + PROMPT_MODE_COPY and do not restate the tab h
     assert.match(read(f), /ModeHero/, f);
     assert.match(read(f), /PROMPT_MODE_COPY/, f);
   }
-  assert.match(read("src/lib/product.ts"), /From prompt to picture/);
-  assert.match(read("src/lib/product.ts"), /From idea to prompt/);
-  assert.match(read("src/lib/product.ts"), /From draft to sharper/);
+  assert.match(read("src/lib/product.ts"), /What do you want to make\?/);
+  assert.match(read("src/lib/product.ts"), /Improve this prompt\./);
+  assert.match(read("src/lib/product.ts"), /Critique this prompt\./);
 });
 
 // ---------- hydration mismatch regression guard ----------

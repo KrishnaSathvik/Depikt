@@ -177,7 +177,11 @@ test("Templates page: one Start per card, a shared setup panel, slug-only hand-o
   const page = read("src/routes/templates.index.tsx");
   assert.match(page, /<TemplateSetup/);
   assert.match(page, /Choose what you want to make\./);
+  assert.match(page, /Continue to Generate|CTA.continueToGenerate/);
   assert.match(page, /search: \{ mode: "build" as const, template: selected\.slug \}/);
+  assert.match(page, /saveGenerationHandoff/);
+  assert.match(page, /composeTemplateBrief/);
+  assert.match(page, /sourceType: "template"/);
   assert.equal(/prefill/.test(page), false, "page must not push a prefill into the URL");
   assert.equal(/buildTemplateStarter/.test(page), false, "no skeleton on the page");
   for (const retired of ["Best for", "You provide", "Fill in details", "Use template"])

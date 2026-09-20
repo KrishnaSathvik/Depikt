@@ -4,6 +4,7 @@
 // /api/billing/* under the same authenticateGenerationRequest server check.
 
 import { generationFetch, GenerationApiError } from "@/lib/generation/client";
+import { removeCreationFromCache } from "./creations-cache";
 
 export { GenerationApiError };
 
@@ -56,6 +57,7 @@ export function checkUsernameAvailability(username: string): Promise<{ available
 export interface CreationItem {
   id: string;
   jobId: string | null;
+  sessionId: string | null;
   url: string | null;
   width: number;
   height: number;
@@ -63,6 +65,8 @@ export interface CreationItem {
   createdAt: string;
   operation: "generate" | "edit" | null;
   parentVersionId: string | null;
+  seriesIndex: number | null;
+  seriesLabel: string | null;
   model: "flare" | "sunburst";
 }
 
@@ -84,4 +88,9 @@ export function getCreations(
   if (opts.limit) params.set("limit", String(opts.limit));
   const qs = params.toString();
   return profileJson<CreationsPage>(`/api/account/creations${qs ? `?${qs}` : ""}`);
+}
+
+export async function deleteCreation(id: string): Promise<void> {
+  await profileJson<{ deleted: true }>(`/api/account/creations/${id}`, { method: "DELETE" });
+  removeCreationFromCache(id);
 }

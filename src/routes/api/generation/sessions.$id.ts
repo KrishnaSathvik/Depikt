@@ -40,7 +40,7 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
             supabase
               .from("generation_jobs")
               .select(
-                "id, user_id, idempotency_key, status, error_code, safe_error_message, series_index, series_label, created_at",
+                "id, user_id, idempotency_key, status, error_code, safe_error_message, operation, series_index, series_label, created_at",
               )
               .eq("session_id", params.id)
               .order("series_index", { ascending: true }),
@@ -60,6 +60,7 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
               return {
                 id: job.id,
                 status: staleResult.status,
+                operation: job.operation,
                 series_index: job.series_index,
                 series_label: job.series_label,
                 created_at: job.created_at,
@@ -73,11 +74,10 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
         const withUrls = await Promise.all(
           versionsForSucceededJobs(versions ?? [], sessionJobs).map(
             async (v: { job_id: string; storage_path: string; [k: string]: unknown }) => {
-              const { job_id: _jobId, ...version } = v;
               const signedUrl = await createSignedUrlWithTimeout(() =>
                 supabase.storage.from(GENERATION_BUCKET).createSignedUrl(v.storage_path, 600),
               );
-              return { ...version, url: signedUrl };
+              return { ...v, url: signedUrl };
             },
           ),
         );

@@ -1,4 +1,5 @@
 import type { Intent } from "../prompt-engine/intent.ts";
+import { groundingNeeded } from "./grounding/need.ts";
 import type { SourceContextType } from "./job-request.ts";
 
 export type OutputMode = "single" | "series" | "collage" | "contact_sheet" | "edit";
@@ -35,21 +36,20 @@ const PLURAL_DELIVERABLE_RE =
   /\b(images|ads|variations|scenes|layouts|examples|concepts|environments)\b/i;
 const COORDINATING_DELIVERABLE_RE =
   /\b(layouts?|scenes?|environments?|districts?|images?|ads?|variations?|examples?|concepts?)\b/i;
-const SEARCH_RE = /\b(research|look\s*up|check|current|tonight|as of)\b/i;
 
 export function buildGenerationPlan(
   intent: Intent,
   userPrompt: string,
   source?: SourceContextType,
 ): GenerationPlan {
-  if (source === "library") return finish("single", 1, false, searchNeeded(userPrompt));
+  if (source === "library") return finish("single", 1, false, searchNeeded(userPrompt, intent));
 
   if (
     intent.task === "edit" ||
     intent.reference_intent === "edit_source" ||
     intent.category === "image_edit"
   ) {
-    return finish("edit", 1, false, searchNeeded(userPrompt));
+    return finish("edit", 1, false, searchNeeded(userPrompt, intent));
   }
 
   const separate = SEPARATE_ASSETS_RE.test(userPrompt);
@@ -59,10 +59,10 @@ export function buildGenerationPlan(
     (CONTACT_SHEET_RE.test(userPrompt) ||
       (GRID_RE.test(userPrompt) && GRID_CONTEXT_RE.test(userPrompt)))
   ) {
-    return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
+    return finish("contact_sheet", 1, false, searchNeeded(userPrompt, intent));
   }
   if ((COLLAGE_RE.test(userPrompt) || OVERVIEW_RE.test(userPrompt)) && !separate && !noCollage) {
-    return finish("collage", 1, false, searchNeeded(userPrompt));
+    return finish("collage", 1, false, searchNeeded(userPrompt, intent));
   }
 
   const listed = countListedVariants(userPrompt);
@@ -74,7 +74,7 @@ export function buildGenerationPlan(
   const panelWantsSeparate = intent.series.unit === "panel" && (separate || noCollage);
 
   if (intent.series.unit === "panel" && !panelWantsSeparate && intent.series.enabled) {
-    return finish("contact_sheet", 1, false, searchNeeded(userPrompt));
+    return finish("contact_sheet", 1, false, searchNeeded(userPrompt, intent));
   }
 
   const seriesFromIntent =
@@ -89,10 +89,10 @@ export function buildGenerationPlan(
       2,
       explicit ?? intentCount ?? (listed >= 2 ? listed : AUTO_SERIES_CAP),
     );
-    return finish("series", desired, true, searchNeeded(userPrompt));
+    return finish("series", desired, true, searchNeeded(userPrompt, intent));
   }
 
-  return finish("single", 1, false, searchNeeded(userPrompt));
+  return finish("single", 1, false, searchNeeded(userPrompt, intent));
 }
 
 export function clampGenerationPlan(plan: GenerationPlan): GenerationPlan {
@@ -169,8 +169,8 @@ function finish(
   });
 }
 
-function searchNeeded(userPrompt: string): boolean {
-  return SEARCH_RE.test(userPrompt);
+function searchNeeded(userPrompt: string, intent: Intent): boolean {
+  return groundingNeeded(userPrompt, { category: intent.category });
 }
 
 const WORD_COUNTS: Record<string, number> = {

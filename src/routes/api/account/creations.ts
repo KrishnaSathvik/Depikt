@@ -11,6 +11,7 @@ const MAX_LIMIT = 60;
 interface CreationRow {
   id: string;
   job_id: string | null;
+  session_id: string;
   storage_path: string;
   width: number;
   height: number;
@@ -18,13 +19,28 @@ interface CreationRow {
   model: "flare" | "sunburst";
   created_at: string;
   parent_version_id: string | null;
-  generation_jobs: { operation: "generate" | "edit" } | { operation: "generate" | "edit" }[] | null;
+  generation_jobs:
+    | {
+        operation: "generate" | "edit";
+        series_index: number | null;
+        series_label: string | null;
+      }
+    | {
+        operation: "generate" | "edit";
+        series_index: number | null;
+        series_label: string | null;
+      }[]
+    | null;
+}
+
+function jobOf(row: CreationRow) {
+  const j = row.generation_jobs;
+  if (!j) return null;
+  return Array.isArray(j) ? (j[0] ?? null) : j;
 }
 
 function operationOf(row: CreationRow): "generate" | "edit" | null {
-  const j = row.generation_jobs;
-  if (!j) return null;
-  return Array.isArray(j) ? (j[0]?.operation ?? null) : j.operation;
+  return jobOf(row)?.operation ?? null;
 }
 
 /**
@@ -62,7 +78,7 @@ export const Route = createFileRoute("/api/account/creations")({
         let query = db
           .from("image_versions")
           .select(
-            "id, job_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation)",
+            "id, job_id, session_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation, series_index, series_label)",
           )
           .order("created_at", { ascending: false })
           .limit(limit + 1);
@@ -89,6 +105,7 @@ export const Route = createFileRoute("/api/account/creations")({
             return {
               id: row.id,
               jobId: row.job_id,
+              sessionId: row.session_id,
               url: signed?.signedUrl ?? null,
               width: row.width,
               height: row.height,
@@ -97,6 +114,8 @@ export const Route = createFileRoute("/api/account/creations")({
               createdAt: row.created_at,
               operation: operationOf(row),
               parentVersionId: row.parent_version_id,
+              seriesIndex: jobOf(row)?.series_index ?? null,
+              seriesLabel: jobOf(row)?.series_label ?? null,
             };
           }),
         );

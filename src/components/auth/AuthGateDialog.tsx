@@ -41,9 +41,7 @@ export function AuthGateDialog({ gen }: { gen: ReturnType<typeof useGeneration> 
           </PromptSurface>
         </div>
       )}
-      <p className="text-body-sm text-[color:var(--text-secondary)]">
-        Sign in or create a free account to continue.
-      </p>
+      <p className="text-body-sm text-[color:var(--text-secondary)]">{AUTH_COPY.continuePromise}</p>
       <p className="mt-1 text-body-sm font-medium text-[color:var(--text-primary)]">
         {AUTH_COPY.starterCreditsLine}
       </p>

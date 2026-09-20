@@ -37,12 +37,14 @@ export function PromptCard({
           e.stopPropagation();
           toggleFavoriteLocal(`${prompt.source}-${prompt.id}`, prompt.source);
         }}
-        className={`absolute top-3 right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full transition-all ${
-          prompt.thumbnail_url ? "bg-black/40 backdrop-blur-sm" : "bg-[color:var(--bg-subtle)]"
+        className={`absolute top-3 right-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
+          prompt.thumbnail_url
+            ? "bg-black/50 text-white"
+            : "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
         } ${
           isFavorited
-            ? "text-[color:var(--accent-orange)] opacity-100"
-            : "text-white opacity-0 group-hover:opacity-100 focus-visible:opacity-100 hover:text-[color:var(--accent-orange)]"
+            ? "text-[color:var(--accent-orange)]"
+            : "hover:text-[color:var(--accent-orange)]"
         }`}
         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
       >

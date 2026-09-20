@@ -1,7 +1,13 @@
-import { Copy, ExternalLink, Sparkles, Wand2 } from "lucide-react";
+import { Copy, ExternalLink, MoreHorizontal, Sparkles, Wand2 } from "lucide-react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { PromptSurface } from "@/components/PromptSurface";
 import { SampleImage } from "@/components/SampleImage";
 import { copyPrompt, openInImago } from "@/lib/library";
@@ -40,6 +46,8 @@ export function PromptDetailDialog({
     void navigate({ to: ROUTES.legacyBuilder });
   };
 
+  const generationLive = isNativeGenerationEnabled();
+
   return (
     <Dialog open={!!prompt} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[92vh] w-[calc(100%-1rem)] max-w-4xl overflow-y-auto bg-[color:var(--bg-elevated)] p-0 sm:max-h-[90vh]">
@@ -70,41 +78,48 @@ export function PromptDetailDialog({
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {isNativeGenerationEnabled() && (
+            {generationLive && (
               <Button size="sm" onClick={handleGenerate}>
                 <Sparkles className="h-3.5 w-3.5" />
-                Generate · 1 credit
+                {CTA.generateWithPrompt}
               </Button>
             )}
-            <Button asChild size="sm" variant={isNativeGenerationEnabled() ? "outline" : "default"}>
-              <Link
-                to="/prompt"
-                search={{ prefill: prompt.user_input || prompt.prompt, remixRef: prompt.prompt }}
-              >
-                <Wand2 className="h-3.5 w-3.5" />
-                {CTA.remix}
-              </Link>
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => openInImago(prompt.prompt)}>
-              Open in Imago
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => copyPrompt(prompt.prompt)}>
+            <Button
+              size="sm"
+              variant={generationLive ? "outline" : "default"}
+              onClick={() => copyPrompt(prompt.prompt)}
+            >
               <Copy className="h-3.5 w-3.5" />
-              Copy
+              {CTA.copyPrompt}
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" aria-label={CTA.more}>
+                  <MoreHorizontal className="h-3.5 w-3.5" />
+                  {CTA.more}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem asChild>
+                  <Link
+                    to="/prompt"
+                    search={{
+                      mode: "build" as const,
+                      prefill: prompt.user_input || prompt.prompt,
+                      remixRef: prompt.prompt,
+                    }}
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    {CTA.remix}
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => openInImago(prompt.prompt)}>
+                  <ExternalLink className="h-3.5 w-3.5" />
+                  {CTA.openImago}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          <p className="mt-2 text-[13px] text-[color:var(--text-tertiary)]">
-            <span className="hidden sm:inline">
-              Opens Imago with your prompt copied. Paste with{" "}
-              <kbd className="px-1 py-0.5 rounded bg-[color:var(--bg-subtle)] border border-[color:var(--border-subtle)] font-mono text-[10px]">
-                ⌘V
-              </kbd>
-            </span>
-            <span className="sm:hidden">
-              Opens Imago with your prompt copied. Long-press the text field and tap Paste.
-            </span>
-          </p>
 
           {prompt.why_it_works && (
             <div className="mt-6 border-t border-[color:var(--border-subtle)] pt-6">
