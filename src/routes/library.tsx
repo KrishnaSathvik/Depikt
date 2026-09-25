@@ -1,60 +1,81 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Search, Star, Wand2 } from "lucide-react";
-
+import { useGalleryReference } from "@/hooks/use-gallery-reference";
+import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { Search, Star, X } from "lucide-react";
 import { z } from "zod";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { zodValidator } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
 import { Pagination } from "@/components/Pagination";
 import { ScrollRow } from "@/components/ScrollRow";
-import { Button } from "@/components/ui/button";
+import { LibraryCard } from "@/components/library/LibraryCard";
+import { TemplatesBrowser } from "@/components/library/TemplatesBrowser";
+import { GalleryBrowser } from "@/components/library/GalleryBrowser";
+import { PromptDetailDialog } from "@/components/library/PromptDetailDialog";
+import { activeTemplates, type Template } from "@/data/templates";
+import { GALLERY_IMAGES } from "@/data/gallery-images";
 import { fetchLibrary } from "@/lib/library";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
-import {
-  CTA,
-  JSONLD_DESCRIPTIONS,
-  JSONLD_NAMES,
-  LIBRARY_COPY,
-  ROUTES,
-  SEO,
-  TOOL,
-} from "@/lib/product";
-import {
-  TARGET_MODEL_LABELS,
-  availableCollections,
-  normalizeTargetModel,
-  shouldShowCollectionFilter,
-  type TargetModel,
-} from "@/lib/target-model";
-
-const LIBRARY_URL = absoluteUrl("/library");
-import type { LibraryPrompt } from "@/types/library";
+import { ROUTES, SEO, TOOL } from "@/lib/product";
 import { useFavoriteIds } from "@/lib/favorites";
-import { PromptCard } from "@/components/library/PromptCard";
-import { PromptDetailDialog } from "@/components/library/PromptDetailDialog";
+import {
+  BROWSE_CATEGORIES,
+  buildBrowseEntries,
+  availableBrowseCategories,
+  filterBrowseEntries,
+  type BrowseEntry,
+  type BrowseType,
+  type BrowseCategory,
+} from "@/lib/library-browse";
+import { saveGenerationHandoff } from "@/lib/generation/handoff";
+import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import type { LibraryPrompt } from "@/types/library";
+import { useOwnedLibrary } from "@/hooks/use-owned-library";
 
 const PAGE_SIZE = 12;
-
-const searchSchema = z.object({
-  page: fallback(z.number().int().min(1), 1).default(1),
-  // Collection filter lives in the URL so the homepage can deep-link to Images 2.5.
-  collection: fallback(z.enum(["all", "gpt-image-2", "gpt-image-2.5"]), "all").default("all"),
+interface LibrarySearch {
+  tab: Exclude<BrowseType, "all">;
+  page: number;
+  q: string;
+  category: BrowseCategory;
+  collection: "all" | "gpt-image-2" | "gpt-image-2.5";
+  favorites: boolean;
+}
+const searchSchema: z.ZodType<LibrarySearch> = z.object({
+  tab: z.enum(["prompts", "templates", "gallery"]).catch("prompts").default("prompts"),
+  page: z.number().int().min(1).catch(1).default(1),
+  q: z.string().max(400).catch("").default(""),
+  category: z.enum(BROWSE_CATEGORIES).catch("All").default("All"),
+  collection: z.enum(["all", "gpt-image-2", "gpt-image-2.5"]).catch("all").default("all"),
+  favorites: z.boolean().catch(false).default(false),
 });
 
 export const Route = createFileRoute("/library")({
   validateSearch: zodValidator(searchSchema),
-  // Load once, then keep the data fresh for 5 minutes. Going back to the
-  // Library is now instant — TanStack Router serves the cached loader data
-  // without re-fetching from Supabase.
+  search: {
+    middlewares: [
+      stripSearchParams({
+        tab: "prompts",
+        page: 1,
+        q: "",
+        category: "All",
+        collection: "all",
+        favorites: false,
+      }),
+    ],
+  },
   loader: async (): Promise<LibraryPrompt[]> => fetchLibrary(),
   staleTime: 5 * 60 * 1000,
   gcTime: 30 * 60 * 1000,
-  head: () => {
-    const { meta, links } = pageSeoHead(SEO.library, {
-      url: LIBRARY_URL,
-      image: getOgImageForPath("library"),
+  head: ({ match }) => {
+    const tab: LibrarySearch["tab"] = match.search.tab;
+    const page =
+      tab === "templates" ? SEO.templates : tab === "gallery" ? SEO.gallery : SEO.library;
+    const url = tab === "prompts" ? absoluteUrl("/library") : absoluteUrl(`/library?tab=${tab}`);
+    const { meta, links } = pageSeoHead(page, {
+      url,
+      image: getOgImageForPath(tab === "templates" || tab === "gallery" ? tab : "library"),
     });
     return {
       meta,
@@ -65,271 +86,235 @@ export const Route = createFileRoute("/library")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "CollectionPage",
-            name: JSONLD_NAMES.library,
-            url: LIBRARY_URL,
-            description: JSONLD_DESCRIPTIONS.library,
+            name: "Depikt Library",
+            url,
+            description: page.description,
           }),
         },
       ],
     };
   },
-  component: HomePage,
+  component: LibraryPage,
 });
 
-const CATEGORIES = [
-  "All",
-  "Posters",
-  "Infographics",
-  "UI Mockups",
-  "Social Posts",
-  "Cinematic",
-  "Storyboards",
-  "Interior/Food/Fashion",
-  "Visual Summaries",
-  "Image Edits",
-  "Open-Ended Creative",
-] as const;
-
-type CategoryFilter = (typeof CATEGORIES)[number];
-
-function HomePage() {
-  // Loader-provided data — always populated, never blocks paint after first load.
-  const prompts = Route.useLoaderData();
-  const { page, collection } = Route.useSearch();
-  const navigate = useNavigate({ from: "/library" });
-  const [activeCategory, setActiveCategory] = useState<CategoryFilter>("All");
-  // Collection (target model) filter. Rendered only once more than one
-  // collection actually has prompts, so there is never an empty Images 2.5 tab.
-  const collections = useMemo(() => availableCollections(prompts), [prompts]);
-  const showCollections = shouldShowCollectionFilter(prompts);
-  // A collection that has no rows falls back to "all" so the URL can never show an empty list.
-  const activeCollection: TargetModel | "all" =
-    showCollections && collections.some((c) => c.value === collection) ? collection : "all";
-  const setActiveCollection = (c: TargetModel | "all") =>
-    navigate({ search: { page: 1, collection: c } });
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [selected, setSelected] = useState<LibraryPrompt | null>(null);
-
-  // Favoriting a prompt from here still works (the star on each card); the
-  // saved list itself lives at the public /favorites page, linked from the
-  // header just below (also used for the count badge there).
-  const favoriteIds = useFavoriteIds();
-
-  // Reset to page 1 whenever the filter set changes.
-  const setCategory = (c: CategoryFilter) => {
-    setActiveCategory(c);
-    if (page !== 1) navigate({ search: { page: 1, collection } });
-  };
-  const setSearchInput = (v: string) => {
-    setSearch(v);
-    if (page !== 1) navigate({ search: { page: 1, collection } });
-  };
-
-  // Debounce search 150ms to smooth keystrokes on slower devices.
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 150);
-    return () => clearTimeout(t);
-  }, [search]);
-
-  const filtered = useMemo(() => {
-    let list: LibraryPrompt[] = prompts;
-
-    if (activeCategory !== "All") {
-      list = list.filter((p) => p.category === activeCategory);
-    }
-    if (showCollections && activeCollection !== "all") {
-      list = list.filter((p) => normalizeTargetModel(p.target_model) === activeCollection);
-    }
-    if (debouncedSearch.trim()) {
-      const q = debouncedSearch.toLowerCase();
-      list = list.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.prompt.toLowerCase().includes(q) ||
-          (p.user_input ?? "").toLowerCase().includes(q) ||
-          (p.tags ?? []).some((t: string) => t.toLowerCase().includes(q)),
-      );
-    }
-    return list;
-  }, [prompts, activeCategory, activeCollection, showCollections, debouncedSearch]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const safePage = Math.min(page, totalPages);
-  const pageItems = useMemo(
-    () => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
-    [filtered, safePage],
+function LibraryPage() {
+  const publicPrompts = Route.useLoaderData();
+  const owned = useOwnedLibrary();
+  const prompts = useMemo(
+    () => [...new Map([...publicPrompts, ...owned.prompts].map((p) => [p.id, p])).values()],
+    [publicPrompts, owned.prompts],
   );
-
-  const goToPage = (p: number) => {
-    const next = Math.max(1, Math.min(totalPages, p));
-    navigate({ search: { page: next, collection } });
-    if (typeof window !== "undefined") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+  const search = searchSchema.parse(Route.useSearch());
+  const navigate = useNavigate({ from: "/library" });
+  const [selectedPrompt, setSelectedPrompt] = useState<LibraryPrompt | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [selectedReference, setSelectedReference] = useState<string | null>(null);
+  const [trigger, setTrigger] = useState<HTMLElement | null>(null);
+  const favoriteIds = useFavoriteIds();
+  const { attach, attaching } = useGalleryReference();
+  const entries = useMemo(
+    () => buildBrowseEntries(prompts, activeTemplates, GALLERY_IMAGES),
+    [prompts],
+  );
+  const categories = useMemo(
+    () => availableBrowseCategories(entries, search.tab),
+    [entries, search.tab],
+  );
+  const activeCategory = categories.includes(search.category) ? search.category : "All";
+  const filtered = filterBrowseEntries(
+    entries,
+    { ...search, category: activeCategory },
+    favoriteIds,
+  );
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(search.page, totalPages);
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const update = (patch: Partial<LibrarySearch>, replace = false) =>
+    void navigate({
+      search: { ...search, category: activeCategory, page: 1, ...patch },
+      replace,
+      resetScroll: false,
+    });
+  const open = (entry: BrowseEntry) => {
+    setTrigger(document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    if (entry.type === "prompts") setSelectedPrompt(entry.prompt);
+    else if (entry.type === "templates") setSelectedTemplate(entry.template);
+    else setSelectedReference(entry.filename);
   };
+  const handleUseEntry = (entry: BrowseEntry) => {
+    if (entry.type === "gallery") {
+      void attach(entry.filename);
+      return;
+    }
+    if (entry.type !== "prompts") {
+      open(entry);
+      return;
+    }
+    if (!isNativeGenerationEnabled()) {
+      void navigate({
+        to: "/",
+        search: { mode: "build", prefill: entry.prompt.prompt },
+        hash: "create",
+      });
+      return;
+    }
+    saveGenerationHandoff({
+      prompt: entry.prompt.prompt,
+      references: [],
+      sourceType: "library",
+      sourceId: entry.prompt.id,
+      routingHints: { category: entry.prompt.category },
+    });
+    void navigate({ to: ROUTES.legacyBuilder });
+  };
+  const activeFilters =
+    search.category !== "All" || search.collection !== "all" || search.favorites || !!search.q;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+    <div className="min-h-screen bg-[color:var(--bg)]">
       <Header />
-
-      {/*
-        Hero zone — three tight blocks (headline → search → filters) so the
-        grid starts above the fold on a 768px viewport. Headline is dominant,
-        subline is supporting, Imago is a feature mention, not a pitch.
-      */}
-      <section className="border-b border-[color:var(--border-subtle)]">
-        <div className="mx-auto max-w-[1400px] px-4 pt-6 pb-3 sm:px-6 md:pt-8 md:pb-4 lg:px-12">
-          <div className="flex items-center justify-between gap-4">
-            <p className="eyebrow">{TOOL.library}</p>
-            {/* Favoriting happens right on this page's cards, so the link
-                to view the saved list lives here too -- not buried in the
-                footer or an auth-gated tab. Local (Dexie), no sign-in
-                needed; see src/routes/favorites.tsx. */}
-            <Link
-              to={ROUTES.favorites}
-              className="inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
-            >
-              <Star className="h-3.5 w-3.5" />
-              Favorites{favoriteIds.size > 0 ? ` (${favoriteIds.size})` : ""}
-            </Link>
-          </div>
-          <h1 className="mt-3 max-w-[22ch] text-heading-xl md:text-display-md text-[color:var(--text-primary)]">
-            {LIBRARY_COPY.headline}
-          </h1>
-          <p className="mt-2 max-w-[60ch] text-body-md text-[color:var(--text-secondary)]">
-            {LIBRARY_COPY.subline}
-          </p>
-
-          {/* Search */}
-          <div className="relative mt-4 max-w-2xl md:mt-7">
-            <Search className="pointer-events-none absolute left-0 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by mood, subject, or style…"
-              aria-label="Search prompts"
-              className="w-full border-0 border-b border-[color:var(--border-default)] bg-transparent py-3 pl-7 pr-4 text-body-lg text-[color:var(--text-primary)] placeholder:text-[color:var(--text-quaternary)] focus:border-[color:var(--text-primary)] focus:outline-none focus-visible:outline-none rounded-none"
-            />
-          </div>
+      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-12">
+        <p className="eyebrow">{TOOL.library}</p>
+        <h1 className="mt-2 text-heading-xl sm:text-display-md">Find a starting point.</h1>
+        <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">
+          Prompts, templates, and references for your next creation.
+        </p>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <nav aria-label="Library sections" className="flex gap-1.5">
+            {(["prompts", "templates", "gallery"] as const).map((tab) => (
+              <Link
+                key={tab}
+                to="/library"
+                search={{
+                  ...search,
+                  tab,
+                  category: "All",
+                  collection: tab === "prompts" ? search.collection : "all",
+                  page: 1,
+                }}
+                resetScroll={false}
+                aria-current={search.tab === tab ? "page" : undefined}
+                className={`pill ${search.tab === tab ? "pill-solid" : ""}`}
+              >
+                {tab[0].toUpperCase() + tab.slice(1)}
+              </Link>
+            ))}
+          </nav>
+          <button
+            type="button"
+            onClick={() => update({ favorites: !search.favorites })}
+            aria-pressed={search.favorites}
+            className={`pill inline-flex gap-1.5 ${search.favorites ? "pill-solid" : ""}`}
+          >
+            <Star className={`h-3.5 w-3.5 ${search.favorites ? "fill-current" : ""}`} />
+            Favorites{favoriteIds.size > 0 ? ` (${favoriteIds.size})` : ""}
+          </button>
         </div>
-
-        {/* Collection chips — only once a second collection exists.
-            ScrollRow adds a chevron so overflow is obvious on mobile. */}
-        {showCollections && (
-          <div className="mx-auto max-w-[1400px] px-4 pb-2 sm:px-6 lg:px-12">
+        <div className="relative mt-4">
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
+          <input
+            type="search"
+            maxLength={400}
+            value={search.q}
+            onChange={(e) => update({ q: e.target.value }, true)}
+            aria-label={`Search ${search.tab === "gallery" ? "references" : search.tab}`}
+            placeholder={`Search ${search.tab === "gallery" ? "references" : search.tab}...`}
+            className="h-11 w-full rounded-lg border border-[color:var(--border-default)] bg-[color:var(--bg)] pl-11 pr-4 text-body-md focus-visible:outline-offset-2"
+          />
+        </div>
+        {owned.error && (
+          <p role="status" className="mt-3 text-body-sm">
+            Your saved prompts could not be loaded. Public Library content is still available.
+          </p>
+        )}
+        {categories.length > 1 && (
+          <div className="mt-3 flex items-center gap-3 border-b border-[color:var(--border-subtle)] pb-3">
             <ScrollRow
-              ariaLabel="Collection"
-              activeKey={activeCollection}
-              innerClassName="gap-2 pb-1"
+              ariaLabel="Categories"
+              activeKey={activeCategory}
+              className="min-w-0 flex-1"
+              innerClassName="gap-1.5"
             >
-              {collections
-                .filter((c) => c.value !== "all")
-                .map((c) => {
-                  const active = activeCollection === c.value;
-                  return (
-                    <button
-                      key={c.value}
-                      type="button"
-                      onClick={() => setActiveCollection(active ? "all" : c.value)}
-                      aria-pressed={active}
-                      data-active={active ? "true" : undefined}
-                      className={`pill shrink-0 snap-start ${
-                        active
-                          ? "pill-solid"
-                          : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                      }`}
-                    >
-                      {c.label} · {c.count}
-                    </button>
-                  );
-                })}
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => update({ category })}
+                  aria-pressed={activeCategory === category}
+                  className={`shrink-0 rounded-md px-3 py-2 text-body-sm ${activeCategory === category ? "bg-[color:var(--bg-subtle)] font-medium" : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"}`}
+                >
+                  {category}
+                </button>
+              ))}
             </ScrollRow>
           </div>
         )}
-
-        {/* Category chips */}
-        <div className="mx-auto max-w-[1400px] px-4 pb-4 sm:px-6 md:pb-6 lg:px-12">
-          <ScrollRow ariaLabel="Category" activeKey={activeCategory} innerClassName="gap-2 pb-1">
-            {CATEGORIES.map((c) => {
-              const active = activeCategory === c;
-              return (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => setCategory(c)}
-                  aria-pressed={active}
-                  data-active={active ? "true" : undefined}
-                  className={`pill shrink-0 snap-start ${
-                    active
-                      ? "pill-solid"
-                      : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
-                  }`}
-                >
-                  {c}
-                </button>
-              );
-            })}
-          </ScrollRow>
-        </div>
-      </section>
-
-      {/* Content */}
-      <section className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 md:py-8 lg:px-12">
-        {/* Grid header */}
-        <div className="mb-4 flex items-center justify-between gap-4 md:mb-6">
-          <p className="text-[13px] text-[color:var(--text-tertiary)]">
-            {filtered.length} prompts · thumbnails are sample outputs
-            {activeCollection !== "all" && ` from ${TARGET_MODEL_LABELS[activeCollection]}`}
+        <div className="my-4 flex min-h-6 items-center justify-between gap-3 text-body-sm text-[color:var(--text-tertiary)]">
+          <p aria-live="polite">
+            {filtered.length} {filtered.length === 1 ? "starting point" : "starting points"}
+            {search.collection !== "all"
+              ? ` · ${search.collection === "gpt-image-2" ? "GPT Image 2" : "Images 2.5"}`
+              : ""}
           </p>
-          <Button asChild size="sm" className="shrink-0">
-            <Link to={ROUTES.legacyBuilder}>
-              <Wand2 className="h-3.5 w-3.5" />
-              {CTA.generateImage}
-            </Link>
-          </Button>
+          {activeFilters && (
+            <button
+              type="button"
+              onClick={() =>
+                update({ q: "", category: "All", collection: "all", favorites: false })
+              }
+              className="inline-flex items-center gap-1 hover:text-[color:var(--text-primary)]"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear filters
+            </button>
+          )}
         </div>
-
-        {filtered.length === 0 ? (
-          <div className="py-20 text-center">
-            <p className="text-body-md text-[color:var(--text-tertiary)]">
-              No prompts match those filters.
-            </p>
-            {(activeCategory !== "All" || search) && (
-              <button
-                onClick={() => {
-                  setActiveCategory("All");
-                  setSearch("");
-                  if (page !== 1) navigate({ search: { page: 1, collection } });
-                }}
-                className="mt-4 text-body-sm font-medium text-[color:var(--text-primary)] underline underline-offset-4"
-              >
-                Clear filters
-              </button>
-            )}
+        {pageItems.length ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {pageItems.map((entry) => (
+              <LibraryCard
+                key={entry.key}
+                entry={entry}
+                busy={entry.type === "gallery" && attaching}
+                isFavorited={favoriteIds.has(entry.key)}
+                onOpen={() => open(entry)}
+                onUse={() => handleUseEntry(entry)}
+              />
+            ))}
           </div>
         ) : (
-          <>
-            <div className="grid grid-cols-1 gap-px border border-[color:var(--border-subtle)] bg-[color:var(--border-subtle)] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {pageItems.map((p: LibraryPrompt) => (
-                <PromptCard
-                  key={`${p.source}-${p.id}`}
-                  prompt={p}
-                  onOpen={() => setSelected(p)}
-                  isFavorited={favoriteIds.has(`${p.source}-${p.id}`)}
-                />
-              ))}
-            </div>
-
-            {totalPages > 1 && (
-              <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={goToPage} />
-            )}
-          </>
+          <div className="py-16 text-center">
+            <p className="text-body-md">
+              {search.favorites
+                ? "No favorites match this view."
+                : "No starting points match your search."}
+            </p>
+            <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
+              Try another content type or clear your filters.
+            </p>
+          </div>
         )}
-      </section>
-
-      <PromptDetailDialog prompt={selected} onClose={() => setSelected(null)} />
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPageChange={(page) => {
+              update({ page });
+              document.querySelector("main")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          />
+        )}
+      </main>
+      <PromptDetailDialog
+        prompt={prompts.find((p) => p.id === selectedPrompt?.id) ?? null}
+        onClose={() => setSelectedPrompt(null)}
+      />
+      <TemplatesBrowser
+        selected={selectedTemplate}
+        onClose={() => setSelectedTemplate(null)}
+        trigger={trigger}
+      />
+      <GalleryBrowser selected={selectedReference} onClose={() => setSelectedReference(null)} />
     </div>
   );
 }

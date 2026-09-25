@@ -79,7 +79,9 @@ export function ComposerChips({
   chips,
   onSelect,
   className,
+  compact = false,
 }: {
+  compact?: boolean;
   label?: string;
   chips: ReadonlyArray<ComposerExample>;
   onSelect: (text: string) => void;
@@ -95,8 +97,9 @@ export function ComposerChips({
             type="button"
             onClick={() => onSelect(chip.text)}
             className={cn(
-              "group shrink-0 snap-start w-[min(220px,72vw)] rounded-md border border-[color:var(--border-default)]",
-              "bg-[color:var(--bg)] px-3.5 py-3 text-left transition-colors",
+              "group shrink-0 snap-start rounded-md border border-[color:var(--border-default)]",
+              compact ? "px-3 py-2" : "w-[min(220px,72vw)] px-3.5 py-3",
+              "bg-[color:var(--bg)] text-left transition-colors",
               "hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2",
             )}
@@ -104,9 +107,11 @@ export function ComposerChips({
             <span className="block text-body-sm font-medium text-[color:var(--text-primary)]">
               {chip.label}
             </span>
-            <span className="mt-1 block line-clamp-2 text-[12px] leading-snug text-[color:var(--text-tertiary)]">
-              {chip.hint}
-            </span>
+            {!compact && (
+              <span className="mt-1 block line-clamp-2 text-[12px] leading-snug text-[color:var(--text-tertiary)]">
+                {chip.hint}
+              </span>
+            )}
           </button>
         ))}
       </ScrollRow>

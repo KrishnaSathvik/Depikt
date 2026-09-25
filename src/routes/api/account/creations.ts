@@ -80,6 +80,7 @@ export const Route = createFileRoute("/api/account/creations")({
           .select(
             "id, job_id, session_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation, series_index, series_label)",
           )
+          .eq("user_id", authResult.auth.userId)
           .order("created_at", { ascending: false })
           .limit(limit + 1);
 
@@ -126,7 +127,11 @@ export const Route = createFileRoute("/api/account/creations")({
         };
         return new Response(JSON.stringify(body), {
           status: 200,
-          headers: { "Content-Type": "application/json", ...corsHeaders },
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": "private, no-store",
+            ...corsHeaders,
+          },
         });
       },
     },

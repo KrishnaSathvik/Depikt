@@ -18,11 +18,8 @@ test("Build's Generate image handler does not navigate or save a cross-page hand
   const b = read("src/components/prompt/BuildMode.tsx");
   assert.equal(/saveGenerationHandoff/.test(b), false);
   assert.equal(/navigate\(\{ to: "\/generate" \}\)/.test(b), false);
-  assert.match(b, /const gen = useGeneration\(\{ sourceContext: \{ type: "prompt_build" \} \}\)/);
-  const handler = b.slice(
-    b.indexOf("const handleGenerateImage"),
-    b.indexOf("const [input, setInput]"),
-  );
+  assert.match(b, /sourceContext: \{ type: "prompt_build" \}/);
+  const handler = b.slice(b.indexOf("const handleGenerateImage"), b.indexOf("const [templateCtx"));
   assert.match(handler, /await gen\.submit\(\{/);
 });
 
@@ -30,14 +27,8 @@ test("Critique's Generate rewrite handler does not navigate or save a cross-page
   const c = read("src/components/prompt/CritiqueMode.tsx");
   assert.equal(/saveGenerationHandoff/.test(c), false);
   assert.equal(/navigate\(\{ to: "\/generate" \}\)/.test(c), false);
-  assert.match(
-    c,
-    /const gen = useGeneration\(\{ sourceContext: \{ type: "prompt_critique" \} \}\)/,
-  );
-  const handler = c.slice(
-    c.indexOf("const handleGenerateRewrite"),
-    c.indexOf("const [input, setInput]"),
-  );
+  assert.match(c, /sourceContext: \{ type: "prompt_critique" \}/);
+  const handler = c.slice(c.indexOf("const handleGenerateRewrite"), c.indexOf("const [loading"));
   assert.match(handler, /await gen\.submit\(\{/);
 });
 

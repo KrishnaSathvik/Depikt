@@ -1,3 +1,5 @@
+import { useCreatorDraft } from "@/components/CreatorDraft";
+import { ReferencePackPicker } from "@/components/generate/ReferencePackPicker";
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
@@ -33,23 +35,14 @@ import {
 import { readSSEStream } from "@/lib/sse";
 import { urlToProcessedImage } from "@/lib/image-utils";
 import { trackEvent } from "@/lib/analytics";
-import {
-  CTA,
-  IMAGO_URL,
-  PROMPT_MODE_COPY,
-  needsReferenceReattach,
-} from "@/lib/product";
-import { ModeHero } from "@/components/prompt/ModeHero";
-import { CollapsedInput } from "@/components/prompt/CollapsedInput";
+import { CTA, IMAGO_URL, PROMPT_MODE_COPY, needsReferenceReattach } from "@/lib/product";
 import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
 import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
 import { ImagoPasteHint } from "@/components/ImagoPasteHint";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
-import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
-import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import type { Intent } from "@/lib/prompt-engine/intent";
 import { TemplateBrief } from "@/components/prompt/TemplateBrief";
@@ -76,6 +69,8 @@ export interface BuildModeProps {
   clearTemplate: () => void;
   /** False while the workspace is showing the other mode (kept mounted for drafts). */
   active: boolean;
+  onUsePrompt?: (text: string) => void;
+  onCritiquePrompt?: (text: string) => void;
 }
 
 export interface BuildSearch {
@@ -105,13 +100,26 @@ interface PromptResult {
   intent?: Record<string, unknown>;
 }
 
-export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildModeProps) {
-  const navigate = useNavigate();
+export function BuildMode({
+  search,
+  clearSearch,
+  clearTemplate,
+  active,
+  onUsePrompt,
+  onCritiquePrompt,
+}: BuildModeProps) {
   const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
   // One shared generation execution path — see docs/plans/2026-09-10-inline-
   // generation-workspace.md. "Generate image" starts the job inline, right
-  // here on /prompt; it never navigates to /generate.
-  const gen = useGeneration({ sourceContext: { type: "prompt_build" } });
+  // here on Home through the shared generation owner.
+  const {
+    prompt: input,
+    setPrompt: setInput,
+    gen,
+    selectedEntities,
+    setSelectedEntities,
+    getToolReference,
+  } = useCreatorDraft();
   /** Prompt text last submitted to inline generation (may be a variation). */
   const [activeGenPrompt, setActiveGenPrompt] = useState<string | null>(null);
   const handleGenerateImage = async (
@@ -127,10 +135,13 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     const intent = result.intent as Record<string, unknown> | undefined;
     const exactText = intent?.exact_text;
     setActiveGenPrompt(promptText);
+    onUsePrompt?.(promptText);
     if (reference?.dataUrl && gen.references.length === 0) {
       await gen.addReferenceFromDataUrl(reference.dataUrl);
     }
     await gen.submit({
+      entityIds: selectedEntities.map((entity) => entity.id),
+      sourceContext: { type: "prompt_build" },
       prompt: promptText,
       // The writer's own output (`promptText`) is what actually gets
       // rendered on a single/edit plan; series decomposition must use the
@@ -147,7 +158,6 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
       },
     });
   };
-  const [input, setInput] = useState("");
   // Structured template context from /templates. It is intent the engine
   // receives as user input; it never replaces the Builder pipeline.
   const [templateCtx, setTemplateCtx] = useState<TemplateContext | null>(null);
@@ -157,9 +167,9 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
   const [streaming, setStreaming] = useState(false);
   const [result, setResult] = useState<PromptResult | null>(null);
   const [savedRoughIdea, setSavedRoughIdea] = useState("");
-  const [inputCollapsed, setInputCollapsed] = useState(false);
   // Reference image state (processed data URL + how it should be used)
-  const [reference, setReference] = useState<ReferenceImageState | null>(null);
+  const reference = gen.references[0]?.local ?? null;
+  const setReference = gen.setPrimaryReference;
   const [imageLoading, setImageLoading] = useState(false);
   // Intent reported by the analyzer stage while streaming (dev/debug + history)
   const [liveIntent, setLiveIntent] = useState<Record<string, unknown> | null>(null);
@@ -197,7 +207,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
       return;
     }
     setTemplateCtx({ template, values: loadTemplateValues(template.slug) });
-    setInputCollapsed(false);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [templateSlug]);
 
@@ -225,7 +235,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         setInput(entry.roughIdea);
         setSavedRoughIdea(entry.roughIdea);
         setResult(entry.result as PromptResult);
-        setInputCollapsed(true);
+
         if (entry.referenceImage) {
           setReference({
             dataUrl: entry.referenceImage,
@@ -270,7 +280,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     if (seed) {
       setInput(seed);
       setSavedRoughIdea(seed);
-      setInputCollapsed(true);
+
       // Strip the seed param first, then generate — avoids mid-stream re-render
       clearSearch();
       // Defer generate to next tick so the navigation settles before streaming starts
@@ -298,12 +308,13 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     setMoreVariants(null);
 
     try {
+      const toolReference = await getToolReference();
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         body: JSON.stringify({
           userInput: seedInput,
-          referenceImageUrl: undefined,
+          referenceImageUrl: toolReference?.dataUrl || undefined,
           category: "auto",
           mode: "default",
         }),
@@ -373,17 +384,18 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     setStreaming(false);
     setResult(null);
     setMoreVariants(null);
-    setInputCollapsed(false);
+
     setSavedRoughIdea(userInput);
 
     try {
+      const toolReference = await getToolReference();
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         body: JSON.stringify({
           userInput,
-          referenceImageUrl: reference?.dataUrl || undefined,
-          referenceIntent: reference?.intent || undefined,
+          referenceImageUrl: toolReference?.dataUrl || undefined,
+          referenceIntent: toolReference?.intent || undefined,
           remixRef: remixReference || undefined,
           category: "auto",
           mode: "default",
@@ -415,7 +427,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
       if (finalResult) {
         setResult(finalResult);
         setStreaming(false);
-        setInputCollapsed(true);
+
         addHistoryEntry({
           kind: "generate",
           roughIdea: userInput,
@@ -439,13 +451,14 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     if (!savedRoughIdea) return;
     setMoreLoading(true);
     try {
+      const toolReference = await getToolReference();
       const res = await fetch(getEndpoint("/api/public/generate-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         body: JSON.stringify({
           userInput: savedRoughIdea,
-          referenceImageUrl: reference?.dataUrl || undefined,
-          referenceIntent: reference?.intent || undefined,
+          referenceImageUrl: toolReference?.dataUrl || undefined,
+          referenceIntent: toolReference?.intent || undefined,
           category: "auto",
           mode: "BATCH",
         }),
@@ -493,7 +506,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
     setReference(null);
     setLiveIntent(null);
     setRemixReference(null);
-    setInputCollapsed(false);
+
     setTimeout(() => {
       textareaRef.current?.focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -509,145 +522,146 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
 
   return (
     <div>
-      <AuthGateDialog gen={gen} />
       <div>
         {/* INPUT */}
-        {inputCollapsed && savedRoughIdea ? (
-          <CollapsedInput
-            label="Idea"
-            text={savedRoughIdea}
-            onExpand={() => {
-              setInputCollapsed(false);
-              setInput(savedRoughIdea);
-              setTimeout(() => textareaRef.current?.focus(), 0);
-            }}
-          />
-        ) : (
-          <div>
-            <ModeHero
-              title={PROMPT_MODE_COPY.build.title}
-              body={
+
+        <div>
+          {templateCtx && (
+            <div className="mt-8">
+              <TemplateBrief
+                template={templateCtx.template}
+                values={templateCtx.values}
+                onEdit={(from) => {
+                  setEditTrigger(from);
+                  setEditingTemplate(true);
+                }}
+                onRemove={removeTemplate}
+              />
+            </div>
+          )}
+
+          <div className={templateCtx ? "mt-4" : "mt-0"}>
+            <label
+              htmlFor="rough-idea"
+              className={
                 templateCtx
-                  ? PROMPT_MODE_COPY.build.bodyTemplate
-                  : PROMPT_MODE_COPY.build.body
+                  ? "mb-2 block text-body-sm font-medium text-[color:var(--text-secondary)]"
+                  : "sr-only"
               }
-            />
-
-            {templateCtx && (
-              <div className="mt-8">
-                <TemplateBrief
-                  template={templateCtx.template}
-                  values={templateCtx.values}
-                  onEdit={(from) => {
-                    setEditTrigger(from);
-                    setEditingTemplate(true);
-                  }}
-                  onRemove={removeTemplate}
-                />
-              </div>
-            )}
-
-            <div className={templateCtx ? "mt-6" : "mt-8"}>
-              <label
-                htmlFor="rough-idea"
+            >
+              {templateCtx ? "Anything else?" : "Describe what you want to make"}
+            </label>
+            <CreationComposer
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) handleImageFile(file);
+              }}
+              referencesSlot={
+                imageLoading ? (
+                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Processing image…
+                  </div>
+                ) : (
+                  <>
+                    <ReferenceImagePicker
+                      addLabel="+ Reference"
+                      value={reference}
+                      onChange={setReference}
+                    />
+                    {isNativeGenerationEnabled() && (
+                      <ReferencePackPicker
+                        selected={selectedEntities}
+                        onChange={setSelectedEntities}
+                        prompt={input}
+                        adhocCount={gen.references.length}
+                      />
+                    )}
+                    {gen.references.length > 1 && (
+                      <span className="text-body-sm text-[color:var(--text-tertiary)]">
+                        Prompt tools use the first image. All {gen.references.length} references
+                        stay attached for generation.
+                      </span>
+                    )}
+                  </>
+                )
+              }
+              caption={
+                <span className="hidden sm:inline">
+                  or press{" "}
+                  <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                  </kbd>
+                </span>
+              }
+              submit={
+                <Button
+                  onClick={() => generate()}
+                  disabled={loading || streaming}
+                  className="gap-2"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {CTA.building}
+                    </>
+                  ) : streaming ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Writing…
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="h-4 w-4" />
+                      {CTA.build}
+                    </>
+                  )}
+                </Button>
+              }
+            >
+              <Textarea
+                id="rough-idea"
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onPaste={(e) => {
+                  const file = e.clipboardData.files?.[0];
+                  if (file && file.type.startsWith("image/")) {
+                    e.preventDefault();
+                    handleImageFile(file);
+                  }
+                }}
+                placeholder={
+                  templateCtx
+                    ? "Add any extra direction, details, or constraints..."
+                    : "Describe the image you want to create..."
+                }
                 className={
                   templateCtx
-                    ? "mb-2 block text-body-sm font-medium text-[color:var(--text-secondary)]"
-                    : "sr-only"
+                    ? `${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`
+                    : `${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`
                 }
-              >
-                {templateCtx ? "Anything else?" : "Describe what you want to make"}
-              </label>
-              <CreationComposer
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) handleImageFile(file);
-                }}
-                referencesSlot={
-                  imageLoading ? (
-                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Processing image…
-                    </div>
-                  ) : (
-                    <ReferenceImagePicker value={reference} onChange={setReference} />
-                  )
-                }
-                caption={
-                  <span className="hidden sm:inline">
-                    or press{" "}
-                    <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
-                      {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                    </kbd>
-                  </span>
-                }
-                submit={
-                  <Button
-                    onClick={() => generate()}
-                    disabled={loading || streaming}
-                    className="gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        {CTA.building}
-                      </>
-                    ) : streaming ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Writing…
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 className="h-4 w-4" />
-                        {CTA.build}
-                      </>
-                    )}
-                  </Button>
-                }
-              >
-                <Textarea
-                  id="rough-idea"
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onPaste={(e) => {
-                    const file = e.clipboardData.files?.[0];
-                    if (file && file.type.startsWith("image/")) {
-                      e.preventDefault();
-                      handleImageFile(file);
-                    }
-                  }}
-                  placeholder={
-                    templateCtx
-                      ? "Add any extra direction, details, or constraints..."
-                      : "Describe the image you want to create..."
-                  }
-                  className={
-                    templateCtx
-                      ? `${COMPOSER_TEXTAREA_CLASS} !min-h-[140px]`
-                      : COMPOSER_TEXTAREA_CLASS
-                  }
-                />
-              </CreationComposer>
+              />
+            </CreationComposer>
 
-              {!templateCtx && (
-                <ComposerChips
-                  chips={BUILD_EXAMPLES}
-                  onSelect={handleChipClick}
-                  className="mt-4"
-                />
-              )}
-            </div>
+            {!templateCtx && (
+              <ComposerChips
+                compact
+                label="Try an example"
+                chips={BUILD_EXAMPLES}
+                onSelect={handleChipClick}
+                className="mt-4"
+              />
+            )}
           </div>
-        )}
+        </div>
 
         {templateCtx && (
           <TemplateSetup
@@ -665,6 +679,15 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
         {showOutput && (
           <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
             {loading && !result && <PromptLoadingState variant="build" intent={liveIntent} />}
+            {result?.prompt && !streaming && (
+              <Button
+                variant="outline"
+                className="mb-4"
+                onClick={() => onUsePrompt?.(result.prompt!)}
+              >
+                Replace my prompt
+              </Button>
+            )}
             {result && (
               <ResultView
                 result={result}
@@ -684,15 +707,7 @@ export function BuildMode({ search, clearSearch, clearTemplate, active }: BuildM
                     ? (promptText) => void handleGenerateImage(promptText, result, reference)
                     : undefined
                 }
-                onCritique={(promptText) => {
-                  navigate({
-                    to: "/prompt",
-                    search: {
-                      mode: "critique",
-                      prefill: promptText.slice(0, 4000),
-                    },
-                  });
-                }}
+                onCritique={(promptText) => onCritiquePrompt?.(promptText)}
               />
             )}
             {(activeGenPrompt || result?.prompt) && isNativeGenerationEnabled() && (
@@ -772,12 +787,7 @@ function CodeBlock({ text, jsonView, streaming = false, label = "Your prompt" }:
 
   const toggle =
     !streaming && jsonView ? (
-      <PromptViewToggle
-        value={view}
-        onChange={setView}
-        ariaLabel="Prompt view"
-        textLabel="Text"
-      />
+      <PromptViewToggle value={view} onChange={setView} ariaLabel="Prompt view" textLabel="Text" />
     ) : undefined;
 
   return (
@@ -1008,6 +1018,7 @@ function ActionRow({
   onCritique?: (promptText: string) => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [openedImago, setOpenedImago] = useState(false);
   const handleOpenInImago = async () => {
     if (!promptText) return;
     try {
@@ -1015,6 +1026,7 @@ function ActionRow({
     } catch {
       toast.error("Couldn't copy automatically — copy manually before pasting");
     }
+    setOpenedImago(true);
     window.open(IMAGO_URL, "_blank", "noopener,noreferrer");
   };
   const handleCopy = async () => {
@@ -1079,7 +1091,7 @@ function ActionRow({
         )}
       </div>
       {promptText && referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
-      {promptText && <ImagoPasteHint />}
+      {promptText && openedImago && <ImagoPasteHint />}
     </div>
   );
 }

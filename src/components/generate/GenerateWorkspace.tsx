@@ -1,7 +1,6 @@
-import { Link } from "@tanstack/react-router";
+import { useCreatorDraft } from "@/components/CreatorDraft";
 import { ReferencePackPicker } from "./ReferencePackPicker";
-import type { ReferenceEntity } from "@/lib/generation/entities";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,11 +15,7 @@ import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { consumeGenerationHandoff } from "@/lib/generation/handoff";
 import { MAX_REFERENCE_IMAGES_V1 } from "@/lib/generation/models";
-import {
-  useGeneration,
-  simplifyRatioLabel,
-  type ReferenceEntry,
-} from "@/lib/generation/use-generation";
+import { simplifyRatioLabel, type ReferenceEntry } from "@/lib/generation/use-generation";
 import type { RoutingHints } from "@/lib/generation/model-router";
 import type { SourceContextType } from "@/lib/generation/job-request";
 import type { SessionVersion } from "@/lib/generation/client";
@@ -30,10 +25,9 @@ import { GenerationEditForm } from "@/components/generate/GenerationEditForm";
 import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
 import { SeriesJobsGrid } from "@/components/generate/SeriesJobsGrid";
 import { trackEvent } from "@/lib/analytics";
-import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 import { ModeHero } from "@/components/prompt/ModeHero";
-import { CTA, PROMPT_MODE_COPY, REFERENCES_COPY, RESULT_STATUS, TOOL } from "@/lib/product";
+import { PROMPT_MODE_COPY, REFERENCES_COPY, RESULT_STATUS } from "@/lib/product";
 import { resultStatusLines, versionLineageLabel } from "@/lib/generation/result-status";
 import { userFacingPrompt } from "@/lib/generation/user-facing-prompt";
 
@@ -46,14 +40,20 @@ import { userFacingPrompt } from "@/lib/generation/user-facing-prompt";
  * follow-up: a static "ready" canvas read as a premature loading state, not
  * an empty canvas, so it's gone).
  *
- * Once generation starts: a two-pane workspace at lg+ (prompt/context left,
- * GenerationCanvas right); one column below that. Library additionally
- * auto-starts generation immediately on handoff (it already has a complete
- * prompt).
+ * Once generation starts: the prompt/context and GenerationCanvas stay stacked. Library handoffs populate the composer for review before submission.
  */
-export function GenerateWorkspace() {
-  const [selectedEntities, setSelectedEntities] = useState<ReferenceEntity[]>([]);
-  const [prompt, setPrompt] = useState("");
+export function GenerateWorkspace({
+  active: isActive = true,
+  prefill,
+  clearSearch,
+  hideHero = false,
+}: {
+  active?: boolean;
+  prefill?: string;
+  clearSearch?: () => void;
+  hideHero?: boolean;
+}) {
+  const { prompt, setPrompt, selectedEntities, setSelectedEntities, gen } = useCreatorDraft();
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
   const [sourceContext, setSourceContext] = useState<{
@@ -65,10 +65,17 @@ export function GenerateWorkspace() {
   const [editing, setEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
 
-  const gen = useGeneration({ sourceContext });
+  useEffect(() => {
+    if (!isActive || !prefill) return;
+    setPrompt(prefill);
+    clearSearch?.();
+    // Consume a URL draft once, without submitting it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isActive, prefill]);
 
   // One-shot: pick up a handoff from Library/Gallery/Prompt.
   useEffect(() => {
+    if (!isActive) return;
     const handoff = consumeGenerationHandoff();
     if (handoff) {
       setPrompt(handoff.prompt);
@@ -94,13 +101,11 @@ export function GenerateWorkspace() {
         });
         setEditing(true);
       }
-      // Library already contains a complete, ready-to-submit prompt — a
-      // button labeled "Generate" there must start generation, not just
-      // arrive at a pre-filled composer requiring a second click.
-      if (handoff.sourceType === "library" && handoff.prompt.trim()) {
+      // Only explicitly requested submissions auto-start. Browse actions prefill.
+      if (handoff.autoStart && handoff.prompt.trim()) {
         void gen.submit({
           prompt: handoff.prompt,
-          sourceContext: { type: "library", id: handoff.sourceId ?? null },
+          sourceContext: { type: handoff.sourceType, id: handoff.sourceId ?? null },
           structuredAspectRatio: handoff.structuredAspectRatio ?? null,
           routingHints: handoff.routingHints ?? null,
         });
@@ -109,7 +114,7 @@ export function GenerateWorkspace() {
       trackEvent("generate_opened", { source: "direct" });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isActive]);
 
   // A resumed/in-flight job has no local `prompt` to resolve a ratio from —
   // its own real width/height are authoritative once loaded.
@@ -142,6 +147,7 @@ export function GenerateWorkspace() {
   function submitComposer() {
     void gen.submit({
       prompt,
+      sourceContext,
       entityIds: selectedEntities.map((e) => e.id),
       structuredAspectRatio: structuredRatio,
       routingHints,
@@ -176,13 +182,14 @@ export function GenerateWorkspace() {
   if (isIdle) {
     return (
       <>
-        <AuthGateDialog gen={gen} />
-        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        {!hideHero && (
+          <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        )}
         <GenerationCreditGate gen={gen} className="mt-4" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mt-3 text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
-        <div className="mt-5 space-y-4">
+        <div className="space-y-4">
           <ComposerSurface
             prompt={prompt}
             onPromptChange={setPrompt}
@@ -192,44 +199,43 @@ export function GenerateWorkspace() {
             onRetryReference={gen.retryReferenceUpload}
             onSubmit={submitComposer}
             canSubmit={Boolean(prompt.trim())}
-            caption={[
-              "Auto",
-              "1 credit",
-              !gen.authLoading && gen.user && gen.credits !== null
-                ? `${gen.credits} credits left`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" · ")}
+            controls={
+              <>
+                <ReferencePackPicker
+                  selected={selectedEntities}
+                  onChange={setSelectedEntities}
+                  prompt={prompt}
+                  adhocCount={gen.references.length}
+                />
+              </>
+            }
+            caption={
+              <div className="flex items-center gap-2">
+                <select
+                  aria-label="Aspect ratio"
+                  value={structuredRatio ?? "auto"}
+                  onChange={(event) =>
+                    setStructuredRatio(event.target.value === "auto" ? null : event.target.value)
+                  }
+                  className="rounded-md bg-transparent py-1 pr-1 text-body-sm"
+                >
+                  <option value="auto">Auto</option>
+                  {["1:1", "3:2", "2:3", "16:9", "9:16"].map((ratio) => (
+                    <option key={ratio} value={ratio}>
+                      {ratio}
+                    </option>
+                  ))}
+                </select>
+                <span>· 1 credit</span>
+              </div>
+            }
           />
-          <p className="flex flex-wrap gap-x-4 gap-y-1 text-body-sm">
-            <Link
-              to="/prompt"
-              search={{
-                mode: "build" as const,
-                ...(prompt.trim() ? { prefill: prompt } : {}),
-              }}
-              className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
-            >
-              {CTA.improvePrompt}
-            </Link>
-            {prompt.trim() ? (
-              <Link
-                to="/prompt"
-                search={{ mode: "critique" as const, prefill: prompt }}
-                className="font-medium text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
-              >
-                {TOOL.critique}
-              </Link>
-            ) : null}
-          </p>
-          <ReferencePackPicker
-            selected={selectedEntities}
-            onChange={setSelectedEntities}
-            prompt={prompt}
-            adhocCount={gen.references.length}
+          <ComposerChips
+            label="Try an example"
+            compact
+            chips={GENERATE_EXAMPLES}
+            onSelect={useChip}
           />
-          <ComposerChips chips={GENERATE_EXAMPLES} onSelect={useChip} />
         </div>
       </>
     );
@@ -240,8 +246,9 @@ export function GenerateWorkspace() {
   if (gen.phase === "confirm") {
     return (
       <>
-        <AuthGateDialog gen={gen} />
-        <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        {!hideHero && (
+          <ModeHero title={PROMPT_MODE_COPY.generate.title} body={PROMPT_MODE_COPY.generate.body} />
+        )}
         <GenerationCreditGate gen={gen} className="mt-6" />
         <PromptSurface label="Prompt" className="mt-8">
           {prompt}
@@ -251,7 +258,7 @@ export function GenerateWorkspace() {
     );
   }
 
-  // ---------- generating / result / edit / error-with-job: two-pane workspace ----------
+  // ---------- generating / result / edit / error-with-job: stacked workspace ----------
   const canvasState = gen.resultUrl
     ? "result"
     : gen.phase === "starting" || gen.phase === "polling"
@@ -263,9 +270,8 @@ export function GenerateWorkspace() {
 
   return (
     <>
-      <AuthGateDialog gen={gen} />
-      <div className="space-y-10 lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:items-start lg:gap-12 lg:space-y-0">
-        {/* LEFT — prompt/context, or the edit form once Edit is pressed */}
+      <div className="space-y-8">
+        {/* Prompt/context, or the edit form once Edit is pressed */}
         <div>
           <GenerationCreditGate gen={gen} className="mb-6" />
           {editing ? (
@@ -334,7 +340,7 @@ export function GenerateWorkspace() {
                   Preparing your request…
                 </p>
               )}
-              {gen.grounding && (
+              {gen.grounding && gen.grounding.sources.length > 0 && (
                 <details className="text-body-sm">
                   <summary>
                     {RESULT_STATUS.grounded}
@@ -432,6 +438,7 @@ function ComposerSurface({
   onSubmit,
   canSubmit,
   caption,
+  controls,
 }: {
   prompt: string;
   onPromptChange: (v: string) => void;
@@ -441,7 +448,8 @@ function ComposerSurface({
   onRetryReference: (index: number) => void;
   onSubmit: () => void;
   canSubmit: boolean;
-  caption: string;
+  caption: ReactNode;
+  controls: ReactNode;
 }) {
   return (
     <CreationComposer
@@ -493,7 +501,8 @@ function ComposerSurface({
               <input
                 type="file"
                 accept="image/*"
-                className="hidden"
+                className="sr-only"
+                aria-label="Add reference image"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
                   if (f) onAddReference(f);
@@ -502,12 +511,13 @@ function ComposerSurface({
               />
             </label>
           )}
+          {controls}
         </>
       }
       submit={
         <Button onClick={onSubmit} disabled={!canSubmit} className="gap-2">
           <Sparkles className="h-4 w-4" />
-          Generate image → · 1 credit
+          Generate image →
         </Button>
       }
     >
@@ -515,9 +525,9 @@ function ComposerSurface({
         value={prompt}
         onChange={(e) => onPromptChange(e.target.value)}
         placeholder="Describe your image..."
-        rows={6}
+        rows={5}
         aria-label="Image prompt"
-        className={COMPOSER_TEXTAREA_CLASS}
+        className={`${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`}
       />
     </CreationComposer>
   );

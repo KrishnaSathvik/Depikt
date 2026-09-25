@@ -10,7 +10,7 @@ reappears in `PRIVACY_MD`/`TERMS_MD`.
 | Item | Needed for | Status |
 |---|---|---|
 | Operator/legal entity name, country, address | A "Who operates Depikt" clause | Not decided |
-| A working privacy contact (email or form) | Privacy Policy's "Your choices" section; most privacy laws require one | Not decided — Depikt has no support inbox today |
+| A working privacy contact (email or form) | Privacy Policy's "Your choices" section; most privacy laws require one | Supplied by operator on 2026-09-24: depiktapp@gmail.com; published in Help, Privacy, and Terms |
 | Minimum account age | Privacy/Terms currently state 13+, parental permission under 18 (matches provider baseline terms) | Decided, in effect |
 | Governing law, venue, arbitration | Terms §16 (currently omitted) | Not decided |
 | Refund policy specifics (window, conditions) for subscriptions/packs | Terms §8 (currently states only "per applicable law and terms shown at purchase") | Not decided |

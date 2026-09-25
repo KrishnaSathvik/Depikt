@@ -1,19 +1,12 @@
-// Native image generation — feature flag.
-//
-// Off by default everywhere. Flip only via GENERATION_ENABLED=true in the
-// deploy environment once launch is approved — never by editing this file's
-// default, so a redeploy without the env var set can't silently re-enable
-// a half-finished paid-resource feature in production.
-
-// Checked both server-side (API routes, SSR loaders — process.env) and
-// client-side (Header nav, the /generate route's own redirect-vs-render
-// branch — import.meta.env, which Vite statically replaces on both the
-// client and server bundles, unlike process.env which browsers don't have).
-// Set VITE_GENERATION_ENABLED=true in the deploy environment to flip both
-// at once; GENERATION_ENABLED alone is not read by the client bundle.
+// The build/client flag enables the UI. Server runtime false always overrides
+// an enabled build, so operations can be stopped without rebuilding. Runtime
+// true or unset defers to build configuration. Missing flags default off.
 export function isNativeGenerationEnabled(explicitValue?: string): boolean {
+  // Runtime shutdown must win even when Vite baked an enabled client flag
+  // into the server artifact. Runtime true does not override a disabled build.
+  const runtime = typeof process !== "undefined" ? process.env.GENERATION_ENABLED : undefined;
+  if (runtime === "false") return false;
   const fromVite = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
     ?.VITE_GENERATION_ENABLED;
-  const fromProcess = typeof process !== "undefined" ? process.env.GENERATION_ENABLED : undefined;
-  return (explicitValue ?? fromVite ?? fromProcess) === "true";
+  return (explicitValue ?? fromVite ?? runtime) === "true";
 }

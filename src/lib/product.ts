@@ -36,7 +36,7 @@ export const LIBRARY_PROMPT_COUNT = LEGACY_LIBRARY_COUNT + IMAGES_25_LIBRARY_COU
  * internal APIs, and engine files. Generate is the primary destination.
  */
 export const TOOL = {
-  library: "Prompt Library",
+  library: "Library",
   /** Internal workspace name; not a primary nav destination once Generate is live. */
   prompt: "Prompt",
   buildMode: "Improve prompt",
@@ -66,7 +66,7 @@ export const CTA = {
   /** Optional Library action: send the prompt into Improve prompt. */
   remix: "Edit prompt",
   copyPrompt: "Copy prompt",
-  generateWithPrompt: "Generate with this prompt",
+  generateWithPrompt: "Use this prompt",
   useAsReference: "Use as reference",
   continueToGenerate: "Continue to Generate",
   improvePrompt: "Improve prompt",
@@ -110,27 +110,54 @@ export const PROMPT_MODE_COPY = {
 /** Compact product-action copy that follows the Images 2.5 launch hero. */
 export const HOME_ACTION = {
   title: "Make something with Depikt",
-  body: "Describe the image you want, start from an existing prompt, or add references.",
+  body: "Describe an image, add a reference if you have one, and generate.",
   generate: {
     title: "Generate",
-    body: "Start with an idea and create an image.",
+    heading: "Start with your own idea.",
+    body: "Write what you want, add a reference if needed, and create it.",
   },
   library: {
     title: "Prompt Library",
-    body: "Explore prompts behind strong results.",
+    heading: "Start from a prompt that already produced a strong result.",
+    body: "See the image, prompt, and why it works.",
   },
   templates: {
     title: "Templates",
-    body: "Start from a guided brief.",
+    heading: "Start with a guided brief.",
+    body: "Choose a task and fill in the important details.",
   },
-  gallery: {
-    title: "Gallery",
-    body: "Browse visual inspiration and use an image as a reference.",
-  },
-  pricingTitle: "5 free image credits to start.",
-  pricingBody: "1 credit = one generate, one edit, or one regenerate.",
-  finalTitle: "Your next image starts here.",
+  startWaysEyebrow: "Three ways to start",
+  capabilitiesTitle: "More control when you need it.",
+  creditCaption: "Auto · 1 credit",
+  addReference: "+ Reference",
+  exampleLabel: "Example generated with Depikt",
+  tryPrompt: "Try this prompt",
+  tryExamples: "Try",
 } as const;
+
+/** Four capabilities under the homepage "more control" section. */
+export const HOME_CAPABILITIES = [
+  {
+    label: "Reference Packs",
+    heading: "Keep a character, product, or brand consistent.",
+    body: "Save trusted references once and reuse them across generations.",
+  },
+  {
+    label: "Precision editing",
+    heading: "Change one thing. Keep everything else.",
+    body: "Select an area or edit the whole image without rebuilding from scratch.",
+  },
+  {
+    label: "Grounded generation",
+    heading: "Use real references when accuracy matters.",
+    body: "Research-backed generation is not enabled in the current release.",
+  },
+  {
+    label: "Validation + refinement",
+    heading: "Check the result before calling it finished.",
+    body: "Automatic validation and refinement are not enabled in the current release.",
+  },
+] as const;
 
 /** Route URLs are frozen for compatibility and SEO. */
 export const ROUTES = {
@@ -173,11 +200,7 @@ export const NAV_ITEMS: ReadonlyArray<{
   to: (typeof ROUTES)[keyof typeof ROUTES];
   label: string;
   exact?: boolean;
-}> = [
-  { to: ROUTES.library, label: TOOL.library, exact: true },
-  { to: ROUTES.templates, label: TOOL.templates },
-  { to: ROUTES.gallery, label: TOOL.gallery },
-];
+}> = [{ to: ROUTES.library, label: TOOL.library, exact: true }];
 
 export const IMAGO_URL = "https://chatgpt.com/g/g-69e7de729cb48191a6aa83ec3af8a6cb-imago";
 
@@ -549,7 +572,7 @@ export const MCP = {
 /** Search-facing names for structured data. */
 export const JSONLD_NAMES = {
   site: "Depikt",
-  prompt: "Depikt Prompt Workspace",
+  prompt: "Depikt Create Workspace",
   library: "Depikt Prompt Library",
   gallery: "Depikt Reference Gallery",
   templates: "Depikt Prompt Templates",
@@ -710,9 +733,9 @@ export function historyKindLabel(kind: string): string {
 export const REFERENCES_COPY = {
   tab: "References",
   title: "Reference packs",
-  add: "+ Reference pack",
-  create: "New reference pack",
-  empty: "Save a character, product, or brand to keep it consistent across images.",
+  add: "Saved references",
+  create: "Create reference pack",
+  empty: "No reference packs yet. Save a character, product, or brand to reuse across images.",
   groups: { character: "Characters", product: "Products", brand: "Brands" },
   hints: {
     character:
@@ -758,8 +781,7 @@ export const RESULT_STATUS = {
   validatedDetail: "All requested visual details passed",
   limitation: "Some requested details may not be exact.",
   refined: "Refined automatically",
-  refinedDetail: (n: number) =>
-    n === 1 ? "1 issue corrected at no extra credit" : `${n} issues corrected at no extra credit`,
+  refinedDetail: "Included refinement at no extra credit",
   refining: "Refining details…",
   refreshResearch: "Regenerate with fresh research · 1 credit",
 } as const;
@@ -773,7 +795,7 @@ export const VERSION_LABELS = {
 
 export const CREATIONS_COPY = {
   title: "Creations",
-  subline: "Images you generate and edit. Prompt Library favorites stay in Prompt Library.",
+  subline: "Images you generate and edit. Library favorites stay in Library.",
   empty: "Nothing here yet — images you generate or edit will show up here.",
   series: (n: number) => `Series · ${n} images`,
   generated: "Generated",

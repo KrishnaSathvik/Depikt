@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GenerationMaskEditor } from "@/components/generate/GenerationMaskEditor";
@@ -35,6 +35,7 @@ export function GenerationEditForm({
   strokes?: MaskStroke[];
   onStrokesChange?: (next: MaskStroke[]) => void;
 }) {
+  const editFieldId = useId();
   const canSelectArea =
     typeof imageUrl === "string" &&
     imageUrl.length > 0 &&
@@ -121,8 +122,14 @@ export function GenerationEditForm({
           />
         </>
       ) : null}
-      <p className="text-body-sm text-[color:var(--text-secondary)]">What should change?</p>
+      <label
+        htmlFor={editFieldId}
+        className="block text-body-sm text-[color:var(--text-secondary)]"
+      >
+        What should change?
+      </label>
       <Textarea
+        id={editFieldId}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         rows={3}

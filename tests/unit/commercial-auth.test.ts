@@ -181,13 +181,19 @@ test("use-generation exposes an auth prompt instead of starting OAuth itself", (
   assert.match(submitBody, /setAuthPrompt\(true\)/);
 });
 
-test("every generation host renders the shared auth gate dialog", () => {
+test("generation hosts share one auth dialog through the Home draft provider", () => {
+  assert.match(read("src/components/CreatorDraft.tsx"), /<AuthGateDialog gen=\{draft.gen\}/);
   for (const file of [
     "src/components/generate/GenerateWorkspace.tsx",
     "src/components/prompt/BuildMode.tsx",
     "src/components/prompt/CritiqueMode.tsx",
   ]) {
-    assert.match(read(file), /<AuthGateDialog gen=\{gen\}/, `${file} must render AuthGateDialog`);
+    assert.match(read(file), /useCreatorDraft\(\)/);
+    assert.doesNotMatch(
+      read(file),
+      /<AuthGateDialog/,
+      "hidden panels must not open duplicate portal dialogs",
+    );
   }
 });
 

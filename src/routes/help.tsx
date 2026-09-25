@@ -1,3 +1,4 @@
+import { renderMarkdown } from "@/lib/markdown";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
@@ -129,7 +130,7 @@ function HelpPage() {
                       {item.q}
                     </AccordionTrigger>
                     <AccordionContent className="text-body-md leading-relaxed text-[color:var(--text-secondary)]">
-                      {item.a}
+                      {renderMarkdown(item.a).nodes}
                     </AccordionContent>
                   </AccordionItem>
                 ))}

@@ -12,7 +12,7 @@ export function CreationsTab() {
 
   return (
     <div>
-      <h1 className="text-heading-md">{CREATIONS_COPY.title}</h1>
+      <h2 className="text-heading-md">{CREATIONS_COPY.title}</h2>
       <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
         {CREATIONS_COPY.subline}
       </p>

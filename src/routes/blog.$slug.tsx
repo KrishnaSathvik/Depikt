@@ -28,7 +28,7 @@ export const Route = createFileRoute("/blog/$slug")({
       ? post.cover_image.startsWith("http")
         ? post.cover_image
         : absoluteUrl(post.cover_image)
-      : getOgImageForPath();
+      : getOgImageForPath("blog");
 
     const articleJsonLd = {
       "@context": "https://schema.org",
@@ -84,6 +84,12 @@ export const Route = createFileRoute("/blog/$slug")({
         { property: "article:author", content: post.author },
         { property: "article:section", content: post.category },
         { property: "og:image", content: ogImage },
+        ...(!post.cover_image || post.cover_image.startsWith("/og/")
+          ? [
+              { property: "og:image:width", content: "1200" },
+              { property: "og:image:height", content: "630" },
+            ]
+          : []),
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: post.seo_title },
         { name: "twitter:description", content: post.seo_description },

@@ -1,3 +1,5 @@
+import { useCreatorDraft } from "@/components/CreatorDraft";
+import { ReferencePackPicker } from "@/components/generate/ReferencePackPicker";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
   Check,
@@ -22,8 +24,6 @@ import {
   MAX_UPLOAD_BYTES,
   type ReferenceImageState,
 } from "@/components/ReferenceImagePicker";
-import { ModeHero } from "@/components/prompt/ModeHero";
-import { CollapsedInput } from "@/components/prompt/CollapsedInput";
 import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
 import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
 import { ImagoPasteHint } from "@/components/ImagoPasteHint";
@@ -31,10 +31,8 @@ import { CTA, IMAGO_URL, PROMPT_MODE_COPY } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
-import { useGeneration } from "@/lib/generation/use-generation";
 import { InlineGenerationPanel } from "@/components/generate/InlineGenerationPanel";
 import { SeriesConfirmPanel } from "@/components/generate/SeriesConfirmPanel";
-import { AuthGateDialog } from "@/components/auth/AuthGateDialog";
 import { GenerationCreditGate } from "@/components/billing/GenerationCreditGate";
 
 /**
@@ -52,6 +50,7 @@ export interface CritiqueModeProps {
   clearSearch: () => void;
   /** False while the workspace is showing the other mode (kept mounted for drafts). */
   active: boolean;
+  onUsePrompt?: (text: string) => void;
 }
 
 /** One rubric dimension in the critique report. */
@@ -91,22 +90,32 @@ const DIMENSION_LABELS: Record<string, string> = {
   efficiency: "Efficiency",
 };
 
-export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps) {
+export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: CritiqueModeProps) {
   const { restore, prefill } = search;
   // One shared generation execution path — see docs/plans/2026-09-10-inline-
   // generation-workspace.md. "Generate rewrite" starts the job inline, right
-  // here on /prompt; it never navigates to /generate.
-  const gen = useGeneration({ sourceContext: { type: "prompt_critique" } });
+  // here on Home through the shared generation owner.
+  const {
+    prompt: input,
+    setPrompt: setInput,
+    gen,
+    selectedEntities,
+    setSelectedEntities,
+    getToolReference,
+  } = useCreatorDraft();
   const handleGenerateRewrite = async (
     result: CritiqueResult,
     reference: ReferenceImageState | null,
   ) => {
     if (!result.rewritten_prompt) return;
+    onUsePrompt?.(result.rewritten_prompt);
     trackEvent("generate_submitted_from_prompt_critique", {});
     if (reference?.dataUrl && gen.references.length === 0) {
       await gen.addReferenceFromDataUrl(reference.dataUrl);
     }
     await gen.submit({
+      entityIds: selectedEntities.map((entity) => entity.id),
+      sourceContext: { type: "prompt_critique" },
       prompt: result.rewritten_prompt,
       // The original prompt being critiqued, not the rewrite -- series
       // decomposition (rare for Critique, but possible) must use it.
@@ -115,12 +124,11 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
       routingHints: result.category ? { category: result.category } : null,
     });
   };
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CritiqueResult | null>(null);
   const [savedInput, setSavedInput] = useState("");
-  const [collapsed, setCollapsed] = useState(false);
-  const [reference, setReference] = useState<ReferenceImageState | null>(null);
+  const reference = gen.references[0]?.local ?? null;
+  const setReference = gen.setPrimaryReference;
   const [imageLoading, setImageLoading] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -135,7 +143,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
         setInput(entry.roughIdea);
         setSavedInput(entry.roughIdea);
         setResult(entry.result as CritiqueResult);
-        setCollapsed(true);
+
         if (entry.referenceImage) {
           setReference({
             dataUrl: entry.referenceImage,
@@ -154,7 +162,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
     setInput(prefill);
     setResult(null);
     setSavedInput("");
-    setCollapsed(false);
+
     clearSearch();
     setTimeout(() => textareaRef.current?.focus(), 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -196,16 +204,16 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
     setLoading(true);
     setResult(null);
     setSavedInput(text);
-    setCollapsed(true);
 
     try {
+      const toolReference = await getToolReference();
       const res = await fetch(getEndpoint("/api/public/critique-prompt"), {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
         body: JSON.stringify({
           prompt: text,
-          referenceImageUrl: reference?.dataUrl || undefined,
-          referenceIntent: reference?.intent || undefined,
+          referenceImageUrl: toolReference?.dataUrl || undefined,
+          referenceIntent: toolReference?.intent || undefined,
         }),
       });
 
@@ -229,7 +237,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
       });
       if (final) {
         setResult(final);
-        setCollapsed(true);
+
         addHistoryEntry({
           kind: "critique",
           roughIdea: text,
@@ -262,7 +270,7 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
     setResult(null);
     setSavedInput("");
     setReference(null);
-    setCollapsed(false);
+
     setTimeout(() => {
       textareaRef.current?.focus();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -271,98 +279,109 @@ export function CritiqueMode({ search, clearSearch, active }: CritiqueModeProps)
 
   return (
     <div>
-      <AuthGateDialog gen={gen} />
       <div>
-        {collapsed && savedInput ? (
-          <CollapsedInput
-            label="Prompt"
-            text={savedInput}
-            onExpand={() => {
-              setCollapsed(false);
-              setInput(savedInput);
-              setTimeout(() => textareaRef.current?.focus(), 0);
-            }}
-          />
-        ) : (
+        <div>
           <div>
-            <ModeHero
-              title={PROMPT_MODE_COPY.critique.title}
-              body={PROMPT_MODE_COPY.critique.body}
-            />
-
-            <div className="mt-8">
-              <label htmlFor="critique-input" className="sr-only">
-                Prompt to critique
-              </label>
-              <CreationComposer
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  const file = e.dataTransfer.files?.[0];
-                  if (file) handleImageFile(file);
-                }}
-                referencesSlot={
-                  imageLoading ? (
-                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Processing image…
-                    </div>
-                  ) : (
-                    <ReferenceImagePicker value={reference} onChange={setReference} />
-                  )
-                }
-                caption={
-                  <span className="hidden sm:inline">
-                    or press{" "}
-                    <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
-                      {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                    </kbd>
-                  </span>
-                }
-                submit={
-                  <Button onClick={score} disabled={loading} className="gap-2">
-                    {loading ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        {CTA.critiquing}
-                      </>
-                    ) : (
-                      <>
-                        <ScanSearch className="h-4 w-4" />
-                        {CTA.critique}
-                      </>
+            <label htmlFor="critique-input" className="sr-only">
+              Prompt to critique
+            </label>
+            <CreationComposer
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const file = e.dataTransfer.files?.[0];
+                if (file) handleImageFile(file);
+              }}
+              referencesSlot={
+                imageLoading ? (
+                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    Processing image…
+                  </div>
+                ) : (
+                  <>
+                    <ReferenceImagePicker
+                      addLabel="+ Reference"
+                      value={reference}
+                      onChange={setReference}
+                    />
+                    {isNativeGenerationEnabled() && (
+                      <ReferencePackPicker
+                        selected={selectedEntities}
+                        onChange={setSelectedEntities}
+                        prompt={input}
+                        adhocCount={gen.references.length}
+                      />
                     )}
-                  </Button>
-                }
-              >
-                <Textarea
-                  id="critique-input"
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onPaste={(e) => {
-                    const file = e.clipboardData.files?.[0];
-                    if (file && file.type.startsWith("image/")) {
-                      e.preventDefault();
-                      handleImageFile(file);
-                    }
-                  }}
-                  placeholder="Paste a prompt to critique…"
-                  className={`${COMPOSER_TEXTAREA_CLASS} font-mono text-[16px] sm:text-[16px]`}
-                />
-              </CreationComposer>
-            </div>
+                    {gen.references.length > 1 && (
+                      <span className="text-body-sm text-[color:var(--text-tertiary)]">
+                        Prompt tools use the first image. All {gen.references.length} references
+                        stay attached for generation.
+                      </span>
+                    )}
+                  </>
+                )
+              }
+              caption={
+                <span className="hidden sm:inline">
+                  or press{" "}
+                  <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                  </kbd>
+                </span>
+              }
+              submit={
+                <Button onClick={score} disabled={loading} className="gap-2">
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {CTA.critiquing}
+                    </>
+                  ) : (
+                    <>
+                      <ScanSearch className="h-4 w-4" />
+                      {CTA.critique}
+                    </>
+                  )}
+                </Button>
+              }
+            >
+              <Textarea
+                id="critique-input"
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onPaste={(e) => {
+                  const file = e.clipboardData.files?.[0];
+                  if (file && file.type.startsWith("image/")) {
+                    e.preventDefault();
+                    handleImageFile(file);
+                  }
+                }}
+                placeholder="Paste a prompt to critique…"
+                className={`${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`}
+              />
+            </CreationComposer>
           </div>
-        )}
+        </div>
 
         {(loading || result) && (
           <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
             {loading && !result && <PromptLoadingState variant="critique" />}
+            {result?.rewritten_prompt && (
+              <Button
+                variant="outline"
+                className="mb-4"
+                onClick={() => onUsePrompt?.(result.rewritten_prompt!)}
+              >
+                Use revised prompt
+              </Button>
+            )}
             {result && (
               <CritiqueView
                 result={result}
@@ -417,6 +436,7 @@ function CritiqueView({
 }) {
   const [view, setView] = useState<"text" | "json">("text");
   const [rewrittenCopied, setRewrittenCopied] = useState(false);
+  const [openedImago, setOpenedImago] = useState(false);
   const [dimsOpen, setDimsOpen] = useState(true);
   const overall =
     typeof result.overall_score === "number"
@@ -443,6 +463,7 @@ function CritiqueView({
     } catch {
       toast.error("Couldn't copy automatically — copy manually before pasting");
     }
+    setOpenedImago(true);
     window.open(IMAGO_URL, "_blank", "noopener,noreferrer");
   };
 
@@ -633,12 +654,16 @@ function CritiqueView({
                 className="gap-2"
                 aria-label="Copy rewritten prompt"
               >
-                {rewrittenCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                {rewrittenCopied ? (
+                  <Check className="h-3.5 w-3.5" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
                 {rewrittenCopied ? "Copied" : "Copy"}
               </Button>
             </div>
             {referenceThumb && <ReferenceReattachNote thumb={referenceThumb} />}
-            <ImagoPasteHint />
+            {openedImago && <ImagoPasteHint />}
           </div>
         </div>
       )}

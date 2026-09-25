@@ -45,8 +45,10 @@ const DIRECT_HANDOFF_SOURCES: readonly SourceContextType[] = ["library", "galler
 export function pendingGenerationMatchesSource(
   hookType: SourceContextType,
   pendingType: SourceContextType,
+  sharedWorkspace = false,
 ): boolean {
   return (
+    sharedWorkspace ||
     hookType === pendingType ||
     (hookType === "direct" && DIRECT_HANDOFF_SOURCES.includes(pendingType))
   );

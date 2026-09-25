@@ -1,3 +1,4 @@
+import { privateScope } from "@/lib/private-cache";
 import { AccountContentTabs } from "@/components/account/AccountContentTabs";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
@@ -46,6 +47,12 @@ export const Route = createFileRoute("/account")({
  * pencil taps open the same AccountHub used everywhere else.
  */
 function AccountPage() {
+  const { user } = useAuth();
+  return (
+    <OwnedAccountPage key={user ? `${user.id}:${privateScope(user.id).epoch}` : "anonymous"} />
+  );
+}
+function OwnedAccountPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { buy, checkout, session_id: sessionId } = Route.useSearch();
@@ -128,6 +135,7 @@ function AccountPage() {
       <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
         <Header />
         <main className="flex-1 px-4 py-8">
+          <h1 className="sr-only">Account</h1>
           {loading ? (
             <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
           ) : null}
@@ -141,6 +149,7 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+        <h1 className="sr-only">Account</h1>
         <IdentityRow
           onAvatarClick={() => hub.pushView("avatar-picker")}
           onEditClick={() => hub.pushView("edit-profile")}

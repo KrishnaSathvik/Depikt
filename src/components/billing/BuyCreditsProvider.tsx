@@ -1,5 +1,16 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { BuyCreditsSheet } from "@/components/billing/BuyCreditsSheet";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  lazy,
+  Suspense,
+  type ReactNode,
+} from "react";
+const BuyCreditsSheet = lazy(() =>
+  import("./BuyCreditsSheet").then((m) => ({ default: m.BuyCreditsSheet })),
+);
 import { useAuth } from "@/lib/auth-context";
 import { useResumeCheckoutOnAuth } from "@/lib/billing/use-resume-checkout";
 
@@ -40,7 +51,11 @@ export function BuyCreditsProvider({ children }: { children: ReactNode }) {
   return (
     <BuyCreditsContext.Provider value={value}>
       {children}
-      <BuyCreditsSheet open={open} onOpenChange={setOpen} source={source} />
+      {open && (
+        <Suspense fallback={null}>
+          <BuyCreditsSheet open={open} onOpenChange={setOpen} source={source} />
+        </Suspense>
+      )}
     </BuyCreditsContext.Provider>
   );
 }

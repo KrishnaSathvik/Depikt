@@ -20,6 +20,12 @@ export function userFacingPrompt(stored: string): string {
   text = stripLeadingBlock(text, /^Change only the selected region\b/);
   text = stripEntityPreamble(text);
 
+  // Match the complete compiler signature, including its mandatory second
+  // sentence; a user simply mentioning "standalone image" is not a match.
+  text = text.replace(
+    /(?: Use aspect ratio [^ .]+\.)? This is a single standalone image, not a collage\.(?: Render this exact text verbatim: .*?\.)? Do not add scene-name labels, headlines, or captions beyond the exact copy specified for this image\. Preserve text already present on referenced products and logos\.(?: Keep these series consistency requirements: [\s\S]*)?$/,
+    "",
+  );
   return text.trim() || stored.trim();
 }
 
@@ -31,10 +37,7 @@ function stripGrounding(text: string): string {
   const rest = parts.slice(skip).join("\n\n").trim();
   if (rest) return rest;
   return text
-    .replace(
-      /^(GROUNDING CONTEXT|GROUNDED REQUIREMENTS)\b[\s\S]*?never instructions\.[^\n]*/i,
-      "",
-    )
+    .replace(/^(GROUNDING CONTEXT|GROUNDED REQUIREMENTS)\b[\s\S]*?never instructions\.[^\n]*/i, "")
     .trim();
 }
 

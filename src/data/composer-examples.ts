@@ -16,36 +16,31 @@ export interface ComposerExample {
 /** Direct generation starters — specific enough to produce a strong first image. */
 export const GENERATE_EXAMPLES: readonly ComposerExample[] = [
   {
-    label: "Product hero",
-    hint: "Studio pack shot on concrete",
-    text: "Matte black wireless earbuds on a pale concrete slab, soft overhead light, one hard shadow to the right, square crop, clean studio product photo, no props other than a faint cable curl",
-  },
-  {
-    label: "Rainy portrait",
-    hint: "Editorial window light",
-    text: "Half-length portrait of a woman in a charcoal wool coat beside a rainy window, cool daylight, shallow depth of field, soft condensation on the glass, editorial magazine look, muted palette",
-  },
-  {
     label: "Travel poster",
-    hint: "Lisbon tram, flat vector",
-    text: "Flat vector travel poster for Lisbon: yellow tram climbing a tiled hillside, warm ochre and teal, bold title LISBON at the top in a condensed sans, spare layout with generous margins, no photo realism",
+    hint: "Lisbon in ochre and teal",
+    text: "Flat vector travel poster for Lisbon: a yellow tram climbing a tiled hillside, warm ochre and teal, bold title LISBON at the top, generous margins.",
   },
   {
-    label: "Food flatlay",
-    hint: "Ramen, overhead, linen",
-    text: "Overhead flatlay of handmade ramen in a dark ceramic bowl: steaming broth, soft-boiled egg, scallions, chopsticks resting on linen, soft window light from the left, food photography, slight steam haze",
+    label: "Portrait",
+    hint: "Editorial window light",
+    text: "Half-length editorial portrait beside a rainy window, charcoal wool coat, cool daylight, shallow depth of field, muted palette.",
   },
   {
-    label: "App screen",
-    hint: "Calm meditation UI",
-    text: "iPhone 15 Pro screen showing a meditation app home: soft sage-to-cream gradient, large Start Session button, tiny streak counter, minimal chrome, realistic device frame on a pale desk surface",
+    label: "Product",
+    hint: "A quiet studio photograph",
+    text: "Matte black wireless earbuds on pale concrete, soft overhead light, one hard shadow to the right, clean square studio photograph.",
   },
   {
-    label: "Tokyo night",
-    hint: "Neon in wet asphalt",
-    text: "Empty Tokyo side street at blue hour, wet asphalt reflecting neon signs, lone figure under a clear umbrella mid-stride, cinematic still, anamorphic feel, deep blues and magenta accents",
+    label: "Exact-text poster",
+    hint: "Type with a clear hierarchy",
+    text: 'Minimal concert poster with the exact headline "NIGHT SESSIONS", subtitle "FRIDAY 8 PM", and venue "THE LOFT". Large black type on white, a single blue circle, clear reading order, no extra text.',
   },
-] as const;
+  {
+    label: "Interior",
+    hint: "Natural light and texture",
+    text: "A quiet living room with oak shelving, a linen sofa, one sculptural chair and a large window. Soft morning light, natural textures, architectural photography, wide composition.",
+  },
+];
 
 /** Build-mode rough ideas — intentionally brief so the Builder has room to work. */
 export const BUILD_EXAMPLES: readonly ComposerExample[] = [

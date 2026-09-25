@@ -9,6 +9,8 @@ import { trackEvent } from "@/lib/analytics";
 import { CREATIONS_COPY } from "@/lib/product";
 import { promptCaption } from "@/lib/generation/user-facing-prompt";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/auth-context";
+import { privateScope, isCurrentPrivateScope, type PrivateScope } from "@/lib/private-cache";
 
 type Filter = "all" | "generated" | "edited";
 const FILTERS: ReadonlyArray<{ id: Filter; label: string }> = [
@@ -146,43 +148,72 @@ function CreationTile({
  * cache is never treated as authoritative.
  */
 export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => void }) {
-  const [filter, setFilter] = useState<Filter>("all");
-  const [items, setItems] = useState<CreationItem[]>(() => readCreationsCache("all")?.items ?? []);
-  const [cursor, setCursor] = useState<string | null>(
-    () => readCreationsCache("all")?.nextCursor ?? null,
+  const { user } = useAuth();
+  if (!user) return null;
+  const scope = privateScope(user.id);
+  return (
+    <OwnedCreationsGrid key={`${scope.userId}:${scope.epoch}`} scope={scope} onSelect={onSelect} />
   );
-  const [loading, setLoading] = useState(() => !readCreationsCache("all"));
+}
+
+function OwnedCreationsGrid({
+  scope,
+  onSelect,
+}: {
+  scope: PrivateScope;
+  onSelect: (item: CreationItem) => void;
+}) {
+  const [filter, setFilter] = useState<Filter>("all");
+  const [items, setItems] = useState<CreationItem[]>(
+    () => readCreationsCache(scope, "all")?.items ?? [],
+  );
+  const [cursor, setCursor] = useState<string | null>(
+    () => readCreationsCache(scope, "all")?.nextCursor ?? null,
+  );
+  const [loading, setLoading] = useState(() => !readCreationsCache(scope, "all"));
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<CreationItem | null>(null);
   const [deleting, setDeleting] = useState(false);
   const deletedIds = useRef(new Set<string>());
+  const requestId = useRef(0);
+  const ownerScope = useRef(scope).current;
 
-  const load = useCallback(async (f: Filter) => {
-    const cached = readCreationsCache(f);
-    if (cached) {
-      setItems(cached.items.filter((item) => !deletedIds.current.has(item.id)));
-      setCursor(cached.nextCursor);
-      setLoading(false);
-    } else {
-      setLoading(true);
-    }
-    setError(false);
-    try {
-      const page = await getCreations({ type: f });
-      const items = page.items.filter((item) => !deletedIds.current.has(item.id));
-      setItems(items);
-      setCursor(page.nextCursor);
-      writeCreationsCache(f, { ...page, items });
-    } catch {
-      if (!cached) setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const load = useCallback(
+    async (f: Filter) => {
+      const request = ++requestId.current;
+      const current = () => request === requestId.current && isCurrentPrivateScope(ownerScope);
+      const cached = readCreationsCache(ownerScope, f);
+      if (cached) {
+        setItems(cached.items.filter((item) => !deletedIds.current.has(item.id)));
+        setCursor(cached.nextCursor);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
+      setError(false);
+      try {
+        const page = await getCreations({ type: f });
+        if (!current()) return;
+        const items = page.items.filter((item) => !deletedIds.current.has(item.id));
+        setItems(items);
+        setCursor(page.nextCursor);
+        writeCreationsCache(ownerScope, f, { ...page, items });
+      } catch {
+        if (!current()) return;
+        if (!cached) setError(true);
+      } finally {
+        if (current()) setLoading(false);
+      }
+    },
+    [ownerScope],
+  );
 
   useEffect(() => {
     void load(filter);
+    return () => {
+      requestId.current += 1;
+    };
   }, [filter, load]);
 
   async function confirmDelete() {
@@ -190,6 +221,7 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
     setDeleting(true);
     try {
       await deleteCreation(pendingDelete.id);
+      if (!isCurrentPrivateScope(ownerScope)) return;
       deletedIds.current.add(pendingDelete.id);
       trackEvent("creation_deleted", {});
       setItems((prev) => prev.filter((item) => item.id !== pendingDelete.id));
@@ -204,19 +236,22 @@ export function CreationsGrid({ onSelect }: { onSelect: (item: CreationItem) => 
 
   async function loadMore() {
     if (!cursor) return;
+    const request = requestId.current;
+    const current = () => request === requestId.current && isCurrentPrivateScope(ownerScope);
     setLoadingMore(true);
     try {
       const page = await getCreations({ type: filter, cursor });
+      if (!current()) return;
       setItems((prev) => {
         const next = [...prev, ...page.items.filter((item) => !deletedIds.current.has(item.id))];
-        writeCreationsCache(filter, { items: next, nextCursor: page.nextCursor });
+        writeCreationsCache(ownerScope, filter, { items: next, nextCursor: page.nextCursor });
         return next;
       });
       setCursor(page.nextCursor);
     } catch {
       // Leave existing items visible; the button just stays available to retry.
     } finally {
-      setLoadingMore(false);
+      if (current()) setLoadingMore(false);
     }
   }
 

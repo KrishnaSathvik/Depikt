@@ -235,7 +235,7 @@ test("sign out is available from the AccountHub's home view, using the shared au
 
 // ---------- help / legal ----------
 
-test("help page is self-service only, no fake support channel", () => {
+test("help publishes only the operator-supplied contact without service promises", () => {
   const src = read("src/routes/help.tsx");
   assert.match(src, /HELP_SECTIONS/);
   const questions = HELP_SECTIONS.flatMap((s) => s.items.map((i) => i.q));
@@ -265,7 +265,8 @@ test("help page is self-service only, no fake support channel", () => {
     ["getting-started", "images-and-references", "plans-and-credits", "account-and-data"],
   );
   const all = JSON.stringify(HELP_SECTIONS);
-  assert.doesNotMatch(all, /24\/7|support@|Contact support|live chat/i);
+  assert.doesNotMatch(all, /24\/7|support@|live chat/i);
+  assert.match(all, /depiktapp@gmail\.com/);
 });
 
 test("privacy and terms cover the required subjects, invent no owner details, and never show an [OWNER INPUT] marker", () => {

@@ -53,8 +53,8 @@ const STRUCTURED_DATA = [
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: JSONLD_NAMES.prompt,
-    url: absoluteUrl("/prompt"),
+    name: JSONLD_NAMES.site,
+    url: absoluteUrl("/"),
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
     description: JSONLD_DESCRIPTIONS.app,
@@ -75,8 +75,7 @@ export const Route = createRootRoute({
         { charSet: "utf-8" },
         {
           name: "viewport",
-          content:
-            "width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover",
+          content: "width=device-width, initial-scale=1, viewport-fit=cover",
         },
         { name: "color-scheme", content: "light" },
         { name: "theme-color", content: "#FFFFFF" },
@@ -91,8 +90,6 @@ export const Route = createRootRoute({
         { property: "og:description", content: DEFAULT_OG_DESCRIPTION },
         { property: "og:type", content: "website" },
         { property: "og:image", content: ROOT_OG_IMAGE },
-        { property: "og:image:width", content: "1200" },
-        { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: ROOT_OG_IMAGE },
         { name: "twitter:title", content: DEFAULT_OG_TITLE },

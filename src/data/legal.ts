@@ -1,8 +1,7 @@
 // Help, Privacy, and Terms content. Rendered through src/lib/markdown.tsx.
 //
 // Privacy and Terms describe only what Depikt actually does today. A few
-// facts only the operator can decide (legal entity/address, a dedicated
-// privacy contact, governing law/venue, a day-by-day refund policy) are not
+// facts only the operator can decide (legal entity/address,  governing law/venue, a day-by-day refund policy) are not
 // yet resolved -- rather than publish an invented company name or
 // jurisdiction, those clauses are omitted entirely until they're real. See
 // docs/internal/legal-launch-todos.md for the private checklist (never
@@ -11,9 +10,9 @@
 // clauses' old wording) ever reappears in rendered public copy.
 
 /** ISO date the policies below took effect. Bump only when the policy text actually changes. */
-export const LEGAL_LAST_UPDATED = "2026-09-11";
+export const LEGAL_LAST_UPDATED = "2026-09-24";
 
-/** "2026-09-11" -> "September 11, 2026". Used in the page header, never in the markdown body. */
+/** "2026-09-24" -> "September 24, 2026". Used in the page header, never in the markdown body. */
 export function formatEffectiveDate(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   return new Date(Date.UTC(y, m - 1, d)).toLocaleDateString("en-US", {
@@ -49,11 +48,11 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
       },
       {
         q: "How are image sizes chosen?",
-        a: 'Depikt reads the ratio and orientation you ask for ("a tall poster", "16:9", "square icon") from your prompt or from the structured intent that Prompt Build produced, and from a reference image\'s shape when one is attached. If nothing is specified, it falls back to a sensible default for the task.',
+        a: 'Depikt reads the ratio and orientation you ask for ("a tall poster", "16:9", "square icon") from your prompt or from the description prepared by Improve prompt, and from a reference image\'s shape when one is attached. If nothing is specified, it falls back to a sensible default for the task.',
       },
       {
         q: "What happens after I press Generate?",
-        a: "Depikt reserves one credit, sends your prompt (and any references) to the routed model, and streams progress back to you. If an image comes back successfully, the credit is settled; if the job fails for any reason, the credit is returned automatically.",
+        a: "Depikt reserves one credit per image in your confirmed request, sends your prompt and references to the routed model, and shows progress. A series reserves one credit for each selected image. Successful images settle their credit; failed images return their reserved credit automatically.",
       },
       {
         q: "What happens if generation fails?",
@@ -71,7 +70,7 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
       },
       {
         q: "How many references can I add?",
-        a: "Up to 4 reference images per request.",
+        a: "Attach up to 4 individual reference images or up to 4 saved Reference Packs. Each pack can store up to 8 views; Depikt selects views within an 8-image input budget when packs are attached.",
       },
       {
         q: "Can I edit an existing generated image?",
@@ -79,7 +78,7 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
       },
       {
         q: "What does Regenerate do?",
-        a: "Regenerate image reruns the same prompt and references to produce a new version of the image -- useful when the idea is right but you want a different take. It costs one credit, like any other successful generation. In Build mode, Rebuild prompt rewrites the text prompt and does not use a credit.",
+        a: "Regenerate image reruns the same prompt and references to produce a new version of the image -- useful when the idea is right but you want a different take. It costs one credit, like any other successful generation. In Improve prompt, Rebuild prompt rewrites the text prompt and does not use a credit.",
       },
       {
         q: "Where can I find my generated images?",
@@ -131,11 +130,15 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
     items: [
       {
         q: "How do I sign in?",
-        a: "With Google, Apple, or Microsoft. Depikt never sees or stores a password.",
+        a: "Choose an available sign-in option on the sign-in screen: supported providers or a passwordless email link. Availability is shown there. Depikt does not use passwords.",
       },
       {
         q: "How do I change my profile or avatar?",
-        a: "Open Account → Profile to update your display name or username, and Change avatar to pick a new one.",
+        a: "Open Account and use the edit button beside your identity to update your display name or username. Select your avatar to choose a new one.",
+      },
+      {
+        q: "How do I contact support?",
+        a: "Email [depiktapp@gmail.com](mailto:depiktapp@gmail.com) for help with your account, billing, or privacy requests.",
       },
       {
         q: "How do I delete my account?",
@@ -159,9 +162,9 @@ This Privacy Policy describes what Depikt collects, why, and what happens to it.
 
 ## Information we collect
 
-**Account information.** When you sign in with Google, Apple, or Microsoft, we receive the identity your provider shares with us: an identifier, your email address (Apple may provide a private relay address instead), and, where offered, your name and profile picture. We do not receive or store passwords. Sign-in is brokered by Lovable's managed OAuth service and sessions are issued by Supabase Auth.
+**Account information.** When you sign in with a supported identity provider, we receive the identity your provider shares with us: an identifier, your email address (Apple may provide a private relay address instead), and, where offered, your name and profile picture. Passwordless email sign-in uses your email address to send an authentication link. We do not receive or store passwords. Sign-in is brokered by Lovable's managed OAuth service and sessions are issued by Supabase Auth.
 
-**Prompts.** Text you enter in Prompt (Build and Critique) is sent to OpenAI to produce or review a prompt. Text you use to generate or edit an image is stored with that generation job so that you can see, regenerate, and edit your work.
+**Prompts.** Text you enter in Improve prompt and Critique is sent to OpenAI to produce or review a prompt. Text you use to generate or edit an image is stored with that generation job so that you can see, regenerate, and edit your work.
 
 **Reference images.** Images you attach are resized in your browser and uploaded to private storage under your account. They are sent to OpenAI only to run the job you requested.
 
@@ -196,7 +199,7 @@ Your account data, generated images, reference images, and credit ledger are kep
 
 We use Google Analytics 4 to understand how the site is used: page views and clicks on buttons and links. We do not send prompt text, images, email addresses, or payment details to analytics.
 
-Depikt also keeps some data only on your device: your Build and Critique history (including any reference image you attached, up to a size limit) in IndexedDB; favorites, theme, and library filters in localStorage; and short-lived hand-offs (for example, a generation you started before signing in) in sessionStorage. You can clear these through your browser at any time; deleting your account also clears them on the device you delete from.
+Depikt also keeps some data only on your device: your Improve prompt and Critique history (including any reference image you attached, up to a size limit) in IndexedDB; favorites, theme, and library filters in localStorage; and short-lived hand-offs (for example, a generation you started before signing in) in sessionStorage. You can clear these through your browser at any time; deleting your account also clears them on the device you delete from.
 
 ## Payments
 
@@ -205,6 +208,10 @@ Subscriptions and credit-pack purchases are processed by Stripe. Depikt keeps yo
 ## Your choices and account deletion
 
 You can update your profile, manage billing, and delete your account at any time from the Account page. Signing out ends your session on that device. You can clear or manage Depikt's browser-stored data (history, favorites, preferences) through your browser's own settings.
+
+## Contact
+
+For support or privacy requests, email [depiktapp@gmail.com](mailto:depiktapp@gmail.com).
 
 ## Security
 
@@ -226,11 +233,11 @@ By creating an account or using Depikt (depikt.app) you agree to these Terms.
 
 ## 2. Accounts
 
-You need an account (Google, Apple, or Microsoft sign-in) to generate or edit images. You are responsible for activity under your account. One account per person; do not create accounts to obtain additional starter credits. You must be at least 13 years old, or the minimum age required in your country to use online services, and if you are under 18 you need permission from a parent or legal guardian.
+You need an account (using an available identity provider or passwordless email sign-in) to generate or edit images. You are responsible for activity under your account. One account per person; do not create accounts to obtain additional starter credits. You must be at least 13 years old, or the minimum age required in your country to use online services, and if you are under 18 you need permission from a parent or legal guardian.
 
 ## 3. The service
 
-Depikt is a prompt workspace and image tool. It helps you find, build, and critique prompts, and it generates and edits images through a third-party model provider (OpenAI). Depikt selects the model route for each request; there is no model selector and no promise that any particular model is used. Results vary and are not guaranteed to match your request.
+Depikt is an image creation workspace. Create images on Home, discover prompts, templates, and references in Library, and manage private creations and Reference Packs in Account. Improve prompt and Critique are optional tools. Images are generated and edited through a third-party model provider (OpenAI). Depikt selects the model route for each request; there is no model selector and no promise that any particular model is used. Results vary and are not guaranteed to match your request.
 
 ## 4. Image credits
 
@@ -276,6 +283,8 @@ You can delete your account at any time from the Account page. We may suspend or
 ## 12. Disclaimer
 
 To the fullest extent permitted by law, Depikt is provided without warranties of any kind, and our total liability to you for any claim is limited to the amount you paid us in the twelve months before the claim. Nothing in these Terms limits liability that cannot be limited by law.
+
+For account, billing, or other support, email [depiktapp@gmail.com](mailto:depiktapp@gmail.com).
 
 ## 13. Changes to these Terms
 

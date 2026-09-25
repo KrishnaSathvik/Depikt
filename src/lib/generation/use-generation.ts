@@ -82,6 +82,8 @@ export interface GenerationChildJob extends JobStatusResponse {
 }
 
 export interface ReferenceEntry {
+  /** Stable across intent edits; distinct for every new attachment. */
+  uploadId?: string;
   local: ReferenceImageState;
   uploadedPath: string | null;
   uploading: boolean;
@@ -122,10 +124,12 @@ export interface SubmitInput {
 }
 
 export interface UseGenerationOptions {
+  /** A single Home execution owner resumes submissions from every prompt tool. */
+  resumeAllSources?: boolean;
   sourceContext: { type: SourceContextType; id?: string | null };
 }
 
-export function useGeneration({ sourceContext }: UseGenerationOptions) {
+export function useGeneration({ sourceContext, resumeAllSources = false }: UseGenerationOptions) {
   const { user, loading: authLoading, signInWithProvider } = useAuth();
   // Signed-out submit: the provider chooser (AuthGateDialog) is open.
   const [authPrompt, setAuthPrompt] = useState(false);
@@ -308,7 +312,11 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     const pending = readPendingGeneration();
     if (
       !pending ||
-      !pendingGenerationMatchesSource(sourceContextRef.current.type, pending.sourceContext.type)
+      !pendingGenerationMatchesSource(
+        sourceContextRef.current.type,
+        pending.sourceContext.type,
+        resumeAllSources,
+      )
     )
       return;
     clearPendingGeneration();
@@ -344,12 +352,20 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     try {
       const { path } = await uploadReferenceImage(entry.local.dataUrl);
       setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploadedPath: path, uploading: false } : r)),
+        prev.map((r) =>
+          r === entry || (!!entry.uploadId && r.uploadId === entry.uploadId)
+            ? { ...r, uploadedPath: path, uploading: false, error: false }
+            : r,
+        ),
       );
       return true;
     } catch {
       setReferences((prev) =>
-        prev.map((r) => (r === entry ? { ...r, uploading: false, error: true } : r)),
+        prev.map((r) =>
+          r === entry || (!!entry.uploadId && r.uploadId === entry.uploadId)
+            ? { ...r, uploading: false, error: true }
+            : r,
+        ),
       );
       return false;
     }
@@ -378,7 +394,12 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
         ? { mime: "image/png", width: meta.width, height: meta.height, hasAlpha: false }
         : undefined,
     };
-    const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
+    const entry: ReferenceEntry = {
+      uploadId: crypto.randomUUID(),
+      local,
+      uploadedPath: null,
+      uploading: true,
+    };
     setReferences((prev) => [...prev, entry]);
     await uploadReference(entry);
   }
@@ -393,11 +414,38 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
       return;
     }
     const local = await fileToReferenceState(file, "auto");
-    const entry: ReferenceEntry = { local, uploadedPath: null, uploading: true };
+    const entry: ReferenceEntry = {
+      uploadId: crypto.randomUUID(),
+      local,
+      uploadedPath: null,
+      uploading: true,
+    };
     setReferences((prev) => [...prev, entry]);
     const ok = await uploadReference(entry);
     if (ok) trackEvent("reference_added", {});
     else toast.error("Couldn't attach the reference image — tap it to retry.");
+  }
+
+  function setPrimaryReference(local: ReferenceImageState | null) {
+    if (!local) {
+      removeReference(0);
+      return;
+    }
+    const existing = referencesRef.current[0];
+    if (existing?.local.dataUrl === local.dataUrl) {
+      setReferences((prev) =>
+        prev.map((entry, index) => (index === 0 ? { ...entry, local } : entry)),
+      );
+      return;
+    }
+    const entry: ReferenceEntry = {
+      uploadId: crypto.randomUUID(),
+      local,
+      uploadedPath: null,
+      uploading: true,
+    };
+    setReferences((prev) => [entry, ...prev.slice(1)]);
+    void uploadReference(entry);
   }
 
   function removeReference(index: number) {
@@ -1002,6 +1050,7 @@ export function useGeneration({ sourceContext }: UseGenerationOptions) {
     errorMessage,
     credits,
     references,
+    setPrimaryReference,
     addReference,
     addReferenceFromDataUrl,
     removeReference,

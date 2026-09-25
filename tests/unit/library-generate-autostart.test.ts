@@ -1,9 +1,4 @@
-// Product rule: a button labeled "Generate" must start generation, not just
-// arrive at a pre-filled /generate composer requiring a second click.
-// Library already has a complete prompt, so its handoff auto-submits on
-// arrival. Gallery only has a reference image — the user still has to
-// supply what they want made — so it must stay pre-filled-only.
-// See docs/plans/2026-09-10-inline-generation-workspace.md.
+// Browse handoffs prefill; only explicit submissions may auto-start.
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -22,17 +17,15 @@ test("Library's handoff still saves prompt + navigates to /generate", () => {
   assert.match(dialog, /navigate\(\{ to: ROUTES\.legacyBuilder \}\)/);
 });
 
-test("GenerateWorkspace auto-submits only a library-sourced handoff with a real prompt", () => {
+test("GenerateWorkspace only auto-submits explicit autoStart prompts", () => {
   const g = read("src/components/generate/GenerateWorkspace.tsx");
-  const handoffEffect = g.slice(
-    g.indexOf("useEffect(() => {\n    const handoff = consumeGenerationHandoff();"),
-    g.indexOf("}, []);"),
-  );
-  assert.match(handoffEffect, /handoff\.sourceType === "library" && handoff\.prompt\.trim\(\)/);
+  const handoffEffect = g.slice(g.indexOf("useEffect(() => {"), g.indexOf("}, [isActive]);"));
+  assert.match(handoffEffect, /if \(handoff\.autoStart && handoff\.prompt\.trim\(\)\)/);
+  assert.match(handoffEffect, /handoff\.prompt\.trim\(\)/);
   assert.match(handoffEffect, /gen\.submit\(\{/);
   assert.match(
     handoffEffect,
-    /sourceContext: \{ type: "library", id: handoff\.sourceId \?\? null \}/,
+    /sourceContext: \{ type: handoff\.sourceType, id: handoff\.sourceId \?\? null \}/,
   );
 });
 
@@ -43,16 +36,19 @@ test("useGeneration carries a submit source override through plans and pending a
     hook.indexOf("function applyPlanOrJobError"),
   );
   assert.match(submit, /input\.sourceContext \?\? sourceContextRef\.current/);
-  assert.match(submit, /lastParamsRef\.current = \{ \.\.\.input, sourceContext: effectiveSourceContext \}/);
+  assert.match(
+    submit,
+    /lastParamsRef\.current = \{ \.\.\.input, sourceContext: effectiveSourceContext \}/,
+  );
   assert.match(submit, /sourceContext: effectiveSourceContext/g);
 });
 
 test("Gallery's handoff carries no prompt, so it can never auto-submit", () => {
-  const gallery = read("src/routes/gallery.tsx");
+  const gallery = read("src/hooks/use-gallery-reference.ts");
   assert.match(gallery, /sourceType: "gallery"/);
   const handoffCall = gallery.slice(
     gallery.indexOf("saveGenerationHandoff({"),
-    gallery.indexOf("void navigate({ to: ROUTES.legacyBuilder });"),
+    gallery.indexOf("await navigate({ to: ROUTES.legacyBuilder });"),
   );
   assert.match(handoffCall, /prompt: ""/);
 });

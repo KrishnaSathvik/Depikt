@@ -36,11 +36,11 @@ test("/generate renders a single-column composer while idle, with no GenerationC
   assert.match(idleBranch, /<ComposerSurface/);
 });
 
-test("the two-pane workspace (and its GenerationCanvas) only renders once generation is underway", () => {
+test("the result workspace (and its GenerationCanvas) only renders once generation is underway", () => {
   const g = read("src/components/generate/GenerateWorkspace.tsx");
   const afterIdle = g.slice(g.indexOf("// ---------- generating"));
   assert.match(afterIdle, /<GenerationCanvas/);
-  assert.match(afterIdle, /lg:grid-cols-\[minmax\(0,2fr\)_minmax\(0,3fr\)\]/);
+  assert.match(afterIdle, /className="space-y-8"/);
 });
 
 test("InlineGenerationPanel (Build/Critique) never mounts ThinkingField before phase leaves idle or confirm", () => {

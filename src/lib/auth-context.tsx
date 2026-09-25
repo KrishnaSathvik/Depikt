@@ -7,6 +7,7 @@ import { trackEvent } from "@/lib/analytics";
 import { toast } from "sonner";
 import { AUTH_COPY } from "@/lib/product";
 import { toCanonicalUrl } from "@/lib/site";
+import { setPrivateCacheOwner } from "@/lib/private-cache";
 
 export type SignInResult = { ok: true; redirected: boolean } | { ok: false; error: string };
 
@@ -76,9 +77,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
+    let authEvents = 0;
     // A missing Supabase configuration must not take the whole app down:
     // auth stays signed out and the public pages still render.
     if (!isSupabaseConfigured()) {
+      setPrivateCacheOwner(null);
       setLoading(false);
       return;
     }
@@ -86,8 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
+      if (cancelled) return;
+      authEvents += 1;
+      setPrivateCacheOwner(newSession?.user?.id ?? null);
       setSession(newSession);
       setUser(newSession?.user ?? null);
+      setLoading(false);
       if (event === "SIGNED_IN" && newSession?.user) {
         // Only the sign-in this tab started counts as a completion; SIGNED_IN
         // also fires on tab refocus for an existing session.
@@ -107,13 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     // THEN check for existing session
+    const initialEvents = authEvents;
     supabase.auth.getSession().then(({ data: { session: existing } }) => {
+      if (cancelled || authEvents !== initialEvents) return;
+      setPrivateCacheOwner(existing?.user?.id ?? null);
       setSession(existing);
       setUser(existing?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signInWithProvider = async (

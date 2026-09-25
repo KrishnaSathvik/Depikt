@@ -174,9 +174,9 @@ test("answered values round-trip through storage keyed by slug and clear cleanly
 });
 
 test("Templates page: one Start per card, a shared setup panel, slug-only hand-off", () => {
-  const page = read("src/routes/templates.index.tsx");
+  const page = read("src/components/library/TemplatesBrowser.tsx");
   assert.match(page, /<TemplateSetup/);
-  assert.match(page, /Choose what you want to make\./);
+  assert.match(page, /export function TemplatesBrowser/);
   assert.match(page, /Continue to Generate|CTA.continueToGenerate/);
   assert.match(page, /search: \{ mode: "build" as const, template: selected\.slug \}/);
   assert.match(page, /saveGenerationHandoff/);
@@ -186,7 +186,7 @@ test("Templates page: one Start per card, a shared setup panel, slug-only hand-o
   assert.equal(/buildTemplateStarter/.test(page), false, "no skeleton on the page");
   for (const retired of ["Best for", "You provide", "Fill in details", "Use template"])
     assert.equal(page.includes(retired), false, `retired copy: ${retired}`);
-  assert.match(page, /xl:grid-cols-3/);
+  assert.match(read("src/components/library/LibraryCard.tsx"), /Use template/);
   assert.match(page, /template_sent_to_prompt/);
 });
 
@@ -202,7 +202,7 @@ test("setup panel derives fields from the canonical catalogue and validates requ
 });
 
 test("Prompt receives structured template context, not a skeleton in the textarea", () => {
-  const prompt = read("src/routes/prompt.tsx");
+  const prompt = read("src/lib/creator-search.ts");
   assert.match(prompt, /template\?: string/);
   assert.equal(/buildTemplateStarter/.test(prompt), false);
   const build = read("src/components/prompt/BuildMode.tsx");
@@ -235,13 +235,12 @@ test("MCP exposes the canonical catalogue and stays read-only", () => {
 test("no per-template detail routes remain", () => {
   const sitemap = read("src/routes/sitemap[.]xml.tsx");
   assert.equal(/\/templates\/\$\{/.test(sitemap), false);
-  assert.match(sitemap, /absoluteUrl\("\/templates"\)/);
+  assert.match(sitemap, /absoluteUrl\("\/library\?tab=templates"\)/);
 });
 
-test("/templates has its own metadata", () => {
+test("Library preserves template SEO at its canonical tab URL", () => {
   assert.equal(SEO.templates.title, "AI Image Prompt Templates | Depikt");
-  assert.ok(SEO.templates.description.length <= 160);
-  const page = read("src/routes/templates.index.tsx");
-  assert.match(page, /pageSeoHead\(SEO\.templates/);
-  assert.match(read("src/lib/seo.ts"), /rel: "canonical"/);
+  const page = read("src/routes/library.tsx");
+  assert.match(page, /tab === "templates" \? SEO.templates/);
+  assert.match(page, /absoluteUrl\(`\/library\?tab=\$\{tab\}`\)/);
 });

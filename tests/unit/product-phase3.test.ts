@@ -52,7 +52,7 @@ const read = (p: string) => readFileSync(resolve(ROOT, p), "utf8");
 // ---------- naming ----------
 
 test("product surfaces: Generate first, Improve prompt and Critique as tools, not equal products", () => {
-  assert.equal(TOOL.library, "Prompt Library");
+  assert.equal(TOOL.library, "Library");
   assert.equal(TOOL.buildMode, "Improve prompt");
   assert.equal(TOOL.critiqueMode, "Critique");
   assert.equal("builder" in TOOL, false);
@@ -66,13 +66,13 @@ test("product surfaces: Generate first, Improve prompt and Critique as tools, no
   assert.equal(CTA.regenerateImage, "Regenerate image");
   assert.equal(CTA.critiqueThis, "Critique");
   assert.equal(CTA.remix, "Edit prompt");
-  assert.equal(CTA.generateWithPrompt, "Generate with this prompt");
+  assert.equal(CTA.generateWithPrompt, "Use this prompt");
   assert.equal(CTA.useAsReference, "Use as reference");
   assert.equal(CTA.continueToGenerate, "Continue to Generate");
   assert.equal(CTA.copyPrompt, "Copy prompt");
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.label),
-    ["Prompt Library", "Templates", "Gallery"],
+    ["Library"],
   );
 });
 
@@ -83,26 +83,26 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
 
   assert.deepEqual(
     NAV_ITEMS.map((n) => n.to),
-    ["/library", "/templates", "/gallery"],
+    ["/library"],
   );
   assert.match(read("src/routes/prompt.tsx"), /createFileRoute\("\/prompt"\)/);
   // Both legacy routes redirect into /prompt with a mode; generate.tsx's
   // mode is computed (feature-flag dependent), critique.tsx's is a literal.
   const genSrc = read("src/routes/generate.tsx");
   assert.match(genSrc, /redirect\(\{/);
-  assert.match(genSrc, /to: "\/prompt"/);
+  assert.match(genSrc, /to: "\/"/);
   assert.match(genSrc, /statusCode: 301/);
-  assert.match(genSrc, /isNativeGenerationEnabled\(\) \? "generate" : "build"/);
+  assert.match(genSrc, /mode: "generate"/);
   const critiqueSrc = read("src/routes/critique.tsx");
   assert.match(critiqueSrc, /redirect\(\{/);
   assert.match(critiqueSrc, /to: "\/prompt"/);
   assert.match(critiqueSrc, /mode: "critique"/);
   assert.match(critiqueSrc, /statusCode: 301/);
   // the workspace mounts all three modes so each keeps its own draft
-  assert.match(read("src/routes/prompt.tsx"), /<GenerateWorkspace/);
-  assert.match(read("src/routes/prompt.tsx"), /<BuildMode/);
-  assert.match(read("src/routes/prompt.tsx"), /<CritiqueMode/);
-  assert.match(read("src/routes/prompt.tsx"), /role="tablist"/);
+  assert.match(read("src/components/CreateWorkspace.tsx"), /<GenerateWorkspace/);
+  assert.match(read("src/components/CreateWorkspace.tsx"), /<BuildMode/);
+  assert.match(read("src/components/CreateWorkspace.tsx"), /<CritiqueMode/);
+  assert.match(read("src/components/CreateWorkspace.tsx"), /role="tablist"/);
 });
 
 test("internal identifiers keep their historical names (documented in CLAUDE.md)", () => {
@@ -138,7 +138,7 @@ test("current product SEO is unique per route and uses the locked titles", () =>
     .map(([, m]) => m.title);
   assert.equal(new Set(titles).size, titles.length, "duplicate SEO title across routes");
   for (const m of Object.values(SEO)) assert.ok(m.title.length <= 70, m.title);
-  assert.equal(JSONLD_NAMES.prompt, "Depikt Prompt Workspace");
+  assert.equal(JSONLD_NAMES.prompt, "Depikt Create Workspace");
   assert.equal(JSONLD_NAMES.generate, "Depikt Generate");
   assert.equal("builder" in JSONLD_NAMES, false);
   assert.equal("critic" in JSONLD_NAMES, false);
@@ -155,6 +155,7 @@ test("current product SEO is unique per route and uses the locked titles", () =>
 test("no current-product surface still calls Build and Critique separate tools", () => {
   const files = [
     "src/routes/index.tsx",
+    "src/components/HomeGenerateDemo.tsx",
     "src/routes/prompt.tsx",
     "src/routes/library.tsx",
     "src/routes/gallery.tsx",
@@ -175,35 +176,42 @@ test("no current-product surface still calls Build and Critique separate tools",
   }
   // MCP tells assistants the current product model
   const mcp = read("src/lib/mcp/index.ts");
-  assert.match(mcp, /Build mode/);
-  assert.match(mcp, /Critique mode/);
-  assert.match(mcp, /Generate \(https:\/\/www\.depikt\.app\/generate\)/);
+  assert.match(mcp, /Improve prompt/);
+  assert.match(mcp, /Critique tools/);
+  assert.match(mcp, /Home \/ Create \(https:\/\/www\.depikt\.app\/\)/);
   // llms.txt describes one workspace with two modes, plus Generate
   const llms = read("public/llms.txt");
-  assert.match(llms, /Prompt workspace — Build mode/);
-  assert.match(llms, /Prompt workspace — Critique mode/);
-  assert.match(llms, /\[Generate\]\(https:\/\/www\.depikt\.app\/generate\)/);
+  assert.match(
+    llms,
+    /Improve prompt and Critique are optional tools in the same creator workspace/,
+  );
+  assert.match(
+    llms,
+    /Home is for creating; Library is for discovery; Account is for private creations/,
+  );
+  assert.match(llms, /\[Home \/ Create\]\(https:\/\/www\.depikt\.app\/\)/);
   // sitemap: canonical /prompt only — /generate and /critique are both
   // pure redirects onto it now, neither gets its own sitemap entry.
   const sitemap = read("src/routes/sitemap[.]xml.tsx");
-  assert.match(sitemap, /absoluteUrl\("\/prompt"\)/);
+  assert.doesNotMatch(sitemap, /absoluteUrl\("\/prompt"\)/);
   assert.equal(/absoluteUrl\("\/generate"\)/.test(sitemap), false);
   assert.equal(/absoluteUrl\("\/critique"\)/.test(sitemap), false);
   // header keeps Templates out of primary nav; MCP stays footer-only
   // Templates link was intentionally removed from the footer per 2026-09-12 edit.
   assert.match(read("src/components/Header.tsx"), /NAV_ITEMS/);
-  assert.match(read("src/lib/product.ts"), /ROUTES\.templates/);
+  assert.match(read("src/routes/library.tsx"), /TemplatesBrowser/);
   assert.match(read("src/lib/product.ts"), /blog: "\/blog"/);
   assert.match(read("src/components/Footer.tsx"), /ROUTES\.blog/);
   // header inserts Generate (behind the feature flag); MCP is not a nav item
   const header = read("src/components/Header.tsx");
-  assert.match(header, /TOOL\.generate/);
+  assert.doesNotMatch(header, /TOOL\.generate/);
   assert.doesNotMatch(header, /ROUTES\.mcp|TOOL\.mcp|\/integrations\/mcp/);
 });
 
 test("current product UI files carry no generator-era labels", () => {
   const files = [
     "src/routes/index.tsx",
+    "src/components/HomeGenerateDemo.tsx",
     "src/routes/prompt.tsx",
     "src/components/prompt/BuildMode.tsx",
     "src/components/prompt/CritiqueMode.tsx",
@@ -231,7 +239,7 @@ test("current product UI files carry no generator-era labels", () => {
     const s = read(f);
     for (const re of banned) assert.equal(re.test(s), false, `${f} still contains ${re}`);
   }
-  assert.match(read("src/routes/index.tsx"), /HOME_ACTION\.title/);
+  assert.match(read("src/components/HomeGenerateDemo.tsx"), /HOME_ACTION\.title/);
   // llms.txt now describes native generation; it must not claim otherwise.
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(
@@ -239,7 +247,7 @@ test("current product UI files carry no generator-era labels", () => {
     ),
     false,
   );
-  assert.match(read("public/llms.txt"), /GPT Image 2 collection/);
+  assert.match(read("public/llms.txt"), /historical GPT Image 2 examples/);
 });
 
 // ---------- Imago reference handoff ----------
@@ -378,7 +386,7 @@ test("legacy library: 500 prompts, unchanged shape, labeled as the GPT Image 2 c
   }
   assert.equal(LIBRARY_COPY.headline, "Explore prompts behind strong image results.");
   assert.equal(LIBRARY_COPY.collections, "500 GPT Image 2 · 43 tested Images 2.5");
-  assert.match(read("src/routes/library.tsx"), /LIBRARY_COPY\.headline/);
+  assert.match(read("src/routes/library.tsx"), /Find a starting point/);
   // Remix now lives in the shared PromptDetailDialog (used by /library and
   // /favorites), not duplicated in library.tsx itself.
   assert.match(read("src/components/library/PromptDetailDialog.tsx"), /CTA\.remix/);

@@ -6,7 +6,7 @@ import { MCP } from "@/lib/product";
 // Static "site shell last meaningfully changed" date — bump when you ship a
 // real content/structure change to a static route. Avoids advertising a fresh
 // lastmod every request.
-const STATIC_LASTMOD = "2026-09-12";
+const STATIC_LASTMOD = "2026-09-21";
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
@@ -26,16 +26,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "daily",
           },
           {
-            // Generate is now a mode of this same page (?mode=generate),
-            // not its own URL — /generate only redirects here, same as
-            // /critique, so neither gets its own sitemap entry.
-            loc: absoluteUrl("/prompt"),
-            lastmod: STATIC_LASTMOD,
-            priority: "0.9",
-            changefreq: "weekly",
-          },
-          {
-            loc: absoluteUrl("/gallery"),
+            loc: absoluteUrl("/library?tab=gallery"),
             lastmod: STATIC_LASTMOD,
             priority: "0.8",
             changefreq: "weekly",
@@ -53,7 +44,7 @@ export const Route = createFileRoute("/sitemap.xml")({
             changefreq: "monthly",
           },
           {
-            loc: absoluteUrl("/templates"),
+            loc: absoluteUrl("/library?tab=templates"),
             lastmod: STATIC_LASTMOD,
             priority: "0.9",
             changefreq: "weekly",

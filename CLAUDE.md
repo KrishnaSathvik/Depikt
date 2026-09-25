@@ -1,5 +1,17 @@
 # Pixelary/Depikt — Claude Code Instructions
 
+## Current product architecture (September 21, 2026)
+
+This section supersedes the older V1 navigation and routing notes below.
+
+- `/` hosts the unchanged Images 2.5 launch hero, the real `CreateWorkspace` at `#create`, capabilities, and footer. Do not restore the homepage demo.
+- `CreateWorkspace` exposes compact Generate, Improve prompt, and Critique tabs on Home. `CreatorDraftProvider` owns one shared prompt, reference list, saved-reference selection, generation hook, and auth dialog. Only the active tool receives consumable search inputs. Results can replace the shared prompt or generate in place.
+- Header navigation is Library with authentication/account controls, all in one row at every viewport width; do not restore a separate mobile navigation row. Pricing stays in the footer. Home is the creator. Its compact input contains reference uploads, Reference Packs, prompt tools, ratio and the single credit label; History sits beside the section title and examples are compact chips.
+- `/library` defaults to Prompts with exactly three tabs: Prompts, Templates, and Gallery. They share the same card system, search, task categories, and Favorites filter via `tab`; collection deep links remain supported without an extra Filters button or collection panel. Templates and Gallery retain their SEO at canonical Library tab URLs. `/favorites` redirects to the Library favorites filter.
+- `/generate` and `/prompt` permanently redirect to Home/Create with validated search context; `/templates` and `/gallery` redirect to Library. Preserve these legacy routes and historical content links.
+- Library's “Use this prompt” fills the creator without submitting. Template briefs and gallery references also return to creation for review. Only explicit submit handoffs may auto-start.
+- Saved references are owner-scoped, with no global defaults or seeded UI packs. The creation picker says Saved references; account management retains Reference packs. Native generation remains behind its existing feature flag. Account continues to own saved creations and Reference Packs.
+
 ## Product (V1, ChatGPT Images 2.5 migration)
 
 Depikt is a **reference library and prompt workspace for ChatGPT Images**. It writes and reviews prompts; it does **not** generate images (that is a future V2). Do not add image-generation API calls, "Generate Image" buttons, credits, generated-image storage, or model selectors.

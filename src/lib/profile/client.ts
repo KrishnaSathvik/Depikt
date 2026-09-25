@@ -5,6 +5,8 @@
 
 import { generationFetch, GenerationApiError } from "@/lib/generation/client";
 import { removeCreationFromCache } from "./creations-cache";
+import { privateScope } from "@/lib/private-cache";
+import { supabase } from "@/integrations/supabase/client";
 
 export { GenerationApiError };
 
@@ -91,6 +93,12 @@ export function getCreations(
 }
 
 export async function deleteCreation(id: string): Promise<void> {
+  const { data } = await supabase.auth.getSession();
+  const scope = data.session ? privateScope(data.session.user.id) : null;
   await profileJson<{ deleted: true }>(`/api/account/creations/${id}`, { method: "DELETE" });
-  removeCreationFromCache(id);
+  if (scope) removeCreationFromCache(scope, id);
+}
+
+export function getCreationDetail(id: string): Promise<import("./creation-detail").CreationDetail> {
+  return profileJson(`/api/account/creations/${id}`);
 }

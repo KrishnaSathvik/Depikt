@@ -17,7 +17,7 @@ function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
 }
 
-const PROMPT_SRC = read("src/routes/prompt.tsx");
+const PROMPT_SRC = read("src/components/CreateWorkspace.tsx");
 
 // ---------- eyebrow tracks the active mode ----------
 
@@ -67,20 +67,17 @@ test("SEO.promptGenerate/promptBuild/promptCritique carry the locked per-mode co
   );
 });
 
-test("/prompt's head() resolves metadata by the requested mode, falling back like the component does", () => {
-  assert.match(PROMPT_SRC, /head: \(\{ match \}\) => \{/);
-  assert.match(PROMPT_SRC, /const requestedMode = parsePromptMode\(match\.search\.mode\)/);
-  assert.match(
-    PROMPT_SRC,
-    /requestedMode === "generate" && !isNativeGenerationEnabled\(\) \? "build" : requestedMode/,
-  );
-  assert.match(PROMPT_SRC, /const page = SEO_BY_MODE\[mode\]/);
-  assert.match(PROMPT_SRC, /pageSeoHead\(page/);
+test("legacy prompt modes redirect to Home with validated search intact", () => {
+  const route = read("src/routes/prompt.tsx");
+  assert.match(route, /validateSearch: validateCreatorSearch/);
+  assert.match(route, /to: "\/", search, hash: "create"/);
+  assert.match(route, /statusCode: 301/);
 });
 
-test("the canonical URL for all three modes stays /prompt (no per-mode routes)", () => {
-  assert.match(PROMPT_SRC, /const PROMPT_URL = absoluteUrl\("\/prompt"\)/);
-  assert.match(PROMPT_SRC, /url: PROMPT_URL/);
+test("Home owns canonical metadata for the shared creator", () => {
+  const home = read("src/routes/index.tsx");
+  assert.match(home, /const HOME_URL = absoluteUrl\("\/"\)/);
+  assert.match(home, /url: HOME_URL/);
   assert.match(read("src/lib/seo.ts"), /rel: "canonical"/);
 });
 
@@ -118,7 +115,7 @@ test("Build resets inline generation on New Prompt and Rebuild, and labels them 
   assert.match(PROMPT_SRC, /next === "build" \? \{ template: search\.template \}/);
 });
 
-test("mode heroes share ModeHero + PROMPT_MODE_COPY and do not restate the tab hint as a third line", () => {
+test("Home tools share the composer without duplicate mode heroes", () => {
   assert.doesNotMatch(
     PROMPT_SRC,
     /MODES\.find\(\(m\) => m\.id === mode\)\?\.hint/,
@@ -129,8 +126,8 @@ test("mode heroes share ModeHero + PROMPT_MODE_COPY and do not restate the tab h
     "src/components/prompt/BuildMode.tsx",
     "src/components/prompt/CritiqueMode.tsx",
   ]) {
-    assert.match(read(f), /ModeHero/, f);
-    assert.match(read(f), /PROMPT_MODE_COPY/, f);
+    assert.match(read(f), /CreationComposer/, f);
+    if (f.includes("/prompt/")) assert.doesNotMatch(read(f), /<ModeHero/, f);
   }
   assert.match(read("src/lib/product.ts"), /What do you want to make\?/);
   assert.match(read("src/lib/product.ts"), /Improve this prompt\./);

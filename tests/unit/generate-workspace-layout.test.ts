@@ -15,12 +15,12 @@ function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
 }
 
-test("the Generate mode splits into two panes at lg, one column below it", () => {
+test("the Generate result stays below the composer on every viewport", () => {
   // GenerateWorkspace no longer owns its own page-width container — it's
   // embedded as one mode of /prompt's tablist (src/routes/prompt.tsx) and
   // relies on that shared 1040px container, same as Build/Critique.
   const g = read("src/components/generate/GenerateWorkspace.tsx");
-  assert.match(g, /lg:grid-cols-\[minmax\(0,2fr\)_minmax\(0,3fr\)\]/);
+  assert.match(g, /className="space-y-8"/);
 });
 
 test("no model/quality/seed/style-preset controls in the composer", () => {

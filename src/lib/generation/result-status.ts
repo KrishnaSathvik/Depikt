@@ -52,7 +52,7 @@ export function resultStatusLines(args: {
   if (repaired) {
     lines.push({
       title: RESULT_STATUS.refined,
-      detail: RESULT_STATUS.refinedDetail(Math.max(1, attempts)),
+      detail: RESULT_STATUS.refinedDetail,
     });
   }
 

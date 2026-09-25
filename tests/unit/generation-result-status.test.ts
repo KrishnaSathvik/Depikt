@@ -21,7 +21,7 @@ test("result status shows Grounded, Validated, and Refined without internal jarg
   assert.match(text, /Validated/);
   assert.match(text, /All requested visual details passed/);
   assert.match(text, /Refined automatically/);
-  assert.match(text, /1 issue corrected at no extra credit/);
+  assert.match(text, /Included refinement at no extra credit/);
   assert.doesNotMatch(text, /pass_with_limitation|repairable|confidence|V5|validationClaims/);
 });
 

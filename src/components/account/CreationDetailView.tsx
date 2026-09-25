@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -7,9 +7,10 @@ import { PromptSurface } from "@/components/PromptSurface";
 import { simplifyRatioLabel } from "@/lib/generation/use-generation";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { downloadFile } from "@/lib/download-file";
-import { deleteCreation, type CreationItem } from "@/lib/profile/client";
+import { deleteCreation, getCreationDetail, type CreationItem } from "@/lib/profile/client";
 import { CREATIONS_COPY, ROUTES } from "@/lib/product";
 import { promptCaption, userFacingPrompt } from "@/lib/generation/user-facing-prompt";
+import { useAccountHub } from "./AccountHubProvider";
 import { trackEvent } from "@/lib/analytics";
 
 function orientationOf(width: number, height: number): "Square" | "Portrait" | "Landscape" {
@@ -31,13 +32,38 @@ function formatCreationDate(iso: string): string {
  * supplies the surrounding chrome (title, back arrow, close).
  */
 export function CreationDetailView({
-  creation,
+  creation: initialCreation,
   onDeleted,
 }: {
   creation: CreationItem;
   onDeleted?: () => void;
 }) {
+  const [detail, setDetail] = useState<
+    import("@/lib/profile/creation-detail").CreationDetail | null
+  >(null);
+  const [selectedId, setSelectedId] = useState(initialCreation.id);
+  const [detailError, setDetailError] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    setDetail(null);
+    setDetailError(false);
+    setSelectedId(initialCreation.id);
+    getCreationDetail(initialCreation.id).then(
+      (result) => {
+        if (!cancelled) setDetail(result);
+      },
+      () => {
+        if (!cancelled) setDetailError(true);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [initialCreation.id]);
+  const saved = detail?.versions.find((v) => v.id === selectedId);
+  const creation = saved ?? initialCreation;
   const navigate = useNavigate();
+  const { closeHub } = useAccountHub();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -64,6 +90,7 @@ export function CreationDetailView({
         createdAt: creation.createdAt,
       },
     });
+    closeHub();
     void navigate({ to: ROUTES.legacyBuilder });
   }
 
@@ -118,6 +145,53 @@ export function CreationDetailView({
           </p>
         </div>
 
+        {saved?.lineage && <p className="text-body-sm">{saved.lineage}</p>}
+        {saved?.statusLines.map((line, index) => (
+          <p key={index} className="text-body-sm">
+            {line.title}
+            {line.detail ? ` · ${line.detail}` : ""}
+          </p>
+        ))}
+        {!!saved?.sources.length && (
+          <details>
+            <summary>Sources ({saved.sources.length})</summary>
+            <ul className="mt-2 space-y-2">
+              {saved.sources.map((source) => (
+                <li key={source.url}>
+                  <a
+                    className="underline"
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {source.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+        {detail && detail.versions.length > 1 && (
+          <div aria-label="Saved versions" className="flex flex-wrap gap-2">
+            {detail.versions.map((version, index) => (
+              <Button
+                key={version.id}
+                variant={version.id === selectedId ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedId(version.id)}
+                aria-pressed={version.id === selectedId}
+              >
+                {version.seriesLabel ?? `Version ${index + 1}`}
+                {version.lineage ? ` · ${version.lineage}` : ""}
+              </Button>
+            ))}
+          </div>
+        )}
+        {detailError && (
+          <p role="status" className="text-body-sm">
+            Saved history is unavailable right now.
+          </p>
+        )}
         <div>
           <p className="eyebrow">Prompt</p>
           <div className="mt-2">

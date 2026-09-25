@@ -104,7 +104,7 @@ test("save() commits to the server and confirms success before updating shared s
   const src = read("src/lib/profile/profile-context.tsx");
   const saveBlock = src.slice(src.indexOf("const save = useCallback"));
   const awaitIdx = saveBlock.indexOf("await updateProfile(input)");
-  const setProfileIdx = saveBlock.indexOf("setProfile(next)");
+  const setProfileIdx = saveBlock.indexOf("setState({ scope, profile: next })");
   const writeCacheIdx = saveBlock.indexOf("writeCachedProfile(user.id, next)");
   assert.ok(awaitIdx > -1 && setProfileIdx > -1 && writeCacheIdx > -1);
   assert.ok(awaitIdx < setProfileIdx, "must await the server update before touching shared state");
@@ -120,5 +120,5 @@ test("signing out clears the in-memory profile", () => {
     src.indexOf("const refresh = useCallback"),
     src.indexOf("const save = useCallback"),
   );
-  assert.match(refreshBlock, /if \(!user\) \{\s*setProfile\(null\);/);
+  assert.match(refreshBlock, /if \(!user\) \{\s*setState\(null\);/);
 });

@@ -213,10 +213,7 @@ test("Favorites and History are not linked anywhere in /account -- only from Lib
 });
 
 test("/favorites and /history are public routes, not gated by auth", () => {
-  for (const [route, tab] of [
-    ["src/routes/favorites.tsx", "FavoritesTab"],
-    ["src/routes/history.tsx", "HistoryTab"],
-  ]) {
+  for (const [route, tab] of [["src/routes/history.tsx", "HistoryTab"]]) {
     const src = read(route);
     assert.match(src, new RegExp(`<${tab} />`));
     assert.doesNotMatch(
@@ -225,4 +222,12 @@ test("/favorites and /history are public routes, not gated by auth", () => {
       `${route} must not redirect signed-out visitors away`,
     );
   }
+});
+
+test("legacy favorites opens the public Library favorites filter", () => {
+  const src = read("src/routes/favorites.tsx");
+  assert.match(src, /to: "\/library"/);
+  assert.match(src, /favorites: true/);
+  assert.match(src, /statusCode: 301/);
+  assert.doesNotMatch(src, /signIn|useAuth/);
 });

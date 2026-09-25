@@ -9,6 +9,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { getProfile, updateProfile, type ProfileResponse, type UpdateProfileInput } from "./client";
+import { privateScope, isCurrentPrivateScope, type PrivateScope } from "@/lib/private-cache";
 import { readCachedProfile, writeCachedProfile } from "./cache";
 
 interface ProfileContextType {
@@ -31,34 +32,42 @@ const ProfileContext = createContext<ProfileContextType>({
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [profile, setProfile] = useState<ProfileResponse | null>(null);
+  const [state, setState] = useState<{ scope: PrivateScope; profile: ProfileResponse } | null>(
+    null,
+  );
+  const profile =
+    state && state.scope.userId === user?.id && isCurrentPrivateScope(state.scope)
+      ? state.profile
+      : null;
   const [loading, setLoading] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!user) {
-      setProfile(null);
+      setState(null);
       return;
     }
     // Hydrate synchronously from this user's last-known cache before the
     // network round-trip resolves, so a page refresh repaints the same
     // avatar/name instead of a transient placeholder. Only set `loading`
     // when there's nothing cached to show yet.
+    const scope = privateScope(user.id);
     const cached = readCachedProfile(user.id);
     if (cached) {
-      setProfile(cached);
+      setState({ scope, profile: cached });
     } else {
       setLoading(true);
     }
     try {
       const fresh = await getProfile();
-      setProfile(fresh);
+      if (!isCurrentPrivateScope(scope)) return;
+      setState({ scope, profile: fresh });
       writeCachedProfile(user.id, fresh);
     } catch {
       // Transient failure: keep whatever was already shown (cached value,
       // or the neutral loading placeholder) rather than blocking the rest
       // of the app.
     } finally {
-      setLoading(false);
+      if (isCurrentPrivateScope(scope)) setLoading(false);
     }
   }, [user]);
 
@@ -71,8 +80,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       // Server round-trip completes (and the DB write is confirmed) before
       // touching any shared/local state -- never close a picker or update
       // the header on an optimistic guess.
+      if (!user) throw new Error("Sign in to update your profile.");
+      const scope = privateScope(user.id);
       const next = await updateProfile(input);
-      setProfile(next);
+      if (!isCurrentPrivateScope(scope)) return next;
+      setState({ scope, profile: next });
       if (user) writeCachedProfile(user.id, next);
       return next;
     },

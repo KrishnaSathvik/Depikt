@@ -1,21 +1,13 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
+import { validateCreatorSearch } from "@/lib/creator-search";
 
-/**
- * /generate. Generate is now a mode of the unified /prompt workspace (see
- * src/routes/prompt.tsx) rather than its own page — same merge that already
- * happened for /critique. Behind the native-generation feature flag: on,
- * this redirects to /prompt?mode=generate; off, to /prompt?mode=build (the
- * Generate tab doesn't exist yet, so falling back to Build keeps this link
- * useful instead of landing on a mode that isn't offered).
- */
 export const Route = createFileRoute("/generate")({
-  validateSearch: (search: Record<string, unknown>) => search,
+  validateSearch: validateCreatorSearch,
   beforeLoad: ({ search }) => {
-    const mode: "generate" | "build" = isNativeGenerationEnabled() ? "generate" : "build";
     throw redirect({
-      to: "/prompt",
-      search: { ...(search as Record<string, unknown>), mode },
+      to: "/",
+      search: { ...search, mode: "generate" },
+      hash: "create",
       replace: true,
       statusCode: 301,
     });

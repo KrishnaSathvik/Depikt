@@ -22,6 +22,11 @@ export interface GenerationHandoff {
   sourceType: SourceContextType;
   sourceId?: string | null;
   /**
+   * Explicit submit actions may auto-start on arrival. Library, Templates,
+   * and Gallery browse actions populate the composer for review.
+   */
+  autoStart?: boolean;
+  /**
    * "Open in Generate" from an existing creation (Account → Creations): the
    * version being continued. No re-upload — the edit endpoint fetches this
    * version's own stored bytes server-side by id (see jobs.ts's

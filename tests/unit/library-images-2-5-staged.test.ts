@@ -378,7 +378,7 @@ test("featured Images 2.5 slugs in the fetch layer are exactly the 17 gallery-re
     lib.indexOf("FEATURED_25_SLUGS: string[] = ["),
     lib.indexOf("];", lib.indexOf("FEATURED_25_SLUGS")),
   );
-  const slugs = [...block.matchAll(/'([a-z0-9-]+)'/g)].map((m) => m[1]);
+  const slugs = [...block.matchAll(/["']([a-z0-9-]+)["']/g)].map((m) => m[1]);
   const galleryReady = new Set(promoted.filter((r) => r.gallery_ready).map((r) => r.slug));
   assert.equal(slugs.length, 17);
   assert.equal(new Set(slugs).size, 17);

@@ -208,11 +208,12 @@ test("sign-in and sign-up emit noindex, follow (not nofollow)", () => {
   assert.match(read("src/routes/sign-up.tsx"), /pageSeoHead\(SEO\.signUp/);
 });
 
-test("/prompt stays the canonical URL; Generate uses its own OG card", () => {
-  const src = read("src/routes/prompt.tsx");
-  assert.match(src, /pageSeoHead\(page/);
-  assert.match(src, /const PROMPT_URL = absoluteUrl\("\/prompt"\)/);
-  assert.match(src, /mode === "generate" \? "generate" : "prompt"/);
-  assert.match(read("src/routes/generate.tsx"), /statusCode: 301/);
-  assert.doesNotMatch(read("src/routes/sitemap[.]xml.tsx"), /absoluteUrl\("\/generate"\)/);
+test("Home owns creator metadata and legacy creation routes redirect", () => {
+  const src = read("src/routes/index.tsx");
+  assert.match(src, /pageSeoHead\(SEO.home/);
+  assert.match(src, /const HOME_URL = absoluteUrl\("\/"\)/);
+  for (const name of ["generate", "prompt"]) {
+    assert.match(read(`src/routes/${name}.tsx`), /statusCode: 301/);
+  }
+  assert.doesNotMatch(read("src/routes/sitemap[.]xml.tsx"), /absoluteUrl\("\/(generate|prompt)"\)/);
 });

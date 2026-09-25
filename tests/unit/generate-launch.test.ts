@@ -14,10 +14,10 @@ function read(rel: string): string {
   return readFileSync(resolve(import.meta.dirname, "../..", rel), "utf8");
 }
 
-test("Generate is a pure redirect into /prompt?mode=generate — no page of its own, same as /critique", () => {
+test("Generate is a pure redirect to Home/Create — no page of its own, same as /critique", () => {
   const g = read("src/routes/generate.tsx");
   assert.match(g, /redirect\(\{/);
-  assert.match(g, /to: "\/prompt"/);
+  assert.match(g, /to: "\/"/);
   assert.match(g, /statusCode: 301/);
   assert.doesNotMatch(g, /component:/);
   assert.doesNotMatch(g, /head:/);
@@ -46,18 +46,18 @@ test("robots.txt keeps public pages crawlable and blocks /api/", () => {
 
 test("llms.txt describes native generation and MCP stays read-only", () => {
   const llms = read("public/llms.txt");
-  assert.match(llms, /\[Generate\]\(https:\/\/www\.depikt\.app\/generate\)/);
-  assert.match(llms, /routes generation between GPT Image 2\.5 Flare and Sunburst/);
+  assert.match(llms, /\[Home \/ Create\]\(https:\/\/www\.depikt\.app\/\)/);
+  assert.match(llms, /Generation routes internally; there is no model selector/);
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(llms),
     false,
   );
-  assert.match(llms, /does not include image generation/);
+  assert.match(llms, /No private accounts, writes, or image generation/);
 });
 
 test("MCP server instructions mention Generate but stay explicit about being read-only", () => {
   const mcp = read("src/lib/mcp/index.ts");
-  assert.match(mcp, /Generate \(https:\/\/www\.depikt\.app\/generate\)/);
+  assert.match(mcp, /Home \/ Create \(https:\/\/www\.depikt\.app\/\)/);
   assert.match(mcp, /read-only and does not generate images itself/);
 });
 

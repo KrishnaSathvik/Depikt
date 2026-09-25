@@ -1,5 +1,16 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { AccountHub } from "@/components/account/AccountHub";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  lazy,
+  Suspense,
+  type ReactNode,
+} from "react";
+import { useAuth } from "@/lib/auth-context";
+import { privateScope, isCurrentPrivateScope, type PrivateScope } from "@/lib/private-cache";
+const AccountHub = lazy(() => import("./AccountHub").then((m) => ({ default: m.AccountHub })));
 import type { CreationItem } from "@/lib/profile/client";
 
 /**
@@ -44,21 +55,36 @@ interface AccountHubContextValue {
 const AccountHubContext = createContext<AccountHubContextValue | null>(null);
 
 export function AccountHubProvider({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
+  const { user } = useAuth();
+  const [scope, setScope] = useState<PrivateScope | null>(null);
+  const [requestedOpen, setOpen] = useState(false);
   const [stack, setStack] = useState<HubView[]>(["home"]);
   const [selectedCreation, setSelectedCreation] = useState<CreationItem | null>(null);
 
-  const openHub = useCallback((view: HubView = "home") => {
-    setStack(view === "home" ? ["home"] : ["home", view]);
-    setOpen(true);
-  }, []);
+  const open =
+    requestedOpen && !!scope && scope.userId === user?.id && isCurrentPrivateScope(scope);
+  const openHub = useCallback(
+    (view: HubView = "home") => {
+      setScope(user ? privateScope(user.id) : null);
+      setStack(view === "home" ? ["home"] : ["home", view]);
+      setOpen(true);
+    },
+    [user],
+  );
 
-  const pushView = useCallback((view: HubView) => {
-    setOpen((wasOpen) => {
-      setStack((prev) => (wasOpen ? [...prev, view] : view === "home" ? ["home"] : ["home", view]));
-      return true;
-    });
-  }, []);
+  const pushView = useCallback(
+    (view: HubView) => {
+      setScope(user ? privateScope(user.id) : null);
+      setOpen(() => {
+        const wasOpen = open;
+        setStack((prev) =>
+          wasOpen ? [...prev, view] : view === "home" ? ["home"] : ["home", view],
+        );
+        return true;
+      });
+    },
+    [user, open],
+  );
 
   const openCreationDetail = useCallback(
     (item: CreationItem) => {
@@ -97,7 +123,11 @@ export function AccountHubProvider({ children }: { children: ReactNode }) {
   return (
     <AccountHubContext.Provider value={value}>
       {children}
-      <AccountHub />
+      {open && (
+        <Suspense fallback={null}>
+          <AccountHub key={`${scope?.userId}:${scope?.epoch}`} />
+        </Suspense>
+      )}
     </AccountHubContext.Provider>
   );
 }
