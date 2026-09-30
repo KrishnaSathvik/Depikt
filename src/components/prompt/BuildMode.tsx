@@ -35,7 +35,13 @@ import {
 import { readSSEStream } from "@/lib/sse";
 import { urlToProcessedImage } from "@/lib/image-utils";
 import { trackEvent } from "@/lib/analytics";
-import { CTA, IMAGO_URL, PROMPT_MODE_COPY, needsReferenceReattach } from "@/lib/product";
+import {
+  CTA,
+  IMAGO_URL,
+  PROMPT_MODE_COPY,
+  REFERENCES_COPY,
+  needsReferenceReattach,
+} from "@/lib/product";
 import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
 import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
 import { ImagoPasteHint } from "@/components/ImagoPasteHint";
@@ -571,7 +577,7 @@ export function BuildMode({
                 ) : (
                   <>
                     <ReferenceImagePicker
-                      addLabel="+ Reference"
+                      addLabel={REFERENCES_COPY.oneOffAdd}
                       value={reference}
                       onChange={setReference}
                     />

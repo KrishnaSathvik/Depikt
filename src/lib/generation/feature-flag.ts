@@ -10,3 +10,17 @@ export function isNativeGenerationEnabled(explicitValue?: string): boolean {
     ?.VITE_GENERATION_ENABLED;
   return (explicitValue ?? fromVite ?? runtime) === "true";
 }
+
+/** V4 grounding. Server env only; missing or any value other than "true" is off. */
+export function isGroundingEnabled(
+  env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {},
+): boolean {
+  return env.GROUNDING_ENABLED === "true";
+}
+
+/** V5 validation + automatic refinement. Server env only; defaults off. */
+export function isValidationRepairEnabled(
+  env: Record<string, string | undefined> = typeof process !== "undefined" ? process.env : {},
+): boolean {
+  return env.VALIDATION_REPAIR_ENABLED === "true";
+}

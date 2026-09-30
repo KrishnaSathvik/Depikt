@@ -5,8 +5,8 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
   "vars": {
-    "GROUNDING_ENABLED": "false",
-    "VALIDATION_REPAIR_ENABLED": "false",
-    "AUTO_REPAIR_POLICY": "disabled",
+    "GROUNDING_ENABLED": "true",
+    "VALIDATION_REPAIR_ENABLED": "true",
+    "AUTO_REPAIR_POLICY": "platform_absorbs_one_per_request",
   },
 }

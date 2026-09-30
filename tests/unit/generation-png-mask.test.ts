@@ -56,11 +56,7 @@ test("parsePngHeader rejects bytes that are not a PNG", () => {
 });
 
 test("validateMaskPng accepts an exported mask", () => {
-  const png = exportMaskPng(
-    [{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }],
-    8,
-    8,
-  );
+  const png = exportMaskPng([{ mode: "paint", points: [{ x: 0.5, y: 0.5 }], radius: 0.25 }], 8, 8);
   assert.deepEqual(validateMaskPng(png, 8, 8, 10_000), { ok: true });
 });
 

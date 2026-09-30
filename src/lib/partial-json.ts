@@ -10,22 +10,42 @@ function unescapeJsonString(raw: string): string {
       const next = raw[i + 1];
       if (next === undefined) break; // dangling escape
       switch (next) {
-        case '"': out += '"'; break;
-        case "\\": out += "\\"; break;
-        case "/": out += "/"; break;
-        case "n": out += "\n"; break;
-        case "t": out += "\t"; break;
-        case "r": out += "\r"; break;
-        case "b": out += "\b"; break;
-        case "f": out += "\f"; break;
+        case '"':
+          out += '"';
+          break;
+        case "\\":
+          out += "\\";
+          break;
+        case "/":
+          out += "/";
+          break;
+        case "n":
+          out += "\n";
+          break;
+        case "t":
+          out += "\t";
+          break;
+        case "r":
+          out += "\r";
+          break;
+        case "b":
+          out += "\b";
+          break;
+        case "f":
+          out += "\f";
+          break;
         case "u": {
           const hex = raw.slice(i + 2, i + 6);
-          if (hex.length < 4) { i = raw.length; break; }
+          if (hex.length < 4) {
+            i = raw.length;
+            break;
+          }
           out += String.fromCharCode(parseInt(hex, 16));
           i += 4;
           break;
         }
-        default: out += next;
+        default:
+          out += next;
       }
       i += 1;
     } else {
@@ -89,7 +109,10 @@ export function extractPartialStringArray(src: string, key: string): string[] | 
     let end = i;
     while (end < src.length) {
       const ch = src[end];
-      if (ch === "\\") { end += 2; continue; }
+      if (ch === "\\") {
+        end += 2;
+        continue;
+      }
       if (ch === '"') break;
       end++;
     }

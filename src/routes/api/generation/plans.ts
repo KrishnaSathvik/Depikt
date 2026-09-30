@@ -1,3 +1,4 @@
+import { generationMetric } from "@/lib/generation/telemetry";
 import { planGrounding } from "@/lib/generation/grounding/planner";
 import {
   resolveGrounding,
@@ -96,6 +97,7 @@ export const Route = createFileRoute("/api/generation/plans")({
     handlers: {
       OPTIONS: async () => new Response(null, { status: 204, headers: corsHeaders }),
       POST: async ({ request }) => {
+        const planningStarted = Date.now();
         if (!isNativeGenerationEnabled()) return jsonError("Not found", 404);
 
         const ip = getClientIp(request);
@@ -225,6 +227,8 @@ export const Route = createFileRoute("/api/generation/plans")({
         const userInput = req.userInput ?? req.prompt;
         const plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
 
+        const planningMs = Date.now() - planningStarted;
+        const groundingStarted = Date.now();
         let grounding;
         let groundingUsage: GroundingUsage | undefined;
         if (process.env.GROUNDING_ENABLED === "true") {
@@ -252,10 +256,30 @@ export const Route = createFileRoute("/api/generation/plans")({
                 },
               });
             } catch {
+              generationMetric("grounding_completed", {
+                needed: true,
+                executed: true,
+                outcome: "unavailable",
+                groundingMs: Date.now() - groundingStarted,
+                planningMs,
+              });
               return jsonError("Could not research references. Please try again.", 502);
             }
           }
         }
+        generationMetric("grounding_completed", {
+          needed: plan.searchNeeded,
+          executed: !!grounding && !groundingUsage?.cacheHit,
+          webQueries: groundingUsage?.webQueries ?? 0,
+          visualQueries: groundingUsage?.visualQueries ?? 0,
+          sourceCount: grounding?.bundle.sources.length ?? 0,
+          cacheHit: groundingUsage?.cacheHit ?? false,
+          authority: grounding?.bundle.authorityStatus,
+          temporalLimitation: grounding?.bundle.temporalSupport?.status === "unverified",
+          groundingMs: Date.now() - groundingStarted,
+          planningMs,
+          outcome: process.env.GROUNDING_ENABLED === "true" ? "completed" : "disabled",
+        });
         const planToken = signPlanToken(
           {
             userId,

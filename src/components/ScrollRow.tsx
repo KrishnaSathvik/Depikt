@@ -48,10 +48,13 @@ export function ScrollRow({
     syncSnapPadding();
     measure();
     el.addEventListener("scroll", measure, { passive: true });
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(() => {
-      syncSnapPadding();
-      measure();
-    }) : null;
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            syncSnapPadding();
+            measure();
+          })
+        : null;
     ro?.observe(el);
     window.addEventListener("resize", measure);
     return () => {

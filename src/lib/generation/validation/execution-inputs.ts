@@ -57,7 +57,7 @@ export async function loadRepairInputs(
     imageIndices: e.resolvedReferences.map(() => index++),
   }));
   const stored = planJson as { grounding?: unknown };
-  if (stored.grounding)
+  if ((env ?? process.env).GROUNDING_ENABLED === "true" && stored.grounding)
     input.referenceImages.push(
       ...(await createGroundingProvider(env, fetchImpl).loadImages(
         verifyGroundingSnapshot(stored.grounding, job.userId, secret).bundle,

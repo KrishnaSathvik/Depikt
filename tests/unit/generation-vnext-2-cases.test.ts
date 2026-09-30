@@ -5,8 +5,7 @@ import { join } from "node:path";
 import { loadVnext2Cases } from "../image-evals/vnext-2/load-cases.ts";
 
 const FROZEN_PROMPTS: Record<string, string> = {
-  "notebook-color":
-    "Change the red notebook to dark green. Keep everything else exactly the same.",
+  "notebook-color": "Change the red notebook to dark green. Keep everything else exactly the same.",
   "tulips-color": "Change only the yellow tulips to white tulips.",
   "juice-replacement": "Replace only the orange juice with a glass of milk.",
   "jacket-color": "Change only the jacket to dark blue.",
@@ -34,7 +33,10 @@ test("vnext-2 suite has 7 unique precision-edit cases", () => {
   assert.equal(cases.length, 7);
   assert.equal(new Set(cases.map((c) => c.id)).size, 7);
   for (const id of CASE_IDS) {
-    assert.ok(cases.some((c) => c.id === id), `missing case ${id}`);
+    assert.ok(
+      cases.some((c) => c.id === id),
+      `missing case ${id}`,
+    );
   }
 });
 

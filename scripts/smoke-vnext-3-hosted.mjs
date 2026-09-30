@@ -50,16 +50,14 @@ try {
     .from("generation-assets")
     .upload(path, bytes, { contentType: "image/webp", upsert: false });
   check("authenticated private asset upload", !uploaded.error);
-  const asset = await db
-    .from("reference_entity_assets")
-    .insert({
-      id: assetId,
-      entity_id: entityId,
-      user_id: userId,
-      storage_path: path,
-      role: "primary",
-      mime_type: "image/webp",
-    });
+  const asset = await db.from("reference_entity_assets").insert({
+    id: assetId,
+    entity_id: entityId,
+    user_id: userId,
+    storage_path: path,
+    role: "primary",
+    mime_type: "image/webp",
+  });
   check("owned entity asset relationship", !asset.error);
   const download = await db.storage.from("generation-assets").download(path);
   check(
@@ -67,27 +65,23 @@ try {
     !download.error && Buffer.from(await download.data.arrayBuffer()).equals(bytes),
   );
   const duplicateId = randomUUID();
-  const duplicate = await db
-    .from("reference_entity_assets")
-    .insert({
-      id: duplicateId,
-      entity_id: entityId,
-      user_id: userId,
-      storage_path: `users/${userId}/entities/${entityId}/${duplicateId}.webp`,
-      role: "primary",
-      mime_type: "image/webp",
-    });
+  const duplicate = await db.from("reference_entity_assets").insert({
+    id: duplicateId,
+    entity_id: entityId,
+    user_id: userId,
+    storage_path: `users/${userId}/entities/${entityId}/${duplicateId}.webp`,
+    role: "primary",
+    mime_type: "image/webp",
+  });
   check("duplicate primary rejected", duplicate.error?.code === "23505");
-  const invalid = await db
-    .from("reference_entity_assets")
-    .insert({
-      id: randomUUID(),
-      entity_id: entityId,
-      user_id: randomUUID(),
-      storage_path: path + "-invalid",
-      role: "detail",
-      mime_type: "image/webp",
-    });
+  const invalid = await db.from("reference_entity_assets").insert({
+    id: randomUUID(),
+    entity_id: entityId,
+    user_id: randomUUID(),
+    storage_path: path + "-invalid",
+    role: "detail",
+    mime_type: "image/webp",
+  });
   check("invalid asset owner rejected", Boolean(invalid.error));
   const removed = await db.storage.from("generation-assets").remove([path]);
   check("owner can delete scoped entity asset", !removed.error && removed.data?.length === 1);

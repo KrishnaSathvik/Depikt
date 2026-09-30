@@ -21,7 +21,7 @@ interface RequestBody {
 
 /**
  * Prompt Critic endpoint (Images 2.5 engine v3). Separate pipeline from the
- * Builder: its own instructions, schema, and model role (Terra, reasoning medium).
+ * Builder: its own instructions, schema, and model role (GPT-6.1 Sol, reasoning medium).
  * SSE contract: status → delta {args} → done {result} | error {error}.
  */
 export const Route = createFileRoute("/api/public/critique-prompt")({

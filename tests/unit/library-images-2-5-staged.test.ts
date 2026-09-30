@@ -220,11 +220,13 @@ test("slugify", () => {
 
 // ---------- batch 1: promoted rows (from the export SQL) and held rows (staged) ----------
 
-test("batch 1 (23 promoted + 1 held) and batch 2 (20 promoted) = 44 unique ids and slugs, none colliding with legacy", () => {
+test("promoted rows plus staged work stay unique and do not collide with legacy", () => {
   const all = [...promoted.map((r) => ({ id: r.id, slug: r.slug })), ...stagedImages25Prompts];
-  assert.equal(all.length, 44);
-  assert.equal(new Set(all.map((p) => p.id)).size, 44);
-  assert.equal(new Set(all.map((p) => p.slug)).size, 44);
+  assert.equal(promoted.length, 43);
+  assert.equal(stagedImages25Prompts.length, 37);
+  assert.equal(all.length, 80);
+  assert.equal(new Set(all.map((p) => p.id)).size, 80);
+  assert.equal(new Set(all.map((p) => p.slug)).size, 80);
   const legacyIds = new Set(curatedPrompts.map((p) => p.id));
   for (const p of all) {
     assert.ok(p.id.startsWith("images25-"), p.id);

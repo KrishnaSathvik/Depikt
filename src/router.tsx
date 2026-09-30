@@ -6,6 +6,8 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
+      <title>Something went wrong — Depikt</title>
+      <meta name="robots" content="noindex, nofollow" />
       <div className="max-w-md text-center">
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
           <svg
@@ -57,6 +59,7 @@ function DefaultErrorComponent({ error, reset }: { error: Error; reset: () => vo
 export const getRouter = () => {
   const router = createRouter({
     routeTree,
+    trailingSlash: "preserve",
     context: {},
     scrollRestoration: true,
     defaultPreload: "intent",

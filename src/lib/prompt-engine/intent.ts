@@ -1,6 +1,6 @@
 // Stage 1 of the Images 2.5 Prompt Builder: structured intent analysis.
 //
-// A short model call (gpt-5.6-luna, reasoning none, strict JSON) turns the
+// A short model call (gpt-6-luna, reasoning none, strict JSON) turns the
 // user's request, optional image, optional remix reference, and optional
 // explicit choices into one authoritative Intent object. Code then applies
 // explicit overrides (UI reference intent, literal ratio, category hint), so

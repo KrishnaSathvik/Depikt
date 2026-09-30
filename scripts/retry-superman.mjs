@@ -16,13 +16,13 @@ const env = Object.fromEntries(
     .map((l) => {
       const eq = l.indexOf("=");
       return [l.slice(0, eq), l.slice(eq + 1).replace(/^["']|["']$/g, "")];
-    })
+    }),
 );
 
 const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 const supabase = createClient(
   env.SUPABASE_URL || env.VITE_SUPABASE_URL,
-  env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
+  env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY,
 );
 
 const prompt =

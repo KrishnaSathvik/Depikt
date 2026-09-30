@@ -76,7 +76,7 @@ test("product surfaces: Generate first, Improve prompt and Critique as tools, no
   );
 });
 
-test("/prompt is canonical; /generate and /critique still resolve via redirects", () => {
+test("legacy creator paths redirect directly to Home", () => {
   assert.equal(ROUTES.prompt, "/prompt");
   assert.equal(ROUTES.legacyBuilder, "/generate");
   assert.equal(ROUTES.legacyCritic, "/critique");
@@ -95,7 +95,7 @@ test("/prompt is canonical; /generate and /critique still resolve via redirects"
   assert.match(genSrc, /mode: "generate"/);
   const critiqueSrc = read("src/routes/critique.tsx");
   assert.match(critiqueSrc, /redirect\(\{/);
-  assert.match(critiqueSrc, /to: "\/prompt"/);
+  assert.match(critiqueSrc, /to: "\/"/);
   assert.match(critiqueSrc, /mode: "critique"/);
   assert.match(critiqueSrc, /statusCode: 301/);
   // the workspace mounts all three modes so each keeps its own draft
@@ -155,7 +155,6 @@ test("current product SEO is unique per route and uses the locked titles", () =>
 test("no current-product surface still calls Build and Critique separate tools", () => {
   const files = [
     "src/routes/index.tsx",
-    "src/components/HomeGenerateDemo.tsx",
     "src/routes/prompt.tsx",
     "src/routes/library.tsx",
     "src/routes/gallery.tsx",
@@ -211,7 +210,6 @@ test("no current-product surface still calls Build and Critique separate tools",
 test("current product UI files carry no generator-era labels", () => {
   const files = [
     "src/routes/index.tsx",
-    "src/components/HomeGenerateDemo.tsx",
     "src/routes/prompt.tsx",
     "src/components/prompt/BuildMode.tsx",
     "src/components/prompt/CritiqueMode.tsx",
@@ -239,7 +237,7 @@ test("current product UI files carry no generator-era labels", () => {
     const s = read(f);
     for (const re of banned) assert.equal(re.test(s), false, `${f} still contains ${re}`);
   }
-  assert.match(read("src/components/HomeGenerateDemo.tsx"), /HOME_ACTION\.title/);
+
   // llms.txt now describes native generation; it must not claim otherwise.
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(

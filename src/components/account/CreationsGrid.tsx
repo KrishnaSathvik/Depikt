@@ -1,9 +1,16 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
+import { groupCreations } from "@/lib/profile/creation-groups";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DeleteCreationDialog } from "@/components/account/DeleteCreationDialog";
-import { deleteCreation, getCreations, type CreationItem } from "@/lib/profile/client";
+import {
+  deleteCreation,
+  getCreations,
+  getCreationDetail,
+  type CreationItem,
+} from "@/lib/profile/client";
 import { readCreationsCache, writeCreationsCache } from "@/lib/profile/creations-cache";
 import { trackEvent } from "@/lib/analytics";
 import { CREATIONS_COPY } from "@/lib/product";
@@ -29,49 +36,6 @@ function creationKindLabel(item: CreationItem): string {
   return CREATIONS_COPY.generated;
 }
 
-type GridRow = { kind: "single"; item: CreationItem } | { kind: "series"; items: CreationItem[] };
-
-function groupCreations(items: CreationItem[]): GridRow[] {
-  const rows: GridRow[] = [];
-  let i = 0;
-  while (i < items.length) {
-    const item = items[i];
-    const sessionId = item.sessionId;
-    const isSeries = sessionId && item.seriesIndex != null;
-    if (!isSeries) {
-      rows.push({ kind: "single", item });
-      i += 1;
-      continue;
-    }
-    const group = [item];
-    let j = i + 1;
-    while (j < items.length && items[j].sessionId === sessionId && items[j].seriesIndex != null) {
-      group.push(items[j]);
-      j += 1;
-    }
-    if (group.length > 1) rows.push({ kind: "series", items: group });
-    else rows.push({ kind: "single", item });
-    i = j;
-  }
-  return rows;
-}
-
-function batchCreationRows(
-  rows: GridRow[],
-): Array<{ kind: "single" | "series"; items: CreationItem[] }> {
-  const batches: Array<{ kind: "single" | "series"; items: CreationItem[] }> = [];
-  for (const row of rows) {
-    if (row.kind === "series") {
-      batches.push({ kind: "series", items: row.items });
-      continue;
-    }
-    const last = batches[batches.length - 1];
-    if (last?.kind === "single") last.items.push(row.item);
-    else batches.push({ kind: "single", items: [row.item] });
-  }
-  return batches;
-}
-
 function CreationTile({
   item,
   onSelect,
@@ -94,9 +58,12 @@ function CreationTile({
         className="block w-full text-left"
       >
         {item.url ? (
-          <img
+          <RecoverableImage
             src={item.url}
-            alt={caption || kind}
+            refreshUrl={async () =>
+              (await getCreationDetail(item.id)).versions.find((v) => v.id === item.id)?.url
+            }
+            alt={item.seriesLabel || caption || kind}
             style={{ aspectRatio: `${item.width} / ${item.height}` }}
             className="w-full rounded-md object-cover transition-opacity group-hover:opacity-90"
             loading="lazy"
@@ -110,7 +77,7 @@ function CreationTile({
           </div>
         )}
         <p className="mt-1.5 line-clamp-2 text-[12px] text-[color:var(--text-secondary)]">
-          {caption || kind}
+          {item.seriesLabel || caption || kind}
         </p>
         <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[color:var(--text-tertiary)]">
           {formatShort(item.createdAt)}
@@ -285,14 +252,17 @@ function OwnedCreationsGrid({
         ) : (
           <>
             <div className="space-y-6">
-              {batchCreationRows(groupCreations(items)).map((batch) =>
+              {groupCreations(items).map((batch) =>
                 batch.kind === "series" ? (
                   <div
                     key={batch.items[0].sessionId ?? batch.items[0].id}
                     className="rounded-md border border-[color:var(--border-subtle)] p-2 sm:p-3"
                   >
                     <p className="mb-2 text-[12px] text-[color:var(--text-secondary)]">
-                      {batch.items[0].seriesLabel || CREATIONS_COPY.series(batch.items.length)}
+                      {CREATIONS_COPY.series(batch.items.length)}
+                      <span className="block">
+                        Saved outputs shown. Load more to include older outputs.
+                      </span>
                     </p>
                     <div className="columns-2 gap-3 sm:columns-3">
                       {batch.items.map((item) => (

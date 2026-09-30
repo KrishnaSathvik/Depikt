@@ -1,3 +1,4 @@
+import { getCreationDetail } from "@/lib/profile/client";
 import { resultRatioLabel } from "@/lib/generation/result-state";
 import { resultStatusLines } from "@/lib/generation/result-status";
 import type { GenerationChildJob } from "@/lib/generation/use-generation";
@@ -38,6 +39,12 @@ export function SeriesJobsGrid({
                     : "landscape"
               }
               imageUrl={job.result?.url}
+              refreshImageUrl={async () =>
+                versionId
+                  ? (await getCreationDetail(versionId)).versions.find((v) => v.id === versionId)
+                      ?.url
+                  : null
+              }
               imageAlt={label}
               errorMessage={job.errorMessage}
               onRetry={onNew}

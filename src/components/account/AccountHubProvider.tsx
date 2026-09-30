@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import {
   createContext,
   useCallback,
@@ -56,6 +57,7 @@ const AccountHubContext = createContext<AccountHubContextValue | null>(null);
 
 export function AccountHubProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
+  const onAccountPage = useRouterState({ select: (s) => s.location.pathname === "/account" });
   const [scope, setScope] = useState<PrivateScope | null>(null);
   const [requestedOpen, setOpen] = useState(false);
   const [stack, setStack] = useState<HubView[]>(["home"]);
@@ -66,10 +68,10 @@ export function AccountHubProvider({ children }: { children: ReactNode }) {
   const openHub = useCallback(
     (view: HubView = "home") => {
       setScope(user ? privateScope(user.id) : null);
-      setStack(view === "home" ? ["home"] : ["home", view]);
+      setStack(view === "home" ? ["home"] : onAccountPage ? [view] : ["home", view]);
       setOpen(true);
     },
-    [user],
+    [user, onAccountPage],
   );
 
   const pushView = useCallback(
@@ -78,12 +80,18 @@ export function AccountHubProvider({ children }: { children: ReactNode }) {
       setOpen(() => {
         const wasOpen = open;
         setStack((prev) =>
-          wasOpen ? [...prev, view] : view === "home" ? ["home"] : ["home", view],
+          wasOpen
+            ? [...prev, view]
+            : view === "home"
+              ? ["home"]
+              : onAccountPage
+                ? [view]
+                : ["home", view],
         );
         return true;
       });
     },
-    [user, open],
+    [user, open, onAccountPage],
   );
 
   const openCreationDetail = useCallback(

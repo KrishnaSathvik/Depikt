@@ -36,6 +36,7 @@ export function createValidationProviders(
     if (!endpoint || !isPublicHttpsUrl(endpoint) || !token)
       throw new Error("Validation provider not configured");
     telemetry.calls++;
+    if (operation === "ocr") telemetry.ocrCalls = (telemetry.ocrCalls ?? 0) + 1;
     const response = await fetchImpl(endpoint, {
       method: "POST",
       redirect: "error",

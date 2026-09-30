@@ -77,8 +77,12 @@ export function ReferencePackPicker({
               className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-body-sm"
             >
               <Lock className="h-3 w-3" aria-hidden />
-              {e.name}
-              <span className="text-[color:var(--text-tertiary)]">{C.locked}</span>
+              <span className="flex flex-col items-start leading-tight">
+                <span>{e.name}</span>
+                <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                  {C.kinds[e.type]} · {C.locked}
+                </span>
+              </span>
               <button
                 type="button"
                 aria-label={`Remove ${e.name}`}
@@ -99,10 +103,8 @@ export function ReferencePackPicker({
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85dvh] overflow-y-auto">
-          <DialogTitle>Saved references</DialogTitle>
-          <DialogDescription>
-            Reuse the same person, product, or brand across images.
-          </DialogDescription>
+          <DialogTitle>{C.add}</DialogTitle>
+          <DialogDescription>{C.pickerDescription}</DialogDescription>
           {error && <p role="alert">{error}</p>}
           {!user ? (
             authLoading ? (

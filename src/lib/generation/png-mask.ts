@@ -5,9 +5,7 @@ export interface PngHeader {
   colorType: number;
 }
 
-export type PngParseResult =
-  | { ok: true; header: PngHeader }
-  | { ok: false; error: string };
+export type PngParseResult = { ok: true; header: PngHeader } | { ok: false; error: string };
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] as const;
 const IHDR_MIN_BYTES = 33;
@@ -138,7 +136,7 @@ function deflateStored(data: Uint8Array): Uint8Array {
     out[dest] = final ? 0x01 : 0x00;
     out[dest + 1] = len & 0xff;
     out[dest + 2] = (len >>> 8) & 0xff;
-    const nlen = (~len) & 0xffff;
+    const nlen = ~len & 0xffff;
     out[dest + 3] = nlen & 0xff;
     out[dest + 4] = (nlen >>> 8) & 0xff;
     out.set(data.subarray(src, src + len), dest + 5);

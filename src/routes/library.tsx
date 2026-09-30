@@ -1,3 +1,4 @@
+import { Footer } from "@/components/Footer";
 import { useGalleryReference } from "@/hooks/use-gallery-reference";
 import { createFileRoute, Link, useNavigate, stripSearchParams } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -305,6 +306,7 @@ function LibraryPage() {
           />
         )}
       </main>
+      <Footer />
       <PromptDetailDialog
         prompt={prompts.find((p) => p.id === selectedPrompt?.id) ?? null}
         onClose={() => setSelectedPrompt(null)}

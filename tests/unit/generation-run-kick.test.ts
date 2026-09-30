@@ -33,9 +33,7 @@ test("first queued start is immediate; a failure backs off", () => {
 
 test("jobsReadyToStart skips in-flight and backoff windows", () => {
   const now = 5_000;
-  const kicks = new Map<string, RunKickEntry>([
-    ["b", { attempts: 1, nextStartAt: now + 2_500 }],
-  ]);
+  const kicks = new Map<string, RunKickEntry>([["b", { attempts: 1, nextStartAt: now + 2_500 }]]);
   const inFlight = new Set(["c"]);
   const ids = jobsReadyToStart(
     [

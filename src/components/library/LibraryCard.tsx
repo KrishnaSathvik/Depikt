@@ -1,3 +1,4 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { ArrowRight, LayoutTemplate, Star } from "lucide-react";
 import type { BrowseEntry } from "@/lib/library-browse";
 import { toggleFavoriteLocal } from "@/lib/favorites";
@@ -33,7 +34,7 @@ export function LibraryCard({
         className="block aspect-[4/3] w-full overflow-hidden border-b border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] focus-visible:outline-offset-[-3px]"
       >
         {entry.image ? (
-          <img
+          <RecoverableImage
             src={entry.image}
             alt=""
             loading="lazy"

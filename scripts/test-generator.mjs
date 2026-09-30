@@ -20,7 +20,7 @@ const env = Object.fromEntries(
     .map((l) => {
       const eq = l.indexOf("=");
       return [l.slice(0, eq), l.slice(eq + 1).replace(/^["']|["']$/g, "")];
-    })
+    }),
 );
 
 // Import the system prompt dynamically (it's TypeScript, so just read and extract)
@@ -30,7 +30,10 @@ const SYSTEM_PROMPT = systemPromptMatch[1];
 
 const TEST_INPUTS = [
   // 1. Aerial/drone (new technique #11)
-  { input: "a lone red kayak on a turquoise glacier lake, shot from directly above", category: "auto" },
+  {
+    input: "a lone red kayak on a turquoise glacier lake, shot from directly above",
+    category: "auto",
+  },
   // 2. Cutaway/cross-section (new technique #13)
   { input: "show me the inside of a japanese capsule hotel pod", category: "auto" },
   // 3. Isometric diorama (new technique #14)
@@ -38,15 +41,24 @@ const TEST_INPUTS = [
   // 4. Technical annotation (new technique #15)
   { input: "annotated diagram of a espresso machine internals", category: "INFOGRAPHIC/DIAGRAM" },
   // 5. Brand identity (new technique #19)
-  { input: "brand identity system for a sustainable fashion label called TERRA", category: "POSTER/COVER" },
+  {
+    input: "brand identity system for a sustainable fashion label called TERRA",
+    category: "POSTER/COVER",
+  },
   // 6. Abstract/open-ended creative
   { input: "what burnout feels like", category: "auto" },
   // 7. UI mockup with anti-Dribbble (new technique #18)
   { input: "a meditation app home screen that actually looks real", category: "UI MOCKUP" },
   // 8. Multi-panel storyboard
-  { input: "4 panel comic of a cat discovering snow for the first time", category: "STORYBOARD/MULTI-PANEL" },
+  {
+    input: "4 panel comic of a cat discovering snow for the first time",
+    category: "STORYBOARD/MULTI-PANEL",
+  },
   // 9. Poster with text
-  { input: "jazz concert poster for a band called Midnight Brass at The Blue Room", category: "POSTER/COVER" },
+  {
+    input: "jazz concert poster for a band called Midnight Brass at The Blue Room",
+    category: "POSTER/COVER",
+  },
   // 10. Cinematic with depth (original technique #7)
   { input: "old fisherman mending nets at golden hour in a portuguese village", category: "auto" },
 ];

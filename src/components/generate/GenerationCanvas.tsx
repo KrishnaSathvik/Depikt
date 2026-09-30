@@ -1,3 +1,4 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThinkingField } from "@/components/processing/ThinkingField";
@@ -23,6 +24,7 @@ export interface GenerationCanvasProps {
   orientation?: "portrait" | "landscape" | "square";
   imageUrl?: string | null;
   imageAlt?: string;
+  refreshImageUrl?: () => Promise<string | null | undefined>;
   errorMessage?: string | null;
   onRetry?: () => void;
   /** Rendered under the frame in "result" state — pass a <GenerationActions/>. */
@@ -81,6 +83,7 @@ export function GenerationCanvas({
   aspectRatio,
   orientation,
   imageUrl,
+  refreshImageUrl,
   imageAlt = "Generated result",
   errorMessage,
   onRetry,
@@ -98,7 +101,7 @@ export function GenerationCanvas({
     return (
       <div className={`space-y-4 text-center ${className ?? ""}`}>
         <p className="text-body-md">{errorMessage ?? "Generation failed."}</p>
-        {onRetry && <Button onClick={onRetry}>Try again</Button>}
+        {onRetry && <Button onClick={onRetry}>Start a new attempt</Button>}
       </div>
     );
   }
@@ -115,7 +118,12 @@ export function GenerationCanvas({
               aspectRatio: `${box.width} / ${box.height}`,
             }}
           >
-            <img src={imageUrl} alt={imageAlt} className="h-full w-full object-contain" />
+            <RecoverableImage
+              src={imageUrl}
+              refreshUrl={refreshImageUrl}
+              alt={imageAlt}
+              className="h-full w-full object-contain"
+            />
           </div>
           {refining && (
             <p role="status" className="text-center text-body-sm">
@@ -151,15 +159,10 @@ export function GenerationCanvas({
       );
     }
     return (
-      <div className={`space-y-3 text-center ${className ?? ""}`}>
-        <ThinkingField
-          variant="generate"
-          status={GENERATION_STAGE_LABELS.loadingImage}
-          width={box.width}
-          height={box.height}
-          className="[&>div]:transition-[width,aspect-ratio] [&>div]:duration-200 [&>div]:ease-out"
-        />
-        <p className="text-body-md">{GENERATION_STAGE_LABELS.loadingImage}</p>
+      <div className="space-y-3 text-center" role="status">
+        <p>
+          The image preview is unavailable. Open Creations in Account to reload the saved image.
+        </p>
       </div>
     );
   }

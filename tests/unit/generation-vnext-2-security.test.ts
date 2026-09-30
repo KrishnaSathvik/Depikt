@@ -17,7 +17,10 @@ test("precision edits parent the new version on sourceVersionId", () => {
   const pipeline = read("src/lib/generation/job-pipeline.ts");
   assert.match(pipeline, /parentVersionId:\s*sourceVersionId/);
   const hook = read("src/lib/generation/use-generation.ts");
-  const apply = hook.slice(hook.indexOf("async function applyEdit("), hook.indexOf("function download()"));
+  const apply = hook.slice(
+    hook.indexOf("async function applyEdit("),
+    hook.indexOf("function download()"),
+  );
   assert.match(apply, /sourceVersionId/);
   assert.match(apply, /activeVersionId/);
 });

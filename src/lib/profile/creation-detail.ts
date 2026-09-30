@@ -11,10 +11,14 @@ export interface SavedVersion extends CreationItem {
 }
 export interface CreationDetail {
   versions: SavedVersion[];
+  series?: { id: string; label: string; status: string; available: boolean }[];
 }
 export interface SavedJob {
   id: string;
   operation: "generate" | "edit";
+  status?: string;
+  series_index?: number | null;
+  series_label?: string | null;
   usage_json?: { validation?: JobStatusResponse["validation"] } | null;
 }
 const record = (value: unknown): Record<string, unknown> =>
@@ -47,6 +51,20 @@ export function savedCreationDetails(
     if (!keepOriginal || !selected.has(item.jobId)) selected.set(item.jobId, item.id);
   }
   return {
+    series: jobs
+      .filter((job) => job.series_index != null)
+      .sort((a, b) => a.series_index! - b.series_index!)
+      .map((job) => ({
+        id: job.id,
+        label: job.series_label || `Image ${(job.series_index ?? 0) + 1}`,
+        status:
+          job.status === "failed" || job.status === "cancelled"
+            ? "Failed"
+            : job.status === "succeeded"
+              ? "Completed"
+              : "Pending",
+        available: items.some((item) => item.jobId === job.id),
+      })),
     versions: items.map((item) => {
       const job = jobs.find((j) => j.id === item.jobId);
       const parent = items.find((v) => v.id === item.parentVersionId);

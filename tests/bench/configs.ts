@@ -25,19 +25,30 @@ export interface BenchConfig {
 }
 
 const T = 90_000;
-const LUNA_WRITER: ModelConfig = {
+/** Historical Phase 1/2 writer pin. Prefer MODEL_ROLES for current production. */
+const HISTORICAL_LUNA_56_WRITER: ModelConfig = {
   model: "gpt-5.6-luna",
   reasoningEffort: "none",
   temperature: 0.7,
   timeoutMs: T,
 };
-const TERRA_MEDIUM: ModelConfig = {
+/** Historical Phase 2 critic pin. Prefer MODEL_ROLES.CRITIC for current production. */
+const HISTORICAL_TERRA_56_MEDIUM: ModelConfig = {
   model: "gpt-5.6-terra",
   reasoningEffort: "medium",
   timeoutMs: 180_000,
 };
 
 export const CONFIGS: Record<string, BenchConfig> = {
+  // ---- Current production (follows MODEL_ROLES) ----
+  "v3-production": {
+    label: "images-2.5-v3__intent-gpt-6-luna__builder-gpt-6-luna__critic-gpt-6.1-sol-medium",
+    engine: "v3",
+    model: MODEL_ROLES.BUILDER_DEFAULT,
+    intentModel: MODEL_ROLES.INTENT,
+    criticModel: MODEL_ROLES.CRITIC,
+    note: "Current production text routing: GPT-6 Luna intent/writer, GPT-6.1 Sol critic",
+  },
   // ---- Phase 1 configs (kept reproducible) ----
   baseline: {
     label: "v2.9__gpt-5.4-mini__chat-completions__temp-0.7",
@@ -50,55 +61,56 @@ export const CONFIGS: Record<string, BenchConfig> = {
     label: "v2.9__gpt-5.6-luna__responses__reasoning-none__temp-0.7",
     engine: "legacy",
     api: "responses",
-    model: LUNA_WRITER,
-    note: "Phase 1 Luna candidate on the legacy engine",
+    model: HISTORICAL_LUNA_56_WRITER,
+    note: "Historical Phase 1: gpt-5.6-luna on the legacy engine",
   },
   // ---- Phase 2: old vs new, same model ----
   "legacy-luna": {
     label: "legacy-v2.9__builder-luna__critic-luna",
     engine: "legacy",
     api: "responses",
-    model: LUNA_WRITER,
-    note: "LEGACY engine + Luna (streaming, TTFT measured)",
+    model: HISTORICAL_LUNA_56_WRITER,
+    note: "Historical: LEGACY engine + gpt-5.6-luna",
   },
   "v3-luna": {
     label: "images-2.5-v3__intent-luna__builder-luna__critic-terra-medium",
     engine: "v3",
-    model: LUNA_WRITER,
-    intentModel: MODEL_ROLES.INTENT,
-    criticModel: TERRA_MEDIUM,
-    note: "NEW engine, production routing",
+    model: HISTORICAL_LUNA_56_WRITER,
+    intentModel: HISTORICAL_LUNA_56_WRITER,
+    criticModel: HISTORICAL_TERRA_56_MEDIUM,
+    note: "Historical Phase 2 mix: gpt-5.6-luna writer + gpt-5.6-terra critic. Use v3-production for current routing.",
   },
   "legacy-critic-terra": {
     label: "legacy-v2.9__critic-terra-medium",
     engine: "legacy",
     api: "responses",
-    model: TERRA_MEDIUM,
+    model: HISTORICAL_TERRA_56_MEDIUM,
     pipeline: "critic",
-    note: "LEGACY critic mode on Terra medium (critic cases only)",
+    note: "Historical: LEGACY critic on gpt-5.6-terra medium",
   },
   "v3-critic-terra": {
     label: "images-2.5-v3__critic-terra-medium",
     engine: "v3",
-    model: LUNA_WRITER,
-    criticModel: TERRA_MEDIUM,
+    model: HISTORICAL_LUNA_56_WRITER,
+    criticModel: HISTORICAL_TERRA_56_MEDIUM,
     pipeline: "critic",
-    note: "NEW critic on Terra medium (critic cases only)",
+    note: "Historical: v3 critic on gpt-5.6-terra medium",
   },
   // ---- reference-heavy writer comparison ----
   "v3-ref-luna": {
     label: "images-2.5-v3__reference__writer-luna",
     engine: "v3",
-    model: LUNA_WRITER,
+    model: HISTORICAL_LUNA_56_WRITER,
     tag: "reference",
     pipeline: "builder",
+    note: "Historical Phase 2 reference writer on gpt-5.6-luna",
   },
   "v3-ref-terra": {
     label: "images-2.5-v3__reference__writer-terra-low",
     engine: "v3",
-    model: MODEL_ROLES.BUILDER_REFERENCE_HEAVY,
+    model: { model: "gpt-5.6-terra", reasoningEffort: "low", timeoutMs: 120_000 },
     tag: "reference",
     pipeline: "builder",
-    note: "Candidate only; not routed in production",
+    note: "Historical Phase 2 Terra candidate. Production reference-heavy routing uses GPT-6.1 Sol.",
   },
 };

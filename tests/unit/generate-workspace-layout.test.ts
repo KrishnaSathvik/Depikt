@@ -78,6 +78,11 @@ test("GenerateWorkspace wires a 'New' action that blanks the composer, not just 
   assert.match(startNewFn, /gen\.reset\(\)/);
   assert.match(startNewFn, /gen\.clearReferences\(\)/);
   assert.match(startNewFn, /setPrompt\(""\)/);
+  assert.doesNotMatch(
+    startNewFn,
+    /setSelectedEntities\(\[\]\)/,
+    "New clears the prompt and one-off images, not a selected saved pack",
+  );
 
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
   assert.doesNotMatch(

@@ -10,6 +10,7 @@ export interface ResultStatusLine {
 export type VersionLineageKind = keyof typeof VERSION_LABELS;
 
 type ValidationView = NonNullable<JobStatusResponse["validation"]> & {
+  checks?: { status: string }[];
   repairOutcome?: "not_attempted" | "improved" | "not_improved" | "provider_failed";
   selected?: "original" | "repair";
 };
@@ -39,7 +40,13 @@ export function resultStatusLines(args: {
   }
 
   const verdict = args.validation?.verdict;
-  if (verdict === "pass") {
+  const unavailable = args.validation?.checks?.some((check) => check.status === "unavailable");
+  if (unavailable) {
+    lines.push({
+      title: "Some details could not be checked.",
+      detail: "Review the image before using it.",
+    });
+  } else if (verdict === "pass") {
     lines.push({ title: RESULT_STATUS.validated, detail: RESULT_STATUS.validatedDetail });
   } else if (args.validation?.warning && temporal?.status !== "unverified") {
     lines.push({ title: RESULT_STATUS.limitation });
@@ -55,6 +62,17 @@ export function resultStatusLines(args: {
       detail: RESULT_STATUS.refinedDetail,
     });
   }
+
+  if (args.validation?.repairOutcome === "not_improved")
+    lines.push({
+      title: "Original image retained",
+      detail: "Automatic refinement did not improve the result.",
+    });
+  if (args.validation?.repairOutcome === "provider_failed")
+    lines.push({
+      title: "Original image retained",
+      detail: "Automatic refinement was unavailable.",
+    });
 
   return lines;
 }

@@ -129,14 +129,30 @@ export const HOME_ACTION = {
   startWaysEyebrow: "Three ways to start",
   capabilitiesTitle: "More control when you need it.",
   creditCaption: "Auto · 1 credit",
-  addReference: "+ Reference",
+  addReference: "+ Reference image",
   exampleLabel: "Example generated with Depikt",
   tryPrompt: "Try this prompt",
   tryExamples: "Try",
 } as const;
 
-/** Four capabilities under the homepage "more control" section. */
-export const HOME_CAPABILITIES = [
+/** Capability cards for the homepage "more control" section. */
+export type HomeCapabilityRequires = "grounding" | "validation";
+
+export type HomeCapability = {
+  label: string;
+  heading: string;
+  body: string;
+  /** When set, the card is shown only while that release control is on. */
+  requires?: HomeCapabilityRequires;
+};
+
+/**
+ * Full catalogue. Always-on cards ship in every release. Grounding and
+ * validation cards describe the intended V4/V5 product and are filtered out
+ * by `homeCapabilities` when those flags are off — never advertise them as
+ * disabled rollout status.
+ */
+export const HOME_CAPABILITIES: readonly HomeCapability[] = [
   {
     label: "Reference Packs",
     heading: "Keep a character, product, or brand consistent.",
@@ -150,14 +166,28 @@ export const HOME_CAPABILITIES = [
   {
     label: "Grounded generation",
     heading: "Use real references when accuracy matters.",
-    body: "Research-backed generation is not enabled in the current release.",
+    body: "Depikt can research current, factual, or visual context when your request needs it.",
+    requires: "grounding",
   },
   {
     label: "Validation + refinement",
     heading: "Check the result before calling it finished.",
-    body: "Automatic validation and refinement are not enabled in the current release.",
+    body: "Depikt checks requested details and can automatically refine one issue when needed.",
+    requires: "validation",
   },
-] as const;
+];
+
+/** Visible homepage cards for the current release controls. */
+export function homeCapabilities(flags: {
+  grounding: boolean;
+  validation: boolean;
+}): HomeCapability[] {
+  return HOME_CAPABILITIES.filter((c) => {
+    if (c.requires === "grounding") return flags.grounding;
+    if (c.requires === "validation") return flags.validation;
+    return true;
+  });
+}
 
 /** Route URLs are frozen for compatibility and SEO. */
 export const ROUTES = {
@@ -734,9 +764,14 @@ export const REFERENCES_COPY = {
   tab: "References",
   title: "Reference packs",
   add: "Saved references",
+  oneOff: "Reference image",
+  oneOffScope: "This generation only",
+  oneOffAdd: "+ Reference image",
+  pickerDescription: "Reuse a person, product, or brand across generations.",
   create: "Create reference pack",
   empty: "No reference packs yet. Save a character, product, or brand to reuse across images.",
   groups: { character: "Characters", product: "Products", brand: "Brands" },
+  kinds: { character: "Character", product: "Product", brand: "Brand" },
   hints: {
     character:
       "Describe facial features, hair and distinguishing traits. Clothing and pose can change.",

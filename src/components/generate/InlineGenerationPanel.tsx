@@ -1,3 +1,4 @@
+import { getCreationDetail } from "@/lib/profile/client";
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
 import { simplifyRatioLabel, type useGeneration } from "@/lib/generation/use-generation";
@@ -90,6 +91,13 @@ export function InlineGenerationPanel({
           aspectRatio={resolvedSize.ratioLabel}
           orientation={resolvedSize.orientation}
           imageUrl={gen.resultUrl}
+          refreshImageUrl={async () =>
+            gen.activeVersionId
+              ? (await getCreationDetail(gen.activeVersionId)).versions.find(
+                  (v) => v.id === gen.activeVersionId,
+                )?.url
+              : null
+          }
           refining={gen.job?.refining}
           statusLines={resultStatusLines({
             sourceCount: gen.grounding?.sources.length,

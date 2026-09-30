@@ -57,7 +57,9 @@ export async function decomposeSeries(opts: DecomposeSeriesOptions): Promise<Ser
   let decomposition: SeriesDecomposition | null = null;
 
   try {
-    decomposition = opts.complete ? await opts.complete() : await completeWithLuna(opts, count);
+    decomposition = opts.complete
+      ? await opts.complete()
+      : await completeWithIntentModel(opts, count);
   } catch {
     // A decomposer outage must not change the selected count or prevent the
     // already-confirmed series from being enqueued.
@@ -66,7 +68,7 @@ export async function decomposeSeries(opts: DecomposeSeriesOptions): Promise<Ser
   return sanitizeDecomposition(decomposition, opts.userInput.trim(), opts.intent, count);
 }
 
-async function completeWithLuna(
+async function completeWithIntentModel(
   opts: DecomposeSeriesOptions,
   count: number,
 ): Promise<SeriesDecomposition> {

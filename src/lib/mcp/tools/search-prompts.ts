@@ -51,7 +51,9 @@ export default defineTool({
     }));
 
     return {
-      content: [{ type: "text", text: JSON.stringify({ count: results.length, results }, null, 2) }],
+      content: [
+        { type: "text", text: JSON.stringify({ count: results.length, results }, null, 2) },
+      ],
       structuredContent: { count: results.length, results },
     };
   },

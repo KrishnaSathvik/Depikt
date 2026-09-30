@@ -60,7 +60,7 @@ test("shared categories filter prompt and template tasks together", () => {
   const matches = filterBrowseEntries(entries, { ...defaults, category: "Posters" }, new Set());
   assert.deepEqual(
     matches.map((e) => e.type),
-    ["prompts", "templates"],
+    ["prompts", "templates", "gallery"],
   );
   assert.ok(browseCategories("product photography").includes("Products"));
   assert.deepEqual(browseCategories("a quiet room interior"), ["Interiors"]);
@@ -90,10 +90,10 @@ test("universal search covers prompt text, template tasks and reference labels",
   );
 });
 
-test("unlabeled gallery references have honest stable titles and categories", () => {
+test("reviewed gallery references have stable descriptive titles and categories", () => {
   const reference = entries.find((e) => e.type === "gallery")!;
-  assert.equal(reference.title, "Gallery reference 1");
-  assert.deepEqual(reference.categories, ["Reference"]);
+  assert.equal(reference.title, "Reflected silhouette poster");
+  assert.deepEqual(reference.categories, ["Reference", "Posters", "Portraits"]);
   const filtered = filterBrowseEntries(entries, { ...defaults, q: "editorial" }, new Set());
   assert.equal(filtered.find((entry) => entry.type === "gallery")?.title, "editorial portrait");
 });
@@ -139,6 +139,7 @@ test("category options follow the selected content type and omit empty categorie
   assert.ok(!templateCategories.includes("Food"));
   assert.deepEqual(availableBrowseCategories(entries, "gallery"), [
     "All",
+    "Posters",
     "Portraits",
     "Editorial",
     "Reference",

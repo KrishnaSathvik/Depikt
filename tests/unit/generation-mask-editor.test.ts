@@ -37,7 +37,7 @@ test("GenerationMaskEditor locks drawing to one pointerId and ignores other poin
 
 test("GenerationMaskEditor overlays a canvas on an img and maps pointers with pointerToNormalized", () => {
   const editor = read("src/components/generate/GenerationMaskEditor.tsx");
-  assert.match(editor, /<img/);
+  assert.match(editor, /<RecoverableImage/);
   assert.match(editor, /<canvas/);
   assert.match(editor, /pointerToNormalized/);
   assert.match(editor, /getBoundingClientRect/);

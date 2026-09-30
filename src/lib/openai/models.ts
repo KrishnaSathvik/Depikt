@@ -2,7 +2,9 @@
 //
 // Every model ID, price, and per-role request setting lives here so the route,
 // the benchmark harness, and future pipelines share one source of truth.
-// Prices verified against developers.openai.com on 2026-09-08 (USD per 1M tokens).
+// Prices verified against developers.openai.com on 2026-09-30 (USD per 1M tokens,
+// short-context standard rates). Prompts over 272K input tokens are billed
+// higher; these roles stay well under that.
 
 export type ReasoningEffort = "none" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -48,6 +50,32 @@ export const MODELS = {
     supportsTemperature: true,
     supportsImageInput: true,
   },
+  "gpt-6-luna": {
+    id: "gpt-6-luna",
+    label: "GPT-6 Luna",
+    pricing: { input: 0.1, cachedInput: 0.01, output: 0.5 },
+    reasoningEfforts: ["none", "low", "medium", "high", "xhigh", "max"],
+    // Temperature is accepted only while reasoning.effort is "none".
+    supportsTemperature: true,
+    supportsImageInput: true,
+  },
+  "gpt-6-sol": {
+    id: "gpt-6-sol",
+    label: "GPT-6 Sol",
+    pricing: { input: 2, cachedInput: 0.2, output: 10 },
+    reasoningEfforts: ["none", "low", "medium", "high", "xhigh", "max"],
+    supportsTemperature: true,
+    supportsImageInput: true,
+  },
+  "gpt-6.1-sol": {
+    id: "gpt-6.1-sol",
+    label: "GPT-6.1 Sol",
+    pricing: { input: 2, cachedInput: 0.1, output: 10 },
+    // Docs: `none` and `minimal` are rejected. Default effort is medium.
+    reasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
+    supportsTemperature: false,
+    supportsImageInput: true,
+  },
   "gpt-6-astra": {
     id: "gpt-6-astra",
     label: "GPT-6 Astra",
@@ -79,10 +107,8 @@ export interface ModelConfig {
 }
 
 /**
- * Conceptual roles. Phase 1 keeps production on the pre-migration model
- * (gpt-5.4-mini, temperature 0.7) so the public route behaves exactly as
- * before. The other roles exist so later phases can route without editing
- * the route file; the benchmark decides their final values.
+ * Conceptual roles for text pipelines. Production values live in MODEL_ROLES.
+ * Historical gpt-5.4-mini / gpt-5.6-* entries remain in MODELS for bench configs.
  */
 export type ModelRole =
   | "INTENT"
@@ -92,27 +118,30 @@ export type ModelRole =
   | "BENCHMARK_JUDGE";
 
 /**
- * Production routing after Phase 2 (chosen from the Phase 1 benchmark):
- * - INTENT and BUILDER_DEFAULT: gpt-5.6-luna, reasoning none (temperature 0.7 for the writer).
- * - CRITIC: gpt-5.6-terra, reasoning medium, no temperature.
- * - BUILDER_REFERENCE_HEAVY: Terra candidate, benchmarked in Phase 2 but not routed by default.
+ * Production routing (2026-09-30):
+ * - INTENT and BUILDER_DEFAULT: gpt-6-luna, reasoning none (temperature 0.7 for the writer).
+ *   Luna is the high-volume model and still accepts effort "none", which the writer needs.
+ * - CRITIC and BUILDER_REFERENCE_HEAVY: gpt-6.1-sol. Same standard token price as gpt-6-sol,
+ *   closer to Astra, and medium is its default. It rejects effort "none", so it is not the writer.
+ * - gpt-6-sol is registered for experiments. It does not win a role: Luna is far cheaper for
+ *   the fast path, and 6.1 Sol is the stronger model at Sol's price.
  * - BENCHMARK_JUDGE: GPT-6 Astra, offline evaluation only, never used by a public route.
  */
 export const MODEL_ROLES: Record<ModelRole, ModelConfig> = {
   INTENT: {
-    model: "gpt-5.6-luna",
+    model: "gpt-6-luna",
     reasoningEffort: "none",
     maxOutputTokens: 900,
     timeoutMs: 45_000,
   },
   BUILDER_DEFAULT: {
-    model: "gpt-5.6-luna",
+    model: "gpt-6-luna",
     reasoningEffort: "none",
     temperature: 0.7,
     timeoutMs: 90_000,
   },
-  BUILDER_REFERENCE_HEAVY: { model: "gpt-5.6-terra", reasoningEffort: "low", timeoutMs: 120_000 },
-  CRITIC: { model: "gpt-5.6-terra", reasoningEffort: "medium", timeoutMs: 150_000 },
+  BUILDER_REFERENCE_HEAVY: { model: "gpt-6.1-sol", reasoningEffort: "low", timeoutMs: 120_000 },
+  CRITIC: { model: "gpt-6.1-sol", reasoningEffort: "medium", timeoutMs: 150_000 },
   BENCHMARK_JUDGE: { model: "gpt-6-astra", reasoningEffort: "medium", timeoutMs: 300_000 },
 };
 

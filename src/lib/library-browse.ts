@@ -1,3 +1,4 @@
+import { GALLERY_METADATA } from "../data/gallery-metadata.ts";
 import type { LibraryPrompt } from "../types/library.ts";
 import type { Template } from "../data/templates.ts";
 import { galleryLabel } from "./gallery-labels.ts";
@@ -116,18 +117,22 @@ export function buildBrowseEntries(
     });
   const galleryEntries: BrowseEntry[] = images.map((filename, index) => {
     const title = galleryLabel(filename, index);
+    const metadata = GALLERY_METADATA[filename];
+    const terms = metadata?.terms ?? "";
     const categories: BrowseCategory[] = [
-      ...new Set<BrowseCategory>(["Reference", ...browseCategories(title)]),
+      ...new Set<BrowseCategory>(["Reference", ...browseCategories(`${title} ${terms}`)]),
     ];
     return {
       key: `reference-${filename}`,
       type: "gallery",
       filename,
       title,
-      description: "Use this image to guide your next creation.",
+      description: metadata
+        ? `${metadata.subject}. Use as a visual reference.`
+        : "Use this image to guide your next creation.",
       image: `/gallery/${filename}`,
       categories,
-      searchText: [title, "reference", ...categories].join(" ").toLowerCase(),
+      searchText: [title, terms, "reference", ...categories].join(" ").toLowerCase(),
     };
   });
   // Round-robin makes every content type visible from the first row without duplicating records.

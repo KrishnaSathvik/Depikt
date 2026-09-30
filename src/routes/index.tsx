@@ -2,11 +2,12 @@ import { History, ArrowRight } from "lucide-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   HOME_ACTION,
-  HOME_CAPABILITIES,
+  homeCapabilities,
   JSONLD_DESCRIPTIONS,
   JSONLD_NAMES,
   SEO,
 } from "@/lib/product";
+import { isGroundingEnabled, isValidationRepairEnabled } from "@/lib/generation/feature-flag";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { LaunchModule } from "@/components/LaunchModule";
@@ -22,6 +23,13 @@ const HOME_URL = absoluteUrl("/");
 
 export const Route = createFileRoute("/")({
   validateSearch: validateCreatorSearch,
+  // Resolve on the server so client hydration matches the release controls.
+  loader: () => ({
+    capabilities: homeCapabilities({
+      grounding: isGroundingEnabled(),
+      validation: isValidationRepairEnabled(),
+    }),
+  }),
   head: () => {
     const { meta, links } = pageSeoHead(SEO.home, {
       url: HOME_URL,
@@ -122,6 +130,7 @@ function LandingPage() {
 }
 
 function Capabilities() {
+  const { capabilities } = Route.useLoaderData();
   return (
     <section className="border-t border-[color:var(--border-subtle)]">
       <Reveal>
@@ -130,7 +139,7 @@ function Capabilities() {
             {HOME_ACTION.capabilitiesTitle}
           </h2>
           <div className="mt-12 grid gap-12 md:grid-cols-2 md:gap-x-16 md:gap-y-16">
-            {HOME_CAPABILITIES.map((c) => (
+            {capabilities.map((c) => (
               <div key={c.label} className="max-w-[46ch]">
                 <p className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
                   {c.label}

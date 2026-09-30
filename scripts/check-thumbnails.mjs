@@ -14,12 +14,14 @@ const env = Object.fromEntries(
     .map((l) => {
       const eq = l.indexOf("=");
       return [l.slice(0, eq), l.slice(eq + 1).replace(/^["']|["']$/g, "")];
-    })
+    }),
 );
 
 const supabase = createClient(
   env.SUPABASE_URL || env.VITE_SUPABASE_URL,
-  env.SUPABASE_SERVICE_ROLE_KEY || env.SUPABASE_PUBLISHABLE_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
+  env.SUPABASE_SERVICE_ROLE_KEY ||
+    env.SUPABASE_PUBLISHABLE_KEY ||
+    env.VITE_SUPABASE_PUBLISHABLE_KEY,
 );
 
 const { data, error } = await supabase.from("curated_prompts").select("id, thumbnail_url");

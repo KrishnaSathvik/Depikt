@@ -9,8 +9,9 @@
  * file in the same change. Batch 1 (2026-09-09): 23 promoted, 1 held.
  * Batch 2 (2026-09-10): 20 Depikt originals written and generated with
  * gpt-image-2.5-sunburst (high); all 20 promoted via
- * supabase/insert-images-2-5-batch2-staged.sql. Held-record note: base2 /
- * CREATED2 are defined again when a batch 3 is staged.
+ * supabase/insert-images-2-5-batch2-staged.sql. Batch 3 (2026-09-28):
+ * 36 test-ready recipes in images-2-5-batch3.ts, written from a fresh
+ * public-source pass. They are not public until a reviewed result exists.
  *
  * Provenance rules (see research/images-2-5-community/):
  *   official_prompt     OpenAI published the prompt text. Used verbatim or
@@ -28,6 +29,7 @@
 
 import type { LibraryPrompt } from "@/types/library";
 import type { ModelHint, PromptStatus, ReferenceMode, SourceType } from "@/lib/library-metadata";
+import { batch3Images25Prompts } from "./images-2-5-batch3.ts";
 
 export interface ReviewGuidance {
   /** What a pass looks like. */
@@ -147,9 +149,7 @@ Turn 5: Remove the purple "BUDGET PER PERSON" box at the bottom-right, including
     },
   },
 
-  // ============================================================
-  // C. PRECISE EDITS
-  // ============================================================
+  ...batch3Images25Prompts,
 ];
 
 /** Staged records that are approved and may appear in the public library. */

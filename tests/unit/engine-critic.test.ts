@@ -34,11 +34,11 @@ const dim = (
 test("critic and builder are separate: own contract, own model role, own instructions", () => {
   assert.equal(CRITIC_CONTRACT.pipeline, "critic");
   assert.equal(CRITIC_CONTRACT.name, "depikt_critic_v3_1");
-  assert.equal(MODEL_ROLES.CRITIC.model, "gpt-5.6-terra");
+  assert.equal(MODEL_ROLES.CRITIC.model, "gpt-6.1-sol");
   assert.equal(MODEL_ROLES.CRITIC.reasoningEffort, "medium");
   assert.equal(MODEL_ROLES.CRITIC.temperature, undefined);
-  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-5.6-luna");
-  assert.equal(MODEL_ROLES.INTENT.model, "gpt-5.6-luna");
+  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-6-luna");
+  assert.equal(MODEL_ROLES.INTENT.model, "gpt-6-luna");
   assert.match(CRITIC_INSTRUCTIONS, /how effective this prompt will be/);
   assert.equal(/cap at \d/i.test(CRITIC_INSTRUCTIONS), false, "no legacy hard caps");
   assert.match(CRITIC_INSTRUCTIONS, /must become shorter when the original is overprompted/);

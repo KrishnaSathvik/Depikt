@@ -220,7 +220,19 @@ export async function fetchLibrary(): Promise<LibraryPrompt[]> {
       _libraryCache = fallback;
       return fallback;
     }
-    const [curated, user] = await Promise.all([fetchCurated(), fetchUserPrompts(null)]);
+    let curated: LibraryPrompt[], user: LibraryPrompt[];
+    try {
+      [curated, user] = await Promise.all([fetchCurated(), fetchUserPrompts(null)]);
+    } catch {
+      // Keep the public catalogue usable during an outage. Do not cache this
+      // fallback: the next visit should retry the current public collection.
+      const { curatedPrompts } = await import("@/data/curated-prompts");
+      return orderForDisplay(
+        mergeById(curatedPrompts as LibraryPrompt[], publicStagedPrompts()),
+        FEATURED_25_SLUGS,
+        FEATURED_IDS,
+      );
+    }
 
     // Images 2.5 records staged in the repo join the library once approved.
     // A database row with the same id wins, so promotion never double-lists.

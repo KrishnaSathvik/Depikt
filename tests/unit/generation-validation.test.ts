@@ -424,8 +424,8 @@ test("production OCR and judge adapters send only bounded structured requests th
   assert.equal(calls.length, 2);
   assert.equal(provider.telemetry.calls, 2);
   assert.ok((provider.telemetry.estimatedCostUsd ?? 0) > 0);
-  assert.equal(calls[0].model, "gpt-5.6-luna");
-  assert.equal(calls[1].model, "gpt-5.6-terra");
+  assert.equal(calls[0].model, "gpt-6-luna");
+  assert.equal(calls[1].model, "gpt-6.1-sol");
 });
 
 test("attribute edits measure structure inside mask independently from outside preservation", async () => {

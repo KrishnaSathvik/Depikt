@@ -1,3 +1,4 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -7,7 +8,12 @@ import { PromptSurface } from "@/components/PromptSurface";
 import { simplifyRatioLabel } from "@/lib/generation/use-generation";
 import { saveGenerationHandoff } from "@/lib/generation/handoff";
 import { downloadFile } from "@/lib/download-file";
-import { deleteCreation, getCreationDetail, type CreationItem } from "@/lib/profile/client";
+import {
+  deleteCreation,
+  getCreationDetail,
+  GenerationApiError,
+  type CreationItem,
+} from "@/lib/profile/client";
 import { CREATIONS_COPY, ROUTES } from "@/lib/product";
 import { promptCaption, userFacingPrompt } from "@/lib/generation/user-facing-prompt";
 import { useAccountHub } from "./AccountHubProvider";
@@ -43,17 +49,24 @@ export function CreationDetailView({
   >(null);
   const [selectedId, setSelectedId] = useState(initialCreation.id);
   const [detailError, setDetailError] = useState(false);
+  const [unavailable, setUnavailable] = useState(false);
   useEffect(() => {
     let cancelled = false;
     setDetail(null);
     setDetailError(false);
+    setUnavailable(false);
     setSelectedId(initialCreation.id);
     getCreationDetail(initialCreation.id).then(
       (result) => {
         if (!cancelled) setDetail(result);
       },
-      () => {
-        if (!cancelled) setDetailError(true);
+      (error) => {
+        if (!cancelled) {
+          setDetailError(true);
+          setUnavailable(
+            error instanceof GenerationApiError && [401, 403, 404].includes(error.status),
+          );
+        }
       },
     );
     return () => {
@@ -109,12 +122,25 @@ export function CreationDetailView({
     }
   }
 
+  if (unavailable)
+    return (
+      <div className="space-y-4 p-5">
+        <p>
+          This creation is unavailable. It may have been deleted, or your sign-in may have expired.
+        </p>
+        <Button onClick={closeHub}>Back to Account</Button>
+      </div>
+    );
+
   return (
     <div>
       <div className="bg-[color:var(--bg-subtle)] p-4">
         {creation.url ? (
-          <img
+          <RecoverableImage
             src={creation.url}
+            refreshUrl={async () =>
+              (await getCreationDetail(creation.id)).versions.find((v) => v.id === creation.id)?.url
+            }
             alt={promptCaption(creation.prompt, 120) || "Generated image"}
             className="mx-auto max-h-[55vh] w-auto rounded-md object-contain"
           />
@@ -145,6 +171,22 @@ export function CreationDetailView({
           </p>
         </div>
 
+        {!!detail?.series?.length && (
+          <section aria-label="Series outputs">
+            <h3 className="text-body-sm font-medium">Series · {detail.series.length} outputs</h3>
+            <ul>
+              {detail.series.map((child) => (
+                <li key={child.id} className="text-body-sm">
+                  {child.label} · {child.status}
+                  {!child.available ? " · No saved image available" : ""}
+                </li>
+              ))}
+            </ul>
+            <p className="text-body-sm">
+              Starting a new attempt creates a new request; it does not resume a failed output.
+            </p>
+          </section>
+        )}
         {saved?.lineage && <p className="text-body-sm">{saved.lineage}</p>}
         {saved?.statusLines.map((line, index) => (
           <p key={index} className="text-body-sm">

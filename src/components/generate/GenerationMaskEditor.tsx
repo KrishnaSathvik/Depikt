@@ -1,4 +1,5 @@
-import { useEffect, useRef, type PointerEvent } from "react";
+import { RecoverableImage } from "@/components/RecoverableImage";
+import { useEffect, useRef, useId, type PointerEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { pointerToNormalized, rasterizeMask, type MaskStroke } from "@/lib/generation/edit-mask";
 
@@ -27,6 +28,7 @@ export function GenerationMaskEditor({
   tool: "paint" | "erase";
   onToolChange: (tool: "paint" | "erase") => void;
 }) {
+  const instructionsId = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
   const activePointerIdRef = useRef<number | null>(null);
@@ -101,14 +103,25 @@ export function GenerationMaskEditor({
 
   return (
     <div className="space-y-3">
+      <p id={instructionsId} className="text-body-sm text-[color:var(--text-secondary)]">
+        Select area uses a pointer or touch to paint. For keyboard or screen reader editing, choose
+        Whole image and describe what to change and preserve.
+      </p>
       <div className="relative overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg)]">
-        <img src={imageUrl} alt="" draggable={false} className="block h-auto w-full select-none" />
+        <RecoverableImage
+          src={imageUrl}
+          alt=""
+          draggable={false}
+          className="block h-auto w-full select-none"
+        />
         <canvas
           ref={canvasRef}
           width={sourceWidth}
           height={sourceHeight}
           aria-label="Select area"
-          className="absolute inset-0 h-full w-full cursor-crosshair touch-none"
+          aria-describedby={instructionsId}
+          tabIndex={0}
+          className="absolute inset-0 h-full w-full cursor-crosshair touch-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[color:var(--accent)]"
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endStroke}
@@ -134,6 +147,7 @@ export function GenerationMaskEditor({
           type="button"
           size="sm"
           variant={tool === "paint" ? "default" : "outline"}
+          aria-pressed={tool === "paint"}
           onClick={() => onToolChange("paint")}
         >
           Brush
@@ -142,6 +156,7 @@ export function GenerationMaskEditor({
           type="button"
           size="sm"
           variant={tool === "erase" ? "default" : "outline"}
+          aria-pressed={tool === "erase"}
           onClick={() => onToolChange("erase")}
         >
           Erase

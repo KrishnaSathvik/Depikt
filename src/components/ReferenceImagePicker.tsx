@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { REFERENCES_COPY } from "@/lib/product";
 import { REFERENCE_INTENT_OPTIONS, prefersLossless } from "@/lib/prompt-engine/reference";
 import {
   fileToReferenceState,
@@ -28,7 +29,7 @@ interface Props {
 export function ReferenceImagePicker({
   value,
   onChange,
-  addLabel = "Add reference image",
+  addLabel = REFERENCES_COPY.oneOffAdd,
   children,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -85,8 +86,13 @@ export function ReferenceImagePicker({
             alt="Reference image thumbnail"
             className="h-8 w-8 rounded object-cover"
           />
-          <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
-            Reference image
+          <span className="flex flex-col leading-tight">
+            <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+              {REFERENCES_COPY.oneOff}
+            </span>
+            <span className="text-[11px] text-[color:var(--text-tertiary)]">
+              {REFERENCES_COPY.oneOffScope}
+            </span>
           </span>
           <button
             type="button"

@@ -39,13 +39,7 @@ export const Route = createFileRoute("/account")({
   component: AccountPage,
 });
 
-/**
- * The full-page fallback for /account -- direct links, refresh, Stripe's
- * return URL. Identity + Plan & Credits sit above Creations, no tabs:
- * there is no separate Account page anymore (see [[CreditsCard]],
- * [[AccountHub]]'s home view is the same layout in a modal/sheet). Avatar/
- * pencil taps open the same AccountHub used everywhere else.
- */
+/** Full Account page with direct controls and focused settings dialogs. */
 function AccountPage() {
   const { user } = useAuth();
   return (
@@ -53,7 +47,7 @@ function AccountPage() {
   );
 }
 function OwnedAccountPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { buy, checkout, session_id: sessionId } = Route.useSearch();
   const { openBuyCredits } = useBuyCredits();
@@ -154,6 +148,26 @@ function OwnedAccountPage() {
           onAvatarClick={() => hub.pushView("avatar-picker")}
           onEditClick={() => hub.pushView("edit-profile")}
         />
+        <div id="account-controls" tabIndex={-1} className="mt-4 flex flex-wrap gap-4">
+          <button
+            type="button"
+            className="text-body-sm underline"
+            onClick={() => hub.pushView("edit-profile")}
+          >
+            Profile settings
+          </button>
+          <button
+            type="button"
+            className="text-body-sm underline"
+            onClick={() => {
+              void signOut()
+                .then(() => navigate({ to: "/" }))
+                .catch(() => toast.error("Could not sign out. Please try again."));
+            }}
+          >
+            Sign out
+          </button>
+        </div>
         <div className="mt-4">
           <CreditsCard
             summary={summary}

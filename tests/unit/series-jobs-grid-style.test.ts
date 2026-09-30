@@ -75,11 +75,11 @@ test("queued and running children use the same ThinkingField as single-image gen
   assert.doesNotMatch(html, /> Download/);
 });
 
-test("a successful child waiting for its URL shows Loading image", () => {
+test("a successful child without a URL offers saved-image recovery", () => {
   const child = job(1);
   child.result!.url = null;
   const html = render([child]);
-  assert.match(html, /Loading image/);
+  assert.match(html, /image preview is unavailable/);
   assert.doesNotMatch(html, /> Download/);
 });
 

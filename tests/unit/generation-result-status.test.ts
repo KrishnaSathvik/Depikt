@@ -122,3 +122,19 @@ test("user-facing prompt strips grounding, entity, and edit preambles", () => {
   );
   assert.equal(promptCaption("a".repeat(80)).endsWith("…"), true);
 });
+
+test("unavailable validation and unsuccessful repair explain the retained result", () => {
+  const lines = resultStatusLines({
+    validation: {
+      verdict: "fail",
+      repairAttempts: 1,
+      checks: [{ status: "unavailable" }],
+      repairOutcome: "provider_failed",
+      selected: "original",
+    },
+  });
+  const text = JSON.stringify(lines);
+  assert.match(text, /could not be checked/);
+  assert.match(text, /Original image retained/);
+  assert.doesNotMatch(text, /Validated|Refined automatically|provider_failed/);
+});

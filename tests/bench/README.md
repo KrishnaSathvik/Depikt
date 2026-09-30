@@ -11,19 +11,20 @@ version, system-prompt SHA-256, model, request params, cases, repeat) so it can
 be reproduced.
 
 ```bash
+npm run bench -- --config v3-production       # current production: GPT-6 Luna + GPT-6.1 Sol
 npm run bench -- --config baseline            # true pre-migration baseline (Chat Completions)
-npm run bench -- --config luna-none           # Responses API, gpt-5.6-luna, reasoning none
-npm run bench -- --config terra-medium-subset # representative subset only
+npm run bench -- --config luna-none-temp      # historical: gpt-5.6-luna, reasoning none
+npm run bench -- --config v3-luna             # historical Phase 2 mix (5.6 Luna + 5.6 Terra)
 npm run bench -- --config baseline --repeat 3 --concurrency 3
-npm run bench -- --config luna-none --filter critic   # one group / id substring
+npm run bench -- --config v3-production --filter critic   # one group / id substring
 npm run bench -- --config baseline --dry      # prints constructed messages, no API calls
 npm run bench:compare                          # side-by-side table of every config's latest run
 ```
 
-Configurations live in `configs.ts`. Every configuration uses the SAME engine
-behavior; only transport, model and sampling parameters differ. Example
-injection is seeded per case so every configuration sees identical curated
-examples.
+Configurations live in `configs.ts`. Production text routing is `MODEL_ROLES`
+in `src/lib/openai/models.ts` (GPT-6 Luna intent/writer, GPT-6.1 Sol critic).
+Historical `gpt-5.6-*` configs stay for reproducibility; they are not current
+production. Image generation (Flare / Sunburst) is out of scope for this harness.
 
 ## Cases
 

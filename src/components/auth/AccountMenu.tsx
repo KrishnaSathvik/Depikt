@@ -24,7 +24,12 @@ export function AccountMenu({ user }: { user: User }) {
       aria-label="Account menu"
       aria-current={onAccountPage ? "page" : undefined}
       onClick={() => {
-        if (onAccountPage) return;
+        if (onAccountPage) {
+          const controls = document.getElementById("account-controls");
+          controls?.scrollIntoView({ block: "center" });
+          controls?.focus();
+          return;
+        }
         hub.openHub("home");
       }}
       disabled={!user}

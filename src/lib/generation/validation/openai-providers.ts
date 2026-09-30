@@ -22,6 +22,7 @@ const judgeSchema = z.strictObject({
 });
 export interface ValidationTelemetry {
   calls: number;
+  ocrCalls?: number;
   estimatedCostUsd: number | null;
 }
 export function createOpenAIValidationProviders(
@@ -43,6 +44,7 @@ export function createOpenAIValidationProviders(
   ): Promise<T> {
     if (!apiKey) throw new Error("Validation provider is not configured");
     telemetry.calls++;
+    if (!judge) telemetry.ocrCalls = (telemetry.ocrCalls ?? 0) + 1;
     try {
       const result = await createStructuredResponse({
         apiKey,

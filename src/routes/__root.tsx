@@ -22,7 +22,7 @@ const DEFAULT_OG_DESCRIPTION = SEO.root.ogDescription ?? SEO.root.description;
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
+    <main className="flex min-h-screen items-center justify-center bg-background px-6">
       <div className="max-w-md text-center">
         <p className="eyebrow">Error · 404</p>
         <h1 className="mt-4 text-display-md">Page not found</h1>
@@ -38,7 +38,7 @@ function NotFoundComponent() {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
 
@@ -67,7 +67,8 @@ const STRUCTURED_DATA = [
 ];
 
 export const Route = createRootRoute({
-  head: () => {
+  head: ({ matches }) => {
+    const missing = matches.some((match) => match.globalNotFound || match.status === "notFound");
     const ROOT_OG_IMAGE = getOgImageForPath();
     const supabaseBoot = supabasePublicEnvInlineScript();
     return {
@@ -84,16 +85,32 @@ export const Route = createRootRoute({
         { name: "apple-mobile-web-app-title", content: "Depikt" },
         { name: "mobile-web-app-capable", content: "yes" },
         { name: "application-name", content: "Depikt" },
-        { title: DEFAULT_TITLE },
-        { name: "description", content: DEFAULT_DESCRIPTION },
-        { property: "og:title", content: DEFAULT_OG_TITLE },
-        { property: "og:description", content: DEFAULT_OG_DESCRIPTION },
+        { title: missing ? "Page not found — Depikt" : DEFAULT_TITLE },
+        {
+          name: "description",
+          content: missing
+            ? "This page is unavailable. Return to Depikt to create or browse the Library."
+            : DEFAULT_DESCRIPTION,
+        },
+        ...(missing ? [{ name: "robots", content: "noindex, nofollow" }] : []),
+        { property: "og:title", content: missing ? "Page not found — Depikt" : DEFAULT_OG_TITLE },
+        {
+          property: "og:description",
+          content: missing
+            ? "Return to Depikt to create or browse the Library."
+            : DEFAULT_OG_DESCRIPTION,
+        },
         { property: "og:type", content: "website" },
         { property: "og:image", content: ROOT_OG_IMAGE },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:image", content: ROOT_OG_IMAGE },
-        { name: "twitter:title", content: DEFAULT_OG_TITLE },
-        { name: "twitter:description", content: DEFAULT_OG_DESCRIPTION },
+        { name: "twitter:title", content: missing ? "Page not found — Depikt" : DEFAULT_OG_TITLE },
+        {
+          name: "twitter:description",
+          content: missing
+            ? "Return to Depikt to create or browse the Library."
+            : DEFAULT_OG_DESCRIPTION,
+        },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
@@ -115,7 +132,7 @@ export const Route = createRootRoute({
         // Google tag (gtag.js) — one per page, immediately in <head>.
         { src: GA_LOADER_SRC, async: true },
         { children: GA_INLINE_SCRIPT },
-        ...STRUCTURED_DATA.map((d) => ({
+        ...(missing ? [] : STRUCTURED_DATA).map((d) => ({
           type: "application/ld+json",
           children: JSON.stringify(d),
         })),

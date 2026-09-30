@@ -1,3 +1,5 @@
+import { getCreationDetail } from "@/lib/profile/client";
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { useCreatorDraft } from "@/components/CreatorDraft";
 import { ReferencePackPicker } from "./ReferencePackPicker";
 import { useEffect, useState, type ReactNode } from "react";
@@ -158,15 +160,13 @@ export function GenerateWorkspace({
     setPrompt(text);
   }
 
-  // "New" on a finished result: unlike gen.reset() (error-retry, which
-  // must keep the same prompt/references so the user can just try again),
-  // this clears everything so the next submission starts from a blank
-  // composer -- there was previously no way back to one at all once a
-  // result existed.
+  // "New" returns to a blank prompt. One-off reference images are
+  // request-scoped, so they go with this result. A saved pack stays
+  // selected, chip and all, until the user removes it — saved does not
+  // mean attached, and a finished generation does not create visual memory.
   function startNew() {
     gen.reset();
     gen.clearReferences();
-    setSelectedEntities([]);
     setPrompt("");
     setStructuredRatio(null);
     setRoutingHints(null);
@@ -306,10 +306,19 @@ export function GenerateWorkspace({
                       className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
                     >
                       <div className="h-8 w-8 shrink-0 overflow-hidden rounded">
-                        <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                        <RecoverableImage
+                          src={r.local.dataUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
                       </div>
-                      <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
-                        Reference image
+                      <span className="flex flex-col leading-tight">
+                        <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+                          {REFERENCES_COPY.oneOff}
+                        </span>
+                        <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                          {REFERENCES_COPY.oneOffScope}
+                        </span>
                       </span>
                     </div>
                   ))}
@@ -322,9 +331,11 @@ export function GenerateWorkspace({
                       key={entity.id}
                       className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] px-2.5 py-1.5 text-[12px]"
                     >
-                      {entity.name}
-                      <span className="text-[color:var(--text-tertiary)]">
-                        {REFERENCES_COPY.locked}
+                      <span className="flex flex-col leading-tight">
+                        <span>{entity.name}</span>
+                        <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                          {REFERENCES_COPY.kinds[entity.type]} · {REFERENCES_COPY.locked}
+                        </span>
                       </span>
                     </span>
                   ))}
@@ -395,6 +406,13 @@ export function GenerateWorkspace({
             aspectRatio={resolvedSize.ratioLabel}
             orientation={resolvedSize.orientation}
             imageUrl={gen.resultUrl}
+            refreshImageUrl={async () =>
+              gen.activeVersionId
+                ? (await getCreationDetail(gen.activeVersionId)).versions.find(
+                    (v) => v.id === gen.activeVersionId,
+                  )?.url
+                : null
+            }
             refining={gen.job?.refining}
             statusLines={resultStatusLines({
               sourceCount: gen.grounding?.sources.length,
@@ -462,7 +480,11 @@ function ComposerSurface({
               className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
             >
               <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded">
-                <img src={r.local.dataUrl} alt="" className="h-full w-full object-cover" />
+                <RecoverableImage
+                  src={r.local.dataUrl}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
                 {r.uploading && (
                   <div className="absolute inset-0 flex items-center justify-center bg-white/70 text-[9px]">
                     …
@@ -479,8 +501,13 @@ function ComposerSurface({
                   </button>
                 )}
               </div>
-              <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
-                Reference image
+              <span className="flex flex-col leading-tight">
+                <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+                  {REFERENCES_COPY.oneOff}
+                </span>
+                <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                  {REFERENCES_COPY.oneOffScope}
+                </span>
               </span>
               <button
                 type="button"
@@ -494,7 +521,8 @@ function ComposerSurface({
           ))}
           {references.length < MAX_REFERENCE_IMAGES_V1 && (
             <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[color:var(--border-subtle)] px-2.5 py-1.5 text-[12px] font-mono text-[color:var(--text-tertiary)] transition-colors hover:border-[color:var(--border-default)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-secondary)]">
-              <ImagePlus className="h-3.5 w-3.5" />+ Reference
+              <ImagePlus className="h-3.5 w-3.5" />
+              {REFERENCES_COPY.oneOffAdd}
               <span className="text-[color:var(--text-tertiary)]">
                 {references.length}/{MAX_REFERENCE_IMAGES_V1}
               </span>
@@ -564,7 +592,9 @@ function VersionStrip({
                 : "border-[color:var(--border-subtle)]"
             }`}
           >
-            {v.url && <img src={v.url} alt={label} className="h-16 w-16 object-cover" />}
+            {v.url && (
+              <RecoverableImage src={v.url} alt={label} className="h-16 w-16 object-cover" />
+            )}
             <span className="block max-w-16 truncate px-1 py-0.5 text-[10px] leading-tight text-[color:var(--text-secondary)]">
               {label}
             </span>

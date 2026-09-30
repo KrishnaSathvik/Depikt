@@ -13,15 +13,22 @@ test("model ids are centralized and roles reference known models", () => {
     assert.ok(MODELS[role.model], `role model ${role.model} must exist in MODELS`);
     assert.ok(role.timeoutMs > 0);
   }
-  // Phase 2 routing: Luna builder (reasoning none, temp 0.7), Luna intent, Terra critic (medium), Astra offline only.
-  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-5.6-luna");
+  // GPT-6 Luna writes with reasoning off. GPT-6.1 Sol critiques. Astra judges offline only.
+  assert.equal(MODEL_ROLES.BUILDER_DEFAULT.model, "gpt-6-luna");
   assert.equal(MODEL_ROLES.BUILDER_DEFAULT.reasoningEffort, "none");
   assert.equal(MODEL_ROLES.BUILDER_DEFAULT.temperature, 0.7);
-  assert.equal(MODEL_ROLES.INTENT.model, "gpt-5.6-luna");
+  assert.equal(MODEL_ROLES.INTENT.model, "gpt-6-luna");
   assert.equal(MODEL_ROLES.INTENT.reasoningEffort, "none");
-  assert.equal(MODEL_ROLES.CRITIC.model, "gpt-5.6-terra");
+  assert.equal(MODEL_ROLES.CRITIC.model, "gpt-6.1-sol");
   assert.equal(MODEL_ROLES.CRITIC.reasoningEffort, "medium");
+  assert.equal(MODEL_ROLES.CRITIC.temperature, undefined);
+  assert.equal(MODEL_ROLES.BUILDER_REFERENCE_HEAVY.model, "gpt-6.1-sol");
   assert.equal(MODEL_ROLES.BENCHMARK_JUDGE.model, "gpt-6-astra");
+  // gpt-6-sol stays registered but unused; production never routes 5.6 text models.
+  assert.ok(MODELS["gpt-6-sol"]);
+  for (const role of Object.values(MODEL_ROLES)) {
+    assert.ok(!role.model.startsWith("gpt-5.6-"), `${role.model} must not be a production role`);
+  }
 });
 
 test("temperature is sent only when the model supports it", () => {
@@ -75,6 +82,19 @@ test("reasoning effort is validated per model", () => {
   assert.throws(
     () => resolveRequestParams({ model: "gpt-6-astra", reasoningEffort: "none", timeoutMs: 1 }),
     /does not support/,
+  );
+  assert.throws(
+    () => resolveRequestParams({ model: "gpt-6.1-sol", reasoningEffort: "none", timeoutMs: 1 }),
+    /does not support/,
+  );
+  assert.deepEqual(
+    resolveRequestParams({
+      model: "gpt-6-luna",
+      reasoningEffort: "none",
+      temperature: 0.7,
+      timeoutMs: 1,
+    }),
+    { reasoning: { effort: "none" }, temperature: 0.7 },
   );
   assert.deepEqual(
     resolveRequestParams({

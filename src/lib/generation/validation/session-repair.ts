@@ -1,3 +1,4 @@
+import { generationMetric } from "../telemetry.ts";
 import type { UntypedSupabaseClient } from "../db-types.ts";
 import { automaticRepairEnabled, INCLUDED_REPAIR_POLICY } from "../economic-policy.ts";
 import { executeTargetedRepair, type GenerationJobRecord } from "../job-pipeline.ts";
@@ -74,6 +75,11 @@ export async function refineGenerationSession(args: {
     .maybeSingle();
   if (budgetError) throw budgetError;
   if (existing) {
+    generationMetric("repair_completed", {
+      sessionId,
+      outcome: "blocked_by_cap",
+      platformFunded: true,
+    });
     if (
       existing.state === "running" &&
       Date.now() - Date.parse(existing.started_at) > 6 * 60 * 1000
@@ -237,6 +243,14 @@ export async function refineGenerationSession(args: {
     selected = "original";
     report = chosen.result;
   }
+  generationMetric("repair_completed", {
+    sessionId,
+    jobId: row.id,
+    outcome,
+    originalRetained: selected === "original",
+    platformFunded: true,
+    providerAttempts: repairAttempted ? 1 : 0,
+  });
   // No reserve/refund/finalize-credit call occurs on this path. The initial image remains charged once.
   let telemetryError: unknown;
   try {

@@ -27,7 +27,7 @@ import {
 import { PromptLoadingState } from "@/components/prompt/PromptLoadingState";
 import { PromptViewToggle } from "@/components/prompt/PromptViewToggle";
 import { ImagoPasteHint } from "@/components/ImagoPasteHint";
-import { CTA, IMAGO_URL, PROMPT_MODE_COPY } from "@/lib/product";
+import { CTA, IMAGO_URL, PROMPT_MODE_COPY, REFERENCES_COPY } from "@/lib/product";
 import { trackEvent } from "@/lib/analytics";
 import { ReferenceReattachNote } from "@/components/ReferenceReattachNote";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
@@ -305,7 +305,7 @@ export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: Criti
                 ) : (
                   <>
                     <ReferenceImagePicker
-                      addLabel="+ Reference"
+                      addLabel={REFERENCES_COPY.oneOffAdd}
                       value={reference}
                       onChange={setReference}
                     />

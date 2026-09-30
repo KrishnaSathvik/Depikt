@@ -22,7 +22,10 @@ export default defineTool({
 
     const row = ((data ?? []) as unknown as PromptRow[]).filter(isPublicRow)[0];
     if (!row)
-      return { content: [{ type: "text", text: `No public prompt found for "${id}"` }], isError: true };
+      return {
+        content: [{ type: "text", text: `No public prompt found for "${id}"` }],
+        isError: true,
+      };
 
     const result = {
       id: row.id,

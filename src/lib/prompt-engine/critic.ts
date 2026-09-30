@@ -1,5 +1,5 @@
 // Images 2.5 Prompt Critic (engine v3). A genuinely separate pipeline:
-// its own instructions, strict schema, model role (Terra, reasoning medium),
+// its own instructions, strict schema, model role (GPT-6.1 Sol, reasoning medium),
 // and a deterministic overall-score computation in code.
 
 import { CATEGORY_DEFINITIONS, CATEGORY_IDS, CATEGORY_LABELS } from "./categories.ts";

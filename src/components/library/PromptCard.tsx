@@ -1,3 +1,4 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { ArrowRight, Star } from "lucide-react";
 import { toggleFavoriteLocal } from "@/lib/favorites";
 import type { LibraryPrompt } from "@/types/library";
@@ -55,7 +56,7 @@ export function PromptCard({
       {prompt.thumbnail_url ? (
         <div className="relative aspect-square w-full overflow-hidden bg-[color:var(--bg-subtle)]">
           {/* Square frame, whole image: landscape and portrait results are never cropped. */}
-          <img
+          <RecoverableImage
             src={prompt.thumbnail_url}
             alt=""
             loading="lazy"

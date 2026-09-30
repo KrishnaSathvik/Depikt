@@ -11,6 +11,7 @@ import {
   CTA,
   HOME_ACTION,
   HOME_CAPABILITIES,
+  homeCapabilities,
   NAV_ITEMS,
   TOOL,
 } from "../../src/lib/product.ts";
@@ -52,15 +53,40 @@ test("homepage uses the real workspace without the demo or navigation explainer"
   assert.match(workspace, /hidden=\{mode !== "generate"\}/);
 });
 
-test("homepage capabilities describe the current product, not layouts", () => {
+test("homepage capabilities describe the product and hide V4/V5 when those flags are off", () => {
   assert.equal(HOME_ACTION.capabilitiesTitle, "More control when you need it.");
   assert.deepEqual(
     HOME_CAPABILITIES.map((c) => c.label),
     ["Reference Packs", "Precision editing", "Grounded generation", "Validation + refinement"],
   );
+  const grounded = HOME_CAPABILITIES.find((c) => c.label === "Grounded generation");
+  const validation = HOME_CAPABILITIES.find((c) => c.label === "Validation + refinement");
+  assert.equal(grounded?.requires, "grounding");
+  assert.equal(validation?.requires, "validation");
+  assert.match(grounded?.body ?? "", /research current, factual, or visual context/i);
+  assert.match(validation?.body ?? "", /automatically refine one issue/i);
+  assert.doesNotMatch(grounded?.body ?? "", /not enabled/i);
+  assert.doesNotMatch(validation?.body ?? "", /not enabled/i);
+
+  assert.deepEqual(
+    homeCapabilities({ grounding: false, validation: false }).map((c) => c.label),
+    ["Reference Packs", "Precision editing"],
+  );
+  assert.deepEqual(
+    homeCapabilities({ grounding: true, validation: true }).map((c) => c.label),
+    ["Reference Packs", "Precision editing", "Grounded generation", "Validation + refinement"],
+  );
+  assert.deepEqual(
+    homeCapabilities({ grounding: true, validation: false }).map((c) => c.label),
+    ["Reference Packs", "Precision editing", "Grounded generation"],
+  );
+
   const home = read("src/routes/index.tsx");
-  assert.match(home, /HOME_CAPABILITIES/);
+  assert.match(home, /homeCapabilities/);
+  assert.match(home, /isGroundingEnabled/);
+  assert.match(home, /isValidationRepairEnabled/);
   assert.doesNotMatch(home, /Control structure, hierarchy, and exact text/);
+  assert.doesNotMatch(home, /not enabled in the current release/);
 });
 
 test("primary nav is Library, with Sign in", () => {
@@ -108,8 +134,11 @@ test("Gallery has one Use as reference action that hands off to Generate", () =>
   assert.doesNotMatch(gallery, /Use in /);
   assert.doesNotMatch(gallery, /Generate with reference/);
   assert.doesNotMatch(gallery, /Remix in Prompt/);
-  assert.equal(galleryLabel("0BE55AAE-0160-4BE9-8637-3D22FD96220D.PNG", 0), "Gallery reference 1");
-  assert.equal(galleryLabel("IMG_3630.JPG", 4), "Gallery photo 5");
+  assert.equal(
+    galleryLabel("0BE55AAE-0160-4BE9-8637-3D22FD96220D.PNG", 0),
+    "Reflected silhouette poster",
+  );
+  assert.equal(galleryLabel("IMG_3630.JPG", 4), "Monochrome apparel brand kit");
 });
 
 test("Templates continue to Generate without a forced Build handoff when generation is live", () => {
@@ -126,7 +155,8 @@ test("Generate exposes Improve prompt and Critique as secondary tools and a comp
   const workspace = read("src/components/CreateWorkspace.tsx");
   assert.match(workspace, /id: "build", label: TOOL.improvePrompt/);
   assert.match(workspace, /id: "critique", label: TOOL.critique/);
-  assert.match(gen, /\+ Reference/);
+  assert.match(gen, /REFERENCES_COPY\.oneOffAdd/);
+  assert.match(read("src/lib/product.ts"), /oneOffAdd: "\+ Reference image"/);
   assert.match(gen, /Describe your image\.\.\./);
   assert.match(gen, /aria-label="Aspect ratio"/);
   assert.match(gen, /· 1 credit/);

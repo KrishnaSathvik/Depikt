@@ -1,3 +1,4 @@
+import { RecoverableImage } from "@/components/RecoverableImage";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { privateScope, isCurrentPrivateScope } from "@/lib/private-cache";
@@ -247,8 +248,13 @@ function PackCard({
       <div className="flex flex-wrap gap-3">
         {e.assets.map((a) => (
           <div key={a.id} className="w-24">
-            <img
+            <RecoverableImage
               src={a.previewUrl ?? ""}
+              refreshUrl={async () =>
+                (await listReferenceEntities()).entities
+                  .find((entity) => entity.id === e.id)
+                  ?.assets.find((asset) => asset.id === a.id)?.previewUrl
+              }
               alt={`${e.name}, ${C.roles[a.role] ?? a.role.replaceAll("_", " ")}`}
               className="h-24 w-24 rounded border object-cover"
             />

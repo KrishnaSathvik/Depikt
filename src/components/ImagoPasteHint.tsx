@@ -7,8 +7,7 @@ export function ImagoPasteHint() {
       <span className="hidden sm:inline">
         Opens Imago with your prompt copied. Paste with{" "}
         <kbd className="rounded border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1 py-0.5 font-mono text-[10px]">
-          {typeof navigator !== "undefined" &&
-          navigator.platform?.toUpperCase().includes("MAC")
+          {typeof navigator !== "undefined" && navigator.platform?.toUpperCase().includes("MAC")
             ? "⌘V"
             : "Ctrl+V"}
         </kbd>

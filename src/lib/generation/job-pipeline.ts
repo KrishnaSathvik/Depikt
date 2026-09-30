@@ -1,3 +1,4 @@
+import { generationMetric } from "./telemetry.ts";
 import { validateAndRepair, type ValidationRuntime } from "./validation/runtime.ts";
 import { repairInstruction } from "./validation/repair.ts";
 // Native image generation — job execution pipeline.
@@ -33,6 +34,7 @@ export interface GenerationJobRecord {
   idempotencyKey: string;
   referenceImages: StoredImage[];
   editMask?: StoredImage | null;
+  series?: boolean;
   groundingCostUsd?: number | null;
 }
 
@@ -111,14 +113,35 @@ export async function runGenerationJob(
   deps: RunJobDeps,
 ): Promise<RunJobOutcome> {
   const { data } = deps;
+  const started = Date.now();
+  let imageMs = 0,
+    validationMs = 0,
+    providerAttempts = 0;
+  const metric = {
+    jobId: job.id,
+    sessionId: job.sessionId,
+    operation:
+      sourceVersionId && job.operation === "generate" ? ("regenerate" as const) : job.operation,
+    series: job.series ?? false,
+  };
+  generationMetric("generation_requested", metric);
   let versionId: string;
+  let imageStarted: number | null = null;
 
   try {
     const running = await data.markJobRunning(job.id);
     if (!running) {
+      generationMetric("generation_completed", {
+        ...metric,
+        outcome: "timed_out",
+        durationMs: Date.now() - started,
+        providerAttempts,
+      });
       return { outcome: "failed", errorCode: "timed_out" };
     }
 
+    imageStarted = Date.now();
+    providerAttempts++;
     let result =
       job.operation === "generate"
         ? await generateImage({
@@ -140,14 +163,17 @@ export async function runGenerationJob(
             mask: job.editMask ?? null,
           });
 
+    imageMs = Date.now() - imageStarted;
     let bytes = deps.decodeBase64(result.b64);
     const usages = [result.usage];
     let validationReport: unknown;
     if (deps.validation) {
+      const validationStarted = Date.now();
       const validated = await validateAndRepair(
         { result, image: { bytes, filename: "result.png", mimeType: "image/png" } },
         deps.validation,
         async (repair, report, current) => {
+          providerAttempts++;
           const next = await executeTargetedRepair(
             job,
             current.image,
@@ -167,6 +193,15 @@ export async function runGenerationJob(
           };
         },
       );
+      validationMs = Date.now() - validationStarted;
+      generationMetric("validation_completed", {
+        ...metric,
+        outcome: validated.result.checks.some((check) => check.status === "unavailable")
+          ? "unavailable"
+          : validated.result.verdict,
+        validationMs,
+        ocrCalls: deps.validation.providerTelemetry?.ocrCalls ?? 0,
+      });
       result = validated.output.result;
       bytes = validated.output.image.bytes;
       validationReport = {
@@ -233,16 +268,32 @@ export async function runGenerationJob(
             (job.groundingCostUsd ?? 0),
     });
     if (!succeeded) {
+      generationMetric("generation_completed", {
+        ...metric,
+        outcome: "timed_out",
+        durationMs: Date.now() - started,
+        providerAttempts,
+      });
       return { outcome: "failed", errorCode: "timed_out" };
     }
   } catch (err) {
+    if (imageStarted !== null && imageMs === 0) imageMs = Date.now() - imageStarted;
     const { errorCode, safeErrorMessage } = categorizeError(err);
     // Never let a failure in the failure path leave the reservation stuck:
     // mark-failed and refund are independent, best-effort steps.
     await data.markJobFailed(job.id, { errorCode, safeErrorMessage }).catch(() => {});
     await data
       .finalizeCredits(job.userId, 1, job.idempotencyKey, "refunded", job.id)
+      .then(() => generationMetric("credits_settled", { ...metric, refunded: 1 }))
       .catch(() => {});
+    generationMetric("generation_completed", {
+      ...metric,
+      outcome: errorCode,
+      durationMs: Date.now() - started,
+      imageMs,
+      validationMs,
+      providerAttempts,
+    });
     return { outcome: "failed", errorCode };
   }
 
@@ -250,11 +301,22 @@ export async function runGenerationJob(
   // also calls settleSucceededJobCredits. A hung RPC must not keep /run
   // open, because local workerd serializes poll behind that request.
   await raceWithTimeout(
-    data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id),
+    data.finalizeCredits(job.userId, 1, job.idempotencyKey, "charged", job.id).then((result) => {
+      generationMetric("credits_settled", { ...metric, charged: 1 });
+      return result;
+    }),
     CREDIT_CHARGE_BUDGET_MS,
     { availableCredits: 0 },
   ).catch(() => {});
 
+  generationMetric("generation_completed", {
+    ...metric,
+    outcome: "succeeded",
+    durationMs: Date.now() - started,
+    imageMs,
+    validationMs,
+    providerAttempts,
+  });
   return { outcome: "succeeded", versionId };
 }
 

@@ -11,21 +11,17 @@ import {
 
 const keys = ["GROUNDING_ENABLED", "VALIDATION_REPAIR_ENABLED", "AUTO_REPAIR_POLICY"] as const;
 
-test("actual dev configuration enables existing VNext flags; production configuration disables them", async () => {
+test("dev and production configurations enable V4/V5 and included repair", async () => {
   const previous = keys.map((key) => process.env[key]);
   try {
     for (const mode of ["development", "production"]) {
       // Model separate process starts, without flags left by the preceding mode.
       for (const key of keys) delete process.env[key];
       await configureVite({ command: "serve", mode });
-      const enabled = mode === "development";
-      assert.equal(process.env.GROUNDING_ENABLED === "true", enabled);
-      assert.equal(process.env.VALIDATION_REPAIR_ENABLED === "true", enabled);
-      assert.equal(automaticRepairEnabled(), enabled);
-      assert.equal(
-        process.env.AUTO_REPAIR_POLICY,
-        enabled ? "platform_absorbs_one_per_request" : "disabled",
-      );
+      assert.equal(process.env.GROUNDING_ENABLED, "true");
+      assert.equal(process.env.VALIDATION_REPAIR_ENABLED, "true");
+      assert.equal(automaticRepairEnabled(), true);
+      assert.equal(process.env.AUTO_REPAIR_POLICY, "platform_absorbs_one_per_request");
     }
   } finally {
     keys.forEach((key, i) => {
@@ -35,15 +31,15 @@ test("actual dev configuration enables existing VNext flags; production configur
   }
 });
 
-test("production Worker runtime explicitly disables grounding, validation and automatic repair", () => {
+test("production Worker runtime enables grounding, validation and included repair", () => {
   const source = readFileSync(new URL("../../wrangler.jsonc", import.meta.url), "utf8");
   const config = JSON.parse(source.replace(/,\s*([}\]])/g, "$1"));
   assert.deepEqual(Object.fromEntries(keys.map((key) => [key, config.vars[key]])), {
-    GROUNDING_ENABLED: "false",
-    VALIDATION_REPAIR_ENABLED: "false",
-    AUTO_REPAIR_POLICY: "disabled",
+    GROUNDING_ENABLED: "true",
+    VALIDATION_REPAIR_ENABLED: "true",
+    AUTO_REPAIR_POLICY: "platform_absorbs_one_per_request",
   });
-  assert.equal(automaticRepairEnabled(config.vars), false);
+  assert.equal(automaticRepairEnabled(config.vars), true);
 });
 
 test("verification preserves launch caps, original matrix and frozen final matrix", () => {

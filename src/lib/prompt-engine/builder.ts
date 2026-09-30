@@ -1,10 +1,10 @@
 // Images 2.5 Prompt Builder (engine v3).
 //
 //   user request (+ image, + explicit choices, + remix ref)
-//     → Intent Analyzer (Luna, reasoning none, strict JSON)      [intent.ts]
-//     → overrides (explicit choices always win)                    [intent.ts]
-//     → CORE RULES + one category playbook + reference guidance    [this file]
-//     → Prompt Writer (Luna, reasoning none, temp 0.7, streaming)  [this file]
+//     → Intent Analyzer (GPT-6 Luna, reasoning none, strict JSON)      [intent.ts]
+//     → overrides (explicit choices always win)                         [intent.ts]
+//     → CORE RULES + one category playbook + reference guidance         [this file]
+//     → Prompt Writer (GPT-6 Luna, reasoning none, temp 0.7, streaming) [this file]
 //     → strict writer result + category + intent attached in code
 //
 // The writer never reclassifies: the Intent object is authoritative.

@@ -180,7 +180,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           });
           referenceImages = assembled.referenceImages;
           editMask = assembled.editMask;
-          if (session.plan_json?.grounding) {
+          if (process.env.GROUNDING_ENABLED === "true" && session.plan_json?.grounding) {
             const snapshot = verifyGroundingSnapshot(
               session.plan_json.grounding,
               userId,
@@ -259,6 +259,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             idempotencyKey: job.idempotency_key as string,
             referenceImages,
             editMask,
+            series: job.series_index != null,
             groundingCostUsd:
               job.series_index == null || job.series_index === 0
                 ? (session?.plan_json?.groundingUsage?.costUsd ??
