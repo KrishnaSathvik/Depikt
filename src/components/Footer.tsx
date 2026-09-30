@@ -45,7 +45,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="border-t border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]">
+    <footer className="border-t border-[color:var(--border-subtle)]">
       <div className="mx-auto max-w-[1400px] px-4 py-12 sm:px-6 lg:px-12">
         <div className="flex flex-col gap-10 md:flex-row md:items-start md:justify-between">
           <div className="max-w-xs">
