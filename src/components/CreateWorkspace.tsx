@@ -76,7 +76,7 @@ function WorkspaceTools() {
 
   return (
     <div>
-      <div className="mx-auto w-full max-w-[1040px] flex-1 px-4 pt-5 sm:px-6">
+      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-5 sm:px-6 lg:px-12">
         <div
           role="tablist"
           aria-label="Creation tools"
