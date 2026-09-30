@@ -97,7 +97,7 @@ function LandingPage() {
           className="scroll-mt-28 py-8 sm:py-10"
           aria-label="Make something with Depikt"
         >
-          <div className="mx-auto max-w-[1040px] px-4 sm:px-6">
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-12">
             <div className="flex items-center justify-between gap-4">
               <h1 className="text-heading-xl">Make something with Depikt</h1>
               <Link
@@ -112,7 +112,7 @@ function LandingPage() {
             </p>
           </div>
           <CreateWorkspace />
-          <p className="mx-auto mt-6 max-w-[1040px] px-4 text-body-sm sm:px-6">
+          <p className="mx-auto mt-6 max-w-[1400px] px-4 text-body-sm sm:px-6 lg:px-12">
             Need a starting point?{" "}
             <Link
               to="/library"
