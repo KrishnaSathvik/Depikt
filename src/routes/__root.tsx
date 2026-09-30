@@ -68,7 +68,11 @@ const STRUCTURED_DATA = [
 
 export const Route = createRootRoute({
   head: ({ matches }) => {
-    const missing = matches.some((match) => match.globalNotFound || match.status === "notFound");
+    const missing = matches.some(
+      (match) =>
+        match.status === "notFound" ||
+        (match as { globalNotFound?: boolean }).globalNotFound === true,
+    );
     const ROOT_OG_IMAGE = getOgImageForPath();
     const supabaseBoot = supabasePublicEnvInlineScript();
     return {
