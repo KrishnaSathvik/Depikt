@@ -4,11 +4,11 @@
 export const PRICING_COPY = {
   eyebrow: "Pricing",
   headline: "Create more with Depikt.",
-  sub: "Start free, then choose the amount of image creation you need. Image credits are used when you generate, edit, or regenerate an image.",
+  sub: "Start free, then choose the amount of image creation you need. Image credits are used when you generate, edit, or regenerate an image. Research, validation, and one included refinement do not use a credit.",
   toggleMonthly: "Monthly",
   /** $199 vs 12 × $19.99 and $399 vs 12 × $39.99 both save about 17%. */
   toggleYearly: "Yearly · save 17%",
-  creditRule: "One credit = one generate, edit, or regenerate.",
+  creditRule: "One credit = one generate, edit, or regenerate. Research and validation are included.",
   free: {
     name: "Free",
     credits: "5 image credits",
@@ -38,6 +38,6 @@ export const BUY_CREDITS_COPY = {
   title: "Get more image credits",
   body: "Keep creating without changing your plan.",
   footer: "Purchased credits don't expire.",
-  rule: "1 credit = one generate, edit, or regenerate.",
+  rule: "1 credit = one generate, edit, or regenerate. Research and validation are included.",
   continue: "Continue to checkout",
 } as const;

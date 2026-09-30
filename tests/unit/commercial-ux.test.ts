@@ -58,8 +58,9 @@ test("pricing copy is the locked editorial copy", () => {
   assert.equal(PRICING_COPY.headline, "Create more with Depikt.");
   assert.match(
     PRICING_COPY.sub,
-    /Image credits are used when you generate, edit, or regenerate an image\./,
+    /Image credits are used when you generate, edit, or regenerate an image\. Research, validation, and one included refinement do not use a credit\./,
   );
+  assert.match(PRICING_COPY.creditRule, /Research and validation are included/);
   assert.equal(PRICING_COPY.toggleMonthly, "Monthly");
   assert.match(PRICING_COPY.toggleYearly, /^Yearly/);
   assert.doesNotMatch(
@@ -245,6 +246,9 @@ test("help publishes only the operator-supplied contact without service promises
     "How are image sizes chosen?",
     "Can I use reference images?",
     "What happens if generation fails?",
+    "Does research or checking the result use a credit?",
+    "What is grounded generation?",
+    "What does validation and automatic refinement do?",
     "How do monthly credits work?",
     "Do credits roll over?",
     "Can I buy credits without subscribing?",
@@ -278,6 +282,7 @@ test("privacy and terms cover the required subjects, invent no owner details, an
         "Apple",
         "Microsoft",
         "OpenAI",
+        "Brave Search",
         "Supabase",
         "Cloudflare",
         "Lovable",
@@ -287,6 +292,7 @@ test("privacy and terms cover the required subjects, invent no owner details, an
         "reference images",
         "generated images",
         "delete",
+        "Research queries",
       ],
     ],
     [
@@ -304,6 +310,7 @@ test("privacy and terms cover the required subjects, invent no owner details, an
         "not be unique",
         "Acceptable use",
         "OpenAI",
+        "included automatic refinement",
       ],
     ],
   ] as const) {

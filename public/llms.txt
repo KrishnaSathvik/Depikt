@@ -12,7 +12,7 @@
 - [Pricing](https://www.depikt.app/pricing): Current plans and credit packs. Each successful generated image, edit, or regeneration costs one credit. A series costs one credit per successful image; failed image jobs return their reserved credit.
 - [Help](https://www.depikt.app/help): Sign-in, references, credits, billing, and account help.
 
-Generation routes internally; there is no model selector. Grounded generation and automatic validation/refinement are not enabled in the current release. Existing saved results may include provenance and validation from earlier enabled runs; metadata is shown only where it was recorded.
+Generation routes internally; there is no model selector. When a request needs current, factual, or visual context, Depikt can research before generating (grounded generation). Results can be checked and, when needed, refined once automatically at no extra credit. Each successful generated image, edit, or regeneration still costs one credit; research, validation, and that included refinement do not.
 
 Legacy /prompt, /generate, /critique, /gallery, and /templates links remain compatible entry points. Home and Library are the primary destinations.
 

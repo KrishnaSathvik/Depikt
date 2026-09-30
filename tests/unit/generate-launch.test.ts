@@ -48,6 +48,9 @@ test("llms.txt describes native generation and MCP stays read-only", () => {
   const llms = read("public/llms.txt");
   assert.match(llms, /\[Home \/ Create\]\(https:\/\/www\.depikt\.app\/\)/);
   assert.match(llms, /Generation routes internally; there is no model selector/);
+  assert.match(llms, /research before generating/);
+  assert.match(llms, /refined once automatically at no extra credit/);
+  assert.doesNotMatch(llms, /not enabled in the current release/);
   assert.equal(
     /Depikt (writes and reviews prompts; it )?does not generate images/i.test(llms),
     false,

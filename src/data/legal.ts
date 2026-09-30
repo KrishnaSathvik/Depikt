@@ -10,7 +10,7 @@
 // clauses' old wording) ever reappears in rendered public copy.
 
 /** ISO date the policies below took effect. Bump only when the policy text actually changes. */
-export const LEGAL_LAST_UPDATED = "2026-09-24";
+export const LEGAL_LAST_UPDATED = "2026-09-30";
 
 /** "2026-09-24" -> "September 24, 2026". Used in the page header, never in the markdown body. */
 export function formatEffectiveDate(iso: string): string {
@@ -58,6 +58,10 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
         q: "What happens if generation fails?",
         a: "A credit is reserved when a job starts and settled only when an image is produced. If the job fails for any reason (including a content-policy refusal from the model), the reserved credit is returned automatically to the bucket it came from. You are never charged for a failed operation.",
       },
+      {
+        q: "Does research or checking the result use a credit?",
+        a: "No. When Depikt researches context for a request, validates requested details, or applies one included automatic refinement, those stages do not use an image credit. You still spend one credit only for each successful generate, edit, or regenerate.",
+      },
     ],
   },
   {
@@ -73,8 +77,16 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
         a: "Attach up to 4 individual reference images or up to 4 saved Reference Packs. Each pack can store up to 8 views; Depikt selects views within an 8-image input budget when packs are attached.",
       },
       {
+        q: "What is grounded generation?",
+        a: "When your request needs current, factual, or visual context that your prompt and references do not already provide, Depikt can research before generating. Sources may appear with the result when research ran. Research does not use an image credit.",
+      },
+      {
+        q: "What does validation and automatic refinement do?",
+        a: "After an image is created, Depikt can check requested details such as exact text or counts. If something is repairable, it may refine once automatically at no extra credit and keep the best usable result. Manual generate, edit, and regenerate still cost one credit each.",
+      },
+      {
         q: "Can I edit an existing generated image?",
-        a: "Yes. Describe the change you want and Depikt applies it to your last generated image as a new job. Edits use one credit, the same as any successful generation.",
+        a: "Yes. Describe the change you want and Depikt applies it to your last generated image as a new job. You can also select an area for a precision edit. Edits use one credit, the same as any successful generation.",
       },
       {
         q: "What does Regenerate do?",
@@ -153,7 +165,7 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
 ];
 
 export const PRIVACY_INTRO =
-  "Depikt stores the information needed to operate your account and generation history. Reference images and generated images tied to your account are stored privately. Prompt and image processing may be handled by service providers such as OpenAI. Payment card details are handled by Stripe, not stored directly by Depikt.";
+  "Depikt stores the information needed to operate your account and generation history. Reference images and generated images tied to your account are stored privately. Prompt and image processing may be handled by service providers such as OpenAI. When research is needed, short search queries may be sent to a web search provider. Payment card details are handled by Stripe, not stored directly by Depikt.";
 
 export const PRIVACY_MD = `
 ## Overview
@@ -168,21 +180,24 @@ This Privacy Policy describes what Depikt collects, why, and what happens to it.
 
 **Reference images.** Images you attach are resized in your browser and uploaded to private storage under your account. They are sent to OpenAI only to run the job you requested.
 
-**Generated images.** Every successful generation or edit is stored privately under your account, together with its prompt and size.
+**Generated images.** Every successful generation or edit is stored privately under your account, together with its prompt and size. When research or validation ran for a job, related status and source metadata may be stored with that result.
+
+**Research queries.** When grounded generation needs current or visual context, Depikt may send short search queries derived from your request to a web search provider. Returned snippets and image thumbnails are used only to support that job; they are not used for advertising.
 
 **Credits and billing.** We keep a ledger of every credit change (starter grant, plan grants, purchases, reservations, refunds) and a billing record with your plan, subscription status, and billing period.
 
 ## How we use information
 
-We use this information to run your account: authenticate you, process the generation or edit you asked for, show you your credit balance and history, keep your Creations and drafts available across sessions, process payments, and understand how the product is used so we can improve it. We do not use your prompts, reference images, or generated images for advertising.
+We use this information to run your account: authenticate you, process the generation or edit you asked for (including research and validation when those stages run), show you your credit balance and history, keep your Creations and drafts available across sessions, process payments, and understand how the product is used so we can improve it. We do not use your prompts, reference images, or generated images for advertising.
 
 ## AI and image processing
 
-Prompt and image requests are sent to OpenAI to produce the result. Per OpenAI's API data controls, inputs and outputs may be retained for a limited period for abuse monitoring and are not used to train OpenAI's models by default.
+Prompt and image requests are sent to OpenAI to produce the result. Per OpenAI's API data controls, inputs and outputs may be retained for a limited period for abuse monitoring and are not used to train OpenAI's models by default. Validation checks that need OCR or visual judgment also use OpenAI.
 
 ## Service providers
 
-- **OpenAI** — generates prompts and images.
+- **OpenAI** — generates prompts and images, and supports validation checks.
+- **Brave Search** — web and image search when grounded generation needs external context.
 - **Supabase** — database, authentication, and private file storage.
 - **Cloudflare** — hosting and edge network.
 - **Lovable** — managed OAuth broker for Google, Apple, and Microsoft sign-in.
@@ -243,6 +258,7 @@ Depikt is an image creation workspace. Create images on Home, discover prompts, 
 
 - **1 credit = one successful image generation, edit, or regeneration.** The model used does not change the cost.
 - **Failed operations are not charged.** A credit is reserved when a job starts and automatically returned if no image is produced.
+- **Research, validation, and one included automatic refinement do not use an image credit.** They may run as part of a request when needed; only the successful image operations above spend credits.
 - **Starter credits.** New accounts receive a one-time grant of starter credits. They do not refresh and do not expire while the account exists.
 - **Plan credits.** Pro and Max include a fixed number of credits each month. Unused plan credits reset at the start of the next billing month and do not roll over.
 - **Extra credits.** Credits you purchase as packs do not expire while your account exists. They are spent after plan credits and are not affected by monthly resets.

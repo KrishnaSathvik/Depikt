@@ -592,6 +592,7 @@ export const MCP = {
     },
   ],
   cannot: [
+    "Generate or edit images",
     "Change or delete prompts",
     "Access accounts or private user data",
     "Read drafts or unpublished content",

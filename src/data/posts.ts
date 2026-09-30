@@ -377,7 +377,7 @@ The [aspect ratio](/blog/ai-image-aspect-ratios-guide-gpt-image-2) still needs t
 
 - The Prompt Builder now targets ChatGPT Images 2.5. Its intent stage extracts the format, reference use, aspect ratio, exact text, series count, and transparent background before writing a word of the prompt.
 - The Prompt Critic scores prompts against a 2.5 rubric, with a hard cap when an essential dimension such as edit preservation fails.
-- The 500-prompt [Library](/library) stays what it is: the GPT Image 2 collection, kept as written. Remix any entry to get a version rewritten for 2.5. A separate 2.5 collection is coming.
+- The 500-prompt [Library](/library) stays what it is: the GPT Image 2 collection, kept as written. Remix any entry to get a version rewritten for 2.5. Reviewed Images 2.5 recipes sit alongside it in Library.
 
 ## What to read next
 
