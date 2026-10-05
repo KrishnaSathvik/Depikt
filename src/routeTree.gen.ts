@@ -9,135 +9,60 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AccountRouteImport } from './routes/account'
-import { Route as CritiqueRouteImport } from './routes/critique'
-import { Route as FavoritesRouteImport } from './routes/favorites'
-import { Route as GalleryRouteImport } from './routes/gallery'
-import { Route as GenerateRouteImport } from './routes/generate'
-import { Route as HelpRouteImport } from './routes/help'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as LibraryRouteImport } from './routes/library'
-import { Route as McpRouteImport } from './routes/mcp'
-import { Route as PricingRouteImport } from './routes/pricing'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PromptRouteImport } from './routes/prompt'
-import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
-import { Route as SignInRouteImport } from './routes/sign-in'
-import { Route as SignUpRouteImport } from './routes/sign-up'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermsRouteImport } from './routes/terms'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as BlogIndexRouteImport } from './routes/blog.index'
-import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
-import { Route as IntegrationsMcpRouteImport } from './routes/integrations.mcp'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SignUpRouteImport } from './routes/sign-up'
+import { Route as SignInRouteImport } from './routes/sign-in'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as PromptRouteImport } from './routes/prompt'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as PricingRouteImport } from './routes/pricing'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as LibraryRouteImport } from './routes/library'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as HelpRouteImport } from './routes/help'
+import { Route as GenerateRouteImport } from './routes/generate'
+import { Route as GalleryRouteImport } from './routes/gallery'
+import { Route as FavoritesRouteImport } from './routes/favorites'
+import { Route as CritiqueRouteImport } from './routes/critique'
+import { Route as AccountRouteImport } from './routes/account'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as TemplatesIndexRouteImport } from './routes/templates.index'
-import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/creations'
-import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
-import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
-import { Route as ApiAccountUsernameAvailabilityRouteImport } from './routes/api/account/username-availability'
-import { Route as ApiBillingAccountRouteImport } from './routes/api/billing/account'
-import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
-import { Route as ApiBillingConfirmRouteImport } from './routes/api/billing/confirm'
-import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
-import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
-import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
-import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
-import { Route as ApiGenerationEntitiesRouteImport } from './routes/api/generation/entities'
-import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
-import { Route as ApiGenerationMasksRouteImport } from './routes/api/generation/masks'
-import { Route as ApiGenerationPlansRouteImport } from './routes/api/generation/plans'
-import { Route as ApiGenerationReferencesRouteImport } from './routes/api/generation/references'
-import { Route as ApiPublicCritiquePromptRouteImport } from './routes/api/public/critique-prompt'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
+import { Route as IntegrationsMcpRouteImport } from './routes/integrations.mcp'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as ApiPublicGeneratePromptRouteImport } from './routes/api/public/generate-prompt'
-import { Route as ApiAccountCreationsIdRouteImport } from './routes/api/account/creations.$id'
-import { Route as ApiGenerationEntitiesIdRouteImport } from './routes/api/generation/entities.$id'
-import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
-import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
+import { Route as ApiPublicCritiquePromptRouteImport } from './routes/api/public/critique-prompt'
+import { Route as ApiGenerationReferencesRouteImport } from './routes/api/generation/references'
+import { Route as ApiGenerationPlansRouteImport } from './routes/api/generation/plans'
+import { Route as ApiGenerationMasksRouteImport } from './routes/api/generation/masks'
+import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
+import { Route as ApiGenerationEntitiesRouteImport } from './routes/api/generation/entities'
+import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
+import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xml'
+import { Route as ApiBillingWebhookRouteImport } from './routes/api/billing/webhook'
+import { Route as ApiBillingPortalRouteImport } from './routes/api/billing/portal'
+import { Route as ApiBillingConfirmRouteImport } from './routes/api/billing/confirm'
+import { Route as ApiBillingCheckoutRouteImport } from './routes/api/billing/checkout'
+import { Route as ApiBillingAccountRouteImport } from './routes/api/billing/account'
+import { Route as ApiAccountUsernameAvailabilityRouteImport } from './routes/api/account/username-availability'
+import { Route as ApiAccountProfileRouteImport } from './routes/api/account/profile'
+import { Route as ApiAccountDeleteRouteImport } from './routes/api/account/delete'
+import { Route as ApiAccountCreationsRouteImport } from './routes/api/account/creations'
 import { Route as ApiPublicBillingWebhookRouteImport } from './routes/api/public/billing/webhook'
-import { Route as ApiGenerationEntitiesIdAssetsRouteImport } from './routes/api/generation/entities.$id.assets'
-import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
+import { Route as ApiGenerationSessionsIdRouteImport } from './routes/api/generation/sessions.$id'
+import { Route as ApiGenerationJobsIdRouteImport } from './routes/api/generation/jobs.$id'
+import { Route as ApiGenerationEntitiesIdRouteImport } from './routes/api/generation/entities.$id'
+import { Route as ApiAccountCreationsIdRouteImport } from './routes/api/account/creations.$id'
 import { Route as ApiGenerationSessionsIdRefineRouteImport } from './routes/api/generation/sessions.$id.refine'
+import { Route as ApiGenerationJobsIdRunRouteImport } from './routes/api/generation/jobs.$id.run'
+import { Route as ApiGenerationEntitiesIdAssetsRouteImport } from './routes/api/generation/entities.$id.assets'
 import { Route as ApiGenerationEntitiesIdAssetsAssetIdRouteImport } from './routes/api/generation/entities.$id.assets.$assetId'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AccountRoute = AccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CritiqueRoute = CritiqueRouteImport.update({
-  id: '/critique',
-  path: '/critique',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FavoritesRoute = FavoritesRouteImport.update({
-  id: '/favorites',
-  path: '/favorites',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GalleryRoute = GalleryRouteImport.update({
-  id: '/gallery',
-  path: '/gallery',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GenerateRoute = GenerateRouteImport.update({
-  id: '/generate',
-  path: '/generate',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpRoute = HelpRouteImport.update({
-  id: '/help',
-  path: '/help',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LibraryRoute = LibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PricingRoute = PricingRouteImport.update({
-  id: '/pricing',
-  path: '/pricing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PromptRoute = PromptRouteImport.update({
-  id: '/prompt',
-  path: '/prompt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
-  id: '/robots.txt',
-  path: '/robots.txt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignInRoute = SignInRouteImport.update({
-  id: '/sign-in',
-  path: '/sign-in',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SignUpRoute = SignUpRouteImport.update({
-  id: '/sign-up',
-  path: '/sign-up',
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -145,9 +70,104 @@ const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PromptRoute = PromptRouteImport.update({
+  id: '/prompt',
+  path: '/prompt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PricingRoute = PricingRouteImport.update({
+  id: '/pricing',
+  path: '/pricing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LibraryRoute = LibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GenerateRoute = GenerateRouteImport.update({
+  id: '/generate',
+  path: '/generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GalleryRoute = GalleryRouteImport.update({
+  id: '/gallery',
+  path: '/gallery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FavoritesRoute = FavoritesRouteImport.update({
+  id: '/favorites',
+  path: '/favorites',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CritiqueRoute = CritiqueRouteImport.update({
+  id: '/critique',
+  path: '/critique',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
+  id: '/templates/',
+  path: '/templates/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegrationsMcpRoute = IntegrationsMcpRouteImport.update({
+  id: '/integrations/mcp',
+  path: '/integrations/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
@@ -156,39 +176,74 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
-const BlogIndexRoute = BlogIndexRouteImport.update({
-  id: '/blog/',
-  path: '/blog/',
+const ApiPublicGeneratePromptRoute = ApiPublicGeneratePromptRouteImport.update({
+  id: '/api/public/generate-prompt',
+  path: '/api/public/generate-prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogSlugRoute = BlogSlugRouteImport.update({
-  id: '/blog/$slug',
-  path: '/blog/$slug',
+const ApiPublicCritiquePromptRoute = ApiPublicCritiquePromptRouteImport.update({
+  id: '/api/public/critique-prompt',
+  path: '/api/public/critique-prompt',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IntegrationsMcpRoute = IntegrationsMcpRouteImport.update({
-  id: '/integrations/mcp',
-  path: '/integrations/mcp',
+const ApiGenerationReferencesRoute = ApiGenerationReferencesRouteImport.update({
+  id: '/api/generation/references',
+  path: '/api/generation/references',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TemplatesIndexRoute = TemplatesIndexRouteImport.update({
-  id: '/templates/',
-  path: '/templates/',
+const ApiGenerationPlansRoute = ApiGenerationPlansRouteImport.update({
+  id: '/api/generation/plans',
+  path: '/api/generation/plans',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAccountCreationsRoute = ApiAccountCreationsRouteImport.update({
-  id: '/api/account/creations',
-  path: '/api/account/creations',
+const ApiGenerationMasksRoute = ApiGenerationMasksRouteImport.update({
+  id: '/api/generation/masks',
+  path: '/api/generation/masks',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
-  id: '/api/account/delete',
-  path: '/api/account/delete',
+const ApiGenerationJobsRoute = ApiGenerationJobsRouteImport.update({
+  id: '/api/generation/jobs',
+  path: '/api/generation/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
-  id: '/api/account/profile',
-  path: '/api/account/profile',
+const ApiGenerationEntitiesRoute = ApiGenerationEntitiesRouteImport.update({
+  id: '/api/generation/entities',
+  path: '/api/generation/entities',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerationCreditsRoute = ApiGenerationCreditsRouteImport.update({
+  id: '/api/generation/credits',
+  path: '/api/generation/credits',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlogRssDotxmlRoute = ApiBlogRssDotxmlRouteImport.update({
+  id: '/api/blog/rss.xml',
+  path: '/api/blog/rss.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
+  id: '/api/billing/webhook',
+  path: '/api/billing/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingPortalRoute = ApiBillingPortalRouteImport.update({
+  id: '/api/billing/portal',
+  path: '/api/billing/portal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingConfirmRoute = ApiBillingConfirmRouteImport.update({
+  id: '/api/billing/confirm',
+  path: '/api/billing/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
+  id: '/api/billing/checkout',
+  path: '/api/billing/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBillingAccountRoute = ApiBillingAccountRouteImport.update({
+  id: '/api/billing/account',
+  path: '/api/billing/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAccountUsernameAvailabilityRoute =
@@ -197,94 +252,19 @@ const ApiAccountUsernameAvailabilityRoute =
     path: '/api/account/username-availability',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiBillingAccountRoute = ApiBillingAccountRouteImport.update({
-  id: '/api/billing/account',
-  path: '/api/billing/account',
+const ApiAccountProfileRoute = ApiAccountProfileRouteImport.update({
+  id: '/api/account/profile',
+  path: '/api/account/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBillingCheckoutRoute = ApiBillingCheckoutRouteImport.update({
-  id: '/api/billing/checkout',
-  path: '/api/billing/checkout',
+const ApiAccountDeleteRoute = ApiAccountDeleteRouteImport.update({
+  id: '/api/account/delete',
+  path: '/api/account/delete',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiBillingConfirmRoute = ApiBillingConfirmRouteImport.update({
-  id: '/api/billing/confirm',
-  path: '/api/billing/confirm',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBillingPortalRoute = ApiBillingPortalRouteImport.update({
-  id: '/api/billing/portal',
-  path: '/api/billing/portal',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBillingWebhookRoute = ApiBillingWebhookRouteImport.update({
-  id: '/api/billing/webhook',
-  path: '/api/billing/webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiBlogRssDotxmlRoute = ApiBlogRssDotxmlRouteImport.update({
-  id: '/api/blog/rss.xml',
-  path: '/api/blog/rss.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationCreditsRoute = ApiGenerationCreditsRouteImport.update({
-  id: '/api/generation/credits',
-  path: '/api/generation/credits',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationEntitiesRoute = ApiGenerationEntitiesRouteImport.update({
-  id: '/api/generation/entities',
-  path: '/api/generation/entities',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationJobsRoute = ApiGenerationJobsRouteImport.update({
-  id: '/api/generation/jobs',
-  path: '/api/generation/jobs',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationMasksRoute = ApiGenerationMasksRouteImport.update({
-  id: '/api/generation/masks',
-  path: '/api/generation/masks',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationPlansRoute = ApiGenerationPlansRouteImport.update({
-  id: '/api/generation/plans',
-  path: '/api/generation/plans',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiGenerationReferencesRoute = ApiGenerationReferencesRouteImport.update({
-  id: '/api/generation/references',
-  path: '/api/generation/references',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicCritiquePromptRoute = ApiPublicCritiquePromptRouteImport.update({
-  id: '/api/public/critique-prompt',
-  path: '/api/public/critique-prompt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicGeneratePromptRoute = ApiPublicGeneratePromptRouteImport.update({
-  id: '/api/public/generate-prompt',
-  path: '/api/public/generate-prompt',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiAccountCreationsIdRoute = ApiAccountCreationsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiAccountCreationsRoute,
-} as any)
-const ApiGenerationEntitiesIdRoute = ApiGenerationEntitiesIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiGenerationEntitiesRoute,
-} as any)
-const ApiGenerationJobsIdRoute = ApiGenerationJobsIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ApiGenerationJobsRoute,
-} as any)
-const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
-  id: '/api/generation/sessions/$id',
-  path: '/api/generation/sessions/$id',
+const ApiAccountCreationsRoute = ApiAccountCreationsRouteImport.update({
+  id: '/api/account/creations',
+  path: '/api/account/creations',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
@@ -292,22 +272,42 @@ const ApiPublicBillingWebhookRoute = ApiPublicBillingWebhookRouteImport.update({
   path: '/api/public/billing/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenerationEntitiesIdAssetsRoute =
-  ApiGenerationEntitiesIdAssetsRouteImport.update({
-    id: '/assets',
-    path: '/assets',
-    getParentRoute: () => ApiGenerationEntitiesIdRoute,
-  } as any)
-const ApiGenerationJobsIdRunRoute = ApiGenerationJobsIdRunRouteImport.update({
-  id: '/run',
-  path: '/run',
-  getParentRoute: () => ApiGenerationJobsIdRoute,
+const ApiGenerationSessionsIdRoute = ApiGenerationSessionsIdRouteImport.update({
+  id: '/api/generation/sessions/$id',
+  path: '/api/generation/sessions/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerationJobsIdRoute = ApiGenerationJobsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiGenerationJobsRoute,
+} as any)
+const ApiGenerationEntitiesIdRoute = ApiGenerationEntitiesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiGenerationEntitiesRoute,
+} as any)
+const ApiAccountCreationsIdRoute = ApiAccountCreationsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAccountCreationsRoute,
 } as any)
 const ApiGenerationSessionsIdRefineRoute =
   ApiGenerationSessionsIdRefineRouteImport.update({
     id: '/refine',
     path: '/refine',
     getParentRoute: () => ApiGenerationSessionsIdRoute,
+  } as any)
+const ApiGenerationJobsIdRunRoute = ApiGenerationJobsIdRunRouteImport.update({
+  id: '/run',
+  path: '/run',
+  getParentRoute: () => ApiGenerationJobsIdRoute,
+} as any)
+const ApiGenerationEntitiesIdAssetsRoute =
+  ApiGenerationEntitiesIdAssetsRouteImport.update({
+    id: '/assets',
+    path: '/assets',
+    getParentRoute: () => ApiGenerationEntitiesIdRoute,
   } as any)
 const ApiGenerationEntitiesIdAssetsAssetIdRoute =
   ApiGenerationEntitiesIdAssetsAssetIdRouteImport.update({
@@ -680,116 +680,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/account': {
-      id: '/account'
-      path: '/account'
-      fullPath: '/account'
-      preLoaderRoute: typeof AccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/critique': {
-      id: '/critique'
-      path: '/critique'
-      fullPath: '/critique'
-      preLoaderRoute: typeof CritiqueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/favorites': {
-      id: '/favorites'
-      path: '/favorites'
-      fullPath: '/favorites'
-      preLoaderRoute: typeof FavoritesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gallery': {
-      id: '/gallery'
-      path: '/gallery'
-      fullPath: '/gallery'
-      preLoaderRoute: typeof GalleryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/generate': {
-      id: '/generate'
-      path: '/generate'
-      fullPath: '/generate'
-      preLoaderRoute: typeof GenerateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/help': {
-      id: '/help'
-      path: '/help'
-      fullPath: '/help'
-      preLoaderRoute: typeof HelpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/library': {
-      id: '/library'
-      path: '/library'
-      fullPath: '/library'
-      preLoaderRoute: typeof LibraryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pricing': {
-      id: '/pricing'
-      path: '/pricing'
-      fullPath: '/pricing'
-      preLoaderRoute: typeof PricingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/prompt': {
-      id: '/prompt'
-      path: '/prompt'
-      fullPath: '/prompt'
-      preLoaderRoute: typeof PromptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/robots.txt': {
-      id: '/robots.txt'
-      path: '/robots.txt'
-      fullPath: '/robots.txt'
-      preLoaderRoute: typeof RobotsDottxtRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-in': {
-      id: '/sign-in'
-      path: '/sign-in'
-      fullPath: '/sign-in'
-      preLoaderRoute: typeof SignInRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sign-up': {
-      id: '/sign-up'
-      path: '/sign-up'
-      fullPath: '/sign-up'
-      preLoaderRoute: typeof SignUpRouteImport
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -799,39 +694,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+    '/sign-in': {
+      id: '/sign-in'
+      path: '/sign-in'
+      fullPath: '/sign-in'
+      preLoaderRoute: typeof SignInRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/': {
-      id: '/blog/'
-      path: '/blog'
-      fullPath: '/blog/'
-      preLoaderRoute: typeof BlogIndexRouteImport
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog/$slug': {
-      id: '/blog/$slug'
-      path: '/blog/$slug'
-      fullPath: '/blog/$slug'
-      preLoaderRoute: typeof BlogSlugRouteImport
+    '/prompt': {
+      id: '/prompt'
+      path: '/prompt'
+      fullPath: '/prompt'
+      preLoaderRoute: typeof PromptRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/integrations/mcp': {
-      id: '/integrations/mcp'
-      path: '/integrations/mcp'
-      fullPath: '/integrations/mcp'
-      preLoaderRoute: typeof IntegrationsMcpRouteImport
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/library': {
+      id: '/library'
+      path: '/library'
+      fullPath: '/library'
+      preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/generate': {
+      id: '/generate'
+      path: '/generate'
+      fullPath: '/generate'
+      preLoaderRoute: typeof GenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gallery': {
+      id: '/gallery'
+      path: '/gallery'
+      fullPath: '/gallery'
+      preLoaderRoute: typeof GalleryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/favorites': {
+      id: '/favorites'
+      path: '/favorites'
+      fullPath: '/favorites'
+      preLoaderRoute: typeof FavoritesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/critique': {
+      id: '/critique'
+      path: '/critique'
+      fullPath: '/critique'
+      preLoaderRoute: typeof CritiqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/templates/': {
@@ -841,123 +813,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TemplatesIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/account/creations': {
-      id: '/api/account/creations'
-      path: '/api/account/creations'
-      fullPath: '/api/account/creations'
-      preLoaderRoute: typeof ApiAccountCreationsRouteImport
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/account/delete': {
-      id: '/api/account/delete'
-      path: '/api/account/delete'
-      fullPath: '/api/account/delete'
-      preLoaderRoute: typeof ApiAccountDeleteRouteImport
+    '/integrations/mcp': {
+      id: '/integrations/mcp'
+      path: '/integrations/mcp'
+      fullPath: '/integrations/mcp'
+      preLoaderRoute: typeof IntegrationsMcpRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/account/profile': {
-      id: '/api/account/profile'
-      path: '/api/account/profile'
-      fullPath: '/api/account/profile'
-      preLoaderRoute: typeof ApiAccountProfileRouteImport
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/account/username-availability': {
-      id: '/api/account/username-availability'
-      path: '/api/account/username-availability'
-      fullPath: '/api/account/username-availability'
-      preLoaderRoute: typeof ApiAccountUsernameAvailabilityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/billing/account': {
-      id: '/api/billing/account'
-      path: '/api/billing/account'
-      fullPath: '/api/billing/account'
-      preLoaderRoute: typeof ApiBillingAccountRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/billing/checkout': {
-      id: '/api/billing/checkout'
-      path: '/api/billing/checkout'
-      fullPath: '/api/billing/checkout'
-      preLoaderRoute: typeof ApiBillingCheckoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/billing/confirm': {
-      id: '/api/billing/confirm'
-      path: '/api/billing/confirm'
-      fullPath: '/api/billing/confirm'
-      preLoaderRoute: typeof ApiBillingConfirmRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/billing/portal': {
-      id: '/api/billing/portal'
-      path: '/api/billing/portal'
-      fullPath: '/api/billing/portal'
-      preLoaderRoute: typeof ApiBillingPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/billing/webhook': {
-      id: '/api/billing/webhook'
-      path: '/api/billing/webhook'
-      fullPath: '/api/billing/webhook'
-      preLoaderRoute: typeof ApiBillingWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/blog/rss.xml': {
-      id: '/api/blog/rss.xml'
-      path: '/api/blog/rss.xml'
-      fullPath: '/api/blog/rss.xml'
-      preLoaderRoute: typeof ApiBlogRssDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/credits': {
-      id: '/api/generation/credits'
-      path: '/api/generation/credits'
-      fullPath: '/api/generation/credits'
-      preLoaderRoute: typeof ApiGenerationCreditsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/entities': {
-      id: '/api/generation/entities'
-      path: '/api/generation/entities'
-      fullPath: '/api/generation/entities'
-      preLoaderRoute: typeof ApiGenerationEntitiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/jobs': {
-      id: '/api/generation/jobs'
-      path: '/api/generation/jobs'
-      fullPath: '/api/generation/jobs'
-      preLoaderRoute: typeof ApiGenerationJobsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/masks': {
-      id: '/api/generation/masks'
-      path: '/api/generation/masks'
-      fullPath: '/api/generation/masks'
-      preLoaderRoute: typeof ApiGenerationMasksRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/plans': {
-      id: '/api/generation/plans'
-      path: '/api/generation/plans'
-      fullPath: '/api/generation/plans'
-      preLoaderRoute: typeof ApiGenerationPlansRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/generation/references': {
-      id: '/api/generation/references'
-      path: '/api/generation/references'
-      fullPath: '/api/generation/references'
-      preLoaderRoute: typeof ApiGenerationReferencesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/critique-prompt': {
-      id: '/api/public/critique-prompt'
-      path: '/api/public/critique-prompt'
-      fullPath: '/api/public/critique-prompt'
-      preLoaderRoute: typeof ApiPublicCritiquePromptRouteImport
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/generate-prompt': {
@@ -967,32 +848,123 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicGeneratePromptRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/account/creations/$id': {
-      id: '/api/account/creations/$id'
-      path: '/$id'
-      fullPath: '/api/account/creations/$id'
-      preLoaderRoute: typeof ApiAccountCreationsIdRouteImport
-      parentRoute: typeof ApiAccountCreationsRoute
+    '/api/public/critique-prompt': {
+      id: '/api/public/critique-prompt'
+      path: '/api/public/critique-prompt'
+      fullPath: '/api/public/critique-prompt'
+      preLoaderRoute: typeof ApiPublicCritiquePromptRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/generation/entities/$id': {
-      id: '/api/generation/entities/$id'
-      path: '/$id'
-      fullPath: '/api/generation/entities/$id'
-      preLoaderRoute: typeof ApiGenerationEntitiesIdRouteImport
-      parentRoute: typeof ApiGenerationEntitiesRoute
+    '/api/generation/references': {
+      id: '/api/generation/references'
+      path: '/api/generation/references'
+      fullPath: '/api/generation/references'
+      preLoaderRoute: typeof ApiGenerationReferencesRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/generation/jobs/$id': {
-      id: '/api/generation/jobs/$id'
-      path: '/$id'
-      fullPath: '/api/generation/jobs/$id'
-      preLoaderRoute: typeof ApiGenerationJobsIdRouteImport
-      parentRoute: typeof ApiGenerationJobsRoute
+    '/api/generation/plans': {
+      id: '/api/generation/plans'
+      path: '/api/generation/plans'
+      fullPath: '/api/generation/plans'
+      preLoaderRoute: typeof ApiGenerationPlansRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/api/generation/sessions/$id': {
-      id: '/api/generation/sessions/$id'
-      path: '/api/generation/sessions/$id'
-      fullPath: '/api/generation/sessions/$id'
-      preLoaderRoute: typeof ApiGenerationSessionsIdRouteImport
+    '/api/generation/masks': {
+      id: '/api/generation/masks'
+      path: '/api/generation/masks'
+      fullPath: '/api/generation/masks'
+      preLoaderRoute: typeof ApiGenerationMasksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generation/jobs': {
+      id: '/api/generation/jobs'
+      path: '/api/generation/jobs'
+      fullPath: '/api/generation/jobs'
+      preLoaderRoute: typeof ApiGenerationJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generation/entities': {
+      id: '/api/generation/entities'
+      path: '/api/generation/entities'
+      fullPath: '/api/generation/entities'
+      preLoaderRoute: typeof ApiGenerationEntitiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generation/credits': {
+      id: '/api/generation/credits'
+      path: '/api/generation/credits'
+      fullPath: '/api/generation/credits'
+      preLoaderRoute: typeof ApiGenerationCreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blog/rss.xml': {
+      id: '/api/blog/rss.xml'
+      path: '/api/blog/rss.xml'
+      fullPath: '/api/blog/rss.xml'
+      preLoaderRoute: typeof ApiBlogRssDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/webhook': {
+      id: '/api/billing/webhook'
+      path: '/api/billing/webhook'
+      fullPath: '/api/billing/webhook'
+      preLoaderRoute: typeof ApiBillingWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/portal': {
+      id: '/api/billing/portal'
+      path: '/api/billing/portal'
+      fullPath: '/api/billing/portal'
+      preLoaderRoute: typeof ApiBillingPortalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/confirm': {
+      id: '/api/billing/confirm'
+      path: '/api/billing/confirm'
+      fullPath: '/api/billing/confirm'
+      preLoaderRoute: typeof ApiBillingConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/checkout': {
+      id: '/api/billing/checkout'
+      path: '/api/billing/checkout'
+      fullPath: '/api/billing/checkout'
+      preLoaderRoute: typeof ApiBillingCheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/billing/account': {
+      id: '/api/billing/account'
+      path: '/api/billing/account'
+      fullPath: '/api/billing/account'
+      preLoaderRoute: typeof ApiBillingAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/username-availability': {
+      id: '/api/account/username-availability'
+      path: '/api/account/username-availability'
+      fullPath: '/api/account/username-availability'
+      preLoaderRoute: typeof ApiAccountUsernameAvailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/profile': {
+      id: '/api/account/profile'
+      path: '/api/account/profile'
+      fullPath: '/api/account/profile'
+      preLoaderRoute: typeof ApiAccountProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/delete': {
+      id: '/api/account/delete'
+      path: '/api/account/delete'
+      fullPath: '/api/account/delete'
+      preLoaderRoute: typeof ApiAccountDeleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/account/creations': {
+      id: '/api/account/creations'
+      path: '/api/account/creations'
+      fullPath: '/api/account/creations'
+      preLoaderRoute: typeof ApiAccountCreationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/billing/webhook': {
@@ -1002,12 +974,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicBillingWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/generation/entities/$id/assets': {
-      id: '/api/generation/entities/$id/assets'
-      path: '/assets'
-      fullPath: '/api/generation/entities/$id/assets'
-      preLoaderRoute: typeof ApiGenerationEntitiesIdAssetsRouteImport
-      parentRoute: typeof ApiGenerationEntitiesIdRoute
+    '/api/generation/sessions/$id': {
+      id: '/api/generation/sessions/$id'
+      path: '/api/generation/sessions/$id'
+      fullPath: '/api/generation/sessions/$id'
+      preLoaderRoute: typeof ApiGenerationSessionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generation/jobs/$id': {
+      id: '/api/generation/jobs/$id'
+      path: '/$id'
+      fullPath: '/api/generation/jobs/$id'
+      preLoaderRoute: typeof ApiGenerationJobsIdRouteImport
+      parentRoute: typeof ApiGenerationJobsRoute
+    }
+    '/api/generation/entities/$id': {
+      id: '/api/generation/entities/$id'
+      path: '/$id'
+      fullPath: '/api/generation/entities/$id'
+      preLoaderRoute: typeof ApiGenerationEntitiesIdRouteImport
+      parentRoute: typeof ApiGenerationEntitiesRoute
+    }
+    '/api/account/creations/$id': {
+      id: '/api/account/creations/$id'
+      path: '/$id'
+      fullPath: '/api/account/creations/$id'
+      preLoaderRoute: typeof ApiAccountCreationsIdRouteImport
+      parentRoute: typeof ApiAccountCreationsRoute
+    }
+    '/api/generation/sessions/$id/refine': {
+      id: '/api/generation/sessions/$id/refine'
+      path: '/refine'
+      fullPath: '/api/generation/sessions/$id/refine'
+      preLoaderRoute: typeof ApiGenerationSessionsIdRefineRouteImport
+      parentRoute: typeof ApiGenerationSessionsIdRoute
     }
     '/api/generation/jobs/$id/run': {
       id: '/api/generation/jobs/$id/run'
@@ -1016,12 +1016,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsIdRunRouteImport
       parentRoute: typeof ApiGenerationJobsIdRoute
     }
-    '/api/generation/sessions/$id/refine': {
-      id: '/api/generation/sessions/$id/refine'
-      path: '/refine'
-      fullPath: '/api/generation/sessions/$id/refine'
-      preLoaderRoute: typeof ApiGenerationSessionsIdRefineRouteImport
-      parentRoute: typeof ApiGenerationSessionsIdRoute
+    '/api/generation/entities/$id/assets': {
+      id: '/api/generation/entities/$id/assets'
+      path: '/assets'
+      fullPath: '/api/generation/entities/$id/assets'
+      preLoaderRoute: typeof ApiGenerationEntitiesIdAssetsRouteImport
+      parentRoute: typeof ApiGenerationEntitiesIdRoute
     }
     '/api/generation/entities/$id/assets/$assetId': {
       id: '/api/generation/entities/$id/assets/$assetId'
