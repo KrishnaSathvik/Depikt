@@ -39,3 +39,13 @@ export function planGrounding(
       : ["Actual appearance, proportions, and layout from relevant reference images"],
   };
 }
+
+/**
+ * Research is an enhancement, never a gate. When the provider fails the
+ * generation still runs from the prompt alone, so the plan must stop claiming
+ * references were gathered -- otherwise the result, the stored session and the
+ * logs all describe references that were never fetched.
+ */
+export function withoutGrounding<T extends { searchNeeded: boolean }>(plan: T): T {
+  return { ...plan, searchNeeded: false };
+}
