@@ -255,7 +255,7 @@ export const Route = createFileRoute("/api/generation/plans")({
                   groundingUsage = usage;
                 },
               });
-            } catch {
+            } catch (error) {
               generationMetric("grounding_completed", {
                 needed: true,
                 executed: true,
@@ -263,6 +263,10 @@ export const Route = createFileRoute("/api/generation/plans")({
                 groundingMs: Date.now() - groundingStarted,
                 planningMs,
               });
+              console.error(
+                "grounding_failed",
+                error instanceof Error ? error.message : String(error),
+              );
               return jsonError("Could not research references. Please try again.", 502);
             }
           }
