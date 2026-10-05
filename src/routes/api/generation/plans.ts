@@ -1,5 +1,5 @@
 import { generationMetric } from "@/lib/generation/telemetry";
-import { planGrounding } from "@/lib/generation/grounding/planner";
+import { planGrounding, withoutGrounding } from "@/lib/generation/grounding/planner";
 import {
   resolveGrounding,
   groundingQueryPrices,
@@ -225,7 +225,7 @@ export const Route = createFileRoute("/api/generation/plans")({
         }
 
         const userInput = req.userInput ?? req.prompt;
-        const plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
+        let plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
 
         const planningMs = Date.now() - planningStarted;
         const groundingStarted = Date.now();
@@ -258,8 +258,8 @@ export const Route = createFileRoute("/api/generation/plans")({
             } catch (error) {
               generationMetric("grounding_completed", {
                 needed: true,
-                executed: true,
-                outcome: "unavailable",
+                executed: false,
+                outcome: "skipped",
                 groundingMs: Date.now() - groundingStarted,
                 planningMs,
               });
@@ -267,7 +267,9 @@ export const Route = createFileRoute("/api/generation/plans")({
                 "grounding_failed",
                 error instanceof Error ? error.message : String(error),
               );
-              return jsonError("Could not research references. Please try again.", 502);
+              // A failed lookup must never cancel the user's work: drop the
+              // research step and generate from the prompt alone.
+              plan = withoutGrounding(plan);
             }
           }
         }
