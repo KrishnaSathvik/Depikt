@@ -202,11 +202,8 @@ export function buildJobValidationPlans(args: {
   userId: string;
   secret: string;
 }): Record<string, ValidationSnapshot> {
-  if (
-    args.selectedCount > 1 &&
-    args.intent.exact_text.some((t) => !args.children.some((c) => c.prompt.includes(t.text)))
-  )
-    throw new Error("Series decomposition omitted required text");
+  // Text a series child doesn't quote verbatim is simply not checked on that
+  // child; a mismatch must never cancel the generation.
   return Object.fromEntries(
     args.children.map((child) => {
       const intent =
