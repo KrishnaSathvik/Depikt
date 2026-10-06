@@ -299,8 +299,14 @@ export const Route = createFileRoute("/api/generation/jobs")({
               userId,
               secret,
             });
-          } catch {
-            return jsonError("Could not prepare image requirements. Please try again.", 502);
+          } catch (error) {
+            // Validation is a helper, never a gate: log the reason and
+            // generate without the quality check instead of cancelling.
+            console.error(
+              "validation_plan_failed",
+              error instanceof Error ? error.message : String(error),
+            );
+            validationSnapshot = undefined;
           }
         }
         const executionPlan = buildExecutionPlanJson({
