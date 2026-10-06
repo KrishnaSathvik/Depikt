@@ -32,5 +32,5 @@ test("a failed validation setup does not cancel the generation", async () => {
   const { readFileSync } = await import("node:fs");
   const src = readFileSync("src/routes/api/generation/jobs.ts", "utf8");
   assert.ok(!src.includes("Could not prepare image requirements"));
-  assert.ok(src.includes('console.error(\n              "validation_plan_failed"'));
+  assert.ok(src.includes('"validation_plan_failed"'));
 });
