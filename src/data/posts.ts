@@ -1538,12 +1538,12 @@ GPT Image 2 doesn't crop your image after rendering — it **composes** for the 
       "PromptBase sells prompts one at a time. Depikt gives you 500 curated, copy-ready prompts for GPT Image 2 for free, plus a generator that writes new ones from a single sentence. Here's the side-by-side, the trade-offs, and when each one actually makes sense.",
     seo_title: "Free Alternative to PromptBase for GPT Image 2 (2026)",
     seo_description:
-      "Depikt is a free alternative to PromptBase built for GPT Image 2 — 500 curated prompts, a generator, and a critique tool. No login, no per-prompt fees.",
+      "Depikt is a free alternative to PromptBase built for GPT Image 2 — 500 curated prompts, a generator, and a critique tool. Browse the library free, no per-prompt fees.",
     faq: [
       {
         question: "Is Depikt really free?",
         answer:
-          "Yes. All 500 curated prompts, the generator, and the critique tool are free with no login. There's no per-prompt fee and no credit system.",
+          "Yes. All 500 curated prompts, the generator, and the critique tool Browsing all 500 curated prompts is free, with no per-prompt fee. Making images inside Depikt uses credits; new accounts get 5 free credits, and paid plans and credit packs are on the pricing page.",
       },
       {
         question: "Why use Depikt instead of PromptBase?",
@@ -1564,14 +1564,14 @@ GPT Image 2 doesn't crop your image after rendering — it **composes** for the 
     content: `
 ## The short answer
 
-If you're looking for a free alternative to PromptBase that's actually focused on GPT Image 2, use **[Depikt](/)**. 500 curated prompts, a generator that turns one sentence into a structured prompt, and a critique tool that scores and rewrites prompts you already have. No login, no per-prompt fees, no credit system.
+If you're looking for a free alternative to PromptBase that's actually focused on GPT Image 2, use **[Depikt](/)**. 500 curated prompts, a generator that turns one sentence into a structured prompt, and a critique tool that scores and rewrites prompts you already have. The library is free to browse with no per-prompt fees; making images uses credits, starting with 5 free.
 
 ## Side by side
 
 | | PromptBase | Depikt |
 |---|---|---|
-| **Price** | $1.99–$9.99 per prompt | Free |
-| **Login** | Required | Not required |
+| **Price** | $1.99–$9.99 per prompt | Free library; 5 free credits to make images, then [plans or packs](/pricing) |
+| **Login** | Required | Not needed to browse |
 | **Focus** | Marketplace across many models | Built for GPT Image 2 |
 | **Curation** | User-submitted, variable quality | Hand-curated, every prompt tested |
 | **Generator** | No — you buy fixed prompts | Yes — turn one sentence into a full prompt |
@@ -1595,7 +1595,7 @@ PromptBase has breadth — Midjourney, Stable Diffusion, DALL·E, Flux, Sora, al
 - Open the [Prompt workspace](/prompt?mode=build) and turn one sentence into a structured prompt
 - Paste any prompt into [Critique mode](/prompt?mode=critique) for a score and a rewrite
 
-All free, no account required.
+The library is free to browse. Making images uses credits — new accounts start with 5 free.
 `,
   },
   {
@@ -1616,7 +1616,7 @@ All free, no account required.
       {
         question: "What's the best free AI image prompt generator in 2026?",
         answer:
-          "For GPT Image 2, Depikt is the strongest free option — it produces structured prompts with composition, lighting, type, and palette spelled out, instead of vague descriptive paragraphs. No login required.",
+          "For GPT Image 2, Depikt is the strongest free option — it produces structured prompts with composition, lighting, type, and palette spelled out, instead of vague descriptive paragraphs. The library is free; making images uses credits, starting with 5 free.",
       },
       {
         question: "Do I need a paid tool to get good AI images?",
@@ -1632,7 +1632,7 @@ All free, no account required.
     content: `
 ## The short answer
 
-If you're prompting **GPT Image 2** — the image model inside ChatGPT and the OpenAI API — the best free generator in 2026 is **[Depikt](/prompt?mode=build)**. It turns one rough sentence into a structured prompt with composition, lighting, type, palette, and aspect ratio all spelled out. No login.
+If you're prompting **GPT Image 2** — the image model inside ChatGPT and the OpenAI API — the best free generator in 2026 is **[Depikt](/prompt?mode=build)**. It turns one rough sentence into a structured prompt with composition, lighting, type, palette, and aspect ratio all spelled out. Making images uses credits, and new accounts start with 5 free.
 
 ## What "good" actually means
 
