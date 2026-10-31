@@ -13,9 +13,11 @@ Audit date: October 30, 2026. Scope: Depikt's current `main`-line code compared 
   - **PromptPerfect (Jina)** shut down on 2026-09-01.
   - **Google ImageFX and Whisk** were merged into Flow and closed on 2026-04-30.
 
+> **Review status (2026-10-31):** approved as a planning reference, not as an implementation plan. The original recommendation list was re-prioritised. See [Review decisions](#review-decisions-2026-10-31) at the end. Claims about uniqueness, pricing, and rate limiting were corrected in place.
+
 ## Executive summary
 
-1. **Critique is Depikt's clearest moat.** No major generator ships prompt critique or scoring. The nearest analogue is Midjourney `/shorten`, which only weights tokens. Third-party graders either score general text prompts or score finished images. Depikt's 10-dimension rubric, with a deterministic overall score, essential-dimension caps, and a rewrite, appears to be unique in a consumer product. It is under-marketed: it is the third tab, and the hero does not lead with it.
+1. **Critique is a promising differentiator, not yet a proven moat.** This research did not identify an equivalent *dedicated, dimension-scored prompt critique and rewrite workflow* in a major generator. The nearest analogue is Midjourney `/shorten`, which only weights tokens. Third-party graders score general text prompts or finished images. Any chat assistant can still critique a prompt conversationally, so the claim must stay that precise. Depikt also needs evidence that its scores and rewrites measurably improve generated images (see Review decisions). Today it is under-marketed: it is the third tab, and the hero does not mention it.
 2. **Information architecture is right-sized.** "Home = creator, Library = discovery, Account = mine" matches the Midjourney, Ideogram, and ChatGPT pattern. It avoids the canvas and node-graph complexity that reviewers consistently criticise in Krea, Freepik Spaces, Leonardo, and Firefly Boards. Keep it.
 3. **Improve prompt is a destination, not a toggle.** The market standard is an inline enhancer:
    - Ideogram Magic Prompt has Auto, On, and Off modes, and shows the original next to the expanded prompt.
@@ -23,10 +25,11 @@ Audit date: October 30, 2026. Scope: Depikt's current `main`-line code compared 
    - Midjourney has Conversational mode.
 
    Depikt's Builder is better (intent analysis, playbooks, streaming, variations), but users have to switch tabs to get it.
-4. **Generation economics are the biggest competitive risk.**
+4. **Generation economics need validation, not a price change.**
    - Pro is $19.99 for 40 credits, which is about $0.50 per image.
    - Competitors return 2–8 images per prompt, offer cheap draft modes (Midjourney Draft: 24 low-res images for 0.4 GPU-minutes), and give free daily allowances (Freepik 20/day, Recraft about 50 credits/day).
-   - Depikt's included grounding, validation, and auto-repair justify a premium, but the UI does not yet explain that value.
+   - Depikt's included grounding, validation, and auto-repair may justify a premium, but the UI does not yet explain that value.
+   - These headline numbers are **not like-for-like**. They ignore resolution and quality tier, commercial rights (Recraft's 50 daily free credits come with different ownership terms from paid output), real usage limits, and repair cost. Build a comparable cost and margin model before changing pricing.
 5. **The architecture is careful but has one structural fragility.** Generation runs inside a browser-opened long-lived request (`/api/generation/jobs/:id/run`) because the deployment has no Queues and no `waitUntil`. Competitors run queue-backed workers *(inferred)*. Moving to Cloudflare Queues, Workflows, or Durable Objects is the highest-leverage architecture change.
 
 ## Feature matrix
@@ -143,13 +146,13 @@ Kill switches: GENERATION_ENABLED, GROUNDING_ENABLED, VALIDATION_REPAIR_ENABLED 
 | Prompt engine | Two-stage intent → writer with category playbooks; deterministic critic scoring; versioned (`PROMPT_VERSION`); benchmark harness | Single LLM rewrite (Magic Prompt) *(inferred)* | **Ahead.** Keep the deterministic scoring and benchmarks. Expose `PROMPT_VERSION` in history for reproducibility. |
 | Model strategy | OpenAI only; deterministic router hides model choice | Aggregators (Krea 60+, Leonardo, Freepik, Firefly partners) | **Defensible for the current audience**: Midjourney and ChatGPT also hide choice. `openai-images.ts` is a natural seam if a second provider is ever needed. The risk is concentration: OpenAI pricing or policy changes hit Depikt directly. |
 | Verification layer | Grounding plus validation and auto-repair | Not offered by any competitor | **Differentiator.** Surface it in the UX (see Composer). |
-| Rate limiting | In-memory, per isolate | Centralised *(inferred)* | **Weak.** Not shared across Workers. Use a Durable Object, the Workers Rate Limiting binding, or Supabase counters, especially for the paid prompt-engine routes. |
+| Rate limiting | In-memory, per isolate | Centralised *(inferred)* | **Weak.** Not shared across Workers. Use two layers: the Workers Rate Limiting binding for **burst protection only** (it is enforced per Cloudflare location, not globally strict), plus an **atomic, account-level quota in Supabase** for free daily allowances and spend limits. |
 | User data | Favorites and history in IndexedDB; creations server-side | Server-side, cross-device | Sync favorites and history to Supabase for signed-in users. Today a user's library does not follow them across devices. |
 | Public API | None (MCP is read-only) | Ideogram, Leonardo, Krea, Recraft, OpenAI | Add write-capable MCP tools first (`improve_prompt`, `critique_prompt`) behind auth and credits. That is the cheapest "API" and fits the agent-distribution trend. |
 | Front-end weight | 2.41 MB main bundle (F17) | Unknown (stack not fetchable) | Code-split Generate and Account more aggressively; the creator is above the fold on Home. |
-| Pricing model | $19.99 for 40 credits (Pro), $39.99 for 100 (Max), 5 starter credits, packs | Free daily allowances; 4-up runs; per-image API costs of about $0.03–0.09 | **Main business risk.** Consider a free daily allowance for Improve and Critique (cheap text calls) to drive habit, and price image credits against the included verification. |
+| Pricing model | $19.99 for 40 credits (Pro), $39.99 for 100 (Max), 5 starter credits, packs | Free daily allowances; 4-up runs; per-image API costs of about $0.03–0.09 | **Validate before changing.** Model cost per settled generation (including grounding, validation, and repair), and compare competitors on resolution, quality, and rights. Any free Improve and Critique allowance waits for global quota enforcement. |
 
-## Prioritised recommendations
+## Prioritised recommendations (original — superseded by Review decisions)
 
 | # | Change | Type | Effort | Impact |
 |---|---|---|---|---|
@@ -183,3 +186,41 @@ Kill switches: GENERATION_ENABLED, GROUNDING_ENABLED, VALIDATION_REPAIR_ENABLED 
 - ChatGPT Images: tomsguide.com (Image Library); storyboard18.com (Images section); buildfastwithai.com (Images 2.0)
 - Prompt tools: promptbase.com/prompt-guidelines; developer.civitai.com; promptessor.com/methodology; gptprompts.ai/prompt-checker; shapes.inc/aiimagerater; github.com/freestylefly/awesome-gpt-image-2
 - Market changes: promptbuilder.cc (PromptPerfect shutdown); testingcatalog.com (ImageFX and Whisk → Flow)
+
+## Review decisions (2026-10-31)
+
+Depikt should not compete on model count, image volume, or editing depth. Its proposition is one guided workflow: **write → improve → critique → generate → verify → refine.**
+
+### Revised priorities
+
+| Priority | Work | Why |
+|---|---|---|
+| P0 | Durable image generation (Cloudflare Workflows) | Prevent interrupted jobs, lost progress, and incorrect credit settlement |
+| P0 | Global quota enforcement and usage metrics | Protect costs before any free usage increases |
+| P1 | Inline Enhance (Off/Auto/On) and credit messaging | Make existing capabilities discoverable |
+| P1 | Critique visibility and quality evaluation | Prove the differentiator delivers measurable value |
+| P2 | Dedicated Creations page and result actions | Repeat-generation experience |
+| P3 | Reference roles, Describe, Library discovery, write-capable MCP | Only after the primary workflow works well |
+
+**Next milestone: Depikt V1, Reliable Generation and Clear Value.** It is complete when all of these hold:
+
+- generation survives closing or reloading the browser
+- retries never double-charge or duplicate images
+- credits settle correctly on success, failure, and unknown provider outcomes
+- the UI states what each paid generation includes
+
+### Deliberately not doing yet
+
+A multi-model selector, a 24-image draft system, unlimited free critiques, a canvas, a prompt-agent ecosystem, and publishing this internal audit. A public competitive page would be a separate, sanitised document.
+
+### Critique evaluation before more Critique UI
+
+Before building word-level annotations, run a controlled benchmark on a representative prompt set comparing three arms:
+
+1. the original prompt
+2. Depikt's rewrite
+3. at least one competing enhancement approach
+
+Measure human-rated instruction fidelity, image quality, and prompt adherence, and test whether the rubric score predicts a better final image. Moving Critique into homepage messaging can happen now; it does not depend on this result.
+
+Implementation plan: `docs/plans/2026-10-31-v1-reliable-generation-and-redesign.md`.
