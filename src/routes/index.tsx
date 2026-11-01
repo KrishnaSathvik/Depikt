@@ -67,15 +67,6 @@ function LandingPage() {
             </div>
           </div>
           <CreateWorkspace />
-          <p className="mx-auto mt-12 max-w-[1200px] px-4 text-center text-body-sm text-[color:var(--text-secondary)] sm:px-6">
-            Need a starting point?{" "}
-            <Link
-              to="/library"
-              className="ml-2 inline-flex items-center gap-1 font-medium underline-offset-4 hover:underline"
-            >
-              Browse Library <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </p>
         </section>
       </main>
       <Footer />
