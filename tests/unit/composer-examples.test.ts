@@ -11,7 +11,7 @@ function read(rel: string): string {
 test("Generate and Build example sets are distinct, titled cards with real briefs", () => {
   assert.deepEqual(
     GENERATE_EXAMPLES.map((c) => c.label),
-    ["Travel poster", "Portrait", "Product", "Exact-text poster", "Interior"],
+    ["Kyoto travel poster", "Editorial portrait", "Product hero", "Infographic", "Interior scene"],
   );
   assert.equal(BUILD_EXAMPLES.length, 6);
   for (const set of [GENERATE_EXAMPLES, BUILD_EXAMPLES]) {
