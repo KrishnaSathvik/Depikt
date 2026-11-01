@@ -16,29 +16,29 @@ export interface ComposerExample {
 /** Direct generation starters — specific enough to produce a strong first image. */
 export const GENERATE_EXAMPLES: readonly ComposerExample[] = [
   {
-    label: "Travel poster",
-    hint: "Lisbon in ochre and teal",
-    text: "Flat vector travel poster for Lisbon: a yellow tram climbing a tiled hillside, warm ochre and teal, bold title LISBON at the top, generous margins.",
+    label: "Kyoto travel poster",
+    hint: "Exact title, risograph print",
+    text: 'Vintage risograph travel poster of Kyoto at dusk: Yasaka Pagoda rising above a narrow stone lane, paper lanterns glowing, two layered inks (vermilion and deep indigo) with visible grain and slight misregistration. Exact title "KYOTO" in tall condensed letters across the top, small line "SPRING 2027" beneath it. Portrait 2:3, wide cream margins, no other text.',
   },
   {
-    label: "Portrait",
-    hint: "Editorial window light",
-    text: "Half-length editorial portrait beside a rainy window, charcoal wool coat, cool daylight, shallow depth of field, muted palette.",
+    label: "Editorial portrait",
+    hint: "Magazine cover light",
+    text: "Half-length editorial portrait of a woman in her 40s with silver-streaked hair, charcoal wool coat, seated by a rain-streaked café window. Soft cool daylight from the left, warm tungsten fill from inside, 85mm look, shallow depth of field, natural skin texture with pores, muted teal and amber palette, quiet confident expression. Portrait 4:5, space above her head for a masthead.",
   },
   {
-    label: "Product",
-    hint: "A quiet studio photograph",
-    text: "Matte black wireless earbuds on pale concrete, soft overhead light, one hard shadow to the right, clean square studio photograph.",
+    label: "Product hero",
+    hint: "Launch-ready studio shot",
+    text: "Studio product hero of a matte sage-green ceramic pour-over coffee set on a slab of travertine: dripper, glass carafe with coffee mid-pour, a few scattered beans. Single hard key light from upper right casting one crisp shadow, soft bounce fill, droplets on the glass, true-to-life colours, catalogue sharpness. Landscape 3:2, empty space on the left for a headline.",
   },
   {
-    label: "Exact-text poster",
-    hint: "Type with a clear hierarchy",
-    text: 'Minimal concert poster with the exact headline "NIGHT SESSIONS", subtitle "FRIDAY 8 PM", and venue "THE LOFT". Large black type on white, a single blue circle, clear reading order, no extra text.',
+    label: "Infographic",
+    hint: "Labeled steps, exact text",
+    text: 'Clean editorial infographic titled exactly "HOW COFFEE IS MADE", four numbered steps left to right: "1 HARVEST", "2 DRY", "3 ROAST", "4 BREW", each with a simple flat illustration (cherry branch, drying beds, drum roaster, pour-over). Off-white background, ink-black type, one accent colour (burnt orange), thin connecting arrows, generous spacing, every word spelled exactly as written, no extra text. Landscape 16:9.',
   },
   {
-    label: "Interior",
-    hint: "Natural light and texture",
-    text: "A quiet living room with oak shelving, a linen sofa, one sculptural chair and a large window. Soft morning light, natural textures, architectural photography, wide composition.",
+    label: "Interior scene",
+    hint: "Architectural morning light",
+    text: "Architectural photograph of a Japandi living room: low oak shelving with a few ceramics, oatmeal linen sofa, one sculptural walnut lounge chair, wool rug, floor-to-ceiling window onto a misty garden. Low raking morning sun throwing long soft shadows, natural textures, calm neutral palette, straight verticals, 24mm wide composition at seated eye level. Landscape 3:2.",
   },
 ];
 
