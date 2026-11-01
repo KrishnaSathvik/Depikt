@@ -3,6 +3,8 @@ import { AccountContentTabs } from "@/components/account/AccountContentTabs";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { LogOut, Settings2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useBuyCredits } from "@/components/billing/BuyCreditsProvider";
@@ -126,9 +128,9 @@ function OwnedAccountPage() {
 
   if (loading || !user) {
     return (
-      <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+      <div className="flex min-h-screen flex-col">
         <Header />
-        <main className="flex-1 px-4 py-8">
+        <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-10 sm:px-6">
           <h1 className="sr-only">Account</h1>
           {loading ? (
             <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
@@ -140,43 +142,70 @@ function OwnedAccountPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-8 sm:px-6 sm:py-12">
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-16 pt-8 sm:px-6 sm:pb-24 sm:pt-12">
         <h1 className="sr-only">Account</h1>
-        <IdentityRow
-          onAvatarClick={() => hub.pushView("avatar-picker")}
-          onEditClick={() => hub.pushView("edit-profile")}
-        />
-        <div id="account-controls" tabIndex={-1} className="mt-4 flex flex-wrap gap-4">
-          <button
-            type="button"
-            className="text-body-sm underline"
-            onClick={() => hub.pushView("edit-profile")}
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,440px)] lg:gap-5">
+          {/* Identity header card: a soft brand wash, the avatar + name, and
+              the two direct account controls. */}
+          <section
+            aria-label="Profile"
+            className="surface-card relative overflow-hidden p-5 sm:p-7 lg:min-h-full"
           >
-            Profile settings
-          </button>
-          <button
-            type="button"
-            className="text-body-sm underline"
-            onClick={() => {
-              void signOut()
-                .then(() => navigate({ to: "/" }))
-                .catch(() => toast.error("Could not sign out. Please try again."));
-            }}
-          >
-            Sign out
-          </button>
-        </div>
-        <div className="mt-4">
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(70%_120%_at_10%_0%,rgba(255,138,92,0.16),transparent_70%),radial-gradient(60%_120%_at_90%_0%,rgba(139,92,246,0.12),transparent_70%)]"
+            />
+            <div className="relative">
+              <p className="badge-eyebrow">Your studio</p>
+              <div className="mt-5">
+                <IdentityRow
+                  onAvatarClick={() => hub.pushView("avatar-picker")}
+                  onEditClick={() => hub.pushView("edit-profile")}
+                />
+              </div>
+              <div id="account-controls" tabIndex={-1} className="mt-6 flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 sm:h-10"
+                  onClick={() => hub.pushView("edit-profile")}
+                >
+                  <Settings2 aria-hidden />
+                  Profile settings
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="h-11 sm:h-10"
+                  onClick={() => {
+                    void signOut()
+                      .then(() => navigate({ to: "/" }))
+                      .catch(() => toast.error("Could not sign out. Please try again."));
+                  }}
+                >
+                  <LogOut aria-hidden />
+                  Sign out
+                </Button>
+              </div>
+            </div>
+          </section>
           <CreditsCard
             summary={summary}
             onUpgrade={() => hub.pushView("upgrade")}
             onBuyCredits={() => hub.pushView("buy-credits")}
           />
         </div>
-        <div className="mt-10">
-          {error && <p className="mb-4 text-body-sm text-red-600">{error}</p>}
+        <div className="mt-12 sm:mt-14">
+          {error && (
+            <p
+              role="alert"
+              className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-body-sm text-red-700"
+            >
+              {error}
+            </p>
+          )}
           <AccountContentTabs>
             <CreationsTab />
           </AccountContentTabs>

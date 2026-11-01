@@ -6,6 +6,8 @@ import { Search, Star, X } from "lucide-react";
 import { z } from "zod";
 import { zodValidator } from "@tanstack/zod-adapter";
 import { Header } from "@/components/Header";
+import { PageHero } from "@/components/PageHero";
+import { cn } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
 import { ScrollRow } from "@/components/ScrollRow";
 import { LibraryCard } from "@/components/library/LibraryCard";
@@ -171,70 +173,108 @@ function LibraryPage() {
   const activeFilters =
     search.category !== "All" || search.collection !== "all" || search.favorites || !!search.q;
 
+  const tabCounts = {
+    prompts: entries.filter((e) => e.type === "prompts").length,
+    templates: entries.filter((e) => e.type === "templates").length,
+    gallery: entries.filter((e) => e.type === "gallery").length,
+  };
+  const searchNoun = search.tab === "gallery" ? "references" : search.tab;
+
   return (
-    <div className="min-h-screen bg-[color:var(--bg)]">
+    <div className="min-h-screen">
       <Header />
-      <main className="mx-auto max-w-[1400px] px-4 py-6 sm:px-6 lg:px-12">
-        <p className="eyebrow">{TOOL.library}</p>
-        <h1 className="mt-2 text-heading-xl sm:text-display-md">Find a starting point.</h1>
-        <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">
-          Prompts, templates, and references for your next creation.
-        </p>
-        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <nav aria-label="Library sections" className="flex gap-1.5">
-            {(["prompts", "templates", "gallery"] as const).map((tab) => (
-              <Link
-                key={tab}
-                to="/library"
-                search={{
-                  ...search,
-                  tab,
-                  category: "All",
-                  collection: tab === "prompts" ? search.collection : "all",
-                  page: 1,
-                }}
-                resetScroll={false}
-                aria-current={search.tab === tab ? "page" : undefined}
-                className={`pill ${search.tab === tab ? "pill-solid" : ""}`}
-              >
-                {tab[0].toUpperCase() + tab.slice(1)}
-              </Link>
-            ))}
-          </nav>
-          <button
-            type="button"
-            onClick={() => update({ favorites: !search.favorites })}
-            aria-pressed={search.favorites}
-            className={`pill inline-flex gap-1.5 ${search.favorites ? "pill-solid" : ""}`}
-          >
-            <Star className={`h-3.5 w-3.5 ${search.favorites ? "fill-current" : ""}`} />
-            Favorites{favoriteIds.size > 0 ? ` (${favoriteIds.size})` : ""}
-          </button>
-        </div>
-        <div className="relative mt-4">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
-          <input
-            type="search"
-            maxLength={400}
-            value={search.q}
-            onChange={(e) => update({ q: e.target.value }, true)}
-            aria-label={`Search ${search.tab === "gallery" ? "references" : search.tab}`}
-            placeholder={`Search ${search.tab === "gallery" ? "references" : search.tab}...`}
-            className="h-11 w-full rounded-lg border border-[color:var(--border-default)] bg-[color:var(--bg)] pl-11 pr-4 text-body-md focus-visible:outline-offset-2"
-          />
-        </div>
-        {owned.error && (
-          <p role="status" className="mt-3 text-body-sm">
-            Your saved prompts could not be loaded. Public Library content is still available.
-          </p>
-        )}
-        {categories.length > 1 && (
-          <div className="mt-3 flex items-center gap-3 border-b border-[color:var(--border-subtle)] pb-3">
+      <main className="mx-auto max-w-[1200px] px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
+        <PageHero
+          eyebrow={TOOL.library}
+          title="Find a starting point."
+          lede="Prompts, templates, and references for your next creation."
+        />
+
+        <div className="mt-10 flex flex-col gap-4 sm:mt-12">
+          <div className="flex items-center justify-between gap-3">
+            <nav
+              aria-label="Library sections"
+              className="inline-flex max-w-full rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-1"
+            >
+              {(["prompts", "templates", "gallery"] as const).map((tab) => (
+                <Link
+                  key={tab}
+                  to="/library"
+                  search={{
+                    ...search,
+                    tab,
+                    category: "All",
+                    collection: tab === "prompts" ? search.collection : "all",
+                    page: 1,
+                  }}
+                  resetScroll={false}
+                  aria-current={search.tab === tab ? "page" : undefined}
+                  className={cn(
+                    "inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-[14px] font-medium transition-[background-color,color,box-shadow] sm:px-5",
+                    search.tab === tab
+                      ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(17,17,17,0.06),0_4px_12px_-6px_rgba(17,17,17,0.2)]"
+                      : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+                  )}
+                >
+                  {tab[0].toUpperCase() + tab.slice(1)}
+                  <span
+                    aria-hidden="true"
+                    className="hidden text-[12px] tabular-nums text-[color:var(--text-quaternary)] sm:inline"
+                  >
+                    {tabCounts[tab]}
+                  </span>
+                </Link>
+              ))}
+            </nav>
+            <button
+              type="button"
+              onClick={() => update({ favorites: !search.favorites })}
+              aria-pressed={search.favorites}
+              className={cn(
+                "inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-full border px-3 text-[14px] font-medium transition-colors sm:min-h-10 sm:px-4",
+                search.favorites
+                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--ink-text)]"
+                  : "border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] hover:border-[color:var(--border-strong)]",
+              )}
+            >
+              <Star
+                className={cn(
+                  "h-4 w-4",
+                  search.favorites ? "fill-current" : "text-[color:var(--accent-orange)]",
+                )}
+              />
+              <span className="sr-only sm:not-sr-only">Favorites</span>
+              {favoriteIds.size > 0 && (
+                <span className="tabular-nums opacity-70">{favoriteIds.size}</span>
+              )}
+            </button>
+          </div>
+
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-5 top-1/2 h-5 w-5 -translate-y-1/2 text-[color:var(--text-tertiary)]" />
+            <input
+              type="search"
+              maxLength={400}
+              value={search.q}
+              onChange={(e) => update({ q: e.target.value }, true)}
+              aria-label={`Search ${searchNoun}`}
+              placeholder={`Search ${searchNoun}...`}
+              className="h-14 w-full rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] pl-14 pr-5 text-[16px] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(17,17,17,0.04),0_10px_30px_-18px_rgba(17,17,17,0.25)] transition-[border-color,box-shadow] placeholder:text-[color:var(--text-quaternary)] hover:border-[color:var(--border-strong)] focus-visible:border-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-black/5"
+            />
+          </div>
+
+          {owned.error && (
+            <p role="status" className="text-body-sm">
+              Your saved prompts could not be loaded. Public Library content is still available.
+            </p>
+          )}
+
+          {categories.length > 1 && (
             <ScrollRow
               ariaLabel="Categories"
               activeKey={activeCategory}
-              className="min-w-0 flex-1"
-              innerClassName="gap-1.5"
+              className="min-w-0"
+              innerClassName="gap-2 py-0.5"
             >
               {categories.map((category) => (
                 <button
@@ -242,20 +282,36 @@ function LibraryPage() {
                   type="button"
                   onClick={() => update({ category })}
                   aria-pressed={activeCategory === category}
-                  className={`shrink-0 rounded-md px-3 py-2 text-body-sm ${activeCategory === category ? "bg-[color:var(--bg-subtle)] font-medium" : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"}`}
+                  data-active={activeCategory === category ? "true" : undefined}
+                  className={cn(
+                    "inline-flex min-h-11 shrink-0 snap-start items-center rounded-full border px-4 text-[13.5px] font-medium transition-colors sm:min-h-9",
+                    activeCategory === category
+                      ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--ink-text)]"
+                      : "border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]",
+                  )}
                 >
                   {category}
                 </button>
               ))}
             </ScrollRow>
-          </div>
-        )}
-        <div className="my-4 flex min-h-6 items-center justify-between gap-3 text-body-sm text-[color:var(--text-tertiary)]">
+          )}
+        </div>
+
+        <div className="mb-5 mt-7 flex min-h-6 items-center justify-between gap-3 text-[13px] text-[color:var(--text-tertiary)]">
           <p aria-live="polite">
-            {filtered.length} {filtered.length === 1 ? "starting point" : "starting points"}
+            <span className="font-medium tabular-nums text-[color:var(--text-primary)]">
+              {filtered.length}
+            </span>{" "}
+            {filtered.length === 1 ? "starting point" : "starting points"}
             {search.collection !== "all"
               ? ` · ${search.collection === "gpt-image-2" ? "GPT Image 2" : "Images 2.5"}`
               : ""}
+            {totalPages > 1 && (
+              <span className="hidden sm:inline">
+                {" "}
+                · page {safePage} of {totalPages}
+              </span>
+            )}
           </p>
           {activeFilters && (
             <button
@@ -263,7 +319,7 @@ function LibraryPage() {
               onClick={() =>
                 update({ q: "", category: "All", collection: "all", favorites: false })
               }
-              className="inline-flex items-center gap-1 hover:text-[color:var(--text-primary)]"
+              className="inline-flex min-h-11 items-center gap-1 rounded-full px-3 hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)] sm:min-h-8"
             >
               <X className="h-3.5 w-3.5" />
               Clear filters
@@ -271,7 +327,7 @@ function LibraryPage() {
           )}
         </div>
         {pageItems.length ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {pageItems.map((entry) => (
               <LibraryCard
                 key={entry.key}
@@ -284,13 +340,20 @@ function LibraryPage() {
             ))}
           </div>
         ) : (
-          <div className="py-16 text-center">
-            <p className="text-body-md">
+          <div className="surface-card flex flex-col items-center px-6 py-16 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--bg-subtle)]">
+              {search.favorites ? (
+                <Star className="h-5 w-5 text-[color:var(--accent-orange)]" />
+              ) : (
+                <Search className="h-5 w-5 text-[color:var(--text-tertiary)]" />
+              )}
+            </span>
+            <p className="mt-4 text-[17px] font-semibold text-[color:var(--text-primary)]">
               {search.favorites
                 ? "No favorites match this view."
                 : "No starting points match your search."}
             </p>
-            <p className="mt-2 text-body-sm text-[color:var(--text-secondary)]">
+            <p className="mt-1.5 text-body-sm text-[color:var(--text-secondary)]">
               Try another content type or clear your filters.
             </p>
           </div>

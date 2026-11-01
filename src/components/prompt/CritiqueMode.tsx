@@ -1,4 +1,8 @@
 import { useCreatorDraft } from "@/components/CreatorDraft";
+import { CreatorIdleLayout } from "@/components/composer/CreatorLayout";
+import { friendlyToolError } from "@/lib/friendly-error";
+import { ToolErrorNote } from "@/components/composer/ToolErrorNote";
+import { CritiqueShowcase } from "@/components/composer/ModeShowcase";
 import { ReferencePackPicker } from "@/components/generate/ReferencePackPicker";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 import {
@@ -192,15 +196,19 @@ export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: Criti
     }
   };
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const showError = (raw?: string | null) => setErrorMsg(friendlyToolError(raw));
+
   const score = async () => {
     const text = input.trim();
     if (!text) {
-      toast.error("Paste a prompt to critique");
+      showError("Paste a prompt to critique");
       return;
     }
     trackEvent("critique_submitted", { has_reference: Boolean(reference?.dataUrl) });
     // Drop any prior inline image so a new critique never sits under a stale result.
     gen.reset();
+    setErrorMsg(null);
     setLoading(true);
     setResult(null);
     setSavedInput(text);
@@ -225,14 +233,14 @@ export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: Criti
         } catch {
           /* ignore */
         }
-        toast.error(msg);
+        showError(msg);
         return;
       }
 
       // Wait for the final "done" event — we don't stream partial scores.
       const final = await readSSEStream<CritiqueResult>(res, {
         onError: (json) => {
-          toast.error(typeof json.error === "string" ? json.error : "Critique failed");
+          showError(typeof json.error === "string" ? json.error : "Critique failed");
         },
       });
       if (final) {
@@ -246,11 +254,11 @@ export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: Criti
           referenceIntent: reference?.intent ?? null,
         });
       } else {
-        toast.error("The critique ended before a final result arrived. Please try again.");
+        showError("The critique ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Network error. Try again.");
+      showError("Network error. Try again.");
     } finally {
       setLoading(false);
     }
@@ -285,93 +293,101 @@ export function CritiqueMode({ search, clearSearch, active, onUsePrompt }: Criti
             <label htmlFor="critique-input" className="sr-only">
               Prompt to critique
             </label>
-            <CreationComposer
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const file = e.dataTransfer.files?.[0];
-                if (file) handleImageFile(file);
-              }}
-              referencesSlot={
-                imageLoading ? (
-                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Processing image…
-                  </div>
-                ) : (
-                  <>
-                    <ReferenceImagePicker
-                      addLabel={REFERENCES_COPY.oneOffAdd}
-                      value={reference}
-                      onChange={setReference}
-                    />
-                    {isNativeGenerationEnabled() && (
-                      <ReferencePackPicker
-                        selected={selectedEntities}
-                        onChange={setSelectedEntities}
-                        prompt={input}
-                        adhocCount={gen.references.length}
-                      />
-                    )}
-                    {gen.references.length > 1 && (
-                      <span className="text-body-sm text-[color:var(--text-tertiary)]">
-                        Prompt tools use the first image. All {gen.references.length} references
-                        stay attached for generation.
-                      </span>
-                    )}
-                  </>
-                )
-              }
-              caption={
-                <span className="hidden sm:inline">
-                  or press{" "}
-                  <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
-                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                  </kbd>
-                </span>
-              }
-              submit={
-                <Button onClick={score} disabled={loading} className="gap-2">
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {CTA.critiquing}
-                    </>
+            <CreatorIdleLayout footer={!loading && !result ? <CritiqueShowcase /> : undefined}>
+              <CreationComposer
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleImageFile(file);
+                }}
+                referencesSlot={
+                  imageLoading ? (
+                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Processing image…
+                    </div>
                   ) : (
                     <>
-                      <ScanSearch className="h-4 w-4" />
-                      {CTA.critique}
+                      <ReferenceImagePicker
+                        addLabel={REFERENCES_COPY.oneOffAdd}
+                        value={reference}
+                        onChange={setReference}
+                      />
+                      {isNativeGenerationEnabled() && (
+                        <ReferencePackPicker
+                          selected={selectedEntities}
+                          onChange={setSelectedEntities}
+                          prompt={input}
+                          adhocCount={gen.references.length}
+                        />
+                      )}
+                      {gen.references.length > 1 && (
+                        <span className="text-body-sm text-[color:var(--text-tertiary)]">
+                          Prompt tools use the first image. All {gen.references.length} references
+                          stay attached for generation.
+                        </span>
+                      )}
                     </>
-                  )}
-                </Button>
-              }
-            >
-              <Textarea
-                id="critique-input"
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onPaste={(e) => {
-                  const file = e.clipboardData.files?.[0];
-                  if (file && file.type.startsWith("image/")) {
-                    e.preventDefault();
-                    handleImageFile(file);
-                  }
-                }}
-                placeholder="Paste a prompt to critique…"
-                className={`${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`}
-              />
-            </CreationComposer>
+                  )
+                }
+                caption={
+                  <span>
+                    <span className="font-medium text-[color:var(--text-primary)]">Free</span>
+                    <span className="text-[color:var(--text-tertiary)]"> · no credits used</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      · or press{" "}
+                      <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                        {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                      </kbd>
+                    </span>
+                  </span>
+                }
+                submit={
+                  <Button onClick={score} disabled={loading} className="gap-2">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {CTA.critiquing}
+                      </>
+                    ) : (
+                      <>
+                        <ScanSearch className="h-4 w-4" />
+                        {CTA.critique}
+                      </>
+                    )}
+                  </Button>
+                }
+              >
+                <Textarea
+                  id="critique-input"
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onPaste={(e) => {
+                    const file = e.clipboardData.files?.[0];
+                    if (file && file.type.startsWith("image/")) {
+                      e.preventDefault();
+                      handleImageFile(file);
+                    }
+                  }}
+                  placeholder="Paste a prompt to critique…"
+                  className={`${COMPOSER_TEXTAREA_CLASS}`}
+                />
+              </CreationComposer>
+              {errorMsg && <ToolErrorNote message={errorMsg} onRetry={() => void score()} />}
+            </CreatorIdleLayout>
           </div>
         </div>
 
         {(loading || result) && (
-          <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
+          <div className="mt-10 border-t border-[color:var(--border-subtle)] pt-8">
             {loading && !result && <PromptLoadingState variant="critique" />}
             {result?.rewritten_prompt && (
               <Button

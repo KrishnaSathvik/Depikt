@@ -37,9 +37,14 @@ function Page() {
   }, [loading, user, nextPath, navigate]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto flex w-full max-w-[1400px] flex-1 items-start justify-center px-4 py-16 sm:px-6 sm:py-24 lg:px-12">
+      <main className="relative isolate flex w-full flex-1 items-start justify-center overflow-hidden px-4 py-12 sm:px-6 sm:py-20">
+        {/* Soft warm halo behind the card -- decoration only. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-10 -z-10 h-[420px] w-[min(720px,140vw)] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(255,138,92,0.16),rgba(139,92,246,0.08)_55%,transparent)] blur-2xl"
+        />
         <AuthSurface mode="sign-in" next={nextPath} />
       </main>
       <Footer />

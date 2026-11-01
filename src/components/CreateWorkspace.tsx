@@ -7,6 +7,7 @@ import { CritiqueMode } from "@/components/prompt/CritiqueMode";
 import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 import { trackEvent } from "@/lib/analytics";
 import { cn } from "@/lib/utils";
+import { ScanSearch, Sparkles, Wand2, type LucideIcon } from "lucide-react";
 
 import { parsePromptMode, type PromptMode } from "@/lib/creator-search";
 const ALL_MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> = [
@@ -14,6 +15,17 @@ const ALL_MODES: ReadonlyArray<{ id: PromptMode; label: string; hint: string }> 
   { id: "build", label: TOOL.improvePrompt, hint: "Refine a prompt before generating" },
   { id: "critique", label: TOOL.critique, hint: "Score and rewrite a prompt you already have" },
 ];
+/** Two-part headlines: the second part carries the studio gradient. */
+const MODE_HEADLINES: Record<PromptMode, readonly [string, string]> = {
+  generate: ["Describe it.", "See it."],
+  build: ["Rough idea in.", "Precise prompt out."],
+  critique: ["Find what your prompt", "is missing."],
+};
+const MODE_ICONS: Record<PromptMode, LucideIcon> = {
+  generate: Sparkles,
+  build: Wand2,
+  critique: ScanSearch,
+};
 
 export function CreateWorkspace() {
   return (
@@ -74,16 +86,21 @@ function WorkspaceTools() {
     });
   };
 
+  const activeMode = MODES.find((m) => m.id === mode) ?? MODES[0];
+
   return (
     <div>
-      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 pt-5 sm:px-6 lg:px-12">
+      <div className="mx-auto w-full max-w-[1200px] flex-1 px-4 pt-4 sm:px-6">
+        {/* Segmented mode switcher: one quiet track, the active tool raised. */}
         <div
           role="tablist"
           aria-label="Creation tools"
-          className="mb-4 flex gap-5 border-b border-[color:var(--border-subtle)]"
+          aria-describedby="creator-mode-hint"
+          className="mx-auto flex w-full gap-1 rounded-full bg-[color:var(--studio-track)] p-1 ring-1 ring-[color:var(--border-subtle)] backdrop-blur sm:w-fit"
         >
           {MODES.map((m) => {
             const selected = m.id === mode;
+            const Icon = MODE_ICONS[m.id];
             return (
               <button
                 key={m.id}
@@ -114,16 +131,31 @@ function WorkspaceTools() {
                 }}
                 onClick={() => switchMode(m.id)}
                 className={cn(
-                  "border-b-2 px-0 py-2 text-body-sm transition-colors",
+                  "inline-flex min-h-11 min-w-0 flex-auto items-center justify-center gap-2 rounded-full px-3 text-[13px] font-medium transition-colors sm:min-h-9 sm:flex-none sm:px-4 sm:text-body-sm",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-1",
                   selected
-                    ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
-                    : "border-transparent text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
+                    ? "bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+                    : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
                 )}
               >
-                {m.label}
+                <Icon className="hidden h-4 w-4 shrink-0 min-[420px]:block" aria-hidden />
+                <span className="truncate">{m.label}</span>
               </button>
             );
           })}
+        </div>
+        <div className="mx-auto mb-8 mt-8 max-w-[880px] text-center sm:mb-10 sm:mt-12">
+          <h2 className="text-balance text-[30px] font-semibold leading-[1.08] tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[44px]">
+            {MODE_HEADLINES[activeMode.id][0]}{" "}
+            <span className="studio-gradient-text">{MODE_HEADLINES[activeMode.id][1]}</span>
+          </h2>
+          <p
+            id="creator-mode-hint"
+            aria-live="polite"
+            className="mt-4 text-body-md text-[color:var(--text-secondary)] sm:text-[17px]"
+          >
+            {activeMode.hint}.
+          </p>
         </div>
 
         {generationEnabled && (

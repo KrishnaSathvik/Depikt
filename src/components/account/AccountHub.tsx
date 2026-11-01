@@ -119,9 +119,9 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
         </AccountContentTabs>
       </div>
 
-      <div className="mt-4 flex flex-col border-t border-[color:var(--border-subtle)] pt-2">
+      <div className="mt-6 flex flex-col rounded-[20px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-3">
         {summary && (
-          <div className="px-1 pb-1">
+          <div className="px-3 pb-2 pt-1">
             <p className="text-body-sm text-[color:var(--text-secondary)]">
               Signed in with {signedInWithLabel(summary.provider)}
             </p>
@@ -133,7 +133,7 @@ function HomeView({ summary }: { summary: AccountSummaryResponse | null }) {
         <button
           type="button"
           onClick={() => void handleSignOut()}
-          className="w-full rounded-md px-1 py-2.5 text-left text-[14px] font-medium text-[color:var(--text-primary)] hover:bg-[color:var(--bg-subtle)]"
+          className="min-h-11 w-full rounded-full px-3 py-2.5 text-left text-[14px] font-medium text-[color:var(--text-primary)] hover:bg-[color:var(--bg-elevated)]"
           disabled={!user}
         >
           {AUTH_COPY.signOut}
@@ -227,12 +227,14 @@ export function AccountHub() {
               type="button"
               onClick={back}
               aria-label="Back"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)]"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-subtle)] text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
-          <span className="text-heading-sm text-[color:var(--text-primary)]">{title}</span>
+          <span className="text-[20px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+            {title}
+          </span>
         </div>
         <div className={unpadded ? "-mx-5 -mb-5 sm:-mx-8 sm:-mb-8" : undefined}>{body}</div>
       </DialogContent>

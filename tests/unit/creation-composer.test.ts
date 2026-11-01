@@ -77,14 +77,14 @@ test("reference attachment lives inside the composer's referencesSlot, not a sep
 
 // ---------- Generate matches Prompt's visual chrome (header + reference control) ----------
 
-test("Generate is merged into /prompt as a third mode and shares its page chrome (1040px container)", () => {
+test("Generate is merged into /prompt as a third mode and shares its page chrome (1200px studio container)", () => {
   const prompt = read("src/components/CreateWorkspace.tsx");
   const gen = read("src/components/generate/GenerateWorkspace.tsx");
   // The container/eyebrow are owned once by the parent page, same as
   // Build/Critique — GenerateWorkspace doesn't duplicate them.
-  assert.match(prompt, /max-w-\[1040px\]/);
+  assert.match(prompt, /max-w-\[1200px\]/);
   assert.match(prompt, /<GenerateWorkspace/);
-  assert.doesNotMatch(gen, /max-w-\[1040px\]/, "GenerateWorkspace must not own a page container");
+  assert.doesNotMatch(gen, /max-w-\[1200px\]/, "GenerateWorkspace must not own a page container");
   assert.doesNotMatch(
     gen,
     /className="eyebrow"/,
@@ -111,18 +111,20 @@ test("the unified workspace has three tabs — Generate, Build, Critique — and
   assert.match(prompt, /ALL_MODES\.filter/);
 });
 
-test("Generate's reference control matches ReferenceImagePicker's visual language (dashed pill, mono 12px, bg-subtle thumbnail pill)", () => {
+test("Generate's reference control matches ReferenceImagePicker's visual language (shared composer tool control, bg-subtle thumbnail pill)", () => {
   const gen = read("src/components/generate/GenerateWorkspace.tsx");
   const picker = read("src/components/ReferenceImagePicker.tsx");
-  for (const cls of [
-    "border-dashed",
-    "font-mono",
+  for (const token of [
+    "COMPOSER_TOOL_CLASS",
     "text-[12px]",
     "bg-[color:var(--bg-subtle)]",
     "rounded-md",
   ]) {
-    assert.ok(gen.includes(cls), `GenerateWorkspace missing "${cls}"`);
-    assert.ok(picker.includes(cls), `ReferenceImagePicker missing "${cls}" (drifted)`);
+    assert.ok(gen.includes(token), `GenerateWorkspace missing "${token}"`);
+    assert.ok(picker.includes(token), `ReferenceImagePicker missing "${token}" (drifted)`);
   }
+  // Mono is reserved for data; tool controls use the shared sans control style.
+  for (const src of [gen, picker])
+    assert.doesNotMatch(src, /font-mono text-\[color:var\(--text-(secondary|tertiary)\)\]/);
   assert.match(gen, /ImagePlus/, "same add-reference icon as ReferenceImagePicker, not Plus");
 });

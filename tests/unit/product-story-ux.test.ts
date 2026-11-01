@@ -81,10 +81,14 @@ test("homepage capabilities describe the product and hide V4/V5 when those flags
     ["Reference Packs", "Precision editing", "Grounded generation"],
   );
 
+  // "Why Depikt" moved from Home to Pricing; the flags still decide what it lists.
+  const pricing = read("src/routes/pricing.tsx");
+  assert.match(pricing, /homeCapabilities/);
+  assert.match(pricing, /isGroundingEnabled/);
+  assert.match(pricing, /isValidationRepairEnabled/);
+  assert.match(pricing, /<Capabilities/);
   const home = read("src/routes/index.tsx");
-  assert.match(home, /homeCapabilities/);
-  assert.match(home, /isGroundingEnabled/);
-  assert.match(home, /isValidationRepairEnabled/);
+  assert.doesNotMatch(home, /<Capabilities/);
   assert.doesNotMatch(home, /Control structure, hierarchy, and exact text/);
   assert.doesNotMatch(home, /not enabled in the current release/);
 });
@@ -158,7 +162,12 @@ test("Generate exposes Improve prompt and Critique as secondary tools and a comp
   assert.match(gen, /REFERENCES_COPY\.oneOffAdd/);
   assert.match(read("src/lib/product.ts"), /oneOffAdd: "\+ Reference image"/);
   assert.match(gen, /Describe your image\.\.\./);
-  assert.match(gen, /aria-label="Aspect ratio"/);
+  // The ratio control is the shared visual RatioPicker radio group.
+  assert.match(gen, /<RatioPicker/);
+  assert.match(
+    read("src/components/composer/CreatorLayout.tsx"),
+    /role="radiogroup"\n?\s*aria-label="Aspect ratio"/,
+  );
   assert.match(gen, /· 1 credit/);
   assert.doesNotMatch(gen, /Generate image → · 1 credit/);
   assert.match(gen, /Preparing your request/);

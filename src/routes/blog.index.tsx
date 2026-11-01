@@ -1,10 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { ArrowRight } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Pagination } from "@/components/Pagination";
+import {
+  ArrowRight,
+  BookOpen,
+  Lightbulb,
+  ListChecks,
+  Megaphone,
+  Scale,
+  Sparkles,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { PageHero } from "@/components/PageHero";
 import { ScrollRow } from "@/components/ScrollRow";
 import { CURRENT_MODEL_CATEGORY, getPostsByDate, posts } from "@/data/posts";
-import { SEO, TOOL } from "@/lib/product";
+import { SEO } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
@@ -62,27 +75,108 @@ function formatDate(d: string) {
 
 type PostItem = (typeof posts)[number];
 
+/**
+ * Posts without a cover still get a visual: a soft studio gradient keyed to
+ * the post (stable per slug) with one glyph for its kind of guide. No
+ * invented imagery: only posts that ship a cover_image show a picture.
+ */
+const ART_PALETTES = [
+  ["#ffe1d2", "#ffc6b0", "#f7d6ff"],
+  ["#e9e2ff", "#d6ccff", "#ffdbe8"],
+  ["#dff1ff", "#c9e6ff", "#efe2ff"],
+  ["#e2f6ec", "#c8edd9", "#e3f0ff"],
+  ["#fff0d6", "#ffdcb3", "#ffd6e2"],
+] as const;
+
+function iconFor(category: string): LucideIcon {
+  const c = category.toLowerCase();
+  if (c === CURRENT_MODEL_CATEGORY.toLowerCase()) return Sparkles;
+  if (c === "product") return Megaphone;
+  if (c.includes("comparison")) return Scale;
+  if (c.includes("how-to")) return ListChecks;
+  if (c.includes("tip")) return Lightbulb;
+  if (c.includes("mistake")) return TriangleAlert;
+  return BookOpen;
+}
+
+function paletteFor(slug: string) {
+  let h = 0;
+  for (let i = 0; i < slug.length; i++) h = (h * 31 + slug.charCodeAt(i)) >>> 0;
+  return ART_PALETTES[h % ART_PALETTES.length];
+}
+
+function PostArt({ post, large = false }: { post: PostItem; large?: boolean }) {
+  if (post.cover_image) {
+    return (
+      <img
+        src={post.cover_image}
+        alt={post.cover_alt ?? ""}
+        loading={large ? "eager" : "lazy"}
+        className="h-full w-full object-cover object-left transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+      />
+    );
+  }
+  const [a, b, c] = paletteFor(post.slug);
+  const Icon = iconFor(post.category);
+  return (
+    <div
+      aria-hidden
+      className="relative h-full w-full overflow-hidden"
+      style={{
+        background: `radial-gradient(70% 90% at 15% 10%, ${b}, transparent 70%), radial-gradient(60% 80% at 90% 90%, ${c}, transparent 70%), ${a}`,
+      }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(17,17,17,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(17,17,17,0.06) 1px, transparent 1px)",
+          backgroundSize: large ? "40px 40px" : "28px 28px",
+          maskImage: "radial-gradient(80% 80% at 50% 50%, black, transparent)",
+        }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span
+          className={cn(
+            "flex items-center justify-center rounded-full border border-white/70 bg-white/60 shadow-[0_10px_30px_-12px_rgba(17,17,17,0.25)] backdrop-blur-md transition-transform duration-500 ease-out group-hover:scale-105",
+            large ? "h-20 w-20" : "h-14 w-14",
+          )}
+        >
+          <Icon
+            className={cn("text-[color:var(--text-primary)]", large ? "h-8 w-8" : "h-6 w-6")}
+            strokeWidth={1.5}
+          />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function CategoryPill({ category }: { category: string }) {
+  const current = category === CURRENT_MODEL_CATEGORY;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center self-start rounded-full border px-2.5 py-0.5 text-[12px] font-medium",
+        current
+          ? "border-transparent bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+          : "border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] text-[color:var(--text-secondary)]",
+      )}
+    >
+      {category}
+    </span>
+  );
+}
+
 function Meta({ post }: { post: PostItem }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--text-tertiary)] md:flex-col md:items-start md:gap-y-1.5">
-      <span
-        className={
-          post.category === CURRENT_MODEL_CATEGORY ? "text-[color:var(--text-primary)]" : ""
-        }
-      >
-        {post.category}
-      </span>
-      <span aria-hidden className="md:hidden">
-        ·
-      </span>
-      <span className="flex items-center gap-2">
-        <time dateTime={post.published} className="tabular-nums">
-          {formatDate(post.published)}
-        </time>
-        <span aria-hidden>·</span>
-        <span className="tabular-nums">{post.read_time}</span>
-      </span>
-    </div>
+    <p className="flex items-center gap-2 text-[13px] text-[color:var(--text-tertiary)]">
+      <time dateTime={post.published} className="tabular-nums">
+        {formatDate(post.published)}
+      </time>
+      <span aria-hidden>·</span>
+      <span className="tabular-nums">{post.read_time}</span>
+    </p>
   );
 }
 
@@ -91,44 +185,92 @@ function FeaturedPost({ post }: { post: PostItem }) {
     <Link
       to="/blog/$slug"
       params={{ slug: post.slug }}
-      className="group grid gap-6 border-t border-[color:var(--text-primary)] py-10 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:gap-12 md:py-12"
+      className="surface-card surface-card-interactive group grid overflow-hidden md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]"
     >
-      <div>
-        <Meta post={post} />
-        <h2 className="mt-5 max-w-[20ch] text-display-md md:text-display-lg text-[color:var(--text-primary)] underline-offset-[6px] group-hover:underline">
+      <div className="aspect-[1200/630] overflow-hidden border-b border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] md:aspect-auto md:min-h-[360px] md:border-b-0 md:border-r">
+        <PostArt post={post} large />
+      </div>
+      <div className="flex flex-col p-6 sm:p-8 lg:p-10">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-[12px] font-medium uppercase tracking-[0.08em] text-[color:var(--text-tertiary)]">
+            Latest
+          </span>
+          <CategoryPill category={post.category} />
+        </div>
+        <h2 className="mt-5 text-balance text-[28px] font-semibold leading-[1.1] tracking-[-0.025em] text-[color:var(--text-primary)] sm:text-[36px]">
           {post.title}
         </h2>
-      </div>
-      <div className="flex flex-col justify-end">
-        <p className="text-body-lg text-[color:var(--text-secondary)]">{post.subtitle}</p>
-        <span className="mt-6 inline-flex items-center gap-1.5 text-body-sm font-medium text-[color:var(--text-primary)]">
-          Read the guide
-          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-        </span>
+        <p className="mt-4 text-pretty text-body-md text-[color:var(--text-secondary)]">
+          {post.subtitle}
+        </p>
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-4 pt-8">
+          <Meta post={post} />
+          <span className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-[color:var(--text-primary)] px-5 text-[14px] font-medium text-[color:var(--bg)]">
+            Read the guide
+            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          </span>
+        </div>
       </div>
     </Link>
   );
 }
 
-function PostRow({ post }: { post: PostItem }) {
+function PostCard({ post }: { post: PostItem }) {
   return (
     <Link
       to="/blog/$slug"
       params={{ slug: post.slug }}
-      className="group grid gap-3 border-t border-[color:var(--border-subtle)] py-7 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10 md:py-8"
+      className="surface-card surface-card-interactive group flex h-full flex-col overflow-hidden"
     >
-      <Meta post={post} />
-      <div className="min-w-0">
-        <h3 className="text-heading-md text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
+      <div className="aspect-[16/7] overflow-hidden border-b sm:aspect-[16/9] border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)]">
+        <PostArt post={post} />
+      </div>
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <CategoryPill category={post.category} />
+        <h3 className="mt-3 text-balance text-[19px] font-semibold leading-snug tracking-[-0.015em] text-[color:var(--text-primary)]">
           {post.title}
         </h3>
-        <p className="mt-2 max-w-[68ch] text-body-md text-[color:var(--text-secondary)]">
+        <p className="mt-2 line-clamp-3 text-body-sm text-[color:var(--text-secondary)]">
           {post.excerpt}
         </p>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-5">
+          <Meta post={post} />
+          <ArrowRight
+            aria-hidden
+            className="h-4 w-4 text-[color:var(--text-tertiary)] transition-[transform,color] group-hover:translate-x-0.5 group-hover:text-[color:var(--text-primary)]"
+          />
+        </div>
       </div>
     </Link>
   );
 }
+
+function PostGrid({ items }: { items: PostItem[] }) {
+  return (
+    <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      {items.map((post) => (
+        <li key={post.slug}>
+          <PostCard post={post} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SectionHeading({ title, count }: { title: string; count: number }) {
+  return (
+    <div className="mb-6 flex items-baseline justify-between gap-4">
+      <h2 className="text-[22px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+        {title}
+      </h2>
+      <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
+        {count} {count === 1 ? "guide" : "guides"}
+      </span>
+    </div>
+  );
+}
+
+const PAGE_SIZE = 9;
 
 function BlogIndex() {
   const [category, setCategory] = useState<string>("all");
@@ -155,135 +297,111 @@ function BlogIndex() {
     return [all, ...cats] as Array<{ id: string; label: string; count: number }>;
   }, [categoryCounts]);
 
-  const current = sorted.filter((p) => p.category === CURRENT_MODEL_CATEGORY);
-  const older = sorted.filter((p) => p.category !== CURRENT_MODEL_CATEGORY);
+  // One date-ordered list (getPostsByDate) per filter. The newest post is
+  // featured on the first page; the rest are paged, PAGE_SIZE at a time.
+  const list = category === "all" ? sorted : sorted.filter((p) => p.category === category);
+  const [featured, ...rest] = list;
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(rest.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = rest.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const gridRef = useRef<HTMLElement>(null);
+  const goToPage = (next: number) => {
+    setPage(next);
+    gridRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
-  // "All" keeps the curated index (current-model feature + earlier guides).
-  // A category chip filters to that category only.
-  const filtered = category === "all" ? null : sorted.filter((p) => p.category === category);
-  const [featured, ...restCurrent] = current.length > 0 ? current : sorted;
-  const rest = current.length > 0 ? restCurrent : older.slice(1);
+  const chip = (f: { id: string; label: string; count: number }) => {
+    const active = category === f.id;
+    return (
+      <button
+        key={f.id}
+        type="button"
+        aria-pressed={active}
+        data-active={active ? "true" : undefined}
+        onClick={() => {
+          setCategory(f.id);
+          setPage(1);
+        }}
+        className={cn(
+          "inline-flex min-h-11 shrink-0 snap-start items-center gap-1.5 rounded-full border px-4 text-[14px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] sm:min-h-10",
+          active
+            ? "border-[color:var(--text-primary)] bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+            : "border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]",
+        )}
+      >
+        {f.label}
+        <span
+          className={cn(
+            "text-[12px] tabular-nums",
+            active ? "text-[color:var(--bg)]/70" : "text-[color:var(--text-tertiary)]",
+          )}
+        >
+          {f.count}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
-      <main className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-12 sm:px-6 lg:px-12 lg:py-20">
-        <header className="max-w-3xl">
-          <p className="eyebrow">{TOOL.blog}</p>
-          <h1 className="mt-4 text-display-lg md:text-display-xl">Field notes.</h1>
-          <p className="mt-5 max-w-[52ch] text-body-lg text-[color:var(--text-secondary)]">
-            Guides for writing better image prompts, from people who ship prompts every day.
-          </p>
-        </header>
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-20 pt-12 sm:px-6 lg:pb-28 lg:pt-20">
+        <PageHero
+          eyebrow="Blog"
+          title="Field notes for"
+          accent="better images."
+          lede="Guides for writing better image prompts, from people who ship prompts every day."
+        />
 
-        <div className="mt-8 grid gap-6 lg:mt-16 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-16">
-          {/* Desktop: left rail. Mobile: one horizontal chip row above the articles. */}
-          <aside aria-label="Categories" className="min-w-0 lg:sticky lg:top-24 lg:self-start">
-            <p className="eyebrow hidden lg:block">Categories</p>
-            <ScrollRow
-              className="-mx-5 sm:-mx-6 lg:hidden"
-              innerClassName="gap-2 px-5 sm:px-6"
-              activeKey={category}
-              ariaLabel="Categories"
-            >
-              {filters.map((f) => {
-                const active = category === f.id;
-                return (
-                  <button
-                    key={f.id}
-                    type="button"
-                    aria-pressed={active}
-                    data-active={active ? "true" : undefined}
-                    onClick={() => setCategory(f.id)}
-                    className={cn(
-                      "pill shrink-0 snap-start",
-                      active
-                        ? "pill-solid"
-                        : "hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]",
-                    )}
-                  >
-                    {f.label} · {f.count}
-                  </button>
-                );
-              })}
-            </ScrollRow>
-            <ul className="mt-4 hidden flex-col gap-y-2.5 lg:flex">
-              {filters.map((f) => {
-                const active = category === f.id;
-                return (
-                  <li key={f.id}>
-                    <button
-                      type="button"
-                      aria-pressed={active}
-                      onClick={() => setCategory(f.id)}
-                      className={cn(
-                        "flex w-full items-baseline justify-between gap-2 text-left text-body-sm transition-colors",
-                        active
-                          ? "text-[color:var(--text-primary)]"
-                          : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
-                      )}
-                    >
-                      <span>{f.label}</span>
-                      <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
-                        {String(f.count).padStart(2, "0")}
-                      </span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </aside>
+        <nav aria-label="Categories" className="mt-10 lg:mt-12">
+          <ScrollRow
+            className="-mx-4 sm:-mx-6 lg:hidden"
+            innerClassName="gap-2 px-4 sm:px-6"
+            activeKey={category}
+            ariaLabel="Categories"
+          >
+            {filters.map(chip)}
+          </ScrollRow>
+          <div className="hidden flex-wrap gap-2 lg:flex">{filters.map(chip)}</div>
+        </nav>
 
-          <div className="min-w-0">
-            {filtered ? (
-              <section aria-label={`${category} guides`}>
-                {filtered.length === 0 ? (
-                  <p className="border-t border-[color:var(--border-subtle)] py-10 text-body-md text-[color:var(--text-secondary)]">
-                    No guides in this category yet.
-                  </p>
-                ) : (
-                  filtered.map((post, i) =>
-                    i === 0 ? (
-                      <FeaturedPost key={post.slug} post={post} />
-                    ) : (
-                      <PostRow key={post.slug} post={post} />
-                    ),
-                  )
-                )}
-              </section>
-            ) : (
-              <>
-                {featured && <FeaturedPost post={featured} />}
-
-                {rest.length > 0 && (
-                  <section aria-label={`${CURRENT_MODEL_CATEGORY} guides`}>
-                    {rest.map((post) => (
-                      <PostRow key={post.slug} post={post} />
-                    ))}
-                  </section>
-                )}
-
-                {current.length > 0 && older.length > 0 && (
-                  <section aria-label="Earlier guides" className="mt-16">
-                    <div className="flex items-baseline justify-between border-t border-[color:var(--text-primary)] pt-4">
-                      <p className="eyebrow">Earlier guides · GPT Image 2 era</p>
-                      <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
-                        {older.length}
-                      </span>
+        <div className="mt-8 lg:mt-10">
+          {!featured ? (
+            <p className="surface-card p-10 text-center text-body-md text-[color:var(--text-secondary)]">
+              No guides in this category yet.
+            </p>
+          ) : (
+            <>
+              {currentPage === 1 && <FeaturedPost post={featured} />}
+              {rest.length > 0 && (
+                <section
+                  aria-label={category === "all" ? "All guides" : `${category} guides`}
+                  className={cn("scroll-mt-24", currentPage === 1 && "mt-14")}
+                  ref={gridRef}
+                >
+                  <SectionHeading
+                    title={category === "all" ? "All guides" : category}
+                    count={rest.length}
+                  />
+                  <PostGrid items={pageItems} />
+                  {totalPages > 1 && (
+                    <div className="mt-12">
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={goToPage}
+                      />
                     </div>
-                    <div className="mt-2">
-                      {older.map((post) => (
-                        <PostRow key={post.slug} post={post} />
-                      ))}
-                    </div>
-                  </section>
-                )}
-              </>
-            )}
-          </div>
+                  )}
+                </section>
+              )}
+            </>
+          )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

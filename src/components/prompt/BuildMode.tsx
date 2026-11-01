@@ -1,4 +1,8 @@
 import { useCreatorDraft } from "@/components/CreatorDraft";
+import { CreatorIdleLayout } from "@/components/composer/CreatorLayout";
+import { friendlyToolError } from "@/lib/friendly-error";
+import { ToolErrorNote } from "@/components/composer/ToolErrorNote";
+import { ImproveShowcase } from "@/components/composer/ModeShowcase";
 import { ReferencePackPicker } from "@/components/generate/ReferencePackPicker";
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
@@ -305,9 +309,13 @@ export function BuildMode({
     return path;
   };
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const showError = (raw?: string | null) => setErrorMsg(friendlyToolError(raw));
+
   const generateFromSeed = async (seedInput: string) => {
     gen.reset();
     setActiveGenPrompt(null);
+    setErrorMsg(null);
     setLoading(true);
     setStreaming(false);
     setResult(null);
@@ -334,7 +342,7 @@ export function BuildMode({
         } catch {
           /* ignore */
         }
-        toast.error(msg);
+        showError(msg);
         return;
       }
 
@@ -355,11 +363,11 @@ export function BuildMode({
           result: finalResult as Record<string, unknown>,
         });
       } else {
-        toast.error("The prompt ended before a final result arrived. Please try again.");
+        showError("The prompt ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Network error. Try again.");
+      showError("Network error. Try again.");
     } finally {
       setLoading(false);
       setStreaming(false);
@@ -376,7 +384,7 @@ export function BuildMode({
           ? composeTemplateBrief(templateCtx.template, templateCtx.values, input)
           : input.trim();
     if (!userInput) {
-      toast.error("Describe what you want to make first");
+      showError("Describe what you want to make first");
       return;
     }
     trackEvent("build_submitted", {
@@ -386,6 +394,7 @@ export function BuildMode({
     // Drop any prior inline image so a rebuilt prompt never sits under a stale result.
     gen.reset();
     setActiveGenPrompt(null);
+    setErrorMsg(null);
     setLoading(true);
     setStreaming(false);
     setResult(null);
@@ -416,7 +425,7 @@ export function BuildMode({
         } catch {
           /* ignore */
         }
-        toast.error(msg);
+        showError(msg);
         return;
       }
 
@@ -442,11 +451,11 @@ export function BuildMode({
           referenceIntent: reference?.intent ?? null,
         });
       } else {
-        toast.error("The prompt ended before a final result arrived. Please try again.");
+        showError("The prompt ended before a final result arrived. Please try again.");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Network error. Try again.");
+      showError("Network error. Try again.");
     } finally {
       setLoading(false);
       setStreaming(false);
@@ -557,115 +566,125 @@ export function BuildMode({
             >
               {templateCtx ? "Anything else?" : "Describe what you want to make"}
             </label>
-            <CreationComposer
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const file = e.dataTransfer.files?.[0];
-                if (file) handleImageFile(file);
-              }}
-              referencesSlot={
-                imageLoading ? (
-                  <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Processing image…
-                  </div>
-                ) : (
-                  <>
-                    <ReferenceImagePicker
-                      addLabel={REFERENCES_COPY.oneOffAdd}
-                      value={reference}
-                      onChange={setReference}
+            <CreatorIdleLayout
+              footer={
+                !templateCtx && !showOutput ? (
+                  <div className="space-y-12">
+                    <ComposerChips
+                      compact
+                      label="Quick starts"
+                      chips={BUILD_EXAMPLES}
+                      onSelect={handleChipClick}
                     />
-                    {isNativeGenerationEnabled() && (
-                      <ReferencePackPicker
-                        selected={selectedEntities}
-                        onChange={setSelectedEntities}
-                        prompt={input}
-                        adhocCount={gen.references.length}
-                      />
-                    )}
-                    {gen.references.length > 1 && (
-                      <span className="text-body-sm text-[color:var(--text-tertiary)]">
-                        Prompt tools use the first image. All {gen.references.length} references
-                        stay attached for generation.
-                      </span>
-                    )}
-                  </>
-                )
-              }
-              caption={
-                <span className="hidden sm:inline">
-                  or press{" "}
-                  <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
-                    {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                  </kbd>
-                </span>
-              }
-              submit={
-                <Button
-                  onClick={() => generate()}
-                  disabled={loading || streaming}
-                  className="gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {CTA.building}
-                    </>
-                  ) : streaming ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Writing…
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="h-4 w-4" />
-                      {CTA.build}
-                    </>
-                  )}
-                </Button>
+                    <ImproveShowcase onTryIdea={handleChipClick} />
+                  </div>
+                ) : undefined
               }
             >
-              <Textarea
-                id="rough-idea"
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                onPaste={(e) => {
-                  const file = e.clipboardData.files?.[0];
-                  if (file && file.type.startsWith("image/")) {
-                    e.preventDefault();
-                    handleImageFile(file);
-                  }
+              <CreationComposer
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 }}
-                placeholder={
-                  templateCtx
-                    ? "Add any extra direction, details, or constraints..."
-                    : "Describe the image you want to create..."
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) handleImageFile(file);
+                }}
+                referencesSlot={
+                  imageLoading ? (
+                    <div className="flex items-center gap-2 text-mono-sm text-[color:var(--text-tertiary)]">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Processing image…
+                    </div>
+                  ) : (
+                    <>
+                      <ReferenceImagePicker
+                        addLabel={REFERENCES_COPY.oneOffAdd}
+                        value={reference}
+                        onChange={setReference}
+                      />
+                      {isNativeGenerationEnabled() && (
+                        <ReferencePackPicker
+                          selected={selectedEntities}
+                          onChange={setSelectedEntities}
+                          prompt={input}
+                          adhocCount={gen.references.length}
+                        />
+                      )}
+                      {gen.references.length > 1 && (
+                        <span className="text-body-sm text-[color:var(--text-tertiary)]">
+                          Prompt tools use the first image. All {gen.references.length} references
+                          stay attached for generation.
+                        </span>
+                      )}
+                    </>
+                  )
                 }
-                className={
-                  templateCtx
-                    ? `${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`
-                    : `${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`
+                caption={
+                  <span>
+                    <span className="font-medium text-[color:var(--text-primary)]">Free</span>
+                    <span className="text-[color:var(--text-tertiary)]"> · no credits used</span>
+                    <span className="hidden sm:inline">
+                      {" "}
+                      · or press{" "}
+                      <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
+                        {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
+                      </kbd>
+                    </span>
+                  </span>
                 }
-              />
-            </CreationComposer>
-
-            {!templateCtx && (
-              <ComposerChips
-                compact
-                label="Try an example"
-                chips={BUILD_EXAMPLES}
-                onSelect={handleChipClick}
-                className="mt-4"
-              />
-            )}
+                submit={
+                  <Button
+                    onClick={() => generate()}
+                    disabled={loading || streaming}
+                    className="gap-2"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {CTA.building}
+                      </>
+                    ) : streaming ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Writing…
+                      </>
+                    ) : (
+                      <>
+                        <Wand2 className="h-4 w-4" />
+                        {CTA.build}
+                      </>
+                    )}
+                  </Button>
+                }
+              >
+                <Textarea
+                  id="rough-idea"
+                  ref={textareaRef}
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onPaste={(e) => {
+                    const file = e.clipboardData.files?.[0];
+                    if (file && file.type.startsWith("image/")) {
+                      e.preventDefault();
+                      handleImageFile(file);
+                    }
+                  }}
+                  placeholder={
+                    templateCtx
+                      ? "Add any extra direction, details, or constraints..."
+                      : "Describe the image you want to create..."
+                  }
+                  className={
+                    templateCtx ? `${COMPOSER_TEXTAREA_CLASS}` : `${COMPOSER_TEXTAREA_CLASS}`
+                  }
+                />
+              </CreationComposer>
+              {errorMsg && <ToolErrorNote message={errorMsg} onRetry={() => generate()} />}
+            </CreatorIdleLayout>
           </div>
         </div>
 
@@ -683,7 +702,7 @@ export function BuildMode({
 
         {/* OUTPUT */}
         {showOutput && (
-          <div className="mt-10 border-t border-[color:var(--text-primary)] pt-8">
+          <div className="mt-10 border-t border-[color:var(--border-subtle)] pt-8">
             {loading && !result && <PromptLoadingState variant="build" intent={liveIntent} />}
             {result?.prompt && !streaming && (
               <Button

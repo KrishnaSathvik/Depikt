@@ -54,7 +54,7 @@ export function DeleteAccountAction() {
       <button
         type="button"
         onClick={() => setConfirmOpen(true)}
-        className="w-full rounded-md px-1 py-2 text-left text-[14px] font-medium text-red-700 hover:bg-red-50"
+        className="min-h-11 w-full rounded-full px-3 py-2.5 text-left text-[14px] font-medium text-red-700 hover:bg-red-50"
       >
         Delete account
       </button>

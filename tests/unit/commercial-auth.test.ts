@@ -214,10 +214,11 @@ test("header shows one Sign in link when signed out and an avatar menu when sign
   assert.match(menu, /hub\.openHub\(/);
 });
 
-// ---------- editorial auth surface: no card, contextual subtitle ----------
+// ---------- auth surface: shared surface-card on full pages, contextual subtitle ----------
 
-test("AuthSurface is the page itself (no bordered card) and each mode has a contextual subtitle", () => {
+test("AuthSurface uses the shared surface-card (no bespoke card styling) and each mode has a contextual subtitle", () => {
   const src = read("src/components/auth/AuthSurface.tsx");
+  assert.match(src, /surface-card/);
   assert.doesNotMatch(src, /rounded-lg border|shadow-xl|bg-\[color:var\(--bg-elevated\)\]/);
   assert.match(src, /AUTH_COPY\.signInSubtitle/);
   assert.match(src, /AUTH_COPY\.signUpSubtitle/);

@@ -55,20 +55,33 @@ export function BuyCreditsBody({ source }: { source?: string }) {
               onClick={() => setSelected(pack.key)}
               data-analytics-id={`buy-credits-${pack.key}`}
               className={cn(
-                "flex flex-col items-start rounded-lg border p-5 text-left transition-colors",
+                "surface-card flex min-h-[112px] flex-col items-start p-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2",
                 active
-                  ? "border-[color:var(--text-primary)]"
-                  : "border-[color:var(--border-subtle)] hover:border-[color:var(--border-default)]",
+                  ? "border-[color:var(--text-primary)] shadow-[0_0_0_1px_var(--text-primary),0_18px_40px_-24px_rgba(17,17,17,0.35)]"
+                  : "surface-card-interactive",
               )}
             >
-              <span className="text-body-sm font-medium text-[color:var(--text-primary)]">
-                {pack.credits} credits
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="text-[15px] font-medium text-[color:var(--text-primary)]">
+                  {pack.credits} credits
+                </span>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "flex h-5 w-5 shrink-0 items-center justify-center rounded-full border",
+                    active
+                      ? "border-[color:var(--text-primary)] bg-[color:var(--text-primary)]"
+                      : "border-[color:var(--border-strong)]",
+                  )}
+                >
+                  {active && <span className="h-1.5 w-1.5 rounded-full bg-white" />}
+                </span>
               </span>
-              <span className="mt-2 text-heading-sm tabular-nums text-[color:var(--text-primary)]">
+              <span className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-[color:var(--text-primary)]">
                 {formatUsd(pack.priceCents)}
               </span>
               {pack.badge && (
-                <span className="mt-1.5 text-[12px] font-medium text-[color:var(--text-tertiary)]">
+                <span className="mt-3 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-2.5 py-0.5 text-[12px] font-medium text-[color:var(--text-secondary)]">
                   {pack.badge}
                 </span>
               )}
@@ -81,6 +94,7 @@ export function BuyCreditsBody({ source }: { source?: string }) {
         <Button
           className="w-full"
           size="lg"
+          variant="brand"
           disabled={busy}
           onClick={() => void continueToCheckout()}
         >

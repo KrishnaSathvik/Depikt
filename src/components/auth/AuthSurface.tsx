@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import lovableMark from "@/assets/lovable-mark.jpeg";
+import logo from "@/assets/logo.png";
 import { useAuth } from "@/lib/auth-context";
 import {
   enabledAuthProviders,
@@ -99,6 +100,24 @@ function EmailMark() {
       <rect x="3" y="5" width="18" height="14" rx="2" />
       <path d="m4 7 8 6 8-6" />
     </svg>
+  );
+}
+
+/** Full-page auth card: white rounded surface with a soft lift on the page
+ *  glow. Compact (in-dialog) use renders bare -- the dialog is the card. */
+const PAGE_CARD =
+  "surface-card w-full max-w-[420px] px-6 py-8 shadow-[0_1px_2px_rgba(17,17,17,0.04),0_30px_70px_-36px_rgba(17,17,17,0.28)] sm:px-9 sm:py-10";
+
+/** The Depikt mark in a soft gradient halo, above the auth title. */
+function BrandMark() {
+  return (
+    <img
+      src={logo}
+      alt=""
+      width={48}
+      height={48}
+      className="mx-auto mb-6 h-12 w-12 rounded-[14px] shadow-[0_0_0_1px_rgba(17,17,17,0.06),0_12px_28px_-12px_rgba(255,106,61,0.7)]"
+    />
   );
 }
 
@@ -206,9 +225,12 @@ export function AuthSurface({
 
   if (view === "sent") {
     return (
-      <div className={cn("w-full max-w-[360px]", className)}>
+      <div className={cn(compact ? "w-full max-w-[360px]" : PAGE_CARD, className)}>
         <div className="text-center">
-          <h1 className="text-heading-lg">{AUTH_COPY.checkInboxTitle}</h1>
+          {!compact && <BrandMark />}
+          <h1 className="text-[26px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)]">
+            {AUTH_COPY.checkInboxTitle}
+          </h1>
           <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">
             {AUTH_COPY.checkInboxBody}
           </p>
@@ -249,13 +271,14 @@ export function AuthSurface({
   }
 
   return (
-    <div className={cn("w-full max-w-[360px]", className)}>
+    <div className={cn(compact ? "w-full max-w-[360px]" : PAGE_CARD, className)}>
       {!compact && (
         <div className="mb-8 text-center">
-          <h1 className="text-heading-lg">
+          <BrandMark />
+          <h1 className="text-balance text-[26px] font-semibold leading-tight tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[28px]">
             {isSignUp ? AUTH_COPY.signUpTitle : AUTH_COPY.signInTitle}
           </h1>
-          <p className="mt-2 text-body-md text-[color:var(--text-secondary)]">
+          <p className="mx-auto mt-2 max-w-[34ch] text-pretty text-[15px] leading-relaxed text-[color:var(--text-secondary)]">
             {isSignUp ? AUTH_COPY.signUpSubtitle : AUTH_COPY.signInSubtitle}
           </p>
         </div>
@@ -271,12 +294,15 @@ export function AuthSurface({
         <Button
           type="button"
           size="lg"
+          variant="brand"
           className="w-full justify-center gap-2.5"
           disabled={busy !== null}
           onClick={() => void startProvider("google")}
           data-analytics-id={`auth-${mode}-google`}
         >
-          <ProviderMark id="google" />
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
+            <ProviderMark id="google" />
+          </span>
           {busy === "google" ? busyLabel : providerLabel("google")}
         </Button>
       )}
@@ -314,7 +340,7 @@ export function AuthSurface({
               <div className="h-px flex-1 bg-[color:var(--border-subtle)]" />
             </div>
           )}
-          <form onSubmit={(e) => void submitEmail(e)} className="space-y-2">
+          <form onSubmit={(e) => void submitEmail(e)} className="space-y-3">
             <label htmlFor="auth-email" className="sr-only">
               {AUTH_COPY.emailLabel}
             </label>
@@ -327,6 +353,7 @@ export function AuthSurface({
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={busy !== null}
+              className="h-12 rounded-full px-5 text-[15px]"
             />
             <Button
               type="submit"
@@ -348,7 +375,7 @@ export function AuthSurface({
           disabled={busy !== null}
           onClick={() => void startProvider("lovable")}
           data-analytics-id={`auth-${mode}-lovable`}
-          className="mt-4 w-full text-center text-body-sm font-medium text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+          className="mt-3 min-h-11 w-full text-center text-body-sm font-medium text-[color:var(--text-tertiary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
         >
           {busy === "lovable" ? busyLabel : `Continue with ${providerLabel("lovable")}`}
         </button>
@@ -375,7 +402,7 @@ export function AuthSurface({
       )}
 
       {!compact && (
-        <p className="mt-8 text-center text-body-sm text-[color:var(--text-secondary)]">
+        <p className="mt-8 border-t border-[color:var(--border-subtle)] pt-6 text-center text-[14px] text-[color:var(--text-secondary)]">
           {isSignUp ? AUTH_COPY.haveAccount : AUTH_COPY.newToDepikt}{" "}
           <Link
             to={isSignUp ? ROUTES.signIn : ROUTES.signUp}

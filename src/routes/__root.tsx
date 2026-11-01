@@ -2,6 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/r
 import { GA_INLINE_SCRIPT, GA_LOADER_SRC } from "@/lib/analytics";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
+import { StatusPage } from "@/components/StatusPage";
 import { ProfileProvider } from "@/lib/profile/profile-context";
 import { Analytics } from "@/components/Analytics";
 import { DevAuthBanner } from "@/components/DevAuthBanner";
@@ -22,23 +23,28 @@ const DEFAULT_OG_DESCRIPTION = SEO.root.ogDescription ?? SEO.root.description;
 
 function NotFoundComponent() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-6">
-      <div className="max-w-md text-center">
-        <p className="eyebrow">Error · 404</p>
-        <h1 className="mt-4 text-display-md">Page not found</h1>
-        <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">
-          The page you’re looking for doesn’t exist.
-        </p>
-        <div className="mt-8">
+    <StatusPage
+      eyebrow="Error · 404"
+      title="Page"
+      accent="not found."
+      lede="The page you’re looking for doesn’t exist or has moved."
+      actions={
+        <>
           <Link
             to="/"
-            className="inline-flex items-center justify-center rounded-md bg-[color:var(--accent)] px-5 py-3 text-sm font-medium text-[color:var(--accent-text)] transition-colors hover:bg-[color:var(--accent-hover)]"
+            className="inline-flex h-12 items-center rounded-full bg-[color:var(--text-primary)] px-7 text-[15px] font-medium text-[color:var(--bg)] transition-colors hover:bg-[color:var(--accent-hover)]"
           >
             Go home
           </Link>
-        </div>
-      </div>
-    </main>
+          <Link
+            to="/library"
+            className="inline-flex h-12 items-center rounded-full border border-[color:var(--border-default)] bg-white px-7 text-[15px] font-medium text-[color:var(--text-primary)] transition-colors hover:border-[color:var(--border-strong)]"
+          >
+            Browse Library
+          </Link>
+        </>
+      }
+    />
   );
 }
 

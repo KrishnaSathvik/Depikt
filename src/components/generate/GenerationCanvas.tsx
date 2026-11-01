@@ -48,8 +48,8 @@ function resolveFrameBox(
   ratioLabel: string,
   orientation?: "portrait" | "landscape" | "square",
 ): { width: number; height: number } {
-  const maxWidth = orientation === "landscape" ? 720 : 480;
-  const maxHeight = 560;
+  const maxWidth = orientation === "landscape" ? 960 : 640;
+  const maxHeight = 640;
   const parts = ratioLabel.split(":").map(Number);
   const w = parts[0];
   const h = parts[1];
@@ -111,7 +111,7 @@ export function GenerationCanvas({
       return (
         <div className={`space-y-4 ${className ?? ""}`}>
           <div
-            className="mx-auto overflow-hidden rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] transition-[width,aspect-ratio] duration-200 ease-out"
+            className="mx-auto overflow-hidden rounded-xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] transition-[width,aspect-ratio] duration-200 ease-out"
             style={{
               width: box.width,
               maxWidth: "100%",

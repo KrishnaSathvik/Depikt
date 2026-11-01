@@ -3,13 +3,16 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PlanCards } from "@/components/billing/PlanCards";
+import { PageHero } from "@/components/PageHero";
+import { Capabilities } from "@/components/Capabilities";
+import { isGroundingEnabled, isValidationRepairEnabled } from "@/lib/generation/feature-flag";
 import { useAuth } from "@/lib/auth-context";
 import { useAccountSummary } from "@/lib/billing/use-account-summary";
 import { PRICING_COPY } from "@/lib/billing/copy";
 import { CATALOG, isProductKey, type BillingInterval, type PlanProduct } from "@/lib/billing/plans";
 import { HELP_SECTIONS } from "@/data/legal";
 import { trackEvent } from "@/lib/analytics";
-import { ROUTES, SEO } from "@/lib/product";
+import { ROUTES, SEO, homeCapabilities } from "@/lib/product";
 import { absoluteUrl } from "@/lib/site";
 import { getOgImageForPath } from "@/lib/og-image";
 import { pageSeoHead } from "@/lib/seo";
@@ -41,6 +44,13 @@ export const Route = createFileRoute("/pricing")({
       ? { interval: search.interval }
       : {}),
   }),
+  // Resolve on the server so client hydration matches the release controls.
+  loader: () => ({
+    capabilities: homeCapabilities({
+      grounding: isGroundingEnabled(),
+      validation: isValidationRepairEnabled(),
+    }),
+  }),
   head: () => {
     const { meta, links } = pageSeoHead(SEO.pricing, {
       url: PAGE_URL,
@@ -63,8 +73,17 @@ const FAQ = PRICING_FAQ_QUESTIONS.map((q) => planCredits.find((i) => i.q === q))
   (i): i is (typeof planCredits)[number] => i !== undefined,
 );
 
+/** The headline's last two words carry the brand gradient ("…with Depikt."). */
+const HEADLINE = (() => {
+  const words = PRICING_COPY.headline.split(" ");
+  return words.length > 2
+    ? { title: words.slice(0, -2).join(" "), accent: words.slice(-2).join(" ") }
+    : { title: PRICING_COPY.headline, accent: undefined };
+})();
+
 function PricingPage() {
   const { plan: resumeKeyParam, interval: intervalParam } = Route.useSearch();
+  const { capabilities } = Route.useLoaderData();
   const resumeProduct = resolvePlanProduct(resumeKeyParam);
   const resumeKey = resumeProduct?.key ?? null;
   const { user } = useAuth();
@@ -79,17 +98,22 @@ function PricingPage() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
+    <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-[1100px] flex-1 px-4 py-12 sm:px-6 sm:py-20 lg:px-12">
-        <div className="mx-auto max-w-[640px] text-center">
-          <p className="eyebrow">{PRICING_COPY.eyebrow}</p>
-          <h1 className="mt-3 text-display-lg">{PRICING_COPY.headline}</h1>
-          <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">{PRICING_COPY.sub}</p>
-        </div>
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-20 pt-14 sm:px-6 sm:pb-28 sm:pt-20">
+        <PageHero
+          eyebrow={PRICING_COPY.eyebrow}
+          title={HEADLINE.title}
+          accent={HEADLINE.accent}
+          lede={PRICING_COPY.sub}
+        />
 
         {resumeProduct && user && (
-          <p className="mx-auto mt-8 max-w-[640px] rounded-md border border-[color:var(--border-subtle)] px-4 py-3 text-center text-body-sm text-[color:var(--text-secondary)]">
+          <p className="mt-8 flex max-w-[560px] items-center gap-2 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-5 py-3 text-center text-[14px] text-[color:var(--text-secondary)] shadow-[0_1px_2px_rgba(17,17,17,0.04)]">
+            <span
+              aria-hidden
+              className="h-2 w-2 shrink-0 rounded-full bg-[image:var(--brand-gradient)]"
+            />
             You're signed in. Continue with {resumeProduct.plan === "pro" ? "Pro" : "Max"} below
             whenever you're ready.
           </p>
@@ -104,30 +128,19 @@ function PricingPage() {
           />
         </div>
 
-        <section className="mt-20 border-t border-[color:var(--border-subtle)] pt-10">
-          <h2 className="text-heading-md">{PRICING_COPY.faqHeading}</h2>
-          <dl className="mt-6 grid gap-8 md:grid-cols-2">
-            {FAQ.map((item) => (
-              <div key={item.q}>
-                <dt className="text-body-md font-medium text-[color:var(--text-primary)]">
-                  {item.q}
-                </dt>
-                <dd className="mt-1.5 text-body-sm text-[color:var(--text-secondary)]">{item.a}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="mt-8 text-body-sm text-[color:var(--text-secondary)]">
-            More in{" "}
-            <Link
-              to={ROUTES.help}
-              className="underline underline-offset-4 hover:text-[color:var(--text-primary)]"
-            >
-              Help
-            </Link>
-            .
-          </p>
-        </section>
+        <p className="mt-10 text-[14px] text-[color:var(--text-secondary)]">
+          Questions about credits, plans, or billing?{" "}
+          <Link
+            to={ROUTES.help}
+            hash="plans-and-credits"
+            className="font-medium text-[color:var(--text-primary)] underline underline-offset-4"
+          >
+            See Help
+          </Link>
+          .
+        </p>
       </main>
+      <Capabilities capabilities={capabilities} />
       <Footer />
     </div>
   );

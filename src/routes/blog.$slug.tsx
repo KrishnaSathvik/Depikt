@@ -1,12 +1,19 @@
 import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronDown, ListTree } from "lucide-react";
 import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { getPostBySlug, getRelatedPosts, type PostFaqItem } from "@/data/posts";
+import {
+  CURRENT_MODEL_CATEGORY,
+  getPostBySlug,
+  getRelatedPosts,
+  type PostFaqItem,
+} from "@/data/posts";
 import { TOOL } from "@/lib/product";
 import { renderMarkdown } from "@/lib/markdown";
 import { absoluteUrl } from "@/lib/site";
+import { cn } from "@/lib/utils";
 import { getOgImageForPath } from "@/lib/og-image";
 
 export const Route = createFileRoute("/blog/$slug")({
@@ -108,15 +115,18 @@ function PostNotFound() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
       <main className="mx-auto w-full max-w-2xl flex-1 px-6 py-32 text-center">
-        <p className="eyebrow">Error · 404</p>
-        <h1 className="mt-4 text-display-md">Post not found</h1>
+        <p className="badge-eyebrow">Error · 404</p>
+        <h1 className="mt-5 text-[40px] font-semibold leading-tight tracking-[-0.03em]">
+          Post not found
+        </h1>
         <p className="mt-3 text-body-md text-[color:var(--text-secondary)]">
           That article doesn’t exist.
         </p>
-        <Button asChild variant="outline" className="mt-8">
+        <Button asChild variant="outline" size="lg" className="mt-8">
           <Link to="/blog">Back to blog</Link>
         </Button>
       </main>
+      <Footer />
     </div>
   );
 }
@@ -128,6 +138,22 @@ function formatDate(d: string) {
     day: "numeric",
     timeZone: "UTC",
   });
+}
+
+function CategoryPill({ category }: { category: string }) {
+  const current = category === CURRENT_MODEL_CATEGORY;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center self-start rounded-full border px-3 py-1 text-[13px] font-medium",
+        current
+          ? "border-transparent bg-[color:var(--text-primary)] text-[color:var(--bg)]"
+          : "border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] text-[color:var(--text-secondary)]",
+      )}
+    >
+      {category}
+    </span>
+  );
 }
 
 function PostPage() {
@@ -164,32 +190,75 @@ function PostPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
 
-      <article className="mx-auto w-full max-w-[1400px] flex-1 px-5 py-10 sm:px-6 lg:px-12">
+      <article className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-20 pt-8 sm:px-6 lg:px-10 lg:pb-28 lg:pt-12">
         <Link
           to="/blog"
-          className="inline-flex items-center gap-1.5 text-mono-sm text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] transition-colors"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-1 text-[14px] font-medium text-[color:var(--text-tertiary)] transition-colors hover:text-[color:var(--text-primary)]"
         >
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to blog
+          <ArrowLeft className="h-4 w-4" /> Back to blog
         </Link>
 
-        {/* Single grid wraps everything: header, content, and bottom blocks flow in the left column */}
-        <div className="mt-8 grid gap-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-16">
+        {/* Post header */}
+        <header className="mx-auto mt-6 max-w-[860px] text-center lg:mt-10">
+          <CategoryPill category={post.category} />
+          <h1 className="mt-6 text-balance text-[36px] font-semibold leading-[1.06] tracking-[-0.035em] text-[color:var(--text-primary)] sm:text-[52px]">
+            {post.title}
+          </h1>
+          <p className="mx-auto mt-5 max-w-[62ch] text-pretty text-[17px] leading-relaxed text-[color:var(--text-secondary)] sm:text-[19px]">
+            {post.subtitle}
+          </p>
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 text-[13px] text-[color:var(--text-tertiary)]">
+            <span className="inline-flex items-center gap-2 font-medium text-[color:var(--text-secondary)]">
+              <span aria-hidden className="h-5 w-5 rounded-full bg-[image:var(--brand-gradient)]" />
+              By {post.author}
+            </span>
+            <span aria-hidden>·</span>
+            <time dateTime={post.published} className="tabular-nums">
+              {formatDate(post.published)}
+            </time>
+            {post.updated && post.updated !== post.published && (
+              <>
+                <span aria-hidden>·</span>
+                <span className="tabular-nums">Updated {formatDate(post.updated)}</span>
+              </>
+            )}
+            <span aria-hidden>·</span>
+            <span className="tabular-nums">{post.read_time}</span>
+          </div>
+        </header>
+
+        {post.cover_image && (
+          <figure className="mx-auto mt-10 max-w-[1040px] lg:mt-14">
+            <img
+              src={post.cover_image}
+              alt={post.cover_alt ?? ""}
+              width={1200}
+              height={630}
+              className="w-full rounded-[24px] border border-[color:var(--border-subtle)] shadow-[0_30px_60px_-40px_rgba(17,17,17,0.35)]"
+            />
+          </figure>
+        )}
+
+        <div className="mt-12 grid gap-10 lg:mt-16 lg:grid-cols-[220px_minmax(0,1fr)] lg:gap-14">
           {/* Sidebar */}
           <aside className="hidden lg:block">
-            <div className="sticky top-24 space-y-8">
+            <div className="sticky top-24">
               {headings.length > 0 && (
                 <div>
-                  <p className="eyebrow">On this page</p>
+                  <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[color:var(--text-tertiary)]">
+                    On this page
+                  </p>
                   <ul className="mt-4 space-y-px border-l border-[color:var(--border-subtle)]">
                     {headings.map((h) => (
                       <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
                         <a
                           href={`#${h.id}`}
-                          className={`block border-l -ml-px py-1.5 pl-3 text-[13px] transition-colors ${
+                          className={cn(
+                            "-ml-px block border-l-2 py-1.5 pl-3 text-[13px] leading-snug transition-colors",
                             activeId === h.id
-                              ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
-                              : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]"
-                          }`}
+                              ? "border-[color:var(--text-primary)] font-medium text-[color:var(--text-primary)]"
+                              : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]",
+                          )}
                         >
                           {h.text}
                         </a>
@@ -200,57 +269,22 @@ function PostPage() {
               )}
             </div>
           </aside>
-          <div className="min-w-0 lg:max-w-[760px] lg:justify-self-start">
-            {/* Post header */}
-            <header>
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-[color:var(--text-tertiary)]">
-                <span>{post.category}</span>
-                <span aria-hidden>·</span>
-                <time dateTime={post.published} className="tabular-nums">
-                  {formatDate(post.published)}
-                </time>
-                {post.updated && post.updated !== post.published && (
-                  <>
-                    <span aria-hidden>·</span>
-                    <span className="tabular-nums">Updated {formatDate(post.updated)}</span>
-                  </>
-                )}
-                <span aria-hidden>·</span>
-                <span className="tabular-nums">{post.read_time}</span>
-              </div>
 
-              <h1 className="mt-6 text-display-md md:text-display-lg text-[color:var(--text-primary)]">
-                {post.title}
-              </h1>
-              <p className="mt-5 text-body-lg text-[color:var(--text-secondary)]">
-                {post.subtitle}
-              </p>
-              <p className="mt-6 text-[13px] text-[color:var(--text-tertiary)]">By {post.author}</p>
-            </header>
-
-            {post.cover_image && (
-              <figure className="mt-10">
-                <img
-                  src={post.cover_image}
-                  alt={post.cover_alt ?? ""}
-                  width={1200}
-                  height={630}
-                  className="w-full rounded-md border border-[color:var(--border-subtle)]"
-                />
-              </figure>
-            )}
-
+          <div className="min-w-0 lg:max-w-[720px]">
             {/* Mobile TOC */}
             {headings.length > 0 && (
-              <div className="mt-8 lg:hidden">
+              <div className="mb-8 lg:hidden">
                 <button
                   type="button"
                   onClick={() => setTocOpen((v) => !v)}
                   aria-expanded={tocOpen}
                   aria-controls="mobile-toc"
-                  className="flex min-h-[44px] w-full items-center justify-between rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 py-3 text-body-sm font-medium"
+                  className="flex min-h-[48px] w-full items-center justify-between rounded-2xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-4 py-3 text-body-sm font-medium"
                 >
-                  <span>On this page</span>
+                  <span className="inline-flex items-center gap-2">
+                    <ListTree aria-hidden className="h-4 w-4 text-[color:var(--text-tertiary)]" />
+                    On this page
+                  </span>
                   <ChevronDown
                     aria-hidden="true"
                     className={`h-4 w-4 transition-transform ${tocOpen ? "rotate-180" : ""}`}
@@ -259,14 +293,14 @@ function PostPage() {
                 {tocOpen && (
                   <ul
                     id="mobile-toc"
-                    className="mt-2 space-y-1 rounded-md border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-4 text-body-sm"
+                    className="mt-2 space-y-0.5 rounded-2xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-3 text-body-sm"
                   >
                     {headings.map((h) => (
                       <li key={h.id} className={h.level === 3 ? "pl-3" : ""}>
                         <a
                           href={`#${h.id}`}
                           onClick={() => setTocOpen(false)}
-                          className="block py-2 text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+                          className="block rounded-lg px-2 py-2.5 text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
                         >
                           {h.text}
                         </a>
@@ -281,70 +315,104 @@ function PostPage() {
             {post.faq && post.faq.length > 0 && (
               <aside
                 aria-label="What this page answers"
-                className="mt-10 border-t border-[color:var(--text-primary)] pt-5"
+                className="mb-12 rounded-[20px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-6 sm:p-7"
               >
-                <p className="eyebrow">What this page answers</p>
-                <ul className="mt-4 space-y-2 text-body-md text-[color:var(--text-secondary)] list-disc pl-5 marker:text-[color:var(--text-quaternary)]">
+                <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-[color:var(--text-tertiary)]">
+                  What this page answers
+                </p>
+                <ul className="mt-4 space-y-2.5 text-body-md text-[color:var(--text-primary)]">
                   {post.faq.map((f: PostFaqItem) => (
-                    <li key={f.question}>{f.question}</li>
+                    <li key={f.question} className="flex gap-3">
+                      <span
+                        aria-hidden
+                        className="mt-[0.6em] h-1.5 w-1.5 shrink-0 rounded-full bg-[image:var(--brand-gradient)]"
+                      />
+                      <span>{f.question}</span>
+                    </li>
                   ))}
                 </ul>
               </aside>
             )}
 
             {/* Article body */}
-            <div className="mt-10 border-t border-[color:var(--border-subtle)] pt-10">
-              <div className="prose-content">{nodes}</div>
-            </div>
+            <div className="prose-content">{nodes}</div>
 
             {/* CTA */}
-            <div className="mt-14 border-t border-[color:var(--text-primary)] pt-8">
-              <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+            <div className="relative mt-16 overflow-hidden rounded-[24px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-7 sm:p-10">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{ backgroundImage: "var(--page-glow)" }}
+              />
+              <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h3 className="text-heading-md text-[color:var(--text-primary)]">
+                  <h2 className="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-[color:var(--text-primary)]">
                     Build a prompt that follows this guide.
-                  </h3>
-                  <p className="mt-2 max-w-[48ch] text-body-md text-[color:var(--text-secondary)]">
+                  </h2>
+                  <p className="mt-2 max-w-[44ch] text-body-md text-[color:var(--text-secondary)]">
                     Paste a rough idea. Get back a structured prompt.
                   </p>
                 </div>
-                <Button asChild size="lg" className="shrink-0">
+                <Button
+                  asChild
+                  size="lg"
+
+                  className="shrink-0 self-start md:self-auto"
+                >
                   <Link to="/prompt" search={{ mode: "build" as const }}>
-                    Open {TOOL.prompt} <ArrowRight />
+                    Open {TOOL.improvePrompt} <ArrowRight />
                   </Link>
                 </Button>
               </div>
             </div>
-
-            {/* Related posts */}
-            {related.length > 0 && (
-              <div className="mt-12 border-t border-[color:var(--text-primary)] pt-5">
-                <p className="eyebrow">More in {post.category}</p>
-                <div className="mt-4 grid gap-px bg-[color:var(--border-subtle)] border border-[color:var(--border-subtle)] sm:grid-cols-2">
-                  {related.map((r) => (
-                    <Link
-                      key={r.slug}
-                      to="/blog/$slug"
-                      params={{ slug: r.slug }}
-                      className="group block bg-[color:var(--bg-elevated)] p-6 hover:bg-[color:var(--bg-muted)] transition-colors"
-                    >
-                      <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-                        {r.category}
-                      </span>
-                      <h5 className="mt-3 text-heading-sm text-[color:var(--text-primary)] group-hover:underline underline-offset-4">
-                        {r.title}
-                      </h5>
-                      <p className="mt-2 text-body-sm text-[color:var(--text-secondary)] line-clamp-2">
-                        {r.excerpt}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
+
+        {/* Related posts */}
+        {related.length > 0 && (
+          <section aria-label={`More in ${post.category}`} className="mt-20 lg:mt-24">
+            <div className="flex items-end justify-between gap-4">
+              <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-[color:var(--text-primary)]">
+                More in {post.category}
+              </h2>
+              <Link
+                to="/blog"
+                className="inline-flex min-h-11 items-center gap-1 text-[14px] font-medium text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+              >
+                All posts <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2">
+              {related.map((r) => (
+                <Link
+                  key={r.slug}
+                  to="/blog/$slug"
+                  params={{ slug: r.slug }}
+                  className="surface-card surface-card-interactive group flex flex-col p-6 sm:p-7"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <CategoryPill category={r.category} />
+                    <span className="text-[13px] tabular-nums text-[color:var(--text-tertiary)]">
+                      {r.read_time}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-balance text-[20px] font-semibold leading-snug tracking-[-0.015em] text-[color:var(--text-primary)]">
+                    {r.title}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 text-body-sm text-[color:var(--text-secondary)]">
+                    {r.excerpt}
+                  </p>
+                  <span className="mt-auto inline-flex items-center gap-1.5 pt-6 text-[14px] font-medium text-[color:var(--text-primary)]">
+                    Read
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
       </article>
+      <Footer />
     </div>
   );
 }

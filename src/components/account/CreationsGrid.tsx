@@ -48,14 +48,14 @@ function CreationTile({
   const caption = promptCaption(item.prompt);
   const kind = creationKindLabel(item);
   return (
-    <div className="group relative mb-3 break-inside-avoid">
+    <div className="group relative mb-4 break-inside-avoid">
       <button
         type="button"
         onClick={() => {
           onSelect(item);
           trackEvent("creation_opened", {});
         }}
-        className="block w-full text-left"
+        className="block w-full rounded-[16px] text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
       >
         {item.url ? (
           <RecoverableImage
@@ -65,21 +65,21 @@ function CreationTile({
             }
             alt={item.seriesLabel || caption || kind}
             style={{ aspectRatio: `${item.width} / ${item.height}` }}
-            className="w-full rounded-md object-cover transition-opacity group-hover:opacity-90"
+            className="w-full rounded-[16px] bg-[color:var(--bg-subtle)] object-cover shadow-[0_0_0_1px_rgba(17,17,17,0.05)] transition-[transform,box-shadow] duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_0_0_1px_rgba(17,17,17,0.06),0_18px_36px_-20px_rgba(17,17,17,0.4)] motion-reduce:group-hover:translate-y-0"
             loading="lazy"
           />
         ) : (
           <div
             style={{ aspectRatio: `${item.width} / ${item.height}` }}
-            className="flex items-center justify-center rounded-md bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
+            className="flex items-center justify-center rounded-[16px] border border-dashed border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] text-[12px] text-[color:var(--text-tertiary)]"
           >
             Unavailable
           </div>
         )}
-        <p className="mt-1.5 line-clamp-2 text-[12px] text-[color:var(--text-secondary)]">
+        <p className="mt-2 line-clamp-2 px-0.5 text-[13px] leading-snug text-[color:var(--text-primary)]">
           {item.seriesLabel || caption || kind}
         </p>
-        <p className="mt-0.5 flex items-center gap-1.5 text-[12px] text-[color:var(--text-tertiary)]">
+        <p className="mt-0.5 flex items-center gap-1.5 px-0.5 text-[12px] text-[color:var(--text-tertiary)]">
           {formatShort(item.createdAt)}
           <span aria-hidden="true">·</span>
           <span>{kind}</span>
@@ -92,7 +92,7 @@ function CreationTile({
           event.stopPropagation();
           onDelete(item);
         }}
-        className="absolute right-1.5 top-1.5 z-10 flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white opacity-100 shadow-sm transition-opacity hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
+        className="absolute right-2 top-2 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 backdrop-blur-sm text-white opacity-100 shadow-sm transition-opacity hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100"
       >
         <Trash2 className="h-3.5 w-3.5" />
       </button>
@@ -224,16 +224,16 @@ function OwnedCreationsGrid({
 
   return (
     <div>
-      <div className="inline-flex gap-0.5 rounded-full bg-[color:var(--bg-subtle)] p-0.5">
+      <div className="inline-flex gap-1 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-1">
         {FILTERS.map((f) => (
           <button
             key={f.id}
             type="button"
             onClick={() => setFilter(f.id)}
             className={cn(
-              "rounded-full px-3 py-1 text-[12px] font-medium transition-colors",
+              "inline-flex h-9 items-center rounded-full px-4 text-[13px] font-medium transition-colors",
               filter === f.id
-                ? "bg-[color:var(--bg)] text-[color:var(--text-primary)] shadow-sm"
+                ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(17,17,17,0.08),0_4px_12px_-6px_rgba(17,17,17,0.18)]"
                 : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
             )}
           >
@@ -244,11 +244,23 @@ function OwnedCreationsGrid({
 
       <div className="mt-6">
         {loading ? (
-          <p className="text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
+          <div className="columns-2 gap-4 sm:columns-3 lg:columns-4" aria-busy="true">
+            <span className="sr-only">Loading…</span>
+            {[4 / 5, 1, 3 / 4, 1, 4 / 5, 3 / 4].map((ratio, i) => (
+              <div
+                key={i}
+                aria-hidden
+                style={{ aspectRatio: ratio }}
+                className="mb-4 w-full animate-pulse break-inside-avoid rounded-[16px] bg-[color:var(--bg-subtle)]"
+              />
+            ))}
+          </div>
         ) : error ? (
           <p className="text-body-sm text-red-600">Could not load your creations right now.</p>
         ) : items.length === 0 ? (
-          <p className="text-body-sm text-[color:var(--text-tertiary)]">{CREATIONS_COPY.empty}</p>
+          <div className="rounded-[20px] border border-dashed border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-6 py-14 text-center">
+            <p className="text-[15px] text-[color:var(--text-secondary)]">{CREATIONS_COPY.empty}</p>
+          </div>
         ) : (
           <>
             <div className="space-y-6">
@@ -256,15 +268,15 @@ function OwnedCreationsGrid({
                 batch.kind === "series" ? (
                   <div
                     key={batch.items[0].sessionId ?? batch.items[0].id}
-                    className="rounded-md border border-[color:var(--border-subtle)] p-2 sm:p-3"
+                    className="surface-card p-3 sm:p-4"
                   >
-                    <p className="mb-2 text-[12px] text-[color:var(--text-secondary)]">
+                    <p className="mb-3 text-[13px] text-[color:var(--text-secondary)]">
                       {CREATIONS_COPY.series(batch.items.length)}
                       <span className="block">
                         Saved outputs shown. Load more to include older outputs.
                       </span>
                     </p>
-                    <div className="columns-2 gap-3 sm:columns-3">
+                    <div className="columns-2 gap-4 sm:columns-3">
                       {batch.items.map((item) => (
                         <CreationTile
                           key={item.id}
@@ -278,7 +290,7 @@ function OwnedCreationsGrid({
                 ) : (
                   <div
                     key={batch.items[0].id}
-                    className="columns-2 gap-3 sm:columns-3 lg:columns-4"
+                    className="columns-2 gap-4 sm:columns-3 lg:columns-4"
                   >
                     {batch.items.map((item) => (
                       <CreationTile
@@ -294,10 +306,10 @@ function OwnedCreationsGrid({
             </div>
 
             {cursor && (
-              <div className="mt-4 flex justify-center">
+              <div className="mt-6 flex justify-center">
                 <Button
                   variant="outline"
-                  size="sm"
+                  className="h-11"
                   onClick={() => void loadMore()}
                   disabled={loadingMore}
                 >

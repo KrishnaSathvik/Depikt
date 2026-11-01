@@ -2,6 +2,8 @@ import { useRef, useState, type ReactNode } from "react";
 import { ImagePlus, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { REFERENCES_COPY } from "@/lib/product";
+import { COMPOSER_TOOL_CLASS } from "@/components/composer/CreationComposer";
+import { cn } from "@/lib/utils";
 import { REFERENCE_INTENT_OPTIONS, prefersLossless } from "@/lib/prompt-engine/reference";
 import {
   fileToReferenceState,
@@ -87,7 +89,7 @@ export function ReferenceImagePicker({
             className="h-8 w-8 rounded object-cover"
           />
           <span className="flex flex-col leading-tight">
-            <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+            <span className="text-[12px] font-medium text-[color:var(--text-secondary)]">
               {REFERENCES_COPY.oneOff}
             </span>
             <span className="text-[11px] text-[color:var(--text-tertiary)]">
@@ -97,19 +99,19 @@ export function ReferenceImagePicker({
           <button
             type="button"
             onClick={() => onChange(null)}
-            className="ml-1 rounded p-0.5 text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)] hover:bg-[color:var(--bg-elevated)] transition-colors"
+            className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] sm:h-7 sm:w-7"
             aria-label="Remove reference image"
           >
             <X className="h-3.5 w-3.5" />
           </button>
         </div>
-        <label className="inline-flex items-center gap-2 text-[12px] font-mono text-[color:var(--text-tertiary)]">
+        <label className="inline-flex items-center gap-2 text-[13px] text-[color:var(--text-secondary)]">
           Use reference as
           <select
             value={value.intent}
             onChange={(e) => handleIntent(e.target.value as ReferenceIntentChoice)}
             aria-label="Reference image intent"
-            className="rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-2 py-1 text-[12px] font-mono text-[color:var(--text-primary)]"
+            className={cn(COMPOSER_TOOL_CLASS, "text-[color:var(--text-primary)]")}
           >
             {REFERENCE_INTENT_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -139,7 +141,7 @@ export function ReferenceImagePicker({
       <button
         type="button"
         onClick={() => fileInputRef.current?.click()}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[12px] font-mono text-[color:var(--text-tertiary)] hover:text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-subtle)] border border-dashed border-[color:var(--border-subtle)] hover:border-[color:var(--border-default)] transition-colors"
+        className={COMPOSER_TOOL_CLASS}
       >
         <ImagePlus className="h-3.5 w-3.5" />
         {addLabel}

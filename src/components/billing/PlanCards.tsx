@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check } from "lucide-react";
+import { Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
@@ -52,7 +52,7 @@ function IntervalToggle({
     <div
       role="tablist"
       aria-label="Billing interval"
-      className="inline-flex rounded-full border border-[color:var(--border-default)] p-0.5"
+      className="inline-flex rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-1"
     >
       {(["month", "year"] as const).map((i) => (
         <button
@@ -62,9 +62,9 @@ function IntervalToggle({
           aria-selected={interval === i}
           onClick={() => onChange(i)}
           className={cn(
-            "rounded-full px-4 py-1.5 text-[13px] font-medium transition-colors",
+            "inline-flex h-10 items-center rounded-full px-5 text-[14px] font-medium transition-[background-color,color,box-shadow] duration-150",
             interval === i
-              ? "bg-[color:var(--accent)] text-[color:var(--accent-text)]"
+              ? "bg-[color:var(--bg-elevated)] text-[color:var(--text-primary)] shadow-[0_1px_2px_rgba(17,17,17,0.08),0_4px_12px_-6px_rgba(17,17,17,0.18)]"
               : "text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]",
           )}
         >
@@ -77,17 +77,63 @@ function IntervalToggle({
 
 function Includes({ items }: { items: ReadonlyArray<string> }) {
   return (
-    <ul className="mt-6 space-y-2">
+    <ul className="mt-6 space-y-3">
       {items.map((item) => (
         <li
           key={item}
-          className="flex items-start gap-2 text-body-sm text-[color:var(--text-secondary)]"
+          className="flex items-start gap-3 text-[14px] leading-snug text-[color:var(--text-secondary)]"
         >
-          <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--text-primary)]" />
+          <span
+            aria-hidden
+            className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
+          >
+            <Check className="h-3 w-3" strokeWidth={2.5} />
+          </span>
           {item}
         </li>
       ))}
     </ul>
+  );
+}
+
+/** Plan name + optional highlight pill, the first row of every plan card. */
+function PlanName({ name, popular }: { name: string; popular?: boolean }) {
+  return (
+    <div className="flex min-h-7 items-center justify-between gap-3">
+      <p className="text-[17px] font-semibold tracking-[-0.01em] text-[color:var(--text-primary)]">
+        {name}
+      </p>
+      {popular && (
+        <span className="inline-flex items-center rounded-full bg-[image:var(--brand-gradient)] px-3 py-1 text-[12px] font-semibold text-white shadow-[var(--brand-glow)]">
+          Most popular
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** Large price with a quiet unit. */
+function Price({ amount, unit }: { amount: string; unit?: string }) {
+  return (
+    <p className="mt-5 flex items-baseline gap-1">
+      <span className="text-[44px] font-semibold leading-none tracking-[-0.035em] tabular-nums text-[color:var(--text-primary)]">
+        {amount}
+      </span>
+      {unit && <span className="text-[15px] text-[color:var(--text-tertiary)]">{unit}</span>}
+    </p>
+  );
+}
+
+/** The credits line -- the real differentiator between plans. */
+function CreditsLine({ children, note }: { children: ReactNode; note: string }) {
+  return (
+    <div className="mt-6 rounded-[14px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-4 py-3">
+      <p className="flex items-center gap-2 text-[15px] font-semibold text-[color:var(--text-primary)]">
+        <Sparkles aria-hidden className="h-4 w-4 shrink-0 text-[#ff6a3d]" />
+        {children}
+      </p>
+      <p className="mt-1 text-[13px] leading-snug text-[color:var(--text-secondary)]">{note}</p>
+    </div>
   );
 }
 
@@ -127,61 +173,50 @@ export function PlanCards({
     return PACK_GATE_HEADLINE;
   }
 
+  // The one warm (brand) action per view: the plan carried through sign-up
+  // when it is on screen, otherwise the recommended Pro plan.
+  const resumeVisible =
+    resumeKey === planProduct("pro", interval).key ||
+    resumeKey === planProduct("max", interval).key;
+
   function paidCard(plan: PaidPlanKey) {
     const product = planProduct(plan, interval);
     const copy = PRICING_COPY[plan];
     const isCurrent = currentPlan === plan;
     const isResume = resumeKey === product.key;
     const isPro = plan === "pro";
-    return (
+    const isPrimary = resumeVisible ? isResume : isPro;
+    const card = (
       <div
-        key={plan}
         className={cn(
-          "flex flex-col rounded-lg border p-6",
-          isResume || isPro
-            ? "border-[color:var(--text-primary)]"
-            : "border-[color:var(--border-subtle)]",
+          "surface-card flex h-full flex-col p-6 sm:p-7",
+          isPro && "rounded-[19px] border-transparent",
+          isResume && !isPro && "border-[color:var(--text-primary)]",
         )}
       >
-        {/* Subtle, not a badge -- a small label above the card, like the
-            rest of Pricing's restrained system. */}
-        <p
-          className={cn(
-            "text-[12px] font-medium uppercase tracking-[0.06em]",
-            isPro ? "text-[color:var(--text-primary)]" : "invisible",
-          )}
-        >
-          Most popular
-        </p>
-        <p className="mt-1 eyebrow">{copy.name}</p>
+        <PlanName name={copy.name} popular={isPro} />
         {interval === "month" ? (
-          <p className="mt-3">
-            <span className="text-display-md tabular-nums">{formatUsd(product.priceCents)}</span>
-            <span className="text-body-sm text-[color:var(--text-secondary)]">/month</span>
-          </p>
+          <Price amount={formatUsd(product.priceCents)} unit="/month" />
         ) : (
-          <p className="mt-3">
-            <span className="text-display-md tabular-nums">{formatUsd(product.priceCents)}</span>
-            <span className="text-body-sm text-[color:var(--text-secondary)]">/year</span>
-            <span className="mt-1 block text-body-sm text-[color:var(--text-secondary)]">
-              ~{monthlyEquivalent(product.priceCents)}/month effective · {yearlySavingsLabel(plan)}
-            </span>
-          </p>
+          <>
+            <Price amount={formatUsd(product.priceCents)} unit="/year" />
+            <p className="mt-2 text-[13px] text-[color:var(--text-secondary)]">
+              ~{monthlyEquivalent(product.priceCents)}/month effective ·{" "}
+              <span className="font-medium text-[color:var(--text-primary)]">
+                {yearlySavingsLabel(plan)}
+              </span>
+            </p>
+          </>
         )}
-        {/* Credits are the real differentiator between plans -- bolder than
-            the feature bullets below, which are identical across Pro/Max. */}
-        <p className="mt-5 text-heading-sm text-[color:var(--text-primary)]">
+        <CreditsLine note={interval === "year" ? PRICING_COPY.yearlyNote : copy.note}>
           {PLAN_CREDITS[plan]} image credits every month
-        </p>
-        <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
-          {interval === "year" ? PRICING_COPY.yearlyNote : copy.note}
-        </p>
+        </CreditsLine>
         <Includes items={copy.includes} />
         <div className="mt-auto pt-8">
           <Button
             className="w-full"
             size="lg"
-            variant={plan === "pro" || isResume ? "default" : "outline"}
+            variant={isPrimary && !isCurrent ? "brand" : isResume ? "default" : "outline"}
             disabled={busy !== null || isCurrent}
             onClick={() => void choose(product.key)}
             data-analytics-id={`pricing-${product.key}`}
@@ -197,30 +232,37 @@ export function PlanCards({
         </div>
       </div>
     );
+    // Recommended plan: a 1.5px brand-gradient ring around the card plus a
+    // soft warm glow, so it reads as the default choice at a glance.
+    return isPro ? (
+      <div
+        key={plan}
+        className="relative rounded-[20px] bg-[image:var(--brand-gradient)] p-[1.5px] shadow-[0_24px_60px_-28px_rgba(255,106,61,0.55)]"
+      >
+        {card}
+      </div>
+    ) : (
+      <div key={plan}>{card}</div>
+    );
   }
 
   return (
     <div>
-      <div className="flex justify-center">
+      <div className="flex">
         <IntervalToggle interval={interval} onChange={onIntervalChange} />
       </div>
 
-      <div className={cn("mt-10 grid gap-4", hideFree ? "md:grid-cols-2" : "md:grid-cols-3")}>
+      <div
+        className={cn(
+          "mt-10 grid items-stretch gap-5",
+          hideFree ? "md:grid-cols-2" : "md:grid-cols-3",
+        )}
+      >
         {!hideFree && (
-          <div className="flex flex-col rounded-lg border border-[color:var(--border-subtle)] p-6">
-            <p className="invisible text-[12px] font-medium uppercase tracking-[0.06em]">
-              Most popular
-            </p>
-            <p className="mt-1 eyebrow">{PRICING_COPY.free.name}</p>
-            <p className="mt-3">
-              <span className="text-display-md tabular-nums">$0</span>
-            </p>
-            <p className="mt-5 text-heading-sm text-[color:var(--text-primary)]">
-              {STARTER_CREDITS} image credits
-            </p>
-            <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
-              {PRICING_COPY.free.note}
-            </p>
+          <div className="surface-card flex flex-col p-6 sm:p-7">
+            <PlanName name={PRICING_COPY.free.name} />
+            <Price amount="$0" />
+            <CreditsLine note={PRICING_COPY.free.note}>{STARTER_CREDITS} image credits</CreditsLine>
             <Includes items={PRICING_COPY.free.includes} />
             <div className="mt-auto pt-8">
               {user ? (
@@ -241,30 +283,38 @@ export function PlanCards({
 
       {/* PACKS */}
       {!hidePacks && (
-        <div className="mt-16 border-t border-[color:var(--border-subtle)] pt-10">
-          <h2 className="text-heading-md">{PRICING_COPY.packsHeading}</h2>
+        <section className="mt-20">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <h2 className="text-[26px] font-semibold tracking-[-0.025em] text-[color:var(--text-primary)] sm:text-[30px]">
+              {PRICING_COPY.packsHeading}
+            </h2>
+            <p className="text-[14px] text-[color:var(--text-secondary)]">
+              {PRICING_COPY.packsNote}
+            </p>
+          </div>
           <div className="mt-6 grid gap-4 sm:grid-cols-3">
             {CREDIT_PACKS.map((pack) => (
               <div
                 key={pack.key}
-                className="flex flex-col rounded-md border border-[color:var(--border-subtle)] px-5 py-4"
+                className="surface-card surface-card-interactive flex flex-col p-5"
               >
-                <span className="block text-body-md font-medium text-[color:var(--text-primary)]">
-                  {pack.credits} credits
-                </span>
-                <span className="mt-1 block text-heading-sm tabular-nums text-[color:var(--text-primary)]">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[15px] font-medium text-[color:var(--text-primary)]">
+                    {pack.credits} credits
+                  </span>
+                  {pack.badge && (
+                    <span className="rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-2.5 py-0.5 text-[12px] font-medium text-[color:var(--text-secondary)]">
+                      {pack.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="mt-3 text-[30px] font-semibold leading-none tracking-[-0.03em] tabular-nums text-[color:var(--text-primary)]">
                   {formatUsd(pack.priceCents)}
                 </span>
-                {pack.badge && (
-                  <span className="mt-1.5 block text-[12px] font-medium text-[color:var(--text-tertiary)]">
-                    {pack.badge}
-                  </span>
-                )}
-                <div className="mt-auto pt-4">
+                <div className="mt-auto pt-5">
                   <Button
                     variant="outline"
-                    className="w-full"
-                    size="lg"
+                    className="h-11 w-full"
                     disabled={busy !== null}
                     onClick={() => void choose(pack.key)}
                     data-analytics-id={`pricing-${pack.key}`}
@@ -275,10 +325,7 @@ export function PlanCards({
               </div>
             ))}
           </div>
-          <p className="mt-4 text-body-sm text-[color:var(--text-secondary)]">
-            {PRICING_COPY.packsNote} {PRICING_COPY.creditRule}
-          </p>
-        </div>
+        </section>
       )}
 
       <BillingAuthDialog

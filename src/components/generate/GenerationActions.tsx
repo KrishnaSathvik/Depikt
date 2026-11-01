@@ -45,10 +45,10 @@ export function GenerationActions({
         <Wand2 className="mr-1.5 h-4 w-4" /> Edit
       </Button>
       <Button
-        variant="outline"
+        variant="default"
         onClick={onRegenerate}
         disabled={disabled}
-        className={`flex-1 sm:flex-none sm:basis-auto ${onNew ? "basis-[calc(50%-4px)]" : "basis-full"}`}
+        className={`studio-cta flex-1 sm:flex-none sm:basis-auto ${onNew ? "basis-[calc(50%-4px)]" : "basis-full"}`}
       >
         <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate image · 1 credit
       </Button>

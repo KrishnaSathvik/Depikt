@@ -39,10 +39,6 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
     title: "Getting started",
     items: [
       {
-        q: "What is one credit?",
-        a: "One credit covers one successful image generation, edit, or regeneration. The model Depikt routes your request to never changes the price: every successful operation is exactly one credit.",
-      },
-      {
         q: "Why don't I choose an image model?",
         a: "Depikt routes each request automatically between the GPT Image 2.5 models based on the task: what you asked for, whether references are attached, and whether exact text is required. You describe the result; Depikt picks the route.",
       },
@@ -57,10 +53,6 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
       {
         q: "What happens if generation fails?",
         a: "A credit is reserved when a job starts and settled only when an image is produced. If the job fails for any reason (including a content-policy refusal from the model), the reserved credit is returned automatically to the bucket it came from. You are never charged for a failed operation.",
-      },
-      {
-        q: "Does research or checking the result use a credit?",
-        a: "No. When Depikt researches context for a request, validates requested details, or applies one included automatic refinement, those stages do not use an image credit. You still spend one credit only for each successful generate, edit, or regenerate.",
       },
     ],
   },
@@ -102,6 +94,14 @@ export const HELP_SECTIONS: ReadonlyArray<HelpSection> = [
     id: "plans-and-credits",
     title: "Plans and credits",
     items: [
+      {
+        q: "What is one credit?",
+        a: "One credit covers one successful image generation, edit, or regeneration. The model Depikt routes your request to never changes the price: every successful operation is exactly one credit.",
+      },
+      {
+        q: "Does research or checking the result use a credit?",
+        a: "No. When Depikt researches context for a request, validates requested details, or applies one included automatic refinement, those stages do not use an image credit. You still spend one credit only for each successful generate, edit, or regenerate.",
+      },
       {
         q: "How do monthly credits work?",
         a: "Pro includes 40 image credits every month and Max includes 100. They are added at the start of each billing month. Annual subscribers pay once a year and still receive their credits month by month, not as one large pool.",

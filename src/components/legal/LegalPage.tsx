@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { PageHero } from "@/components/PageHero";
+import { ContactCard, DocsLayout, SidebarCard } from "@/components/DocsLayout";
 import { renderMarkdown } from "@/lib/markdown";
 import { LEGAL_LAST_UPDATED, formatEffectiveDate } from "@/data/legal";
 
 /**
- * The shared shell for Privacy and Terms: eyebrow/title/intro/effective
- * date, then a sticky left table of contents (desktop only -- headings come
- * straight from renderMarkdown's own ## scan, so the TOC can never drift
- * from the actual section list) beside the readable prose column. Pricing
- * and Help don't use this: they're a selling page and a support surface,
- * not trust/legal documents, so they keep their own layouts -- shared
- * typography/spacing/chrome, not a forced identical template.
+ * The shared shell for Privacy and Terms: hero with the effective date, then
+ * the DocsLayout used by Help — a sticky contents card (headings come from
+ * renderMarkdown's own ## scan, so it can never drift from the sections) and
+ * a contact card beside the document card. On phones the contents fold into
+ * a <details> card above the document.
  */
 export function LegalPage({
   eyebrow,
@@ -30,42 +30,76 @@ export function LegalPage({
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--bg)]">
       <Header />
-      <main className="mx-auto w-full max-w-[1100px] flex-1 px-4 py-12 sm:px-6 sm:py-20 lg:px-12">
-        <div className="max-w-[760px]">
-          <p className="eyebrow">{eyebrow}</p>
-          <h1 className="mt-3 text-display-md">{title}</h1>
-          <p className="mt-4 text-body-lg text-[color:var(--text-secondary)]">{intro}</p>
-          <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">
-            Effective {formatEffectiveDate(LEGAL_LAST_UPDATED)}
-          </p>
-        </div>
+      <main className="mx-auto w-full max-w-[1200px] flex-1 px-4 pb-20 pt-12 sm:px-6 sm:pt-20 lg:pb-28">
+        <PageHero
+          eyebrow={eyebrow}
+          title={title}
+          lede={intro}
+          actions={
+            <p className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] px-3.5 py-1.5 text-[13px] font-medium text-[color:var(--text-secondary)]">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[color:var(--success)]" />
+              Effective {formatEffectiveDate(LEGAL_LAST_UPDATED)}
+            </p>
+          }
+        />
 
-        {/* No items-start: the nav column must stretch to the content
-            column's full height (the default cross-axis stretch), or its
-            sticky child has nowhere to travel and disappears as soon as
-            the (short) TOC's own box scrolls past. */}
-        <div className="mt-14 lg:flex lg:gap-16">
+        <DocsLayout
+          sidebar={
+            <>
+              {toc.length > 0 && (
+                <SidebarCard label="On this page">
+                  <ol>
+                    {toc.map((h, i) => (
+                      <li key={h.id}>
+                        <a
+                          href={`#${h.id}`}
+                          className="flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-[13px] leading-snug text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)] lg:min-h-9"
+                        >
+                          <span className="w-5 shrink-0 tabular-nums text-[color:var(--text-quaternary)]">
+                            {i + 1}
+                          </span>
+                          {h.text}
+                        </a>
+                      </li>
+                    ))}
+                  </ol>
+                </SidebarCard>
+              )}
+              <ContactCard />
+            </>
+          }
+        >
           {toc.length > 0 && (
-            <nav aria-label="On this page" className="hidden lg:block lg:w-[220px] lg:shrink-0">
-              <div className="sticky top-24">
-                <p className="eyebrow">On this page</p>
-                <ul className="mt-4 space-y-2.5">
-                  {toc.map((h) => (
-                    <li key={h.id}>
-                      <a
-                        href={`#${h.id}`}
-                        className="block text-body-sm text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
-                      >
-                        {h.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </nav>
+            <details className="surface-card mb-6 p-4 lg:hidden">
+              <summary className="flex min-h-11 cursor-pointer items-center px-2 text-[14px] font-medium text-[color:var(--text-primary)]">
+                On this page
+              </summary>
+              <ol className="mt-2">
+                {toc.map((h, i) => (
+                  <li key={h.id}>
+                    <a
+                      href={`#${h.id}`}
+                      className="flex min-h-11 items-center gap-2.5 rounded-xl px-2 text-[13px] leading-snug text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)] lg:min-h-9"
+                    >
+                      <span className="w-5 shrink-0 tabular-nums text-[color:var(--text-quaternary)]">
+                        {i + 1}
+                      </span>
+                      {h.text}
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </details>
           )}
-          <div className="prose-content min-w-0 max-w-[760px] flex-1">{nodes}</div>
-        </div>
+          <article className="surface-card px-6 py-8 sm:px-10 sm:py-12">
+            <div className="prose-content max-w-[68ch] [&_h2]:scroll-mt-24 [&_h2]:border-t [&_h2]:border-[color:var(--border-subtle)] [&_h2]:pt-10 [&_h2:first-child]:border-0 [&_h2:first-child]:pt-0 [&_h2]:!text-[24px] sm:[&_h2]:!text-[26px]">
+              {nodes}
+            </div>
+          </article>
+          <div className="mt-6 lg:hidden">
+            <ContactCard />
+          </div>
+        </DocsLayout>
       </main>
       <Footer />
     </div>

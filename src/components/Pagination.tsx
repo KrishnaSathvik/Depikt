@@ -39,57 +39,60 @@ export function Pagination({
   }
 
   const btnBase =
-    "inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border text-body-sm font-medium tabular-nums transition-colors";
+    "inline-flex h-11 min-w-10 items-center justify-center rounded-full text-[14px] font-medium tabular-nums transition-[background-color,color,box-shadow] sm:h-10";
   const btnInactive =
-    "border-[color:var(--border-default)] bg-transparent text-[color:var(--text-secondary)] hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]";
-  const btnActive = "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--ink-text)]";
-  const btnDisabled = "cursor-not-allowed opacity-40";
+    "text-[color:var(--text-secondary)] hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] hover:shadow-[0_1px_2px_rgba(17,17,17,0.06)]";
+  const btnActive =
+    "bg-[color:var(--ink)] text-[color:var(--ink-text)] shadow-[0_6px_16px_-8px_rgba(17,17,17,0.6)]";
+  const btnDisabled = "cursor-not-allowed text-[color:var(--text-quaternary)]";
 
   return (
-    <nav className="mt-10 flex items-center justify-center gap-1.5" aria-label="Pagination">
-      {/* Previous */}
-      <button
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        aria-label="Previous page"
-        className={`${btnBase} px-3 gap-1 ${currentPage === 1 ? btnDisabled : btnInactive}`}
-      >
-        <ChevronLeft className="h-4 w-4" />
-        <span className="hidden sm:inline">Previous</span>
-      </button>
+    <nav className="mt-12 flex justify-center" aria-label="Pagination">
+      <div className="inline-flex max-w-full items-center gap-0.5 rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] p-1">
+        {/* Previous */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          aria-label="Previous page"
+          className={`${btnBase} gap-1 px-2 sm:px-4 ${currentPage === 1 ? btnDisabled : btnInactive}`}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="hidden sm:inline">Previous</span>
+        </button>
 
-      {/* Page numbers */}
-      {pages.map((p, i) =>
-        p === "ellipsis" ? (
-          <span
-            key={`ellipsis-${i}`}
-            className="inline-flex h-10 w-8 items-center justify-center text-[color:var(--text-tertiary)]"
-          >
-            &hellip;
-          </span>
-        ) : (
-          <button
-            key={p}
-            onClick={() => onPageChange(p)}
-            aria-label={`Page ${p}`}
-            aria-current={p === currentPage ? "page" : undefined}
-            className={`${btnBase} ${p === currentPage ? btnActive : btnInactive}`}
-          >
-            {p}
-          </button>
-        ),
-      )}
+        {/* Page numbers */}
+        {pages.map((p, i) =>
+          p === "ellipsis" ? (
+            <span
+              key={`ellipsis-${i}`}
+              className="inline-flex h-10 w-5 items-center justify-center text-[color:var(--text-tertiary)]"
+            >
+              &hellip;
+            </span>
+          ) : (
+            <button
+              key={p}
+              onClick={() => onPageChange(p)}
+              aria-label={`Page ${p}`}
+              aria-current={p === currentPage ? "page" : undefined}
+              className={`${btnBase} ${p === currentPage ? btnActive : btnInactive}`}
+            >
+              {p}
+            </button>
+          ),
+        )}
 
-      {/* Next */}
-      <button
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        aria-label="Next page"
-        className={`${btnBase} px-3 gap-1 ${currentPage === totalPages ? btnDisabled : btnInactive}`}
-      >
-        <span className="hidden sm:inline">Next</span>
-        <ChevronRight className="h-4 w-4" />
-      </button>
+        {/* Next */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          aria-label="Next page"
+          className={`${btnBase} gap-1 px-2 sm:px-4 ${currentPage === totalPages ? btnDisabled : btnInactive}`}
+        >
+          <span className="hidden sm:inline">Next</span>
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
     </nav>
   );
 }

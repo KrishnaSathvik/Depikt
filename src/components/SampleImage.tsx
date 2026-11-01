@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ImageOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
  * One presentation for a large sample image: preserves aspect ratio
  * (object-contain), fits the viewport, shows a quiet loading state and a
- * plain error state. Used by the Gallery lightbox and the Library detail
+ * plain error state (or a caller-supplied `fallback`, such as cover art). Used by the Gallery lightbox and the Library detail
  * view so both surfaces render images the same way.
  */
 export function SampleImage({
@@ -14,6 +14,7 @@ export function SampleImage({
   className,
   imgClassName,
   maxHeightClass = "max-h-[60vh]",
+  fallback,
 }: {
   src: string;
   alt: string;
@@ -21,6 +22,8 @@ export function SampleImage({
   imgClassName?: string;
   /** Tailwind max-height for the image; the frame follows the image. */
   maxHeightClass?: string;
+  /** Rendered instead of the plain "Image unavailable" state when the image fails. */
+  fallback?: ReactNode;
 }) {
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
 
@@ -29,17 +32,21 @@ export function SampleImage({
     setState("loading");
   }, [src]);
 
+  if (state === "error" && fallback) return <>{fallback}</>;
+
   return (
     <div
       className={cn(
         "relative flex w-full items-center justify-center overflow-hidden bg-[color:var(--bg-subtle)]",
-        state === "loading" && "min-h-[200px] animate-pulse",
+        state === "loading" && "min-h-[240px] animate-pulse",
         className,
       )}
     >
       {state === "error" ? (
-        <div className="flex min-h-[200px] flex-col items-center justify-center gap-2 text-[color:var(--text-tertiary)]">
-          <ImageOff className="h-5 w-5" aria-hidden="true" />
+        <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 text-[color:var(--text-tertiary)]">
+          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--bg-elevated)] shadow-[0_1px_2px_rgba(17,17,17,0.06)]">
+            <ImageOff className="h-5 w-5" aria-hidden="true" />
+          </span>
           <span className="text-body-sm">Image unavailable</span>
         </div>
       ) : (

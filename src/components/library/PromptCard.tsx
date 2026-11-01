@@ -1,4 +1,6 @@
-import { RecoverableImage } from "@/components/RecoverableImage";
+import { useEffect, useState } from "react";
+import { CoverArt } from "@/components/library/CoverArt";
+import { cn } from "@/lib/utils";
 import { ArrowRight, Star } from "lucide-react";
 import { toggleFavoriteLocal } from "@/lib/favorites";
 import type { LibraryPrompt } from "@/types/library";
@@ -18,6 +20,9 @@ export function PromptCard({
   onOpen: () => void;
   isFavorited: boolean;
 }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [prompt.thumbnail_url]);
+  const hasImage = !!prompt.thumbnail_url && !failed;
   return (
     <article
       onClick={onOpen}
@@ -30,7 +35,7 @@ export function PromptCard({
       tabIndex={0}
       role="button"
       aria-label={`View prompt: ${prompt.title}`}
-      className="group relative flex cursor-pointer flex-col bg-[color:var(--bg-elevated)] transition-colors hover:bg-[color:var(--bg-muted)] focus-visible:z-10"
+      className="surface-card surface-card-interactive group relative flex cursor-pointer flex-col overflow-hidden p-2 focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-2"
     >
       {/* Star icon */}
       <button
@@ -38,47 +43,42 @@ export function PromptCard({
           e.stopPropagation();
           toggleFavoriteLocal(`${prompt.source}-${prompt.id}`, prompt.source);
         }}
-        className={`absolute top-3 right-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-          prompt.thumbnail_url
-            ? "bg-black/50 text-white"
-            : "bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]"
-        } ${
-          isFavorited
-            ? "text-[color:var(--accent-orange)]"
-            : "hover:text-[color:var(--accent-orange)]"
-        }`}
+        className={cn(
+          "absolute right-4 top-4 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/70 bg-white/85 text-[color:var(--text-primary)] shadow-[0_4px_14px_-6px_rgba(17,17,17,0.35)] backdrop-blur-md transition-transform hover:scale-105 sm:h-9 sm:w-9",
+          isFavorited && "text-[color:var(--accent-orange)]",
+        )}
         aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
       >
-        <Star className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
+        <Star className={cn("h-4 w-4", isFavorited && "fill-current")} />
       </button>
 
-      {/* Thumbnail */}
-      {prompt.thumbnail_url ? (
-        <div className="relative aspect-square w-full overflow-hidden bg-[color:var(--bg-subtle)]">
-          {/* Square frame, whole image: landscape and portrait results are never cropped. */}
-          <RecoverableImage
-            src={prompt.thumbnail_url}
+      {/* Thumbnail: square frame, whole image — landscape and portrait results are never cropped. */}
+      <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[14px] bg-[color:var(--bg-subtle)]">
+        {hasImage ? (
+          <img
+            src={prompt.thumbnail_url!}
             alt=""
             loading="lazy"
+            onError={() => setFailed(true)}
             className="h-full w-full object-contain"
           />
-        </div>
-      ) : (
-        <div className="flex aspect-[3/1] items-end px-5 pt-5 sm:aspect-auto">
-          <span className="text-[13px] font-medium text-[color:var(--text-tertiary)]">
-            {prompt.category}
-          </span>
-        </div>
-      )}
+        ) : (
+          <CoverArt
+            seed={`${prompt.source}-${prompt.id}`}
+            title={prompt.title}
+            kicker={prompt.category}
+          />
+        )}
+      </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-5">
-        <h2 className="text-heading-sm text-[color:var(--text-primary)] line-clamp-2">
+      <div className="flex flex-1 flex-col gap-1.5 px-3 pb-3 pt-4">
+        <h2 className="line-clamp-2 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-[color:var(--text-primary)]">
           {prompt.title}
         </h2>
-        <p className="line-clamp-2 text-body-sm text-[color:var(--text-secondary)]">
+        <p className="line-clamp-2 text-[13.5px] leading-relaxed text-[color:var(--text-secondary)]">
           {prompt.prompt}
         </p>
-        <span className="mt-auto flex items-center gap-1 pt-3 text-body-sm font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
+        <span className="mt-auto flex items-center gap-1 pt-3 text-[13px] font-medium text-[color:var(--text-primary)] underline-offset-4 group-hover:underline">
           View prompt
           <ArrowRight className="h-3.5 w-3.5" />
         </span>

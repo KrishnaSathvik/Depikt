@@ -12,11 +12,13 @@ export function CreationsTab() {
 
   return (
     <div>
-      <h2 className="text-heading-md">{CREATIONS_COPY.title}</h2>
-      <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">
+      <h2 className="text-[28px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[32px]">
+        {CREATIONS_COPY.title}
+      </h2>
+      <p className="mt-1.5 text-[15px] text-[color:var(--text-secondary)]">
         {CREATIONS_COPY.subline}
       </p>
-      <div className="mt-5">
+      <div className="mt-6">
         <CreationsGrid onSelect={hub.openCreationDetail} />
       </div>
     </div>

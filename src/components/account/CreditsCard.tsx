@@ -9,6 +9,7 @@ import {
   planProduct,
   type PaidPlanKey,
 } from "@/lib/billing/plans";
+import { cn } from "@/lib/utils";
 import type { AccountSummaryResponse } from "@/routes/api/billing/account";
 
 /**
@@ -30,9 +31,10 @@ export function CreditsCard({
 }) {
   if (!summary) {
     return (
-      <div className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
-        <p className="eyebrow">Plan & credits</p>
-        <p className="mt-4 text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
+      <div className="surface-card p-5 sm:p-7" aria-busy="true">
+        <p className="text-[13px] font-medium text-[color:var(--text-secondary)]">Plan & credits</p>
+        <div className="mt-5 h-12 w-24 animate-pulse rounded-xl bg-[color:var(--bg-subtle)]" />
+        <p className="mt-3 text-body-sm text-[color:var(--text-tertiary)]">Loading…</p>
       </div>
     );
   }
@@ -86,32 +88,46 @@ export function CreditsCard({
   const pct = bar ? Math.min(100, Math.round((bar.numerator / bar.denominator) * 100)) : 0;
 
   return (
-    <div className="rounded-xl border border-[color:var(--border-subtle)] p-5 sm:p-6">
-      <p className="eyebrow">Plan & credits</p>
-
-      <div className="mt-4">
-        <p className="text-heading-sm text-[color:var(--text-primary)]">{planName}</p>
-        {priceLine && (
-          <p className="mt-0.5 text-body-sm text-[color:var(--text-secondary)]">{priceLine}</p>
-        )}
-        {/* Monthly paid: renew date lives under the plan name. Annual keeps
-            renew on its own labeled row below so it never looks like the
-            credit refresh date. */}
-        {isPaid && !isAnnual && renewalDate && (
-          <p className="mt-0.5 text-body-sm text-[color:var(--text-tertiary)]">
-            {summary.cancelAtPeriodEnd ? `Ends ${renewalDate}` : `Renews ${renewalDate}`}
-          </p>
-        )}
+    <div className="surface-card p-5 sm:p-7">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-[13px] font-medium text-[color:var(--text-secondary)]">Plan & credits</p>
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-3 py-1 text-[12px] font-semibold",
+            isPaid
+              ? "bg-[image:var(--brand-gradient)] text-white"
+              : "border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] text-[color:var(--text-primary)]",
+          )}
+        >
+          {planName}
+        </span>
       </div>
 
-      <p className="mt-5 text-display-md tabular-nums text-[color:var(--text-primary)]">
-        {summary.credits.available}
-      </p>
-      <p className="text-body-sm text-[color:var(--text-tertiary)]">credits remaining</p>
+      <div className="mt-5 flex items-end gap-2.5">
+        <p className="text-[52px] font-semibold leading-none tracking-[-0.04em] tabular-nums text-[color:var(--text-primary)]">
+          {summary.credits.available}
+        </p>
+        <p className="pb-1.5 text-[14px] text-[color:var(--text-tertiary)]">credits remaining</p>
+      </div>
+
+      {(priceLine || (isPaid && !isAnnual && renewalDate)) && (
+        <div className="mt-2 text-[13px] text-[color:var(--text-secondary)]">
+          {priceLine && <span className="tabular-nums">{priceLine}</span>}
+          {/* Monthly paid: renew date lives with the price. Annual keeps
+              renew on its own labeled row below so it never looks like the
+              credit refresh date. */}
+          {isPaid && !isAnnual && renewalDate && (
+            <span className="text-[color:var(--text-tertiary)]">
+              {priceLine ? " · " : ""}
+              {summary.cancelAtPeriodEnd ? `Ends ${renewalDate}` : `Renews ${renewalDate}`}
+            </span>
+          )}
+        </div>
+      )}
 
       {bar && (
         <div className="mt-5">
-          <div className="flex items-center justify-between text-body-sm text-[color:var(--text-secondary)]">
+          <div className="flex items-center justify-between text-[13px] text-[color:var(--text-secondary)]">
             <span>{bar.label}</span>
             <span className="tabular-nums text-[color:var(--text-primary)]">
               {bar.numerator} / {bar.denominator}
@@ -120,7 +136,7 @@ export function CreditsCard({
           {/* Track uses border tone, not --bg-subtle: on a white card #F7F7F7
               is nearly invisible, so the bar looked missing. */}
           <div
-            className="mt-2 h-2 w-full overflow-hidden rounded-sm bg-[color:var(--border-subtle)]"
+            className="mt-2 h-2 w-full overflow-hidden rounded-full bg-[color:var(--border-subtle)]"
             role="progressbar"
             aria-valuenow={bar.numerator}
             aria-valuemin={0}
@@ -128,7 +144,7 @@ export function CreditsCard({
             aria-label={bar.label}
           >
             <div
-              className="h-full bg-[color:var(--text-primary)] transition-[width]"
+              className="h-full rounded-full bg-[image:var(--brand-gradient)] transition-[width]"
               style={{ width: `${pct}%` }}
             />
           </div>
@@ -175,24 +191,24 @@ export function CreditsCard({
         </div>
       )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
+      <div className="mt-6 flex flex-wrap gap-2 border-t border-[color:var(--border-subtle)] pt-5">
+        <Button className="h-11 sm:h-10" onClick={onBuyCredits}>
+          Buy credits
+        </Button>
         {!isPaid && (
-          <Button variant="outline" size="sm" onClick={onUpgrade}>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onUpgrade}>
             View plans
           </Button>
         )}
         {isPaid && summary.plan !== "max" && (
-          <Button variant="outline" size="sm" onClick={onUpgrade}>
+          <Button variant="outline" className="h-11 sm:h-10" onClick={onUpgrade}>
             Upgrade
           </Button>
         )}
-        <Button size="sm" onClick={onBuyCredits}>
-          Buy credits
-        </Button>
         {isPaid && summary.hasStripeCustomer && (
           <Button
-            variant="outline"
-            size="sm"
+            variant="ghost"
+            className="h-11 sm:h-10"
             onClick={() => openBillingPortal().catch(() => toast.error("Could not open billing."))}
           >
             Manage billing
@@ -201,14 +217,13 @@ export function CreditsCard({
       </div>
 
       {paymentNeedsAttention && (
-        <div className="mt-4 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] p-3">
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <p className="text-body-sm font-medium text-[color:var(--text-primary)]">
             Payment needs attention.
           </p>
           <Button
-            size="sm"
             variant="outline"
-            className="mt-2"
+            className="mt-3 h-11 bg-white sm:h-10"
             onClick={() => openBillingPortal().catch(() => toast.error("Could not open billing."))}
           >
             Update billing

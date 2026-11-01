@@ -68,15 +68,17 @@ export function OutOfCreditsPanel({ className }: { className?: string }) {
     <div
       role="status"
       className={cn(
-        "rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg)] p-5",
+        "surface-card relative overflow-hidden p-5 sm:p-6 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-[image:var(--brand-gradient)]",
         className,
       )}
     >
-      <p className="text-heading-sm text-[color:var(--text-primary)]">{copy.title}</p>
+      <p className="text-[17px] font-semibold tracking-[-0.015em] text-[color:var(--text-primary)]">
+        {copy.title}
+      </p>
       <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{copy.body}</p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button
-          size="sm"
+          className="h-11 sm:h-10"
           onClick={() => run(copy.primary)}
           data-analytics-id="out-of-credits-primary"
         >
@@ -84,8 +86,8 @@ export function OutOfCreditsPanel({ className }: { className?: string }) {
         </Button>
         {copy.secondary && (
           <Button
-            size="sm"
             variant="outline"
+            className="h-11 sm:h-10"
             onClick={() => run(copy.secondary as OutOfCreditsAction)}
             data-analytics-id="out-of-credits-secondary"
           >

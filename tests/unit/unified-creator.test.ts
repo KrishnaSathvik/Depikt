@@ -22,7 +22,8 @@ test("Home owns one draft, generation execution and auth dialog across all tools
   assert.match(workspace, /CreatorDraftProvider/);
   assert.doesNotMatch(
     workspace,
-    /mode !== "generate" &&|rounded-full|bg-\[color:var\(--accent\)\] text-white/,
+    // The studio switcher is a rounded segmented control; still no hardcoded white-on-accent pills.
+    /mode !== "generate" &&|bg-\[color:var\(--accent\)\] text-white/,
   );
   assert.match(workspace, /ArrowRight/);
   assert.match(workspace, /tabIndex=\{selected \? 0 : -1\}/);

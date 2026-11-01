@@ -3,6 +3,8 @@ import { RecoverableImage } from "@/components/RecoverableImage";
 import { useCreatorDraft } from "@/components/CreatorDraft";
 import { ReferencePackPicker } from "./ReferencePackPicker";
 import { useEffect, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { findPromptPlaceholders } from "@/lib/prompt-placeholders";
 import { Sparkles, ImagePlus, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +13,12 @@ import {
   CreationComposer,
   ComposerChips,
   COMPOSER_TEXTAREA_CLASS,
+  COMPOSER_TOOL_CLASS,
 } from "@/components/composer/CreationComposer";
+import { cn } from "@/lib/utils";
+import { RatioPicker } from "@/components/composer/CreatorLayout";
+import { InspirationRow } from "@/components/generate/InspirationRow";
+import { GenerationResultLayout } from "@/components/generate/GenerationResultLayout";
 import { GENERATE_EXAMPLES } from "@/data/composer-examples";
 import { MODEL_COPY } from "@/lib/generation/models";
 import { resolveGenerationSize } from "@/lib/generation/aspect-ratio";
@@ -56,6 +63,7 @@ export function GenerateWorkspace({
   hideHero?: boolean;
 }) {
   const { prompt, setPrompt, selectedEntities, setSelectedEntities, gen } = useCreatorDraft();
+  const navigate = useNavigate();
   const [structuredRatio, setStructuredRatio] = useState<string | null>(null);
   const [routingHints, setRoutingHints] = useState<RoutingHints | null>(null);
   const [sourceContext, setSourceContext] = useState<{
@@ -147,6 +155,7 @@ export function GenerateWorkspace({
         });
 
   function submitComposer() {
+    if (findPromptPlaceholders(prompt).length > 0) return;
     void gen.submit({
       prompt,
       sourceContext,
@@ -179,6 +188,8 @@ export function GenerateWorkspace({
   // idle composer is a plain creation entry point, not half of a workspace.
   const isIdle = gen.phase === "idle" || (gen.phase === "error" && !gen.job);
 
+  const placeholders = findPromptPlaceholders(prompt);
+
   if (isIdle) {
     return (
       <>
@@ -189,52 +200,75 @@ export function GenerateWorkspace({
         {gen.errorMessage && gen.creditState !== "exhausted" && (
           <p className="mt-3 text-body-sm text-red-600">{gen.errorMessage}</p>
         )}
-        <div className="space-y-4">
-          <ComposerSurface
-            prompt={prompt}
-            onPromptChange={setPrompt}
-            references={gen.references}
-            onAddReference={gen.addReference}
-            onRemoveReference={gen.removeReference}
-            onRetryReference={gen.retryReferenceUpload}
-            onSubmit={submitComposer}
-            canSubmit={Boolean(prompt.trim())}
-            controls={
-              <>
-                <ReferencePackPicker
-                  selected={selectedEntities}
-                  onChange={setSelectedEntities}
-                  prompt={prompt}
-                  adhocCount={gen.references.length}
-                />
-              </>
-            }
-            caption={
-              <div className="flex items-center gap-2">
-                <select
-                  aria-label="Aspect ratio"
-                  value={structuredRatio ?? "auto"}
-                  onChange={(event) =>
-                    setStructuredRatio(event.target.value === "auto" ? null : event.target.value)
+        <div className="mx-auto max-w-[880px] space-y-8">
+          <div className="space-y-4">
+            <ComposerSurface
+              prompt={prompt}
+              onPromptChange={setPrompt}
+              references={gen.references}
+              onAddReference={gen.addReference}
+              onRemoveReference={gen.removeReference}
+              onRetryReference={gen.retryReferenceUpload}
+              onSubmit={submitComposer}
+              canSubmit={Boolean(prompt.trim()) && placeholders.length === 0}
+              controls={
+                <>
+                  <ReferencePackPicker
+                    selected={selectedEntities}
+                    onChange={setSelectedEntities}
+                    prompt={prompt}
+                    adhocCount={gen.references.length}
+                  />
+                </>
+              }
+              caption={
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <RatioPicker value={structuredRatio} onChange={setStructuredRatio} />
+                  <span className="whitespace-nowrap">· 1 credit</span>
+                </div>
+              }
+            />
+            {placeholders.length > 0 && (
+              <div
+                role="status"
+                className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-[color:var(--warning)]/30 bg-[color:var(--warning)]/[0.06] px-4 py-3 text-body-sm"
+              >
+                <span className="min-w-0 flex-1">
+                  Replace {placeholders.length === 1 ? "the placeholder" : "the placeholders"}{" "}
+                  {placeholders.map((ph, i) => (
+                    <span key={ph}>
+                      <code className="rounded bg-white/70 px-1 font-mono text-[12px]">{ph}</code>
+                      {i < placeholders.length - 1 ? ", " : ""}
+                    </span>
+                  ))}{" "}
+                  before generating.
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate({ to: "/", hash: "create", search: { mode: "build" }, replace: true })
                   }
-                  className="rounded-md bg-transparent py-1 pr-1 text-body-sm"
+                  className="inline-flex min-h-11 items-center rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 text-[13px] font-medium hover:border-[color:var(--border-strong)] sm:min-h-9"
                 >
-                  <option value="auto">Auto</option>
-                  {["1:1", "3:2", "2:3", "16:9", "9:16"].map((ratio) => (
-                    <option key={ratio} value={ratio}>
-                      {ratio}
-                    </option>
-                  ))}
-                </select>
-                <span>· 1 credit</span>
+                  Let Improve prompt fill them
+                </button>
               </div>
-            }
-          />
-          <ComposerChips
-            label="Try an example"
-            compact
-            chips={GENERATE_EXAMPLES}
-            onSelect={useChip}
+            )}
+            <ComposerChips
+              compact
+              label="Quick starts"
+              chips={GENERATE_EXAMPLES}
+              onSelect={useChip}
+            />
+          </div>
+          <InspirationRow
+            onUsePrompt={(text) => {
+              setPrompt(text);
+              document
+                .querySelector<HTMLTextAreaElement>('textarea[aria-label="Image prompt"]')
+                ?.focus({ preventScroll: true });
+              document.getElementById("create")?.scrollIntoView({ behavior: "smooth" });
+            }}
           />
         </div>
       </>
@@ -268,181 +302,193 @@ export function GenerateWorkspace({
         : "error";
   const active = gen.versions.find((v) => v.id === gen.activeVersionId);
 
-  return (
+  // Image-first: the result owns the stage; prompt and context live in the side panel.
+  const stage = (
     <>
-      <div className="space-y-8">
-        {/* Prompt/context, or the edit form once Edit is pressed */}
-        <div>
-          <GenerationCreditGate gen={gen} className="mb-6" />
-          {editing ? (
-            <GenerationEditForm
-              value={editPrompt}
-              onChange={setEditPrompt}
-              onApply={({ maskPng }) => {
-                void gen.applyEdit(editPrompt, { maskPng }).then((ok) => {
-                  if (!ok) return;
-                  setEditing(false);
-                  setEditPrompt("");
-                });
-              }}
-              onCancel={() => setEditing(false)}
-              imageUrl={gen.resultUrl}
-              sourceWidth={active?.width}
-              sourceHeight={active?.height}
-            />
-          ) : (
-            <div className="space-y-3">
-              <PromptSurface label="Prompt">
-                {gen.job?.errorMessage ??
-                  userFacingPrompt(
-                    prompt || gen.requestPrompt || active?.prompt || "Your image request",
-                  )}
-              </PromptSurface>
-              {gen.references.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {gen.references.map((r, i) => (
-                    <div
-                      key={i}
-                      className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
-                    >
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded">
-                        <RecoverableImage
-                          src={r.local.dataUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      </div>
-                      <span className="flex flex-col leading-tight">
-                        <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
-                          {REFERENCES_COPY.oneOff}
-                        </span>
-                        <span className="text-[11px] text-[color:var(--text-tertiary)]">
-                          {REFERENCES_COPY.oneOffScope}
-                        </span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-              {selectedEntities.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {selectedEntities.map((entity) => (
-                    <span
-                      key={entity.id}
-                      className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] px-2.5 py-1.5 text-[12px]"
-                    >
-                      <span className="flex flex-col leading-tight">
-                        <span>{entity.name}</span>
-                        <span className="text-[11px] text-[color:var(--text-tertiary)]">
-                          {REFERENCES_COPY.kinds[entity.type]} · {REFERENCES_COPY.locked}
-                        </span>
-                      </span>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <p className="text-body-sm text-[color:var(--text-secondary)]">
-                {gen.displayModel && `${MODEL_COPY[gen.displayModel].title} · `}
-                {resolvedSize.ratioLabel} · {resolvedSize.orientation}
-              </p>
-
-              {gen.researching && (
-                <p role="status" className="text-body-sm">
-                  Preparing your request…
-                </p>
-              )}
-              {gen.grounding && gen.grounding.sources.length > 0 && (
-                <details className="text-body-sm">
-                  <summary>
-                    {RESULT_STATUS.grounded}
-                    {gen.grounding.sources.length > 0
-                      ? ` · ${RESULT_STATUS.sources(gen.grounding.sources.length)}`
-                      : ""}
-                  </summary>
-                  <ul className="mt-2 space-y-1">
-                    {gen.grounding.sources.map((source) => (
-                      <li key={source.id}>
-                        <a href={source.url} target="_blank" rel="noopener noreferrer">
-                          {source.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                  {gen.phase === "result" && (
-                    <button type="button" onClick={gen.refreshResearch} className="mt-2 underline">
-                      {RESULT_STATUS.refreshResearch}
-                    </button>
-                  )}
-                </details>
-              )}
-              {gen.phase === "result" && gen.jobs.length <= 1 && gen.versions.length > 1 && (
-                <VersionStrip
-                  versions={gen.versions}
-                  jobs={gen.jobs}
-                  activeId={gen.activeVersionId}
-                  onSelect={gen.setActiveVersionId}
-                />
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Series and individual images share the same canvas and controls. */}
-        {gen.jobs.length > 1 && !editing ? (
-          <SeriesJobsGrid
-            jobs={gen.jobs}
-            onDownload={(id) => gen.download(id)}
-            onEdit={(id) => {
-              gen.setActiveVersionId(id);
-              setEditing(true);
-              setEditPrompt("");
+      {/* Series and individual images share the same canvas and controls. */}
+      {gen.jobs.length > 1 && !editing ? (
+        <SeriesJobsGrid
+          jobs={gen.jobs}
+          onDownload={(id) => gen.download(id)}
+          onEdit={(id) => {
+            gen.setActiveVersionId(id);
+            setEditing(true);
+            setEditPrompt("");
+          }}
+          onRegenerate={(id) => gen.regenerate(id)}
+          onNew={startNew}
+        />
+      ) : (
+        <GenerationCanvas
+          state={canvasState}
+          aspectRatio={resolvedSize.ratioLabel}
+          orientation={resolvedSize.orientation}
+          imageUrl={gen.resultUrl}
+          refreshImageUrl={async () =>
+            gen.activeVersionId
+              ? (await getCreationDetail(gen.activeVersionId)).versions.find(
+                  (v) => v.id === gen.activeVersionId,
+                )?.url
+              : null
+          }
+          refining={gen.job?.refining}
+          statusLines={resultStatusLines({
+            sourceCount: gen.grounding?.sources.length,
+            temporalSupport: gen.grounding?.temporalSupport ?? gen.job?.validation?.temporalSupport,
+            validation: gen.job?.validation,
+          })}
+          errorMessage={gen.errorMessage}
+          onRetry={gen.reset}
+          jobStatus={
+            gen.job?.status === "queued" || gen.job?.status === "running"
+              ? gen.job.status
+              : gen.phase === "starting"
+                ? "queued"
+                : "running"
+          }
+          actions={
+            editing ? undefined : (
+              <GenerationActions
+                onDownload={() => gen.download()}
+                onEdit={() => setEditing((e) => !e)}
+                onRegenerate={() => gen.regenerate()}
+                onNew={startNew}
+              />
+            )
+          }
+        />
+      )}
+    </>
+  );
+  const details = (
+    <>
+      {/* Prompt/context, or the edit form once Edit is pressed */}
+      <div>
+        <GenerationCreditGate gen={gen} className="mb-6" />
+        {editing ? (
+          <GenerationEditForm
+            value={editPrompt}
+            onChange={setEditPrompt}
+            onApply={({ maskPng }) => {
+              void gen.applyEdit(editPrompt, { maskPng }).then((ok) => {
+                if (!ok) return;
+                setEditing(false);
+                setEditPrompt("");
+              });
             }}
-            onRegenerate={(id) => gen.regenerate(id)}
-            onNew={startNew}
+            onCancel={() => setEditing(false)}
+            imageUrl={gen.resultUrl}
+            sourceWidth={active?.width}
+            sourceHeight={active?.height}
           />
         ) : (
-          <GenerationCanvas
-            state={canvasState}
-            aspectRatio={resolvedSize.ratioLabel}
-            orientation={resolvedSize.orientation}
-            imageUrl={gen.resultUrl}
-            refreshImageUrl={async () =>
-              gen.activeVersionId
-                ? (await getCreationDetail(gen.activeVersionId)).versions.find(
-                    (v) => v.id === gen.activeVersionId,
-                  )?.url
-                : null
-            }
-            refining={gen.job?.refining}
-            statusLines={resultStatusLines({
-              sourceCount: gen.grounding?.sources.length,
-              temporalSupport:
-                gen.grounding?.temporalSupport ?? gen.job?.validation?.temporalSupport,
-              validation: gen.job?.validation,
-            })}
-            errorMessage={gen.errorMessage}
-            onRetry={gen.reset}
-            jobStatus={
-              gen.job?.status === "queued" || gen.job?.status === "running"
-                ? gen.job.status
-                : gen.phase === "starting"
-                  ? "queued"
-                  : "running"
-            }
-            actions={
-              editing ? undefined : (
-                <GenerationActions
-                  onDownload={() => gen.download()}
-                  onEdit={() => setEditing((e) => !e)}
-                  onRegenerate={() => gen.regenerate()}
-                  onNew={startNew}
-                />
-              )
-            }
-          />
+          <div className="space-y-3">
+            <PromptSurface label="Prompt">
+              {gen.job?.errorMessage ??
+                userFacingPrompt(
+                  prompt || gen.requestPrompt || active?.prompt || "Your image request",
+                )}
+            </PromptSurface>
+            {gen.references.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {gen.references.map((r, i) => (
+                  <div
+                    key={i}
+                    className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] px-2.5 py-1.5"
+                  >
+                    <div className="h-8 w-8 shrink-0 overflow-hidden rounded">
+                      <RecoverableImage
+                        src={r.local.dataUrl}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                    <span className="flex flex-col leading-tight">
+                      <span className="text-[12px] font-medium text-[color:var(--text-secondary)]">
+                        {REFERENCES_COPY.oneOff}
+                      </span>
+                      <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                        {REFERENCES_COPY.oneOffScope}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {selectedEntities.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {selectedEntities.map((entity) => (
+                  <span
+                    key={entity.id}
+                    className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] px-2.5 py-1.5 text-[12px]"
+                  >
+                    <span className="flex flex-col leading-tight">
+                      <span>{entity.name}</span>
+                      <span className="text-[11px] text-[color:var(--text-tertiary)]">
+                        {REFERENCES_COPY.kinds[entity.type]} · {REFERENCES_COPY.locked}
+                      </span>
+                    </span>
+                  </span>
+                ))}
+              </div>
+            )}
+            <p className="text-body-sm text-[color:var(--text-secondary)]">
+              {gen.displayModel && `${MODEL_COPY[gen.displayModel].title} · `}
+              {resolvedSize.ratioLabel} · {resolvedSize.orientation}
+            </p>
+
+            {gen.researching && (
+              <p role="status" className="text-body-sm">
+                Preparing your request…
+              </p>
+            )}
+            {gen.grounding && gen.grounding.sources.length > 0 && (
+              <details className="text-body-sm">
+                <summary>
+                  {RESULT_STATUS.grounded}
+                  {gen.grounding.sources.length > 0
+                    ? ` · ${RESULT_STATUS.sources(gen.grounding.sources.length)}`
+                    : ""}
+                </summary>
+                <ul className="mt-2 space-y-1">
+                  {gen.grounding.sources.map((source) => (
+                    <li key={source.id}>
+                      <a href={source.url} target="_blank" rel="noopener noreferrer">
+                        {source.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+                {gen.phase === "result" && (
+                  <button type="button" onClick={gen.refreshResearch} className="mt-2 underline">
+                    {RESULT_STATUS.refreshResearch}
+                  </button>
+                )}
+              </details>
+            )}
+            {gen.phase === "result" && gen.jobs.length <= 1 && gen.versions.length > 1 && (
+              <VersionStrip
+                versions={gen.versions}
+                jobs={gen.jobs}
+                activeId={gen.activeVersionId}
+                onSelect={gen.setActiveVersionId}
+              />
+            )}
+          </div>
         )}
       </div>
     </>
+  );
+
+  return (
+    <div className="space-y-8">
+      <GenerationResultLayout
+        stage={stage}
+        details={details}
+        stacked={editing || gen.jobs.length > 1}
+        detailsFirst={editing}
+      />
+    </div>
   );
 }
 
@@ -502,7 +548,7 @@ function ComposerSurface({
                 )}
               </div>
               <span className="flex flex-col leading-tight">
-                <span className="text-[12px] font-mono text-[color:var(--text-secondary)]">
+                <span className="text-[12px] font-medium text-[color:var(--text-secondary)]">
                   {REFERENCES_COPY.oneOff}
                 </span>
                 <span className="text-[11px] text-[color:var(--text-tertiary)]">
@@ -513,14 +559,19 @@ function ComposerSurface({
                 type="button"
                 aria-label="Remove reference"
                 onClick={() => onRemoveReference(i)}
-                className="ml-1 rounded p-0.5 text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)]"
+                className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] sm:h-7 sm:w-7"
               >
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
           ))}
           {references.length < MAX_REFERENCE_IMAGES_V1 && (
-            <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[color:var(--border-subtle)] px-2.5 py-1.5 text-[12px] font-mono text-[color:var(--text-tertiary)] transition-colors hover:border-[color:var(--border-default)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-secondary)]">
+            <label
+              className={cn(
+                COMPOSER_TOOL_CLASS,
+                "cursor-pointer focus-within:ring-2 focus-within:ring-[color:var(--accent)] focus-within:ring-offset-1",
+              )}
+            >
               <ImagePlus className="h-3.5 w-3.5" />
               {REFERENCES_COPY.oneOffAdd}
               <span className="text-[color:var(--text-tertiary)]">
@@ -555,7 +606,7 @@ function ComposerSurface({
         placeholder="Describe your image..."
         rows={5}
         aria-label="Image prompt"
-        className={`${COMPOSER_TEXTAREA_CLASS} h-[200px] min-h-[180px]`}
+        className={`${COMPOSER_TEXTAREA_CLASS}`}
       />
     </CreationComposer>
   );

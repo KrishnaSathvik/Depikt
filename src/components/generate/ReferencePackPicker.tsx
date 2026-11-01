@@ -5,6 +5,7 @@ import { Lock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { REFERENCES_COPY as C } from "@/lib/product";
+import { COMPOSER_TOOL_CLASS } from "@/components/composer/CreationComposer";
 import {
   type ReferenceEntity,
   type EntityType,
@@ -74,7 +75,7 @@ export function ReferencePackPicker({
           .map((e) => (
             <span
               key={e.id}
-              className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-body-sm"
+              className="inline-flex items-center gap-2 rounded-md border border-[color:var(--border-default)] bg-[color:var(--bg-subtle)] py-1 pl-3 pr-1 text-body-sm"
             >
               <Lock className="h-3 w-3" aria-hidden />
               <span className="flex flex-col items-start leading-tight">
@@ -87,14 +88,15 @@ export function ReferencePackPicker({
                 type="button"
                 aria-label={`Remove ${e.name}`}
                 onClick={() => onChange(selected.filter((s) => s.id !== e.id))}
+                className="inline-flex h-10 w-10 items-center justify-center rounded text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] sm:h-7 sm:w-7"
               >
-                <X className="h-3 w-3" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </span>
           ))}
-        <Button variant="outline" size="sm" onClick={() => setOpen(true)}>
+        <button type="button" className={COMPOSER_TOOL_CLASS} onClick={() => setOpen(true)}>
           {C.add}
-        </Button>
+        </button>
         {selected.length > 0 && (
           <span className="text-xs text-[color:var(--text-secondary)]">
             {C.imageBudget(count, MAX_JOB_INPUT_IMAGES_WITH_ENTITIES)}

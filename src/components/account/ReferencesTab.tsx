@@ -73,12 +73,14 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
   return (
     <section className="space-y-5" aria-label={C.title}>
       <div>
-        <h2 className="text-heading-sm">{C.title}</h2>
+        <h2 className="text-[28px] font-semibold tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[32px]">
+          {C.title}
+        </h2>
         {entities.length === 0 && !loading && (
-          <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{C.empty}</p>
+          <p className="mt-1.5 text-[15px] text-[color:var(--text-secondary)]">{C.empty}</p>
         )}
         {entities.length > 0 && (
-          <p className="mt-1 text-body-sm text-[color:var(--text-secondary)]">{C.lockedHint}</p>
+          <p className="mt-1.5 text-[15px] text-[color:var(--text-secondary)]">{C.lockedHint}</p>
         )}
       </div>
       {error && (
@@ -86,10 +88,12 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
           {error}
         </p>
       )}
-      {loading && <p>{C.loading}</p>}
+      {loading && <p className="text-body-sm text-[color:var(--text-tertiary)]">{C.loading}</p>}
       {choosingType ? (
-        <div className="space-y-3 rounded-lg border p-4">
-          <h3 className="text-heading-sm">Create a saved reference</h3>
+        <div className="surface-card space-y-4 p-5 sm:p-6">
+          <h3 className="text-[18px] font-semibold tracking-[-0.015em]">
+            Create a saved reference
+          </h3>
           <p className="text-body-sm text-[color:var(--text-secondary)]">
             What are you keeping consistent?
           </p>
@@ -98,6 +102,7 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
               <Button
                 key={choice}
                 variant="outline"
+                className="h-11 sm:h-10"
                 onClick={() => {
                   setType(choice);
                   setName("");
@@ -110,13 +115,13 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
               </Button>
             ))}
           </div>
-          <Button variant="ghost" onClick={() => setChoosingType(false)}>
+          <Button variant="ghost" className="h-11 sm:h-10" onClick={() => setChoosingType(false)}>
             Cancel
           </Button>
         </div>
       ) : editing === null ? (
         <Button
-          variant="outline"
+          className="h-11 sm:h-10"
           onClick={() => {
             setChoosingType(true);
             setName("");
@@ -128,7 +133,7 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
         </Button>
       ) : (
         <form
-          className="space-y-3 rounded-lg border p-4"
+          className="surface-card space-y-4 p-5 sm:p-6"
           onSubmit={(e) => {
             e.preventDefault();
             void action(async () => {
@@ -142,15 +147,21 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
             });
           }}
         >
-          <label className="block text-body-sm">
-            {C.name}
-            <Input required maxLength={60} value={name} onChange={(e) => setName(e.target.value)} />
+          <label className="block space-y-1.5 text-body-sm font-medium">
+            <span>{C.name}</span>
+            <Input
+              className="h-11 rounded-xl"
+              required
+              maxLength={60}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </label>
           {editing === "new" && (
-            <label className="block text-body-sm">
+            <label className="block text-body-sm font-medium">
               {C.type}
               <select
-                className="ml-3 rounded border p-2"
+                className="ml-3 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 text-[14px] h-11 sm:h-10"
                 value={type}
                 onChange={(e) => setType(e.target.value as EntityType)}
               >
@@ -162,9 +173,10 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
               </select>
             </label>
           )}
-          <label className="block text-body-sm">
-            {C.description}
+          <label className="block space-y-1.5 text-body-sm font-medium">
+            <span>{C.description}</span>
             <Textarea
+              className="rounded-xl"
               maxLength={600}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -172,8 +184,15 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
             />
           </label>
           <div className="flex gap-2">
-            <Button disabled={busy}>{C.save}</Button>
-            <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
+            <Button className="h-11 sm:h-10" disabled={busy}>
+              {C.save}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-11 sm:h-10"
+              onClick={() => setEditing(null)}
+            >
               {C.cancel}
             </Button>
           </div>
@@ -182,8 +201,10 @@ function OwnedReferencesTab({ startCreating, userId }: { startCreating: boolean;
       {(Object.keys(C.groups) as EntityType[])
         .filter((group) => entities.some((entity) => entity.type === group))
         .map((group) => (
-          <div key={group} className="space-y-3">
-            <h3 className="text-body-sm font-medium">{C.groups[group]}</h3>
+          <div key={group} className="space-y-3 pt-2">
+            <h3 className="text-[13px] font-medium uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]">
+              {C.groups[group]}
+            </h3>
             {entities
               .filter((e) => e.type === group)
               .map((entity) => (
@@ -222,20 +243,21 @@ function PackCard({
   const roles = e.assets.length ? ROLES_BY_TYPE[e.type].filter((r) => r !== primary) : [primary];
   const selected = roles.includes(role as never) ? role : roles[0];
   return (
-    <article className="space-y-3 rounded-lg border p-4">
-      <div className="flex flex-wrap items-center gap-3">
+    <article className="surface-card space-y-4 p-5 sm:p-6">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <button
           type="button"
-          className="font-medium underline-offset-4 hover:underline"
+          className="min-h-9 text-[17px] font-semibold tracking-[-0.015em] underline-offset-4 hover:underline"
           onClick={edit}
         >
           {e.name}
         </button>
-        <span className="text-body-sm text-[color:var(--text-secondary)]">
+        <span className="rounded-full border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-2.5 py-0.5 text-[12px] font-medium text-[color:var(--text-secondary)]">
           {C.imageBudget(e.assets.length, 8)}
         </span>
         <Button
           variant="ghost"
+          className="ml-auto h-11 sm:h-9"
           disabled={busy}
           onClick={() => setPendingDelete({ path: `/${e.id}`, label: `Delete ${e.name}?` })}
         >
@@ -256,13 +278,15 @@ function PackCard({
                   ?.assets.find((asset) => asset.id === a.id)?.previewUrl
               }
               alt={`${e.name}, ${C.roles[a.role] ?? a.role.replaceAll("_", " ")}`}
-              className="h-24 w-24 rounded border object-cover"
+              className="h-24 w-24 rounded-[14px] object-cover shadow-[0_0_0_1px_rgba(17,17,17,0.06)]"
             />
-            <p className="mt-1 text-xs">{C.roles[a.role] ?? a.role.replaceAll("_", " ")}</p>
+            <p className="mt-1.5 text-xs text-[color:var(--text-secondary)]">
+              {C.roles[a.role] ?? a.role.replaceAll("_", " ")}
+            </p>
             <button
               type="button"
               disabled={busy}
-              className="text-xs underline"
+              className="min-h-8 text-xs text-[color:var(--text-tertiary)] underline underline-offset-2 hover:text-[color:var(--text-primary)]"
               aria-label={`Remove ${C.roles[a.role] ?? a.role} of ${e.name}`}
               onClick={() =>
                 setPendingDelete({
@@ -277,12 +301,12 @@ function PackCard({
         ))}
       </div>
       {e.assets.length < 8 && (
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="text-body-sm">
+        <div className="flex flex-wrap items-center gap-3 border-t border-[color:var(--border-subtle)] pt-4">
+          <label className="text-body-sm text-[color:var(--text-secondary)]">
             {C.role}
             <select
               aria-label={`${C.role} for ${e.name}`}
-              className="ml-2 rounded border p-2"
+              className="ml-2 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-4 text-[14px] h-11 sm:h-10 text-[color:var(--text-primary)]"
               value={selected}
               onChange={(ev) => setRole(ev.target.value)}
             >
@@ -293,7 +317,7 @@ function PackCard({
               ))}
             </select>
           </label>
-          <label className="cursor-pointer rounded border px-3 py-2 text-body-sm">
+          <label className="inline-flex h-11 cursor-pointer items-center rounded-full border border-[color:var(--border-default)] px-5 text-[14px] font-medium text-[color:var(--text-primary)] transition-colors hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)] focus-within:ring-2 focus-within:ring-[color:var(--accent)] sm:h-10">
             {C.upload}
             <input
               aria-label={`${C.upload} to ${e.name}`}

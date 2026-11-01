@@ -33,14 +33,14 @@ function CodeBlock({ code, label }: { code: string; label?: string }) {
     setTimeout(() => setCopied(false), 1500);
   };
   return (
-    <div className="my-8">
+    <div className="my-10">
       <PromptSurface
         label={label || "Prompt"}
         actions={
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
+            className="inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)]"
             aria-label="Copy prompt"
           >
             {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -71,7 +71,7 @@ function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
       nodes.push(
         <code
           key={key}
-          className="rounded-sm bg-[color:var(--code-bg)] border border-[color:var(--code-border)] px-1.5 py-0.5 font-mono text-[0.85em] text-[color:var(--code-text)]"
+          className="rounded-md border border-[color:var(--code-border)] bg-[color:var(--code-bg)] px-1.5 py-0.5 font-mono text-[0.84em] text-[color:var(--code-text)]"
         >
           {token.slice(1, -1)}
         </code>,
@@ -119,9 +119,18 @@ export function renderMarkdown(md: string): RenderedContent {
     if (img) {
       const [, alt, src, caption] = img;
       out.push(
-        <figure key={`fig-${key++}`}>
-          <img src={src} alt={alt} loading="lazy" />
-          {caption && <figcaption>{renderInline(caption, `cap-${key}`)}</figcaption>}
+        <figure key={`fig-${key++}`} className="!my-12">
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            className="!rounded-[18px] shadow-[0_24px_50px_-36px_rgba(17,17,17,0.35)]"
+          />
+          {caption && (
+            <figcaption className="!mt-3 text-center">
+              {renderInline(caption, `cap-${key}`)}
+            </figcaption>
+          )}
         </figure>,
       );
       i++;
@@ -150,7 +159,7 @@ export function renderMarkdown(md: string): RenderedContent {
         <h2
           key={`h-${key++}`}
           id={id}
-          className="mt-16 mb-5 text-heading-lg text-[color:var(--text-primary)] first:mt-0"
+          className="mb-5 mt-16 text-balance text-[30px] font-semibold leading-[1.15] tracking-[-0.025em] text-[color:var(--text-primary)] first:mt-0"
         >
           {text}
         </h2>,
@@ -166,7 +175,7 @@ export function renderMarkdown(md: string): RenderedContent {
         <h3
           key={`h-${key++}`}
           id={id}
-          className="mt-10 mb-3 text-heading-md text-[color:var(--text-primary)]"
+          className="mb-3 mt-10 text-[22px] font-semibold leading-snug tracking-[-0.015em] text-[color:var(--text-primary)]"
         >
           {text}
         </h3>,
@@ -176,7 +185,12 @@ export function renderMarkdown(md: string): RenderedContent {
     }
 
     if (/^---+$/.test(line.trim())) {
-      out.push(<hr key={`hr-${key++}`} className="my-12 border-[color:var(--border-subtle)]" />);
+      out.push(
+        <hr
+          key={`hr-${key++}`}
+          className="mx-auto my-14 h-px w-24 border-0 bg-[color:var(--border-default)]"
+        />,
+      );
       i++;
       continue;
     }
@@ -190,7 +204,7 @@ export function renderMarkdown(md: string): RenderedContent {
       out.push(
         <blockquote
           key={`q-${key++}`}
-          className="my-8 border-l-[3px] border-[color:var(--accent)] bg-[color:var(--bg-subtle)] px-6 py-4 italic text-[18px] leading-[1.6] text-[color:var(--text-secondary)]"
+          className="relative my-10 overflow-hidden rounded-[18px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] py-5 pl-7 pr-6 text-[18px] leading-[1.6] text-[color:var(--text-primary)] before:absolute before:inset-y-0 before:left-0 before:w-1 before:bg-[image:var(--brand-gradient)]"
         >
           {renderInline(quoteLines.join(" "), `q-${key}`)}
         </blockquote>,
@@ -221,7 +235,7 @@ export function renderMarkdown(md: string): RenderedContent {
       out.push(
         <div
           key={`tbl-${key++}`}
-          className="my-8 overflow-x-auto rounded-md border border-[color:var(--border-subtle)]"
+          className="my-10 overflow-x-auto rounded-[16px] border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)]"
         >
           <table className="w-full text-body-sm">
             <thead className="bg-[color:var(--bg-subtle)]">
@@ -229,7 +243,7 @@ export function renderMarkdown(md: string): RenderedContent {
                 {headerCells.map((c, idx) => (
                   <th
                     key={idx}
-                    className="px-4 py-3 text-left font-mono text-[12px] tracking-[0.04em] uppercase text-[color:var(--text-tertiary)]"
+                    className="px-4 py-3 text-left text-[12px] font-medium uppercase tracking-[0.06em] text-[color:var(--text-tertiary)]"
                   >
                     {renderInline(c, `th-${idx}`)}
                   </th>
@@ -263,11 +277,11 @@ export function renderMarkdown(md: string): RenderedContent {
         i++;
       }
       out.push(
-        <ul key={`ul-${key++}`} className="my-6 space-y-2 pl-5">
+        <ul key={`ul-${key++}`} className="my-6 space-y-2.5">
           {items.map((it, idx) => (
             <li
               key={idx}
-              className="relative pl-5 text-[color:var(--text-secondary)] before:absolute before:left-0 before:top-[0.85em] before:h-px before:w-3 before:bg-[color:var(--text-tertiary)]"
+              className="relative pl-6 text-[color:var(--text-secondary)] before:absolute before:left-1 before:top-[0.7em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-[image:var(--brand-gradient)]"
             >
               {renderInline(it, `li-${idx}`)}
             </li>
@@ -286,10 +300,10 @@ export function renderMarkdown(md: string): RenderedContent {
       out.push(
         <ol
           key={`ol-${key++}`}
-          className="my-6 list-decimal space-y-2 pl-7 marker:font-mono marker:text-[color:var(--text-tertiary)] marker:tabular-nums"
+          className="my-6 list-decimal space-y-2.5 pl-7 marker:text-[15px] marker:font-semibold marker:tabular-nums marker:text-[color:var(--text-primary)]"
         >
           {items.map((it, idx) => (
-            <li key={idx} className="pl-1 text-[color:var(--text-secondary)]">
+            <li key={idx} className="pl-2 text-[color:var(--text-secondary)]">
               {renderInline(it, `oli-${idx}`)}
             </li>
           ))}
