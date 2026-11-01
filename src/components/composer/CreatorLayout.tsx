@@ -42,7 +42,7 @@ export function RatioPicker({
     <div
       role="radiogroup"
       aria-label="Aspect ratio"
-      className="flex max-w-full flex-wrap items-center gap-0 sm:inline-flex sm:gap-1"
+      className="grid w-full grid-cols-6 items-center gap-0.5 sm:inline-flex sm:w-auto sm:gap-1"
       onKeyDown={(event) => {
         const step =
           event.key === "ArrowRight" || event.key === "ArrowDown"
@@ -70,7 +70,7 @@ export function RatioPicker({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(r.value)}
             className={cn(
-              "inline-flex min-h-10 shrink-0 items-center gap-1 rounded-full border px-2 text-[12px] sm:gap-1.5 sm:px-2.5 font-medium transition-colors sm:min-h-8",
+              "inline-flex min-h-10 min-w-0 items-center justify-center gap-1 rounded-full border px-1 text-[12px] sm:shrink-0 sm:gap-1.5 sm:px-2.5 font-medium transition-colors sm:min-h-8",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]",
               selected
                 ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"

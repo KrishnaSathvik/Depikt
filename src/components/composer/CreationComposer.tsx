@@ -74,7 +74,7 @@ export function CreationComposer({
         </div>
       )}
       <div className="composer-footer flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--border-subtle)] px-4 py-3 sm:px-5 [&>button]:min-h-11 [&>button]:w-full [&>button]:rounded-full [&>button]:px-5 sm:[&>button]:min-h-10 sm:[&>button]:w-auto">
-        <div className="min-w-0 text-body-sm text-[color:var(--text-secondary)]">{caption}</div>
+        <div className="w-full min-w-0 text-body-sm text-[color:var(--text-secondary)] sm:w-auto">{caption}</div>
         {submit}
       </div>
     </div>
