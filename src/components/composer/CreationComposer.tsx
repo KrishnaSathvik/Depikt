@@ -31,7 +31,7 @@ export const COMPOSER_TEXTAREA_CLASS =
  * relaxes to 36px from `sm` up. Mono stays reserved for data.
  */
 export const COMPOSER_TOOL_CLASS =
-  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-3.5 text-[13px] font-medium text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-1 sm:min-h-9";
+  "inline-flex min-h-11 items-center gap-1.5 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] px-3 text-[13px] sm:px-3.5 font-medium text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--border-strong)] hover:bg-[color:var(--bg-subtle)] hover:text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-1 sm:min-h-9";
 
 /**
  * The one visual shell for a creation input — Generate, Prompt Build, and
@@ -69,7 +69,7 @@ export function CreationComposer({
     >
       {children}
       {referencesSlot && (
-        <div className="flex flex-wrap items-center gap-2 px-4 pb-3 pt-2 sm:px-5">
+        <div className="flex flex-wrap items-center gap-1.5 px-3 pb-3 pt-2 sm:gap-2 sm:px-5">
           {referencesSlot}
         </div>
       )}
