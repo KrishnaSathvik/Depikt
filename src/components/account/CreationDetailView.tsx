@@ -232,7 +232,11 @@ export function CreationDetailView({
           </details>
         )}
         {detail && detail.versions.length > 1 && (
-          <div aria-label="Saved versions" className="flex flex-wrap gap-2">
+          <div
+            role="group"
+            aria-label="Saved versions"
+            className="flex flex-wrap gap-2 [&>button]:min-h-11 [&>button]:whitespace-normal [&>button]:h-auto"
+          >
             {detail.versions.map((version, index) => (
               <Button
                 key={version.id}
@@ -259,7 +263,7 @@ export function CreationDetailView({
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 [&>button]:min-h-11">
           <Button variant="outline" size="sm" onClick={download} disabled={!creation.url}>
             Download
           </Button>

@@ -20,7 +20,7 @@ export function GenerationResultLayout({
   detailsFirst?: boolean;
 }) {
   const stageBox = (
-    <div className="flex min-h-[320px] items-center justify-center rounded-3xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-3 shadow-[var(--shadow-md)] sm:min-h-[520px] sm:p-8">
+    <div className="flex min-h-[320px] items-center justify-center sm:min-h-[520px]">
       <div className="w-full min-w-0">{stage}</div>
     </div>
   );
@@ -28,7 +28,7 @@ export function GenerationResultLayout({
     <aside
       aria-label="Image details"
       className={cn(
-        "rounded-2xl border border-[color:var(--border-subtle)] bg-[color:var(--bg-elevated)] p-4 sm:p-5",
+        "min-w-0 border-t border-border pt-4 sm:pt-5 lg:border-t-0",
         !stacked && "lg:sticky lg:top-16",
       )}
     >

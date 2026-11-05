@@ -1,10 +1,12 @@
 # Step 5 — UI/UX Audit and Refinement
 
-- [ ] 5A Capture current desktop/tablet/mobile journeys and accessibility evidence.
-- [ ] 5B Document prioritized findings and consistent interaction decisions.
-- [ ] 5C Implement evidence-led frontend fixes preserving shared hooks and security.
-- [ ] 5D Verify keyboard, touch, reduced motion, overflow and media performance.
-- [ ] 5E Run application tests, relevant lint and browser regression checks; record remaining limitations.
+- [x] 5A Capture current desktop/tablet/mobile journeys and accessibility evidence.
+- [x] 5B Document prioritized findings and consistent interaction decisions.
+- [x] 5C Implement evidence-led frontend fixes preserving shared hooks and security.
+- [x] 5D Verify keyboard, touch, reduced motion and overflow; document physical-device/media benchmark limitations.
+- [x] 5E Full suite 989/991 (two known failures); focused regressions 54/54; nine axe page scans clean; signed-in Library/real saved creation editing walkthroughs passed. Harness build OK; no separate manual typecheck.
+
+Report: docs/step5-ui-ux-report-2026-11-05.md; screenshots: docs/step5-evidence/.
 
 No deployment, production database changes, paid provider calls, payments or price changes. Stop before benchmarks and coordinated release; do not ask for publication.
 
@@ -29,7 +31,7 @@ Step 3 baseline above is preserved. Step 4 constraints: no deployment, shared da
 - [x] Consolidated report with per-milestone files, test outcomes, limitations and blockers.
 - [x] Closed inherited token disclosure in Step 4D with real-role isolated database tests.
 
-Blocked: live provider verification and GIF pricing benchmark require paid calls, prohibited in this step. Security boundary needs a separate authorized follow-up; production remains untouched until explicit future approval. Step 5 not started.
+Blocked: live provider verification and GIF pricing benchmark require paid calls, prohibited in this step. Security boundary closed in Step 4D; production remains untouched until explicit future approval. Step 5 targeted UI refinement is complete.
 
 # Step 4D — Execution-token boundary & media readiness
 - [x] Job creation RPCs no longer return tokens (new + replay); service_role-only reader

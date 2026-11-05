@@ -13,7 +13,9 @@ const SHOWCASE_SLUGS = [
  * idea" fills the composer with the rough idea only; it never submits.
  */
 export function ImproveShowcase({ onTryIdea }: { onTryIdea: (idea: string) => void }) {
-  const items = SHOWCASE_SLUGS.map((slug) => GENERATE_INSPIRATION.find((i) => i.slug === slug)!);
+  const items = GENERATE_INSPIRATION.filter((item) =>
+    SHOWCASE_SLUGS.some((slug) => slug === item.slug),
+  );
   return (
     <section aria-labelledby="improve-showcase-heading" className="space-y-5">
       <div className="text-center">
@@ -105,17 +107,18 @@ export function CritiqueShowcase() {
         </div>
         <dl className="space-y-4 border-b border-[color:var(--border-subtle)] p-6 md:border-b-0 md:border-r">
           {SAMPLE_SCORES.map(([name, score]) => (
-            <div key={name}>
-              <div className="flex justify-between text-[13px]">
-                <dt className="text-[color:var(--text-secondary)]">{name}</dt>
-                <dd className="font-medium text-[color:var(--text-primary)]">{score}</dd>
-              </div>
-              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[color:var(--bg-subtle)]">
+            <div key={name} className="flex flex-wrap justify-between text-[13px]">
+              <dt className="text-[color:var(--text-secondary)]">{name}</dt>
+              <dd className="font-medium text-[color:var(--text-primary)]">{score}</dd>
+              <dd
+                aria-hidden="true"
+                className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--bg-subtle)]"
+              >
                 <div
                   className="h-full rounded-full bg-[color:var(--text-primary)]"
                   style={{ width: `${score * 10}%` }}
                 />
-              </div>
+              </dd>
             </div>
           ))}
         </dl>

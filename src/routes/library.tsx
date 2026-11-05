@@ -89,7 +89,12 @@ export const Route = createFileRoute("/library")({
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "CollectionPage",
-            name: "Depikt Library",
+            name:
+              tab === "templates"
+                ? "Depikt Templates"
+                : tab === "gallery"
+                  ? "Depikt Gallery"
+                  : "Depikt Library",
             url,
             description: page.description,
           }),
@@ -219,7 +224,7 @@ function LibraryPage() {
                   {tab[0].toUpperCase() + tab.slice(1)}
                   <span
                     aria-hidden="true"
-                    className="hidden text-[12px] tabular-nums text-[color:var(--text-quaternary)] sm:inline"
+                    className="hidden text-[12px] tabular-nums text-muted-foreground sm:inline"
                   >
                     {tabCounts[tab]}
                   </span>
