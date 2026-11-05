@@ -39,7 +39,7 @@ import { ModeHero } from "@/components/prompt/ModeHero";
 import { PROMPT_MODE_COPY, REFERENCES_COPY, RESULT_STATUS } from "@/lib/product";
 import { resultStatusLines, versionLineageLabel } from "@/lib/generation/result-status";
 import { userFacingPrompt } from "@/lib/generation/user-facing-prompt";
-import { MediaControls } from "./MediaControls";
+import { MediaControls, SVG_OUTPUT_AVAILABLE } from "./MediaControls";
 
 /**
  * /generate — the direct creation workspace.
@@ -220,6 +220,7 @@ export function GenerateWorkspace({
                 Boolean(prompt.trim()) &&
                 placeholders.length === 0 &&
                 outputFormat !== "gif" &&
+                (outputFormat !== "svg" || SVG_OUTPUT_AVAILABLE) &&
                 (outputFormat === "png" || (!gen.references.length && !selectedEntities.length))
               }
               controls={

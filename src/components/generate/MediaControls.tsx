@@ -1,4 +1,8 @@
 import type { ImageOutputFormat } from "@/lib/generation/provider-capabilities";
+// SVG needs the Images 2.6 family; the server family is switched via IMAGES_MODEL_FAMILY,
+// and the browser mirrors it with VITE_IMAGES_MODEL_FAMILY so SVG is never offered when it would be rejected.
+export const SVG_OUTPUT_AVAILABLE = import.meta.env.VITE_IMAGES_MODEL_FAMILY === "2.6";
+
 export function MediaControls({
   format,
   onChange,
@@ -25,7 +29,9 @@ export function MediaControls({
           onChange={(e) => onChange(e.target.value as "png" | "svg" | "gif")}
         >
           <option value="png">PNG</option>
-          <option value="svg">SVG</option>
+          <option value="svg" disabled={!SVG_OUTPUT_AVAILABLE}>
+            {SVG_OUTPUT_AVAILABLE ? "SVG" : "SVG (coming soon)"}
+          </option>
           <option value="gif">Animated GIF</option>
         </select>
       </label>
