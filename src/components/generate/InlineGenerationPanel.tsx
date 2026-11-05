@@ -91,6 +91,8 @@ export function InlineGenerationPanel({
           aspectRatio={resolvedSize.ratioLabel}
           orientation={resolvedSize.orientation}
           imageUrl={gen.resultUrl}
+          mimeType={active?.mime_type}
+          mediaMetadata={active?.media_metadata}
           refreshImageUrl={async () =>
             gen.activeVersionId
               ? (await getCreationDetail(gen.activeVersionId)).versions.find(
@@ -116,7 +118,11 @@ export function InlineGenerationPanel({
           actions={
             editing ? undefined : (
               <GenerationActions
+                editDisabled={/\.(svg|gif)$/i.test(active?.storage_path ?? "")}
                 onDownload={() => gen.download()}
+                onDownloadPng={
+                  active?.mime_type === "image/svg+xml" ? gen.downloadPngPreview : undefined
+                }
                 onEdit={() => setEditing((e) => !e)}
                 onRegenerate={() => gen.regenerate()}
               />
@@ -128,8 +134,8 @@ export function InlineGenerationPanel({
         <GenerationEditForm
           value={editPrompt}
           onChange={setEditPrompt}
-          onApply={({ maskPng }) => {
-            void gen.applyEdit(editPrompt, { maskPng }).then((ok) => {
+          onApply={({ maskPng, markupPng }) => {
+            void gen.applyEdit(editPrompt, { maskPng, markupPng }).then((ok) => {
               if (!ok) return;
               setEditing(false);
               setEditPrompt("");

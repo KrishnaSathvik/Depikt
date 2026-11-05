@@ -7,6 +7,8 @@
 // this repo should make a real, billable OpenAI call.
 
 import { resolveModelId, GENERATION_QUALITY, type ModelAlias } from "./models.ts";
+import { validateMarkupPng } from "./markup.ts";
+import { parsePngHeader } from "./png-mask.ts";
 import {
   assertImageRequestSupported,
   capabilitiesFor,
@@ -33,6 +35,7 @@ export interface GenerateImageInput {
   complexity?: ImageComplexity;
   /** Defaults to "png". svg/gif are 2.6 generations-only and not yet wired into the pipeline. */
   outputFormat?: ImageOutputFormat;
+  gif?: { frameCount: number; frameDurationMs: number };
   fetchImpl?: typeof fetch;
 }
 
@@ -41,6 +44,7 @@ export interface EditImageInput extends GenerateImageInput {
   referenceImages: StoredImage[];
   /** PNG mask applied to image[0]. Never placed inside referenceImages. */
   mask?: StoredImage | null;
+  markup?: StoredImage | null;
 }
 
 export interface OpenAIImageUsage {
@@ -98,6 +102,7 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
     quality: GENERATION_QUALITY,
     outputFormat,
     complexity: input.complexity ?? null,
+    gif: input.gif,
   });
   const t0 = Date.now();
   const res = await fetchFn("https://api.openai.com/v1/images/generations", {
@@ -111,6 +116,9 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
       n: 1,
       output_format: outputFormat,
       ...(input.complexity ? { complexity: input.complexity } : {}),
+      ...(outputFormat === "gif" && input.gif
+        ? { frame_count: input.gif.frameCount, frame_duration_ms: input.gif.frameDurationMs }
+        : {}),
     }),
   });
   const json = (await res.json()) as {
@@ -138,7 +146,15 @@ export async function editImage(input: EditImageInput): Promise<GenerateImageRes
     complexity: input.complexity ?? null,
     referenceCount: input.referenceImages.length,
     hasMask: Boolean(input.mask),
+    hasMarkup: Boolean(input.markup),
   });
+  if (input.markup) {
+    const first = input.referenceImages[0];
+    if (!first || first.mimeType !== "image/png") throw new Error("Markup source must be PNG");
+    const header = parsePngHeader(first.bytes);
+    if (!header.ok) throw new Error("Invalid markup source");
+    validateMarkupPng(input.markup.bytes, header.header.width, header.header.height);
+  }
   const t0 = Date.now();
   const form = new FormData();
   form.set("model", modelId);
@@ -154,6 +170,12 @@ export async function editImage(input: EditImageInput): Promise<GenerateImageRes
   if (input.mask) {
     form.set("mask", new Blob([input.mask.bytes as BlobPart], { type: "image/png" }), "mask.png");
   }
+  if (input.markup)
+    form.set(
+      "markup",
+      new Blob([input.markup.bytes as BlobPart], { type: "image/png" }),
+      "markup.png",
+    );
   const res = await fetchFn("https://api.openai.com/v1/images/edits", {
     method: "POST",
     headers: { Authorization: `Bearer ${input.apiKey}` },

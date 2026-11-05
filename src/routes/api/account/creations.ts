@@ -9,6 +9,7 @@ const DEFAULT_LIMIT = 24;
 const MAX_LIMIT = 60;
 
 interface CreationRow {
+  mime_type?: string;
   id: string;
   job_id: string | null;
   session_id: string;
@@ -78,7 +79,7 @@ export const Route = createFileRoute("/api/account/creations")({
         let query = db
           .from("image_versions")
           .select(
-            "id, job_id, session_id, storage_path, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation, series_index, series_label)",
+            "id, job_id, session_id, storage_path, mime_type, width, height, prompt, model, created_at, parent_version_id, generation_jobs!image_versions_job_id_fkey!inner(operation, series_index, series_label)",
           )
           .eq("user_id", authResult.auth.userId)
           .order("created_at", { ascending: false })
@@ -105,6 +106,7 @@ export const Route = createFileRoute("/api/account/creations")({
               .createSignedUrl(row.storage_path, 600);
             return {
               id: row.id,
+              mimeType: row.mime_type,
               jobId: row.job_id,
               sessionId: row.session_id,
               url: signed?.signedUrl ?? null,

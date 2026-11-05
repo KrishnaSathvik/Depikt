@@ -1,6 +1,6 @@
-# Step 3 — Images 2.6 Integration & Job-Execution Lockdown
+# Step 4 — Images 2.6 Media Capabilities
 
-Constraints honored: no publish, no production DB changes, no paid OpenAI calls, no UI changes, Steps 1–2 and fallbacks preserved.
+Constraints honored: no publish, no production DB changes, no paid OpenAI calls, no broad UI redesign, Steps 1–3 and fallbacks preserved.
 
 - [x] 1. Capability matrix: docs/images-2-6-capability-matrix.md (verified against official docs 2026-11-05)
 - [x] 2. Provider capability registry (src/lib/generation/provider-capabilities.ts); models.ts family switch (IMAGES_MODEL_FAMILY, default 2.5); openai-images.ts validates combos before any billable request
@@ -11,4 +11,12 @@ Constraints honored: no publish, no production DB changes, no paid OpenAI calls,
 - [x] 7. Milestones: docs/images-2-6-milestones.md (4a markup, 4b SVG, 4c GIF, 5 UI/UX)
 - [x] 8. Verification: typecheck clean, build OK, 972/974 app tests (2 known pre-existing), report at /mnt/documents/audits/step3-report-2026-11-05.md
 
-Open (blocked on user): production release only after the full 2.6 upgrade is approved; then publish + apply pending migrations (Step 1, 2, 3 + cron) and re-verify. Step 4 (GIF/SVG/markup) can start in development.
+Step 3 baseline above is preserved. Step 4 constraints: no deployment, shared database changes, paid calls, subscription changes, or broad UI redesign. Stop before Step 5.
+
+- [x] 4A development: separate markup editor, aligned annotation upload, API integration, pointer/keyboard and regression tests. Paid provider execution not performed.
+- [x] 4B development: signed SVG requests, safe native-vector validation/storage/preview/download, security and regression tests. Release needs active 2.6 family and pending metadata migration.
+- [x] 4C development: GIF adapter, actual animation metadata/preview/download, server-authoritative pricing gate and tests. Paid generation remains disabled pending pricing benchmark.
+- [x] Consolidated report with per-milestone files, test outcomes, limitations and blockers.
+- [ ] Before release: close inherited Step 3 token disclosure through owner-callable job-creation RPCs; current token-column tests do not prove RPC secrecy.
+
+Blocked: live provider verification and GIF pricing benchmark require paid calls, prohibited in this step. Security boundary needs a separate authorized follow-up; production remains untouched until explicit future approval. Step 5 not started.

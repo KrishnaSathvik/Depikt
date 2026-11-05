@@ -39,6 +39,7 @@ import { ModeHero } from "@/components/prompt/ModeHero";
 import { PROMPT_MODE_COPY, REFERENCES_COPY, RESULT_STATUS } from "@/lib/product";
 import { resultStatusLines, versionLineageLabel } from "@/lib/generation/result-status";
 import { userFacingPrompt } from "@/lib/generation/user-facing-prompt";
+import { MediaControls } from "./MediaControls";
 
 /**
  * /generate — the direct creation workspace.
@@ -74,6 +75,9 @@ export function GenerateWorkspace({
   });
   const [editing, setEditing] = useState(false);
   const [editPrompt, setEditPrompt] = useState("");
+  const [outputFormat, setOutputFormat] = useState<"png" | "svg" | "gif">("png");
+  const [frameCount, setFrameCount] = useState(9);
+  const [frameDurationMs, setFrameDurationMs] = useState(200);
 
   useEffect(() => {
     if (!isActive || !prefill) return;
@@ -157,6 +161,8 @@ export function GenerateWorkspace({
   function submitComposer() {
     if (findPromptPlaceholders(prompt).length > 0) return;
     void gen.submit({
+      outputFormat,
+      ...(outputFormat === "gif" ? { gif: { frameCount, frameDurationMs } } : {}),
       prompt,
       sourceContext,
       entityIds: selectedEntities.map((e) => e.id),
@@ -210,7 +216,12 @@ export function GenerateWorkspace({
               onRemoveReference={gen.removeReference}
               onRetryReference={gen.retryReferenceUpload}
               onSubmit={submitComposer}
-              canSubmit={Boolean(prompt.trim()) && placeholders.length === 0}
+              canSubmit={
+                Boolean(prompt.trim()) &&
+                placeholders.length === 0 &&
+                outputFormat !== "gif" &&
+                (outputFormat === "png" || (!gen.references.length && !selectedEntities.length))
+              }
               controls={
                 <>
                   <ReferencePackPicker
@@ -225,10 +236,18 @@ export function GenerateWorkspace({
                 <div className="flex w-full flex-col items-start gap-1.5 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
                   <RatioPicker value={structuredRatio} onChange={setStructuredRatio} />
                   <span className="whitespace-nowrap text-[12px] text-[color:var(--text-tertiary)]">
-                    1 credit
+                    {outputFormat === "gif" ? "Cost pending" : "1 credit"}
                   </span>
                 </div>
               }
+            />
+            <MediaControls
+              format={outputFormat}
+              onChange={setOutputFormat}
+              frameCount={frameCount}
+              frameDurationMs={frameDurationMs}
+              onFrames={setFrameCount}
+              onDuration={setFrameDurationMs}
             />
             {placeholders.length > 0 && (
               <div
@@ -326,6 +345,8 @@ export function GenerateWorkspace({
           aspectRatio={resolvedSize.ratioLabel}
           orientation={resolvedSize.orientation}
           imageUrl={gen.resultUrl}
+          mimeType={active?.mime_type}
+          mediaMetadata={active?.media_metadata}
           refreshImageUrl={async () =>
             gen.activeVersionId
               ? (await getCreationDetail(gen.activeVersionId)).versions.find(
@@ -351,7 +372,11 @@ export function GenerateWorkspace({
           actions={
             editing ? undefined : (
               <GenerationActions
+                editDisabled={/\.(svg|gif)$/i.test(active?.storage_path ?? "")}
                 onDownload={() => gen.download()}
+                onDownloadPng={
+                  active?.mime_type === "image/svg+xml" ? gen.downloadPngPreview : undefined
+                }
                 onEdit={() => setEditing((e) => !e)}
                 onRegenerate={() => gen.regenerate()}
                 onNew={startNew}
@@ -371,8 +396,8 @@ export function GenerateWorkspace({
           <GenerationEditForm
             value={editPrompt}
             onChange={setEditPrompt}
-            onApply={({ maskPng }) => {
-              void gen.applyEdit(editPrompt, { maskPng }).then((ok) => {
+            onApply={({ maskPng, markupPng }) => {
+              void gen.applyEdit(editPrompt, { maskPng, markupPng }).then((ok) => {
                 if (!ok) return;
                 setEditing(false);
                 setEditPrompt("");

@@ -111,7 +111,7 @@ expect deny authenticated $A "repair result write without claim" "select write_g
 expect deny authenticated $A "clear pending without repair row" "select clear_generation_repair_pending('$S')"
 $P -c "insert into generation_request_repairs(session_id,user_id,job_id,state) values ('$S','$A','$J4','running')" >/dev/null
 expect allow authenticated $A "repair result write with active claim" "select write_generation_repair_result('$J4', 0.5, '{\"validation\":{\"refinementPending\":false}}')"
-check "repair telemetry written" "0.5" "select estimated_api_cost_usd from generation_jobs where id='$J4'"
+check "repair telemetry written" "t" "select estimated_api_cost_usd = 0.5 from generation_jobs where id='$J4'"
 expect allow authenticated $A "clear pending with repair row" "select clear_generation_repair_pending('$S')"
 $P -c "update generation_request_repairs set state='complete' where job_id='$J4'" >/dev/null
 expect deny authenticated $A "repair write after claim completed" "select write_generation_repair_result('$J4', 9.9, '{}')"
@@ -130,6 +130,21 @@ expect deny authenticated $A "may not change other plan_json content" "update ge
 expect deny authenticated $A "may not change user_id" "update generation_sessions set user_id='$B' where id='$S'"
 
 echo
+if [ "${STEP4_TESTS:-0}" = 1 ]; then
+  $P -f /dev-server/supabase/pending/step4_media_metadata.sql >/dev/null
+  echo "== 10. Native media and token-map regression =="
+  expect deny anon - "anon cannot merge tokens" "select merge_generation_execution_tokens('$S','{}')"
+  expect deny authenticated $B "non-owner cannot merge tokens" "select merge_generation_execution_tokens('$S','{}')"
+  expect allow authenticated $A "owner merges tokens without changing signed plan" "select merge_generation_execution_tokens('$S','{\"k2\":\"enc2\"}')"
+  check "old token entry preserved" "enc" "select plan_json->'executionTokensEnc'->>'k1' from generation_sessions where id='$S'"
+  check "new token entry saved" "enc2" "select plan_json->'executionTokensEnc'->>'k2' from generation_sessions where id='$S'"
+  $P -c "select reserve_generation_credits('$A',1,'k1','svg'); select reserve_generation_credits('$A',1,'k2','cancelled')" >/dev/null
+  checkauth $A "SVG job settles once" "t" "select applied from settle_generation_job('$J1','charged')"
+  checkauth $A "SVG job settlement replay is no-op" "f" "select applied from settle_generation_job('$J1','charged')"
+  expect deny authenticated $A "succeeded native job cannot refund" "select settle_generation_job('$J1','refunded')"
+  expect allow authenticated $A "cancelled job refunds" "select settle_generation_job('$J2','refunded')"
+  expect deny authenticated $B "non-owner cannot settle" "select settle_generation_job('$J2','refunded')"
+fi
 echo "PASS=$PASS FAIL=$FAIL"
 pg_ctl -D data stop -m immediate >/dev/null 2>&1
 [ "$FAIL" = 0 ]

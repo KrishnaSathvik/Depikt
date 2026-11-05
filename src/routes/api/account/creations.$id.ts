@@ -42,7 +42,7 @@ export const Route = createFileRoute("/api/account/creations/$id")({
           db
             .from("image_versions")
             .select(
-              "id, job_id, session_id, storage_path, width, height, prompt, model, created_at, parent_version_id",
+              "id, job_id, session_id, storage_path, mime_type, width, height, prompt, model, created_at, parent_version_id",
             )
             .eq("session_id", selected.session_id)
             .eq("user_id", userId)
@@ -80,6 +80,7 @@ export const Route = createFileRoute("/api/account/creations/$id")({
                   : null;
               return {
                 id: row.id,
+                mimeType: row.mime_type,
                 jobId: row.job_id,
                 sessionId: row.session_id,
                 url: signed?.data?.signedUrl ?? null,

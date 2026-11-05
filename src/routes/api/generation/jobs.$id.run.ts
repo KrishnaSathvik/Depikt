@@ -28,6 +28,8 @@ import {
 } from "@/lib/generation/execution-plan";
 import { extractExecutionToken } from "@/lib/generation/execution-token";
 import { claimJobForExecution } from "@/lib/generation/job-transition";
+import type { MediaOptions } from "@/lib/generation/media";
+import { validateMarkupPng } from "@/lib/generation/markup";
 import {
   assembleJobImages,
   failImageInputJob,
@@ -90,6 +92,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (sessionLoadError) return jsonError("Could not load the session", 500);
         const referencePaths = extractStoredReferenceAssetIds(session?.plan_json);
         const maskPath = extractStoredMaskPath(session?.plan_json);
+        const media = session?.plan_json?.media as MediaOptions | undefined;
+        const markupPath = session?.plan_json?.markupPath as string | undefined;
         // The per-job execution token (Step 3) proves this request is the
         // trusted server executor, not a direct database call. Null on
         // pre-migration sessions; the legacy claim path below covers those.
@@ -177,6 +181,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         }
         let referenceImages: StoredImage[];
         let editMask: StoredImage | null;
+        let editMarkup: StoredImage | null = null;
         let validationRuntime: ValidationRuntime | undefined;
         try {
           if (!session) throw new EntityReferenceUnavailableError();
@@ -207,6 +212,14 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           });
           referenceImages = assembled.referenceImages;
           editMask = assembled.editMask;
+          if (markupPath) {
+            if (maskPath || !sourcePath) throw new Error("Invalid markup source");
+            if (!(await download(sourcePath)))
+              throw new Error("Original markup source unavailable");
+            editMarkup = await download(markupPath);
+            if (!editMarkup) throw new Error("Annotations unavailable");
+            validateMarkupPng(editMarkup.bytes, job.width, job.height);
+          }
           if (process.env.GROUNDING_ENABLED === "true" && session.plan_json?.grounding) {
             const snapshot = verifyGroundingSnapshot(
               session.plan_json.grounding,
@@ -287,6 +300,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
             idempotencyKey: job.idempotency_key as string,
             referenceImages,
             editMask,
+            editMarkup,
+            media,
             series: job.series_index != null,
             groundingCostUsd:
               job.series_index == null || job.series_index === 0
@@ -303,7 +318,12 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
           },
         );
 
-        if (outcome.outcome === "succeeded" && automaticRepairEnabled()) {
+        if (
+          outcome.outcome === "succeeded" &&
+          automaticRepairEnabled() &&
+          (!media || media.outputFormat === "png") &&
+          !markupPath
+        ) {
           await refineGenerationSession({
             db: supabase,
             userId,

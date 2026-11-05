@@ -208,6 +208,9 @@ test("structured hint: style reference_intent does not force sunburst on its own
 
 test("jobs.ts passes hasMask from the signed token's mask identity, not keyword detection", () => {
   const src = jobsSrc();
-  assert.match(src, /hasMask:\s*Boolean\(payload\.maskPath\s*\?\?\s*payload\.maskAssetId\)/);
+  assert.match(
+    src,
+    /hasMask:\s*Boolean\(payload\.maskPath\s*\?\?\s*payload\.maskAssetId\s*\?\?\s*payload\.markupPath\)/,
+  );
   assert.doesNotMatch(src, /notebook|tulips/i);
 });

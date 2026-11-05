@@ -1,4 +1,6 @@
 import { RecoverableImage } from "@/components/RecoverableImage";
+import { AnimatedMediaPreview } from "./AnimatedMediaPreview";
+import type { MediaMetadata } from "@/lib/generation/media";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ThinkingField } from "@/components/processing/ThinkingField";
@@ -18,6 +20,8 @@ import type { ResultStatusLine } from "@/lib/generation/result-status";
 export type GenerationCanvasState = "generating" | "result" | "error";
 
 export interface GenerationCanvasProps {
+  mimeType?: string;
+  mediaMetadata?: MediaMetadata;
   state: GenerationCanvasState;
   /** e.g. "4:5" — shapes the frame. */
   aspectRatio: string;
@@ -80,6 +84,8 @@ function resolveFrameBox(
  */
 export function GenerationCanvas({
   state,
+  mimeType,
+  mediaMetadata,
   aspectRatio,
   orientation,
   imageUrl,
@@ -118,12 +124,16 @@ export function GenerationCanvas({
               aspectRatio: `${box.width} / ${box.height}`,
             }}
           >
-            <RecoverableImage
-              src={imageUrl}
-              refreshUrl={refreshImageUrl}
-              alt={imageAlt}
-              className="h-full w-full object-contain"
-            />
+            {mimeType === "image/gif" ? (
+              <AnimatedMediaPreview url={imageUrl} alt={imageAlt} metadata={mediaMetadata} />
+            ) : (
+              <RecoverableImage
+                src={imageUrl}
+                refreshUrl={refreshImageUrl}
+                alt={imageAlt}
+                className="h-full w-full object-contain"
+              />
+            )}
           </div>
           {refining && (
             <p role="status" className="text-center text-body-sm">

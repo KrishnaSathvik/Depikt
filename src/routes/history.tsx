@@ -17,6 +17,10 @@ export const Route = createFileRoute("/history")({
     meta: [
       { title: SEO.history.title },
       { name: "description", content: SEO.history.description },
+      { property: "og:title", content: SEO.history.title },
+      { property: "og:description", content: SEO.history.description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: SEO.history.robots },
     ],
   }),

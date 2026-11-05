@@ -5,10 +5,14 @@ import { extractStoredEntities } from "./stored-entities.ts";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Intent } from "../prompt-engine/intent.ts";
 import type { GenerationPlan } from "./plan.ts";
+import type { MediaOptions } from "./media.ts";
 
 export const PLAN_TOKEN_TTL_MS = 10 * 60 * 1000;
 
 export interface PlanTokenPayload {
+  media?: MediaOptions;
+  markupAssetId?: string | null;
+  markupPath?: string | null;
   grounding?: GroundingSnapshot;
   groundingUsage?: GroundingUsage;
   entities?: ResolvedEntity[];

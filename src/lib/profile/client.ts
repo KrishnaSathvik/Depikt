@@ -57,6 +57,7 @@ export function checkUsernameAvailability(username: string): Promise<{ available
 }
 
 export interface CreationItem {
+  mimeType?: string;
   id: string;
   jobId: string | null;
   sessionId: string | null;

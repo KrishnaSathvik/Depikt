@@ -31,10 +31,17 @@ export function isRepairInProgress(
 
 /** Regenerating a series child is one new image, never a replay of the whole series brief. */
 export function regenerateVersionInput(version: SessionVersion) {
+  const format =
+    version.mime_type === "image/svg+xml" || /\.svg$/i.test(version.storage_path)
+      ? ("svg" as const)
+      : version.mime_type === "image/gif" || /\.gif$/i.test(version.storage_path)
+        ? ("gif" as const)
+        : undefined;
   return {
+    ...(format ? { outputFormat: format } : {}),
     prompt: version.prompt,
     userInput: "Regenerate this image as one image, preserving its content and composition.",
-    sourceVersionId: version.id,
+    sourceVersionId: format ? null : version.id,
     structuredAspectRatio: `${version.width}:${version.height}`,
     refreshGrounding: false,
   };

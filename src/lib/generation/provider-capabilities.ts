@@ -174,7 +174,10 @@ export function capabilitiesForModelId(modelId: string): ImageModelCapabilities 
   return BY_ID.get(modelId) ?? null;
 }
 
-export function capabilitiesFor(alias: ModelAlias, family: ImageModelFamily): ImageModelCapabilities {
+export function capabilitiesFor(
+  alias: ModelAlias,
+  family: ImageModelFamily,
+): ImageModelCapabilities {
   const found = IMAGE_MODEL_REGISTRY.find((m) => m.alias === alias && m.family === family);
   if (!found) throw new Error(`No registered image model for ${family}/${alias}`);
   return found;
@@ -212,9 +215,7 @@ export function assertImageRequestSupported(
     throw new Error(`${modelId} does not support quality "${req.quality}"`);
   }
   if (!caps.outputFormats[req.operation].includes(req.outputFormat as ImageOutputFormat)) {
-    throw new Error(
-      `${modelId} does not support ${req.outputFormat} output for ${req.operation}`,
-    );
+    throw new Error(`${modelId} does not support ${req.outputFormat} output for ${req.operation}`);
   }
   if (req.complexity != null) {
     if (!caps.complexity) {
@@ -227,6 +228,10 @@ export function assertImageRequestSupported(
   if (req.hasMask && req.hasMarkup) {
     throw new Error("markup-guided edits cannot be combined with a mask");
   }
+  if ((req.hasMask || req.hasMarkup) && req.operation !== "edit")
+    throw new Error("Annotations require editing");
+  if (req.gif && req.outputFormat !== "gif")
+    throw new Error("Animation parameters require GIF output");
   if (req.hasMarkup && !caps.markupEdit) {
     throw new Error(`${modelId} does not support markup-guided edits`);
   }
@@ -236,7 +241,9 @@ export function assertImageRequestSupported(
     const { frameCount, frameDurationMs } = req.gif;
     if (
       frameCount != null &&
-      (frameCount < gif.frameCount.min || frameCount > gif.frameCount.max)
+      (!Number.isInteger(frameCount) ||
+        frameCount < gif.frameCount.min ||
+        frameCount > gif.frameCount.max)
     ) {
       throw new Error(
         `frame_count must be between ${gif.frameCount.min} and ${gif.frameCount.max}`,
@@ -244,7 +251,9 @@ export function assertImageRequestSupported(
     }
     if (
       frameDurationMs != null &&
-      (frameDurationMs < gif.frameDurationMs.min || frameDurationMs > gif.frameDurationMs.max)
+      (!Number.isInteger(frameDurationMs) ||
+        frameDurationMs < gif.frameDurationMs.min ||
+        frameDurationMs > gif.frameDurationMs.max)
     ) {
       throw new Error(
         `frame_duration_ms must be between ${gif.frameDurationMs.min} and ${gif.frameDurationMs.max}`,

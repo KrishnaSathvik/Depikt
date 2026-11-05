@@ -19,7 +19,7 @@ export function imageVersionStoragePath(
   userId: string,
   sessionId: string,
   versionId: string,
-  extension: "png" | "jpg" | "webp" = "png",
+  extension: "png" | "jpg" | "webp" | "svg" | "gif" = "png",
 ): string {
   assertSafeSegment(userId, "userId");
   assertSafeSegment(sessionId, "sessionId");
@@ -41,6 +41,11 @@ export function maskAssetStoragePath(userId: string, assetId: string): string {
   assertSafeSegment(userId, "userId");
   assertSafeSegment(assetId, "assetId");
   return `users/${userId}/masks/${assetId}.png`;
+}
+export function markupAssetStoragePath(userId: string, assetId: string): string {
+  assertSafeSegment(userId, "userId");
+  assertSafeSegment(assetId, "assetId");
+  return `users/${userId}/markup/${assetId}.png`;
 }
 
 /** The user id a path was scoped to, for a defense-in-depth check before returning a signed URL. */

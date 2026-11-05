@@ -35,6 +35,7 @@ import {
   getCreditBalance,
   uploadReferenceImage,
   uploadEditMask,
+  uploadEditMarkup,
   nextPollDelayMs,
   isTerminalStatus,
   GenerationApiError,
@@ -105,6 +106,9 @@ export function simplifyRatioLabel(width: number, height: number): string {
 }
 
 export interface SubmitInput {
+  outputFormat?: "png" | "svg" | "gif";
+  gif?: { frameCount: number; frameDurationMs: number };
+  markupAssetId?: string | null;
   refreshGrounding?: boolean;
   entityIds?: string[];
   prompt: string;
@@ -650,6 +654,8 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
 
     if (!user) {
       savePendingGeneration({
+        outputFormat: input.outputFormat,
+        gif: input.gif,
         entityIds: input.entityIds,
         prompt: effectivePrompt,
         userInput: input.userInput ?? null,
@@ -704,6 +710,9 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
       // see generate-reference-upload.test.ts.
       setResearching(true);
       const planRes = await createGenerationPlan({
+        outputFormat: input.outputFormat,
+        gif: input.gif,
+        markupAssetId: input.markupAssetId,
         refreshGrounding: input.refreshGrounding,
         entityIds: input.entityIds,
         prompt: effectivePrompt,
@@ -803,6 +812,8 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
       await Promise.all(pending.referenceDataUrls.map((url) => addReferenceFromDataUrl(url)));
     }
     await submit({
+      outputFormat: pending.outputFormat,
+      gif: pending.gif,
       entityIds: pending.entityIds,
       prompt: pending.prompt,
       userInput: pending.userInput ?? null,
@@ -931,12 +942,30 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
 
   async function applyEdit(
     editPrompt: string,
-    opts?: { maskPng?: Uint8Array | null },
+    opts?: { maskPng?: Uint8Array | null; markupPng?: Uint8Array | null },
   ): Promise<boolean> {
     const sourceVersionId = activeVersionId;
     if (!editPrompt.trim() || !sourceVersionId) return false;
+    if (opts?.maskPng && opts?.markupPng) {
+      toast.error("Choose markup or select area, not both.");
+      return false;
+    }
+    if (/\.(svg|gif)$/i.test(selectedResult.version?.storage_path ?? "")) {
+      toast.error("Native SVG and GIF editing is not available.");
+      return false;
+    }
     trackEvent("edit_submitted", {});
     let maskAssetId: string | null = null;
+    let markupAssetId: string | null = null;
+    if (opts?.markupPng) {
+      try {
+        markupAssetId = (await uploadEditMarkup(sourceVersionId, bytesToPngDataUrl(opts.markupPng)))
+          .assetId;
+      } catch {
+        toast.error("Couldn't save annotations. Try again.");
+        return false;
+      }
+    }
     if (opts?.maskPng) {
       setPhase("starting");
       try {
@@ -957,6 +986,7 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
       routingHints: lastParamsRef.current?.routingHints ?? null,
       sourceVersionId,
       maskAssetId,
+      markupAssetId,
     });
     return true;
   }
@@ -973,8 +1003,30 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
       signal: "download",
     });
     trackEvent("image_downloaded", {});
-    const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(targetId ?? "").slice(0, 8)}.png`;
+    const extension =
+      target.version?.storage_path.match(/\.(png|jpg|jpeg|webp|svg|gif)$/i)?.[1] ?? "png";
+    const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(targetId ?? "").slice(0, 8)}.${extension}`;
     void downloadFile(url, filename);
+  }
+  async function downloadPngPreview() {
+    const target = selectedGenerationResult(jobs, versions, activeVersionId);
+    if (!target.url || !target.version) return;
+    try {
+      const { exportSvgPreviewPng } = await import("./svg-export");
+      const blob = await exportSvgPreviewPng(
+        target.url,
+        target.version.width,
+        target.version.height,
+      );
+      const url = URL.createObjectURL(blob);
+      try {
+        await downloadFile(url, `depikt-${target.version.id.slice(0, 8)}-preview.png`);
+      } finally {
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      toast.error("Couldn't export PNG preview. Your SVG remains available.");
+    }
   }
 
   function stopPolling() {
@@ -1085,6 +1137,7 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
     refreshResearch,
     applyEdit,
     download,
+    downloadPngPreview,
     reset,
     hydrateVersion,
     resultUrl,

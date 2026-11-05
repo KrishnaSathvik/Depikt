@@ -68,6 +68,9 @@ function parseSourceContext(value: unknown): ParsedSourceContext | { error: stri
 // ---------- POST /api/generation/plans ----------
 
 export interface ValidatedCreatePlanRequest {
+  outputFormat?: "png" | "svg" | "gif";
+  gif?: { frameCount: number; frameDurationMs: number };
+  markupAssetId?: string | null;
   refreshGrounding: boolean;
   /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
   prompt: string;
@@ -99,6 +102,34 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
   if (typeof body !== "object" || body === null)
     return { ok: false, error: "Invalid request body" };
   const b = body as Record<string, unknown>;
+  if (b.outputFormat !== undefined && !["png", "svg", "gif"].includes(b.outputFormat as string))
+    return { ok: false, error: "Invalid output format" };
+  let gif: { frameCount: number; frameDurationMs: number } | undefined;
+  if (b.gif !== undefined) {
+    if (b.outputFormat !== "gif" || !b.gif || typeof b.gif !== "object")
+      return { ok: false, error: "Animation parameters require GIF" };
+    const options = b.gif as Record<string, unknown>;
+    if (
+      !Number.isInteger(options.frameCount) ||
+      Number(options.frameCount) < 2 ||
+      Number(options.frameCount) > 64 ||
+      !Number.isInteger(options.frameDurationMs) ||
+      Number(options.frameDurationMs) < 20 ||
+      Number(options.frameDurationMs) > 2000
+    )
+      return { ok: false, error: "Invalid animation parameters" };
+    gif = {
+      frameCount: Number(options.frameCount),
+      frameDurationMs: Math.round(Number(options.frameDurationMs) / 10) * 10,
+    };
+  }
+  const markupAssetId = b.markupAssetId ?? null;
+  if (markupAssetId !== null && (typeof markupAssetId !== "string" || !UUID_RE.test(markupAssetId)))
+    return { ok: false, error: "Invalid markup asset" };
+  if ("markupPath" in b || "markup" in b || "credits" in b || "family" in b)
+    return { ok: false, error: "Media paths and pricing are server assigned" };
+  if (markupAssetId && (!b.sourceVersionId || b.maskAssetId))
+    return { ok: false, error: "Markup requires a source and cannot be combined with a mask" };
 
   if (
     [
@@ -207,6 +238,9 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
     ok: true,
     request: {
       refreshGrounding: b.refreshGrounding === true,
+      ...(b.outputFormat ? { outputFormat: b.outputFormat as "png" | "svg" | "gif" } : {}),
+      ...(gif ? { gif } : {}),
+      ...(markupAssetId ? { markupAssetId: markupAssetId as string } : {}),
       prompt: b.prompt,
       userInput,
       intent: b.intent ?? null,

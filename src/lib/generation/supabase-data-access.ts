@@ -65,6 +65,7 @@ export function createSupabaseDataAccess(
           height: row.height,
           prompt: row.prompt,
           model: row.model,
+          ...(row.mediaMetadata ? { media_metadata: row.mediaMetadata } : {}),
         })
         .select("id")
         .single();
@@ -77,8 +78,13 @@ export function createSupabaseDataAccess(
       return settleJobCredits(supabase, jobId, outcome, { userId, amount, idempotencyKey });
     },
 
-    buildStoragePath(userId, sessionId, versionId) {
-      return imageVersionStoragePath(userId, sessionId, versionId, "png");
+    buildStoragePath(userId, sessionId, versionId, format = "png") {
+      return imageVersionStoragePath(
+        userId,
+        sessionId,
+        versionId,
+        format === "jpeg" ? "jpg" : format,
+      );
     },
 
     newVersionId() {

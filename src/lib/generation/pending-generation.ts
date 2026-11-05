@@ -18,6 +18,8 @@ import type { RoutingHints } from "./model-router";
 import type { Intent } from "../prompt-engine/intent";
 
 export interface PendingGeneration {
+  outputFormat?: "png" | "svg" | "gif";
+  gif?: { frameCount: number; frameDurationMs: number };
   entityIds?: string[];
   prompt: string;
   /** Original Build/Critique request. Series planning must use this, not `prompt`. */

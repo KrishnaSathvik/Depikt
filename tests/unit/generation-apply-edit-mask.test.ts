@@ -44,7 +44,10 @@ test("applyEdit uploads via uploadEditMask only when maskPng is provided", () =>
   assert.match(hook, /bytesToPngDataUrl/);
   const applyEditFn = sliceFn(hook, "async function applyEdit(", "function download(");
   assert.match(applyEditFn, /Promise<boolean>/);
-  assert.match(applyEditFn, /opts\?: \{ maskPng\?: Uint8Array \| null \}/);
+  assert.match(
+    applyEditFn,
+    /opts\?: \{ maskPng\?: Uint8Array \| null; markupPng\?: Uint8Array \| null \}/,
+  );
   assert.match(applyEditFn, /uploadEditMask\(/);
   assert.match(applyEditFn, /opts\?\.maskPng/);
   assert.match(applyEditFn, /bytesToPngDataUrl\(/);
@@ -77,7 +80,7 @@ test("form onApply whole-image passes null mask; area uses exportMaskPng", () =>
   const form = read("src/components/generate/GenerationEditForm.tsx");
   assert.match(
     form,
-    /onApply:\s*\(result:\s*\{\s*maskPng:\s*Uint8Array\s*\|\s*null\s*\}\)\s*=>\s*void/,
+    /onApply:\s*\(result:\s*\{\s*maskPng:\s*Uint8Array\s*\|\s*null; markupPng\?: Uint8Array \| null\s*\}\)\s*=>\s*void/,
   );
   assert.match(form, /exportMaskPng/);
   assert.match(form, /onApply\(\{\s*maskPng:\s*null\s*\}\)/);
@@ -93,8 +96,8 @@ test("both parents still call applyEdit with the form's maskPng", () => {
   const workspace = read("src/components/generate/GenerateWorkspace.tsx");
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
   for (const src of [workspace, panel]) {
-    assert.match(src, /onApply=\{\(\{\s*maskPng\s*\}\)\s*=>\s*\{/);
-    assert.match(src, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
+    assert.match(src, /onApply=\{\(\{\s*maskPng, markupPng\s*\}\)\s*=>\s*\{/);
+    assert.match(src, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng, markupPng\s*\}\)/);
     assert.match(src, /if \(!ok\) return/);
   }
 });

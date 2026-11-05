@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 
 export interface GenerationActionsProps {
   onDownload: () => void;
+  onDownloadPng?: () => void;
   onEdit: () => void;
   onRegenerate: () => void;
   /** "Create another" — a blank composer for a new, unrelated image. Only
@@ -10,6 +11,7 @@ export interface GenerationActionsProps {
    *  Critique's inline result panel doesn't pass it. */
   onNew?: () => void;
   disabled?: boolean;
+  editDisabled?: boolean;
   className?: string;
 }
 
@@ -20,10 +22,12 @@ export interface GenerationActionsProps {
  */
 export function GenerationActions({
   onDownload,
+  onDownloadPng,
   onEdit,
   onRegenerate,
   onNew,
   disabled,
+  editDisabled,
   className,
 }: GenerationActionsProps) {
   return (
@@ -36,10 +40,15 @@ export function GenerationActions({
       >
         <Download className="mr-1.5 h-4 w-4" /> Download
       </Button>
+      {onDownloadPng && (
+        <Button variant="outline" onClick={onDownloadPng} disabled={disabled}>
+          <Download className="mr-1.5 size-4" /> PNG preview
+        </Button>
+      )}
       <Button
         variant="outline"
         onClick={onEdit}
-        disabled={disabled}
+        disabled={disabled || editDisabled}
         className="flex-1 basis-[calc(50%-4px)] sm:flex-none sm:basis-auto"
       >
         <Wand2 className="mr-1.5 h-4 w-4" /> Edit

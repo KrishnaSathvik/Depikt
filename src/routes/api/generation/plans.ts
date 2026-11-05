@@ -34,6 +34,16 @@ import { validateMaskPng } from "@/lib/generation/png-mask";
 import { asGenerationClient, type UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { analyzeIntent } from "@/lib/prompt-engine/builder";
 import { IntentSchema, type Intent } from "@/lib/prompt-engine/intent";
+import {
+  activeImageModelFamily,
+  resolveModelId,
+  GENERATION_QUALITY,
+} from "@/lib/generation/models";
+import { assertImageRequestSupported } from "@/lib/generation/provider-capabilities";
+import type { MediaOptions } from "@/lib/generation/media";
+import { assertMediaExecutionPriced } from "@/lib/generation/media-pricing";
+import { markupAssetStoragePath } from "@/lib/generation/storage-paths";
+import { validateMarkupPng } from "@/lib/generation/markup";
 
 export interface DisplayPlan {
   mode: GenerationPlan["mode"];
@@ -120,6 +130,27 @@ export const Route = createFileRoute("/api/generation/plans")({
         const validation = validateCreatePlanBody(body);
         if (!validation.ok) return jsonError(validation.error, 400);
         const req = validation.request;
+        const media: MediaOptions = {
+          outputFormat: req.outputFormat ?? "png",
+          family: activeImageModelFamily(),
+          ...(req.gif ? { gif: req.gif } : {}),
+        };
+        const hasInputs = Boolean(
+          req.sourceVersionId || req.referenceAssetIds.length || req.entityIds.length,
+        );
+        try {
+          assertImageRequestSupported(resolveModelId("flare", media.family), {
+            operation: hasInputs ? "edit" : "generate",
+            quality: GENERATION_QUALITY,
+            outputFormat: media.outputFormat,
+            hasMask: !!req.maskAssetId,
+            hasMarkup: !!req.markupAssetId,
+            gif: media.gif,
+          });
+          assertMediaExecutionPriced(hasInputs ? "edit" : "generate", media);
+        } catch (e) {
+          return jsonError(e instanceof Error ? e.message : "Unsupported media request", 400);
+        }
 
         const secret = process.env.GENERATION_PLAN_SECRET;
         if (!secret) return jsonError("Generation is temporarily unavailable.", 503);
@@ -189,6 +220,30 @@ export const Route = createFileRoute("/api/generation/plans")({
         }
 
         let intent: Intent;
+        let markupPath: string | null = null;
+        if (req.markupAssetId) {
+          markupPath = markupAssetStoragePath(userId, req.markupAssetId);
+          const { data: source } = await supabase
+            .from("image_versions")
+            .select("width, height, mime_type")
+            .eq("id", req.sourceVersionId)
+            .eq("user_id", userId)
+            .maybeSingle();
+          const { data: file } = await supabase.storage
+            .from(GENERATION_BUCKET)
+            .download(markupPath);
+          if (!source || source.mime_type !== "image/png" || !file)
+            return jsonError("Invalid markup source or annotations", 400);
+          try {
+            validateMarkupPng(
+              new Uint8Array(await file.arrayBuffer()),
+              source.width,
+              source.height,
+            );
+          } catch {
+            return jsonError("Invalid or misaligned annotations", 400);
+          }
+        }
         if (req.intent) {
           try {
             intent = IntentSchema.parse(req.intent);
@@ -226,12 +281,22 @@ export const Route = createFileRoute("/api/generation/plans")({
 
         const userInput = req.userInput ?? req.prompt;
         let plan = buildGenerationPlan(intent, userInput, req.sourceContextType);
+        if (media.outputFormat !== "png")
+          plan = {
+            ...plan,
+            mode: "single",
+            desiredCount: 1,
+            autoCount: 1,
+            separateAssets: false,
+            requiresCountConfirmation: false,
+            searchNeeded: false,
+          };
 
         const planningMs = Date.now() - planningStarted;
         const groundingStarted = Date.now();
         let grounding;
         let groundingUsage: GroundingUsage | undefined;
-        if (process.env.GROUNDING_ENABLED === "true") {
+        if (process.env.GROUNDING_ENABLED === "true" && media.outputFormat === "png") {
           const groundingPlan = planGrounding(
             intent,
             userInput,
@@ -289,6 +354,9 @@ export const Route = createFileRoute("/api/generation/plans")({
         const planToken = signPlanToken(
           {
             userId,
+            media,
+            markupPath,
+            markupAssetId: req.markupAssetId ?? null,
             grounding,
             groundingUsage,
             prompt: req.prompt,

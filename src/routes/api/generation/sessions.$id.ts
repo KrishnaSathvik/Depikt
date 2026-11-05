@@ -12,6 +12,7 @@ import {
   type StaleJob,
 } from "@/lib/generation/stale-job";
 import { extractExecutionToken } from "@/lib/generation/execution-token";
+import { readNativeMediaMetadata } from "@/lib/generation/media-metadata-read";
 
 /**
  * GET /api/generation/sessions/:id — every version in one creative thread,
@@ -34,7 +35,7 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
             supabase
               .from("image_versions")
               .select(
-                "id, job_id, parent_version_id, storage_path, width, height, prompt, model, created_at",
+                "id, job_id, parent_version_id, storage_path, mime_type, width, height, prompt, model, created_at",
               )
               .eq("session_id", params.id)
               .order("created_at", { ascending: true }),
@@ -98,11 +99,17 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
 
         const withUrls = await Promise.all(
           versionsForSucceededJobs(versions ?? [], sessionJobs).map(
-            async (v: { job_id: string; storage_path: string; [k: string]: unknown }) => {
+            async (v: {
+              id: string;
+              job_id: string;
+              storage_path: string;
+              [k: string]: unknown;
+            }) => {
               const signedUrl = await createSignedUrlWithTimeout(() =>
                 supabase.storage.from(GENERATION_BUCKET).createSignedUrl(v.storage_path, 600),
               );
-              return { ...v, url: signedUrl };
+              const [native] = await readNativeMediaMetadata(supabase, [v]);
+              return { ...native, url: signedUrl };
             },
           ),
         );

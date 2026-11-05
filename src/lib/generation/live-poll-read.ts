@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { asGenerationClient } from "./db-types.ts";
 import { GENERATION_BUCKET } from "./storage-paths.ts";
 import { createSignedUrlWithTimeout } from "./signed-url.ts";
+import { readNativeMediaMetadata } from "./media-metadata-read.ts";
 import {
   assembleLivePoll,
   type LivePollJobRow,
@@ -29,7 +30,7 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
       db
         .from("image_versions")
         .select(
-          "id, job_id, parent_version_id, storage_path, width, height, prompt, model, created_at",
+          "id, job_id, parent_version_id, storage_path, mime_type, width, height, prompt, model, created_at",
         )
         .eq("session_id", sessionId)
         .order("created_at", { ascending: true }),
@@ -39,7 +40,10 @@ export async function readGenerationSessionLive(sessionId: string): Promise<Live
   }
 
   const jobs = (jobRows ?? []) as LivePollJobRow[];
-  const versions = (versionRows ?? []) as LivePollVersionRow[];
+  const versions = (await readNativeMediaMetadata(
+    db,
+    versionRows ?? [],
+  )) as unknown as LivePollVersionRow[];
   const succeededIds = new Set(
     jobs.filter((job) => job.status === "succeeded").map((job) => job.id),
   );

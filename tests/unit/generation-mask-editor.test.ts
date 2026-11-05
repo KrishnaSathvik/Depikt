@@ -99,8 +99,8 @@ test("GenerateWorkspace and InlineGenerationPanel still render GenerationEditFor
   const panel = read("src/components/generate/InlineGenerationPanel.tsx");
   assert.match(workspace, /<GenerationEditForm\s/);
   assert.match(panel, /<GenerationEditForm\s/);
-  assert.match(workspace, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
-  assert.match(panel, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng\s*\}\)/);
+  assert.match(workspace, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng, markupPng\s*\}\)/);
+  assert.match(panel, /gen\.applyEdit\(editPrompt,\s*\{\s*maskPng, markupPng\s*\}\)/);
 });
 
 test("parents pass the result image and active version dimensions into the edit form", () => {

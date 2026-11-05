@@ -68,7 +68,11 @@ export function verifyExecutionAuthorization(
     if (required) throw new Error("Missing execution authorization");
     return;
   }
-  const { executionAuthorization, ...plan } = stored as Record<string, unknown>;
+  const {
+    executionAuthorization,
+    executionTokensEnc: _tokens,
+    ...plan
+  } = stored as Record<string, unknown>;
   if (!executionAuthorization) {
     if (required || plan.grounding || plan.validation)
       throw new Error("Missing execution authorization");

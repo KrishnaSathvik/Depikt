@@ -1,4 +1,5 @@
 import { RecoverableImage } from "@/components/RecoverableImage";
+import { AnimatedMediaPreview } from "@/components/generate/AnimatedMediaPreview";
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
@@ -83,7 +84,17 @@ export function CreationDetailView({
   function download() {
     if (!creation.url) return;
     trackEvent("creation_downloaded", {});
-    const filename = `depikt-${creation.createdAt.slice(0, 10)}-${creation.id.slice(0, 8)}.png`;
+    const extension =
+      creation.mimeType === "image/svg+xml"
+        ? "svg"
+        : creation.mimeType === "image/gif"
+          ? "gif"
+          : creation.mimeType === "image/webp"
+            ? "webp"
+            : creation.mimeType === "image/jpeg"
+              ? "jpg"
+              : "png";
+    const filename = `depikt-${creation.createdAt.slice(0, 10)}-${creation.id.slice(0, 8)}.${extension}`;
     void downloadFile(creation.url, filename);
   }
 
@@ -136,14 +147,21 @@ export function CreationDetailView({
     <div>
       <div className="bg-[color:var(--bg-subtle)] p-4">
         {creation.url ? (
-          <RecoverableImage
-            src={creation.url}
-            refreshUrl={async () =>
-              (await getCreationDetail(creation.id)).versions.find((v) => v.id === creation.id)?.url
-            }
-            alt={promptCaption(creation.prompt, 120) || "Generated image"}
-            className="mx-auto max-h-[55vh] w-auto rounded-md object-contain"
-          />
+          creation.mimeType === "image/gif" ? (
+            <div className="h-96">
+              <AnimatedMediaPreview url={creation.url} alt="Saved animation" />
+            </div>
+          ) : (
+            <RecoverableImage
+              src={creation.url}
+              refreshUrl={async () =>
+                (await getCreationDetail(creation.id)).versions.find((v) => v.id === creation.id)
+                  ?.url
+              }
+              alt={promptCaption(creation.prompt, 120) || "Generated image"}
+              className="mx-auto max-h-[55vh] w-auto rounded-md object-contain"
+            />
+          )
         ) : (
           <div className="flex h-64 items-center justify-center text-body-sm text-[color:var(--text-tertiary)]">
             Image unavailable
@@ -245,7 +263,11 @@ export function CreationDetailView({
           <Button variant="outline" size="sm" onClick={download} disabled={!creation.url}>
             Download
           </Button>
-          <Button size="sm" onClick={openInGenerate}>
+          <Button
+            size="sm"
+            onClick={openInGenerate}
+            disabled={creation.mimeType === "image/svg+xml" || creation.mimeType === "image/gif"}
+          >
             Open in Generate
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setConfirmOpen(true)}>

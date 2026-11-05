@@ -1,4 +1,5 @@
 import type { TemporalSupport } from "./grounding/temporal";
+import type { MediaMetadata } from "./media";
 // Native image generation — authenticated client fetch + polling.
 //
 // The /api/generation/* routes are plain file-route API endpoints, not
@@ -48,6 +49,9 @@ async function generationJson<T>(path: string, init?: RequestInit): Promise<T> {
 // opaque, signed planToken that POST /jobs merely verifies. See job-request.ts.
 
 export interface CreatePlanRequest {
+  outputFormat?: "png" | "svg" | "gif";
+  gif?: { frameCount: number; frameDurationMs: number };
+  markupAssetId?: string | null;
   refreshGrounding?: boolean;
   entityIds?: string[];
   /** The final, ready-to-render prompt (a direct /generate submission, or Build/Critique's finished output). */
@@ -152,6 +156,8 @@ export function getGenerationJob(jobId: string): Promise<JobStatusResponse> {
 }
 
 export interface SessionVersion {
+  mime_type?: string;
+  media_metadata?: MediaMetadata;
   job_id?: string;
   id: string;
   parent_version_id: string | null;
@@ -197,6 +203,15 @@ export function uploadEditMask(
   dataUrl: string,
 ): Promise<{ assetId: string }> {
   return generationJson("/api/generation/masks", {
+    method: "POST",
+    body: JSON.stringify({ sourceVersionId, dataUrl }),
+  });
+}
+export function uploadEditMarkup(
+  sourceVersionId: string,
+  dataUrl: string,
+): Promise<{ assetId: string }> {
+  return generationJson("/api/generation/markup", {
     method: "POST",
     body: JSON.stringify({ sourceVersionId, dataUrl }),
   });

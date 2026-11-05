@@ -31,7 +31,13 @@ import {
   toExistingJobsResult,
   type ExistingJobRow,
 } from "@/lib/generation/idempotent-jobs";
-import { encryptExecutionTokenMap } from "@/lib/generation/execution-token";
+import { assertMediaExecutionPriced } from "@/lib/generation/media-pricing";
+import {
+  assertImageRequestSupported,
+  isSupportedSize,
+} from "@/lib/generation/provider-capabilities";
+import { GENERATION_QUALITY, resolveModelId } from "@/lib/generation/models";
+import { recoverSessionExecutionTokens } from "@/lib/generation/persist-execution-tokens";
 
 // Reference intents where the image must be reproduced faithfully, not just
 // used for inspiration — see reference.ts. A prompt built for one of these
@@ -207,6 +213,11 @@ export const Route = createFileRoute("/api/generation/jobs")({
           expectedIdempotencyKeys,
         );
         if (existingResult) {
+          try {
+            await recoverSessionExecutionTokens(supabase, userId, existingResult.sessionId, secret);
+          } catch {
+            return jsonError("Could not restore execution authorization. Retry this request.", 500);
+          }
           return new Response(JSON.stringify(existingResult), {
             status: 202,
             headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -237,7 +248,7 @@ export const Route = createFileRoute("/api/generation/jobs")({
             exactTextCount: payload.intent.exact_text.length,
             referenceIntent: payload.intent.reference_intent,
           },
-          hasMask: Boolean(payload.maskPath ?? payload.maskAssetId),
+          hasMask: Boolean(payload.maskPath ?? payload.maskAssetId ?? payload.markupPath),
         });
         let size = resolveGenerationSize({
           promptText: payload.prompt,
@@ -258,12 +269,31 @@ export const Route = createFileRoute("/api/generation/jobs")({
           size = preserveEditSourceSize(
             size,
             source,
-            Boolean(payload.maskPath ?? payload.maskAssetId),
+            Boolean(payload.maskPath ?? payload.maskAssetId ?? payload.markupPath),
           );
         }
 
         if (payload.plan.mode === "edit" && operation === "generate" && !payload.grounding) {
           return jsonError("Editing requires a sourceVersionId or a reference image", 400);
+        }
+        try {
+          assertMediaExecutionPriced(operation, payload.media);
+          const caps = assertImageRequestSupported(resolveModelId(model, payload.media?.family), {
+            operation,
+            quality: GENERATION_QUALITY,
+            outputFormat: payload.media?.outputFormat ?? "png",
+            hasMask: !!payload.maskPath,
+            hasMarkup: !!payload.markupPath,
+            gif: payload.media?.gif,
+          });
+          if (
+            !payload.maskPath &&
+            !payload.markupPath &&
+            !isSupportedSize(caps, size.width, size.height)
+          )
+            throw new Error("Unsupported output dimensions");
+        } catch (e) {
+          return jsonError(e instanceof Error ? e.message : "Unsupported request", 400);
         }
 
         if (!process.env.OPENAI_API_KEY) {
@@ -284,7 +314,11 @@ export const Route = createFileRoute("/api/generation/jobs")({
         // reference paths this token carried, and it must never trust a
         // client-supplied list at execution time.
         let validationSnapshot;
-        if (process.env.VALIDATION_REPAIR_ENABLED === "true") {
+        if (
+          process.env.VALIDATION_REPAIR_ENABLED === "true" &&
+          (!payload.media || payload.media.outputFormat === "png") &&
+          !payload.markupPath
+        ) {
           try {
             validationSnapshot = buildJobValidationPlans({
               groundingBundle: payload.grounding?.bundle,
@@ -311,6 +345,9 @@ export const Route = createFileRoute("/api/generation/jobs")({
           }
         }
         const executionPlan = buildExecutionPlanJson({
+          media: payload.media,
+          markupPath: payload.markupPath,
+          markupAssetId: payload.markupAssetId,
           validation: validationSnapshot,
           grounding: payload.grounding,
           groundingUsage: payload.groundingUsage,
@@ -381,6 +418,19 @@ export const Route = createFileRoute("/api/generation/jobs")({
           );
           switch (decision.kind) {
             case "replay":
+              try {
+                await recoverSessionExecutionTokens(
+                  supabase,
+                  userId,
+                  decision.result.sessionId,
+                  secret,
+                );
+              } catch {
+                return jsonError(
+                  "Could not restore execution authorization. Retry this request.",
+                  500,
+                );
+              }
               return new Response(JSON.stringify(decision.result), {
                 status: 202,
                 headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -388,6 +438,9 @@ export const Route = createFileRoute("/api/generation/jobs")({
             case "reuse":
               if (
                 !executionPlanIdentityMatches(existingSession.plan_json, {
+                  media: payload.media,
+                  markupPath: payload.markupPath,
+                  markupAssetId: payload.markupAssetId,
                   validation: validationSnapshot,
                   grounding: payload.grounding,
                   groundingUsage: payload.groundingUsage,
@@ -440,6 +493,14 @@ export const Route = createFileRoute("/api/generation/jobs")({
             return jsonError("Not enough credits.", 402);
           }
 
+          if (row.execution_token) {
+            try {
+              await recoverSessionExecutionTokens(supabase, userId, sessionId, secret);
+            } catch {
+              return jsonError("Could not authorize execution. Retry this request.", 500);
+            }
+          }
+
           return new Response(
             JSON.stringify({
               sessionId,
@@ -472,6 +533,13 @@ export const Route = createFileRoute("/api/generation/jobs")({
         }
 
         const jobIds = (row.job_ids ?? []) as string[];
+        if (Array.isArray(row.execution_tokens) && row.execution_tokens.length) {
+          try {
+            await recoverSessionExecutionTokens(supabase, userId, sessionId, secret);
+          } catch {
+            return jsonError("Could not authorize execution. Retry this request.", 500);
+          }
+        }
         return new Response(
           JSON.stringify({
             sessionId,

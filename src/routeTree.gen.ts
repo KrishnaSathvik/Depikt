@@ -45,6 +45,7 @@ import { Route as ApiBlogRssDotxmlRouteImport } from './routes/api/blog.rss[.]xm
 import { Route as ApiGenerationCreditsRouteImport } from './routes/api/generation/credits'
 import { Route as ApiGenerationEntitiesRouteImport } from './routes/api/generation/entities'
 import { Route as ApiGenerationJobsRouteImport } from './routes/api/generation/jobs'
+import { Route as ApiGenerationMarkupRouteImport } from './routes/api/generation/markup'
 import { Route as ApiGenerationMasksRouteImport } from './routes/api/generation/masks'
 import { Route as ApiGenerationPlansRouteImport } from './routes/api/generation/plans'
 import { Route as ApiGenerationReferencesRouteImport } from './routes/api/generation/references'
@@ -242,6 +243,11 @@ const ApiGenerationJobsRoute = ApiGenerationJobsRouteImport.update({
   path: '/api/generation/jobs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiGenerationMarkupRoute = ApiGenerationMarkupRouteImport.update({
+  id: '/api/generation/markup',
+  path: '/api/generation/markup',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerationMasksRoute = ApiGenerationMasksRouteImport.update({
   id: '/api/generation/masks',
   path: '/api/generation/masks',
@@ -353,6 +359,7 @@ export interface FileRoutesByFullPath {
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/markup': typeof ApiGenerationMarkupRoute
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
@@ -405,6 +412,7 @@ export interface FileRoutesByTo {
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/markup': typeof ApiGenerationMarkupRoute
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
@@ -458,6 +466,7 @@ export interface FileRoutesById {
   '/api/generation/credits': typeof ApiGenerationCreditsRoute
   '/api/generation/entities': typeof ApiGenerationEntitiesRouteWithChildren
   '/api/generation/jobs': typeof ApiGenerationJobsRouteWithChildren
+  '/api/generation/markup': typeof ApiGenerationMarkupRoute
   '/api/generation/masks': typeof ApiGenerationMasksRoute
   '/api/generation/plans': typeof ApiGenerationPlansRoute
   '/api/generation/references': typeof ApiGenerationReferencesRoute
@@ -512,6 +521,7 @@ export interface FileRouteTypes {
     | '/api/generation/credits'
     | '/api/generation/entities'
     | '/api/generation/jobs'
+    | '/api/generation/markup'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
@@ -564,6 +574,7 @@ export interface FileRouteTypes {
     | '/api/generation/credits'
     | '/api/generation/entities'
     | '/api/generation/jobs'
+    | '/api/generation/markup'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
@@ -616,6 +627,7 @@ export interface FileRouteTypes {
     | '/api/generation/credits'
     | '/api/generation/entities'
     | '/api/generation/jobs'
+    | '/api/generation/markup'
     | '/api/generation/masks'
     | '/api/generation/plans'
     | '/api/generation/references'
@@ -669,6 +681,7 @@ export interface RootRouteChildren {
   ApiGenerationCreditsRoute: typeof ApiGenerationCreditsRoute
   ApiGenerationEntitiesRoute: typeof ApiGenerationEntitiesRouteWithChildren
   ApiGenerationJobsRoute: typeof ApiGenerationJobsRouteWithChildren
+  ApiGenerationMarkupRoute: typeof ApiGenerationMarkupRoute
   ApiGenerationMasksRoute: typeof ApiGenerationMasksRoute
   ApiGenerationPlansRoute: typeof ApiGenerationPlansRoute
   ApiGenerationReferencesRoute: typeof ApiGenerationReferencesRoute
@@ -932,6 +945,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerationJobsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/generation/markup': {
+      id: '/api/generation/markup'
+      path: '/api/generation/markup'
+      fullPath: '/api/generation/markup'
+      preLoaderRoute: typeof ApiGenerationMarkupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generation/masks': {
       id: '/api/generation/masks'
       path: '/api/generation/masks'
@@ -1161,6 +1181,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerationCreditsRoute: ApiGenerationCreditsRoute,
   ApiGenerationEntitiesRoute: ApiGenerationEntitiesRouteWithChildren,
   ApiGenerationJobsRoute: ApiGenerationJobsRouteWithChildren,
+  ApiGenerationMarkupRoute: ApiGenerationMarkupRoute,
   ApiGenerationMasksRoute: ApiGenerationMasksRoute,
   ApiGenerationPlansRoute: ApiGenerationPlansRoute,
   ApiGenerationReferencesRoute: ApiGenerationReferencesRoute,

@@ -1,6 +1,8 @@
 import { generationMetric } from "./telemetry.ts";
 import { validateAndRepair, type ValidationRuntime } from "./validation/runtime.ts";
 import { repairInstruction } from "./validation/repair.ts";
+import { validateGeneratedMedia, type MediaOptions, type MediaMetadata } from "./media.ts";
+import { assertMediaExecutionPriced } from "./media-pricing.ts";
 // Native image generation — job execution pipeline.
 //
 // Depends only on this narrow interface, never on the Supabase SDK
@@ -23,6 +25,8 @@ export { CREDIT_CHARGE_BUDGET_MS };
 export type { StoredImage };
 
 export interface GenerationJobRecord {
+  media?: MediaOptions;
+  editMarkup?: StoredImage | null;
   id: string;
   userId: string;
   sessionId: string;
@@ -60,6 +64,7 @@ export interface GenerationDataAccess {
     height: number;
     prompt: string;
     model: ModelAlias;
+    mediaMetadata?: MediaMetadata;
   }): Promise<{ id: string }>;
   finalizeCredits(
     userId: string,
@@ -68,7 +73,12 @@ export interface GenerationDataAccess {
     outcome: "charged" | "refunded",
     jobId: string,
   ): Promise<{ availableCredits: number }>;
-  buildStoragePath(userId: string, sessionId: string, versionId: string): string;
+  buildStoragePath(
+    userId: string,
+    sessionId: string,
+    versionId: string,
+    format?: import("./provider-capabilities.ts").ImageOutputFormat,
+  ): string;
   newVersionId(): string;
 }
 
@@ -129,6 +139,7 @@ export async function runGenerationJob(
   let imageStarted: number | null = null;
 
   try {
+    assertMediaExecutionPriced(job.operation, job.media);
     const running = await data.markJobRunning(job.id);
     if (!running) {
       generationMetric("generation_completed", {
@@ -145,6 +156,9 @@ export async function runGenerationJob(
     let result =
       job.operation === "generate"
         ? await generateImage({
+            family: job.media?.family,
+            outputFormat: job.media?.outputFormat,
+            gif: job.media?.gif,
             model: job.model,
             prompt: job.prompt,
             width: job.width,
@@ -153,6 +167,8 @@ export async function runGenerationJob(
             fetchImpl: deps.fetchImpl,
           })
         : await editImage({
+            family: job.media?.family,
+            markup: job.editMarkup,
             model: job.model,
             prompt: job.prompt,
             width: job.width,
@@ -167,7 +183,7 @@ export async function runGenerationJob(
     let bytes = deps.decodeBase64(result.b64);
     const usages = [result.usage];
     let validationReport: unknown;
-    if (deps.validation) {
+    if (deps.validation && (!job.media || job.media.outputFormat === "png") && !job.editMarkup) {
       const validationStarted = Date.now();
       const validated = await validateAndRepair(
         { result, image: { bytes, filename: "result.png", mimeType: "image/png" } },
@@ -214,18 +230,30 @@ export async function runGenerationJob(
       };
     }
     versionId = data.newVersionId();
-    const storagePath = data.buildStoragePath(job.userId, job.sessionId, versionId);
+    const media = validateGeneratedMedia(
+      bytes,
+      job.media?.outputFormat ?? "png",
+      job.width,
+      job.height,
+    );
+    const storagePath = data.buildStoragePath(
+      job.userId,
+      job.sessionId,
+      versionId,
+      job.media?.outputFormat,
+    );
 
-    await data.uploadImage(storagePath, bytes, "image/png");
+    await data.uploadImage(storagePath, media.bytes, media.mimeType);
     await data.insertImageVersion({
       userId: job.userId,
       sessionId: job.sessionId,
       jobId: job.id,
       parentVersionId: sourceVersionId,
       storagePath,
-      mimeType: "image/png",
-      width: job.width,
-      height: job.height,
+      mimeType: media.mimeType,
+      width: media.metadata.width,
+      height: media.metadata.height,
+      ...(job.media && job.media.outputFormat !== "png" ? { mediaMetadata: media.metadata } : {}),
       prompt: job.prompt,
       model: job.model,
     });

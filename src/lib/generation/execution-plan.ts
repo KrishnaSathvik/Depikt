@@ -16,6 +16,7 @@ export { extractStoredEntityReferencePaths } from "./stored-entities.ts";
 // column never becomes an unbounded, duplicate copy of user content.
 
 import type { GenerationPlan } from "./plan.ts";
+import type { MediaOptions } from "./media.ts";
 
 export interface ExecutionPlanChild {
   label: string | null;
@@ -23,6 +24,9 @@ export interface ExecutionPlanChild {
 }
 
 export interface ExecutionPlanJson {
+  media?: MediaOptions;
+  markupAssetId?: string | null;
+  markupPath?: string | null;
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
   groundingUsage?: GroundingUsage;
@@ -44,6 +48,9 @@ export interface ExecutionPlanJson {
 }
 
 export function buildExecutionPlanJson(args: {
+  media?: MediaOptions;
+  markupAssetId?: string | null;
+  markupPath?: string | null;
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
   groundingUsage?: GroundingUsage;
@@ -58,6 +65,8 @@ export function buildExecutionPlanJson(args: {
 }): ExecutionPlanJson {
   const childLabels = args.children.map((c) => c.label);
   return {
+    ...(args.media ? { media: args.media } : {}),
+    ...(args.markupPath ? { markupPath: args.markupPath, markupAssetId: args.markupAssetId } : {}),
     ...(args.validation ? { validation: args.validation } : {}),
     ...(args.groundingUsage ? { groundingUsage: args.groundingUsage } : {}),
     ...(args.grounding ? { grounding: args.grounding } : {}),
@@ -110,6 +119,9 @@ export function extractStoredMaskPath(planJson: unknown): string | null {
 
 /** Fields that define whether a stored session may be reused for a new token. */
 export interface ExecutionPlanIdentity {
+  media?: MediaOptions;
+  markupAssetId?: string | null;
+  markupPath?: string | null;
   validation?: Record<string, ValidationSnapshot>;
   grounding?: GroundingSnapshot;
   groundingUsage?: GroundingUsage;
@@ -171,6 +183,13 @@ export function executionPlanIdentityMatches(
   stored: unknown,
   current: ExecutionPlanIdentity,
 ): boolean {
+  const root = stored as ExecutionPlanIdentity | null;
+  if (
+    JSON.stringify(root?.media ?? null) !== JSON.stringify(current.media ?? null) ||
+    (root?.markupPath ?? null) !== (current.markupPath ?? null) ||
+    (root?.markupAssetId ?? null) !== (current.markupAssetId ?? null)
+  )
+    return false;
   const validationIdentity = (value?: Record<string, ValidationSnapshot>) =>
     Object.entries(value ?? {})
       .sort(([a], [b]) => a.localeCompare(b))

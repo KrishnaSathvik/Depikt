@@ -16,6 +16,8 @@ export interface LivePollJobRow {
 }
 
 export interface LivePollVersionRow {
+  mime_type?: string;
+  media_metadata?: SessionVersion["media_metadata"];
   id: string;
   job_id: string;
   parent_version_id: string | null;
@@ -75,6 +77,8 @@ export function assembleLivePoll(
       };
     }),
     versions: versions.map((version) => ({
+      ...(version.mime_type ? { mime_type: version.mime_type } : {}),
+      ...(version.media_metadata ? { media_metadata: version.media_metadata } : {}),
       job_id: version.job_id,
       id: version.id,
       parent_version_id: version.parent_version_id,

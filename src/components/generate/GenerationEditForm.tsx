@@ -2,6 +2,7 @@ import { useId, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GenerationMaskEditor } from "@/components/generate/GenerationMaskEditor";
+import { GenerationMarkupEditor } from "@/components/generate/GenerationMarkupEditor";
 import { exportMaskPng, hasPaintCoverage, type MaskStroke } from "@/lib/generation/edit-mask";
 
 const DEFAULT_BRUSH_RADIUS = 0.04;
@@ -25,13 +26,13 @@ export function GenerationEditForm({
 }: {
   value: string;
   onChange: (next: string) => void;
-  onApply: (result: { maskPng: Uint8Array | null }) => void;
+  onApply: (result: { maskPng: Uint8Array | null; markupPng?: Uint8Array | null }) => void;
   onCancel: () => void;
   imageUrl?: string | null;
   sourceWidth?: number;
   sourceHeight?: number;
-  editMode?: "area" | "whole";
-  onEditModeChange?: (mode: "area" | "whole") => void;
+  editMode?: "area" | "whole" | "markup";
+  onEditModeChange?: (mode: "area" | "whole" | "markup") => void;
   strokes?: MaskStroke[];
   onStrokesChange?: (next: MaskStroke[]) => void;
 }) {
@@ -44,12 +45,13 @@ export function GenerationEditForm({
     typeof sourceHeight === "number" &&
     sourceHeight > 0;
 
-  const [uncontrolledMode, setUncontrolledMode] = useState<"area" | "whole">(
+  const [uncontrolledMode, setUncontrolledMode] = useState<"area" | "whole" | "markup">(
     canSelectArea ? "area" : "whole",
   );
   const [uncontrolledStrokes, setUncontrolledStrokes] = useState<MaskStroke[]>([]);
   const [brushRadius, setBrushRadius] = useState(DEFAULT_BRUSH_RADIUS);
   const [tool, setTool] = useState<"paint" | "erase">("paint");
+  const [markupPng, setMarkupPng] = useState<Uint8Array | null>(null);
 
   const editMode = editModeProp ?? uncontrolledMode;
   const strokes = strokesProp ?? uncontrolledStrokes;
@@ -62,6 +64,10 @@ export function GenerationEditForm({
 
   function handleApply() {
     if (!value.trim()) return;
+    if (mode === "markup") {
+      onApply({ maskPng: null, markupPng });
+      return;
+    }
     if (mode === "area" && sourceWidth && sourceHeight) {
       onApply({ maskPng: exportMaskPng(strokes, sourceWidth, sourceHeight) });
       return;
@@ -69,7 +75,7 @@ export function GenerationEditForm({
     onApply({ maskPng: null });
   }
 
-  function setEditMode(next: "area" | "whole") {
+  function setEditMode(next: "area" | "whole" | "markup") {
     if (editModeProp === undefined) setUncontrolledMode(next);
     onEditModeChange?.(next);
   }
@@ -102,6 +108,15 @@ export function GenerationEditForm({
           >
             Whole image
           </Button>
+          <Button
+            type="button"
+            size="sm"
+            aria-pressed={mode === "markup"}
+            variant={mode === "markup" ? "default" : "outline"}
+            onClick={() => setEditMode("markup")}
+          >
+            Markup
+          </Button>
         </div>
       )}
       {canSelectArea && mode === "area" && imageUrl && sourceWidth && sourceHeight ? (
@@ -122,6 +137,14 @@ export function GenerationEditForm({
           />
         </>
       ) : null}
+      {canSelectArea && mode === "markup" && imageUrl && sourceWidth && sourceHeight && (
+        <GenerationMarkupEditor
+          imageUrl={imageUrl}
+          width={sourceWidth}
+          height={sourceHeight}
+          onChange={setMarkupPng}
+        />
+      )}
       <label
         htmlFor={editFieldId}
         className="block text-body-sm text-[color:var(--text-secondary)]"
@@ -139,7 +162,11 @@ export function GenerationEditForm({
         <Button
           size="default"
           className="gap-2"
-          disabled={!value.trim() || (mode === "area" && !areaHasCoverage)}
+          disabled={
+            !value.trim() ||
+            (mode === "area" && !areaHasCoverage) ||
+            (mode === "markup" && !markupPng)
+          }
           onClick={handleApply}
         >
           Apply edit → · 1 credit

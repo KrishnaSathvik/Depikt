@@ -35,6 +35,10 @@ export const Route = createFileRoute("/account")({
     meta: [
       { title: SEO.account.title },
       { name: "description", content: SEO.account.description },
+      { property: "og:title", content: SEO.account.title },
+      { property: "og:description", content: SEO.account.description },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { name: "robots", content: SEO.account.robots },
     ],
   }),
