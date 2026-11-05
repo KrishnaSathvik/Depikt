@@ -31,6 +31,7 @@ import {
   toExistingJobsResult,
   type ExistingJobRow,
 } from "@/lib/generation/idempotent-jobs";
+import { encryptExecutionTokenMap } from "@/lib/generation/execution-token";
 
 // Reference intents where the image must be reproduced faithfully, not just
 // used for inspiration — see reference.ts. A prompt built for one of these

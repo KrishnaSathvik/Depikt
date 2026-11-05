@@ -1,14 +1,14 @@
-# Step 2 — Job Security, Refund Integrity & Credit Reliability
+# Step 3 — Images 2.6 Integration & Job-Execution Lockdown
 
-Constraints: no publish, no production DB changes, preserve Step 1, no Images 2.6.
+Constraints honored: no publish, no production DB changes, no paid OpenAI calls, no UI changes, Steps 1–2 and fallbacks preserved.
 
-- [x] 1. Job security: transition_generation_job + save_generation_job_validation RPCs; REVOKE direct UPDATE on generation_jobs; image_versions insert gated on non-terminal job
-- [x] 2. Settlement integrity: DB tests for settle_generation_job (replay, conflicts, race, no-reservation)
-- [x] 3. Missing refunds: observable settlement failures (no silent catch), reap_stale_generation_jobs() + cron schedule file (prepared, not applied)
-- [x] 4. Expired credits: refund must not restore plan credits reset by a renewal; documented in migration + report
-- [x] 5. Stuck job: investigated (reaper is poll-driven, session never reopened); scheduled reconciliation designed + tested locally; balance untouched per constraints
-- [x] 6. Balance sync: refresh credits when settled-job count grows and on window focus
-- [x] 7. Verification: isolated Postgres harness rebuilt, 44/44 DB tests, 956/958 app tests (2 pre-existing failures), typecheck clean, build OK
-- [x] Report: /mnt/documents/audits/step2-report-2026-11-05.md
+- [x] 1. Capability matrix: docs/images-2-6-capability-matrix.md (verified against official docs 2026-11-05)
+- [x] 2. Provider capability registry (src/lib/generation/provider-capabilities.ts); models.ts family switch (IMAGES_MODEL_FAMILY, default 2.5); openai-images.ts validates combos before any billable request
+- [x] 3. Routing: deterministic alias rules unchanged, family orthogonal; 21 router tests + 14 registry tests
+- [x] 4. Job-execution abuse closed: per-job execution_token (DB-minted, hidden column), token-gated transitions, claim_generation_job RPC, encrypted tokens in plan_json, stale-job defers to reaper
+- [x] 5. supabase/pending/step3_job_execution_tokens.sql + step3.sh: 42/42 isolated DB tests
+- [x] 6. Benchmark plan: docs/images-2-6-benchmark-plan.md (150 generations, $40 cap; none executed)
+- [x] 7. Milestones: docs/images-2-6-milestones.md (4a markup, 4b SVG, 4c GIF, 5 UI/UX)
+- [x] 8. Verification: typecheck clean, build OK, 972/974 app tests (2 known pre-existing), report at /mnt/documents/audits/step3-report-2026-11-05.md
 
-Open (blocked on user): publish the app, then apply supabase/pending/lock_down_credit_functions.sql, step2_job_security.sql, step2_cron_schedule.sql to production and re-verify.
+Open (blocked on user): production release only after the full 2.6 upgrade is approved; then publish + apply pending migrations (Step 1, 2, 3 + cron) and re-verify. Step 4 (GIF/SVG/markup) can start in development.

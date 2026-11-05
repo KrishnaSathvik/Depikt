@@ -1,7 +1,7 @@
 import type { UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { CREDIT_CHARGE_BUDGET_MS, raceWithTimeout } from "./timeout.ts";
 import { settleJobCredits } from "./settle-credits.ts";
-import { transitionJob } from "./job-transition.ts";
+import { isExecutionTokenError, transitionJob } from "./job-transition.ts";
 import { generationMetric } from "./telemetry.ts";
 
 export const STALE_MS = 6 * 60 * 1000;
@@ -65,6 +65,14 @@ export async function failAndRefundStaleJob(
   supabase: UntypedSupabaseClient,
   job: StaleJob,
   now = new Date(),
+  /**
+   * Resolves the job's execution token (Step 3). Only called when a stale
+   * transition is actually attempted. Post-migration, a token-less failure
+   * transition is denied; in that case this degrades to "not applied" and
+   * the scheduled reaper (reap_stale_generation_jobs) settles the job
+   * instead of the poll path.
+   */
+  resolveExecutionToken?: () => Promise<string | null>,
 ): Promise<StaleJobResult> {
   const refund = async (): Promise<void> => {
     try {
@@ -97,10 +105,29 @@ export async function failAndRefundStaleJob(
     };
   }
 
-  const applied = await transitionJob(supabase, job.id, "failed", {
-    errorCode: "timed_out",
-    safeErrorMessage: STALE_ERROR_MESSAGE,
-  });
+  let applied: boolean;
+  try {
+    const executionToken = resolveExecutionToken ? await resolveExecutionToken() : null;
+    applied = await transitionJob(
+      supabase,
+      job.id,
+      "failed",
+      {
+        errorCode: "timed_out",
+        safeErrorMessage: STALE_ERROR_MESSAGE,
+      },
+      executionToken,
+    );
+  } catch (error) {
+    if (!isExecutionTokenError(error)) throw error;
+    // Token unavailable/invalid: leave the job for the scheduled reaper.
+    generationMetric("stale_job_deferred_to_reaper", { jobId: job.id });
+    return {
+      applied: false,
+      status: job.status,
+      safe_error_message: job.safe_error_message ?? null,
+    };
+  }
 
   if (!applied) {
     const { data: liveJob, error: liveError } = await supabase

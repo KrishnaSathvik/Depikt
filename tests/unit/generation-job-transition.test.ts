@@ -40,9 +40,19 @@ test("transitionJob names only the job, target status and allowlisted patch", as
           estimated_api_cost_usd: 0.04,
           openai_request_id: "req_1",
         },
+        p_execution_token: null,
       },
     },
   ]);
+});
+
+test("transitionJob passes the execution token through when given one", async () => {
+  const { client, calls } = rpcClient(() => ({ data: true, error: null }));
+  await transitionJob(client, "job-1", "failed", {
+    errorCode: "provider_error",
+    safeErrorMessage: "x",
+  }, "token-abc");
+  assert.equal(calls[0].args.p_execution_token, "token-abc");
 });
 
 test("transitionJob returns false when the database refuses the transition", async () => {

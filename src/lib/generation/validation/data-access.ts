@@ -8,6 +8,7 @@ export function validationDataAccess(
   userId: string,
   sessionId: string,
   secret: string,
+  executionToken: string | null = null,
 ) {
   return {
     // Initial jobs cannot independently spend a per-request repair budget.
@@ -22,6 +23,7 @@ export function validationDataAccess(
         userId,
         { snapshot, repairAttempts: attempt },
         { ...result, repairAttempts: attempt },
+        executionToken,
       );
     },
   };

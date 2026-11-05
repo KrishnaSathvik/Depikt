@@ -59,7 +59,8 @@ export function generationMetric(
     | "validation_completed"
     | "repair_completed"
     | "credits_settled"
-    | "credits_settle_failed",
+    | "credits_settle_failed"
+    | "stale_job_deferred_to_reaper",
   values: GenerationMetric,
   write: (value: string) => void = console.info,
 ): void {

@@ -26,6 +26,8 @@ import {
   extractStoredReferenceAssetIds,
   extractStoredMaskPath,
 } from "@/lib/generation/execution-plan";
+import { extractExecutionToken } from "@/lib/generation/execution-token";
+import { claimJobForExecution } from "@/lib/generation/job-transition";
 import {
   assembleJobImages,
   failImageInputJob,
@@ -88,16 +90,41 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         if (sessionLoadError) return jsonError("Could not load the session", 500);
         const referencePaths = extractStoredReferenceAssetIds(session?.plan_json);
         const maskPath = extractStoredMaskPath(session?.plan_json);
+        // The per-job execution token (Step 3) proves this request is the
+        // trusted server executor, not a direct database call. Null on
+        // pre-migration sessions; the legacy claim path below covers those.
+        const executionToken = extractExecutionToken(
+          session?.plan_json,
+          job.idempotency_key as string,
+          process.env.GENERATION_PLAN_SECRET ?? "",
+        );
 
         // Claim it. Anything other than `queued` means someone else is on it.
-        const claimResult = await supabase
-          .from("generation_jobs")
-          .update({ status: "running", started_at: new Date().toISOString() })
-          .eq("id", job.id)
-          .eq("status", "queued")
-          .select("id")
-          .maybeSingle();
-        const claimOutcome = classifyJobClaimResult(claimResult);
+        // Post-migration the token-gated claim RPC does this; the direct
+        // UPDATE fallback only works before the Step 2/3 migrations land.
+        let claimOutcome: "claimed" | "duplicate" | "error";
+        const rpcOutcome = executionToken
+          ? await claimJobForExecution(supabase, job.id as string, executionToken)
+          : null;
+        if (rpcOutcome === "claimed") {
+          claimOutcome = "claimed";
+        } else if (rpcOutcome === "already_running" || rpcOutcome === "terminal") {
+          claimOutcome = "duplicate";
+        } else if (rpcOutcome === "not_found") {
+          claimOutcome = "error";
+        } else if (rpcOutcome === null && executionToken) {
+          // RPC missing but token exists: cannot claim safely.
+          claimOutcome = "error";
+        } else {
+          const claimResult = await supabase
+            .from("generation_jobs")
+            .update({ status: "running", started_at: new Date().toISOString() })
+            .eq("id", job.id)
+            .eq("status", "queued")
+            .select("id")
+            .maybeSingle();
+          claimOutcome = classifyJobClaimResult(claimResult);
+        }
         switch (claimOutcome) {
           case "error":
             return jsonError("Could not claim the job", 500);
@@ -112,7 +139,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         }
 
         const apiKey = process.env.OPENAI_API_KEY;
-        const data = createSupabaseDataAccess(authResult.auth.supabase);
+        const data = createSupabaseDataAccess(authResult.auth.supabase, { executionToken });
         if (!apiKey) {
           await data
             .markJobFailed(job.id, {
@@ -232,6 +259,7 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
                 userId,
                 job.session_id,
                 process.env.GENERATION_PLAN_SECRET ?? "",
+                executionToken,
               ),
             };
           }

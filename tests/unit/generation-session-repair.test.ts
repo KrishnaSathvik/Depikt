@@ -192,6 +192,11 @@ function fixture(providerFails = false) {
         Object.assign(ledgers[0], { state: "complete", outcome: args.p_outcome });
         return { error: null };
       }
+      // Step 3 RPCs: report "function missing" so these tests exercise the
+      // legacy direct-update fallback; the RPC path has its own test below.
+      if (name === "clear_generation_repair_pending" || name === "write_generation_repair_result") {
+        return { data: null, error: { code: "PGRST202" } };
+      }
       throw new Error(`Unexpected credit or other RPC: ${name}`);
     },
     storage: {
@@ -255,8 +260,41 @@ test("concurrent coordinator calls repair only the higher-priority child, withou
   );
   assert.ok(
     f.rpcCalls.every((n) =>
-      ["claim_generation_request_repair", "finish_generation_request_repair"].includes(n),
+      [
+        "claim_generation_request_repair",
+        "finish_generation_request_repair",
+        "clear_generation_repair_pending",
+        "write_generation_repair_result",
+      ].includes(n),
     ),
+  );
+});
+
+test("repair writes go through the gated Step 3 RPCs when the migration is present", async () => {
+  const f = fixture();
+  const baseRpc = f.args.db.rpc.bind(f.args.db);
+  let repairResultWrites = 0;
+  let clearPendingCalls = 0;
+  f.args.db.rpc = async (name: string, args: Record<string, unknown>) => {
+    if (name === "write_generation_repair_result") {
+      repairResultWrites++;
+      // Apply what the real RPC would: telemetry lands on the repaired job.
+      const row = f.rows.find((r) => r.id === args.p_job_id)!;
+      row.usage_json = args.p_usage_json as typeof row.usage_json;
+      return { data: true, error: null };
+    }
+    if (name === "clear_generation_repair_pending") {
+      clearPendingCalls++;
+      for (const row of f.rows) row.usage_json.validation.refinementPending = false;
+      return { data: f.rows.length, error: null };
+    }
+    return baseRpc(name, args);
+  };
+  await refineGenerationSession(f.args);
+  assert.equal(repairResultWrites, 1);
+  assert.ok(clearPendingCalls >= 1);
+  assert.ok(
+    f.rows.every((r) => r.status === "succeeded" && !r.usage_json.validation.refinementPending),
   );
 });
 

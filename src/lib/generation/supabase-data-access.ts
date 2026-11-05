@@ -27,19 +27,21 @@ export function didUpdateRow<T>({ data, error }: { data: T | null; error: unknow
 
 export function createSupabaseDataAccess(
   supabaseIn: SupabaseClient<Database>,
+  options: { executionToken?: string | null } = {},
 ): GenerationDataAccess {
   const supabase = asGenerationClient(supabaseIn);
+  const executionToken = options.executionToken ?? null;
   return {
     async markJobRunning(jobId) {
-      return transitionJob(supabase, jobId, "running");
+      return transitionJob(supabase, jobId, "running", {}, executionToken);
     },
 
     async markJobSucceeded(jobId, patch) {
-      return transitionJob(supabase, jobId, "succeeded", patch);
+      return transitionJob(supabase, jobId, "succeeded", patch, executionToken);
     },
 
     async markJobFailed(jobId, patch) {
-      await transitionJob(supabase, jobId, "failed", patch);
+      await transitionJob(supabase, jobId, "failed", patch, executionToken);
     },
 
     async uploadImage(path, bytes, mimeType) {

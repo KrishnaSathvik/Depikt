@@ -31,7 +31,15 @@ export async function refineGenerationSession(args: {
         .eq("id", sessionId)
         .eq("user_id", userId)
         .maybeSingle(),
-      db.from("generation_jobs").select("*").eq("session_id", sessionId).eq("user_id", userId),
+      // Explicit column list: execution_token is revoked from user reads by
+      // the Step 3 migration, so select("*") would fail after it lands.
+      db
+        .from("generation_jobs")
+        .select(
+          "id,status,usage_json,validation_result,operation,model,prompt,width,height,idempotency_key,source_version_id,estimated_api_cost_usd",
+        )
+        .eq("session_id", sessionId)
+        .eq("user_id", userId),
     ]);
   if (
     sessionError ||
@@ -45,6 +53,13 @@ export async function refineGenerationSession(args: {
   const pending = rows.some((j) => j.usage_json?.validation?.refinementPending === true);
   if (!pending) return;
   const clearPending = async () => {
+    // Step 3 RPC path (direct UPDATE on generation_jobs is revoked once the
+    // Step 2 migration lands); the legacy path below covers pre-migration.
+    const { error: rpcError } = await db.rpc("clear_generation_repair_pending", {
+      p_session_id: sessionId,
+    });
+    if (!rpcError) return;
+    if (rpcError.code !== "PGRST202" && rpcError.code !== "42883") throw rpcError;
     // Reload to preserve the selected job's completed repair telemetry.
     const { data: fresh, error } = await db
       .from("generation_jobs")
@@ -262,35 +277,48 @@ export async function refineGenerationSession(args: {
       repairCostUsd: repairAttempted ? estimateApiCostUsd(repairUsage) : 0,
       repairValidationCostUsd: providers.telemetry.estimatedCostUsd,
     };
-    const { error } = await db
-      .from("generation_jobs")
-      .update({
-        estimated_api_cost_usd:
-          row.estimated_api_cost_usd == null ||
-          economics.repairCostUsd == null ||
-          economics.repairValidationCostUsd == null
-            ? null
-            : Number(row.estimated_api_cost_usd) +
-              economics.repairCostUsd +
-              economics.repairValidationCostUsd,
-        usage_json: {
-          ...row.usage_json,
-          economics,
-          repairUsage: repairUsage ?? null,
-          validation: {
-            ...report,
-            repairAttempts: 1,
-            repairOutcome: outcome,
-            selected,
-            warning: report.verdict !== "pass",
-            refinementPending: false,
-          },
-        },
-      })
-      .eq("id", row.id)
-      .eq("user_id", userId)
-      .eq("status", "succeeded");
-    if (error) throw error;
+    const nextEstimatedCost =
+      row.estimated_api_cost_usd == null ||
+      economics.repairCostUsd == null ||
+      economics.repairValidationCostUsd == null
+        ? null
+        : Number(row.estimated_api_cost_usd) +
+          economics.repairCostUsd +
+          economics.repairValidationCostUsd;
+    const nextUsageJson = {
+      ...row.usage_json,
+      economics,
+      repairUsage: repairUsage ?? null,
+      validation: {
+        ...report,
+        repairAttempts: 1,
+        repairOutcome: outcome,
+        selected,
+        warning: report.verdict !== "pass",
+        refinementPending: false,
+      },
+    };
+    // Step 3 RPC path: gated on an active repair claim for this job, so a
+    // user cannot rewrite usage/cost fields directly. Legacy direct UPDATE
+    // below covers pre-migration databases only.
+    const { error: rpcError } = await db.rpc("write_generation_repair_result", {
+      p_job_id: row.id,
+      p_estimated_api_cost_usd: nextEstimatedCost,
+      p_usage_json: nextUsageJson,
+    });
+    if (rpcError && rpcError.code !== "PGRST202" && rpcError.code !== "42883") throw rpcError;
+    if (rpcError) {
+      const { error } = await db
+        .from("generation_jobs")
+        .update({
+          estimated_api_cost_usd: nextEstimatedCost,
+          usage_json: nextUsageJson,
+        })
+        .eq("id", row.id)
+        .eq("user_id", userId)
+        .eq("status", "succeeded");
+      if (error) throw error;
+    }
   } catch (error) {
     telemetryError = error;
   }

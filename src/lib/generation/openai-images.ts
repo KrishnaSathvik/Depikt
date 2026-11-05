@@ -7,6 +7,13 @@
 // this repo should make a real, billable OpenAI call.
 
 import { resolveModelId, GENERATION_QUALITY, type ModelAlias } from "./models.ts";
+import {
+  assertImageRequestSupported,
+  capabilitiesFor,
+  type ImageComplexity,
+  type ImageModelFamily,
+  type ImageOutputFormat,
+} from "./provider-capabilities.ts";
 
 export type StoredImage = {
   bytes: Uint8Array;
@@ -16,10 +23,16 @@ export type StoredImage = {
 
 export interface GenerateImageInput {
   model: ModelAlias;
+  /** Defaults to activeImageModelFamily() — pass explicitly in tests. */
+  family?: ImageModelFamily;
   prompt: string;
   width: number;
   height: number;
   apiKey: string;
+  /** 2.6 only; rejected by the capability registry on 2.5. */
+  complexity?: ImageComplexity;
+  /** Defaults to "png". svg/gif are 2.6 generations-only and not yet wired into the pipeline. */
+  outputFormat?: ImageOutputFormat;
   fetchImpl?: typeof fetch;
 }
 
@@ -52,12 +65,10 @@ export class OpenAIImageError extends Error {
   }
 }
 
-// Published rates (developers.openai.com/api/docs/models/gpt-image-2.5-flare,
-// confirmed identical for gpt-image-2.5-sunburst): $5/M text input tokens,
-// $8/M image input tokens, $30/M image output tokens.
-const TEXT_INPUT_RATE_PER_TOKEN = 5 / 1_000_000;
-const IMAGE_INPUT_RATE_PER_TOKEN = 8 / 1_000_000;
-const IMAGE_OUTPUT_RATE_PER_TOKEN = 30 / 1_000_000;
+// Token rates come from the capability registry (identical for 2.5 and 2.6
+// Flare/Sunburst per the model pages). Cached-input rates are omitted: they
+// apply only through the Responses API, which this adapter does not use.
+const COST_RATES = capabilitiesFor("flare", "2.5").pricing;
 
 export function estimateApiCostUsd(usage: OpenAIImageUsage | undefined): number | null {
   if (!usage) return null;
@@ -66,9 +77,10 @@ export function estimateApiCostUsd(usage: OpenAIImageUsage | undefined): number 
   const imageIn = det.image_tokens ?? 0;
   const out = usage.output_tokens ?? 0;
   return (
-    textIn * TEXT_INPUT_RATE_PER_TOKEN +
-    imageIn * IMAGE_INPUT_RATE_PER_TOKEN +
-    out * IMAGE_OUTPUT_RATE_PER_TOKEN
+    (textIn * COST_RATES.textInputPerM +
+      imageIn * COST_RATES.imageInputPerM +
+      out * COST_RATES.imageOutputPerM) /
+    1_000_000
   );
 }
 
@@ -78,17 +90,27 @@ function sizeParam(width: number, height: number): string {
 
 export async function generateImage(input: GenerateImageInput): Promise<GenerateImageResult> {
   const fetchFn = input.fetchImpl ?? fetch;
+  const modelId = resolveModelId(input.model, input.family);
+  const outputFormat = input.outputFormat ?? "png";
+  // Reject unsupported combinations before any billable request is made.
+  assertImageRequestSupported(modelId, {
+    operation: "generate",
+    quality: GENERATION_QUALITY,
+    outputFormat,
+    complexity: input.complexity ?? null,
+  });
   const t0 = Date.now();
   const res = await fetchFn("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: { Authorization: `Bearer ${input.apiKey}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: resolveModelId(input.model),
+      model: modelId,
       prompt: input.prompt,
       size: sizeParam(input.width, input.height),
       quality: GENERATION_QUALITY,
       n: 1,
-      output_format: "png",
+      output_format: outputFormat,
+      ...(input.complexity ? { complexity: input.complexity } : {}),
     }),
   });
   const json = (await res.json()) as {
@@ -107,14 +129,25 @@ export async function generateImage(input: GenerateImageInput): Promise<Generate
 
 export async function editImage(input: EditImageInput): Promise<GenerateImageResult> {
   const fetchFn = input.fetchImpl ?? fetch;
+  const modelId = resolveModelId(input.model, input.family);
+  // Reject unsupported combinations before any billable request is made.
+  assertImageRequestSupported(modelId, {
+    operation: "edit",
+    quality: GENERATION_QUALITY,
+    outputFormat: "png",
+    complexity: input.complexity ?? null,
+    referenceCount: input.referenceImages.length,
+    hasMask: Boolean(input.mask),
+  });
   const t0 = Date.now();
   const form = new FormData();
-  form.set("model", resolveModelId(input.model));
+  form.set("model", modelId);
   form.set("prompt", input.prompt);
   form.set("size", sizeParam(input.width, input.height));
   form.set("quality", GENERATION_QUALITY);
   form.set("n", "1");
   form.set("output_format", "png");
+  if (input.complexity) form.set("complexity", input.complexity);
   for (const ref of input.referenceImages) {
     form.append("image[]", new Blob([ref.bytes as BlobPart], { type: ref.mimeType }), ref.filename);
   }
