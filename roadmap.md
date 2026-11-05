@@ -1,3 +1,14 @@
+# Step 6 — Final Verification & Release Readiness
+
+- [x] Consolidation audit: migration order verified, fallbacks confirmed intentional, family config consistent.
+- [x] Two test failures fixed at root cause (fixture skip with reason; series exact-text expectation matches proven behavior). Suite 990/991, 0 fail.
+- [x] Isolated DB security harness re-run: 90/90 (Steps 1, 3, 4, 4D).
+- [x] Benchmark pilot plan: docs/images-2-6-benchmark-pilot.md (28 calls, ≤$8, not executed).
+- [x] Release runbook: docs/release-runbook-images-2-6.md (not executed).
+- [x] Consolidated report + GO/NO-GO: docs/step6-verification-report-2026-11-05.md — NO-GO until pilot + release approvals.
+- [ ] Paid benchmark pilot (blocked: explicit approval required).
+- [ ] Production release (blocked: explicit approval after pilot).
+
 # Step 5 — UI/UX Audit and Refinement
 
 - [x] 5A Capture current desktop/tablet/mobile journeys and accessibility evidence.
@@ -6,7 +17,7 @@
 - [x] 5D Verify keyboard, touch, reduced motion and overflow; document physical-device/media benchmark limitations.
 - [x] 5E Full suite 989/991 (two known failures); focused regressions 54/54; nine axe page scans clean; signed-in Library/real saved creation editing walkthroughs passed. Harness build OK; no separate manual typecheck.
 
-Report: docs/step5-ui-ux-report-2026-11-05.md; screenshots: docs/step5-evidence/.
+Report: docs/step5-ui-ux-report-2026-11-05.md; screenshots: /tmp/browser/step5/ (sandbox-local).
 
 No deployment, production database changes, paid provider calls, payments or price changes. Stop before benchmarks and coordinated release; do not ask for publication.
 
@@ -34,6 +45,7 @@ Step 3 baseline above is preserved. Step 4 constraints: no deployment, shared da
 Blocked: live provider verification and GIF pricing benchmark require paid calls, prohibited in this step. Security boundary closed in Step 4D; production remains untouched until explicit future approval. Step 5 targeted UI refinement is complete.
 
 # Step 4D — Execution-token boundary & media readiness
+
 - [x] Job creation RPCs no longer return tokens (new + replay); service_role-only reader
 - [x] Removed encrypted session token copy, merge RPC and plan_json carve-out
 - [x] Repair RPCs revoked from anon

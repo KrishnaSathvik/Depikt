@@ -4,7 +4,7 @@
 
 ## 5A: Existing journeys and evidence
 
-Signed-in Chromium walkthroughs used the requesting user's real account and saved raster creations. The browser blocked mutating application/API requests. Initial screenshots precede changes; screenshots are in `docs/step5-evidence/`. Device sizes: desktop 1280×1800, tablet 820×1180, mobile 390×844 and narrow mobile 360×780.
+Signed-in Chromium walkthroughs used the requesting user's real account and saved raster creations. The browser blocked mutating application/API requests. Initial screenshots precede changes; screenshots are in `/tmp/browser/step5/` (sandbox-local evidence, not committed). Device sizes: desktop 1280×1800, tablet 820×1180, mobile 390×844 and narrow mobile 360×780.
 
 | Journey | Evidence / friction | Severity | Outcome |
 |---|---|---|---|
