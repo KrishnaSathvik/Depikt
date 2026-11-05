@@ -17,6 +17,7 @@ import type { Database } from "@/integrations/supabase/types";
 import type { GenerationDataAccess } from "./job-pipeline.ts";
 import { GENERATION_BUCKET, imageVersionStoragePath } from "./storage-paths.ts";
 import { asGenerationClient } from "./db-types.ts";
+import { settleJobCredits } from "./settle-credits.ts";
 
 export function didUpdateRow<T>({ data, error }: { data: T | null; error: unknown }): boolean {
   if (error) throw error;
@@ -99,16 +100,8 @@ export function createSupabaseDataAccess(
     },
 
     async finalizeCredits(userId, amount, idempotencyKey, outcome, jobId) {
-      const { data, error } = await supabase.rpc("finalize_generation_credits", {
-        p_user_id: userId,
-        p_amount: amount,
-        p_idempotency_key: idempotencyKey,
-        p_outcome: outcome,
-        p_job_id: jobId,
-      });
-      if (error) throw error;
-      const row = Array.isArray(data) ? data[0] : data;
-      return { availableCredits: row.available_credits as number };
+      // Owner, amount and key are read from the job row in the database.
+      return settleJobCredits(supabase, jobId, outcome, { userId, amount, idempotencyKey });
     },
 
     buildStoragePath(userId, sessionId, versionId) {

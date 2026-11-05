@@ -79,18 +79,36 @@ test("settles a succeeded job as charged", async () => {
 
   await settleSucceededJobCredits(client, { ...staleJob, status: "succeeded" });
 
+  // Settlement names only the job; owner, amount and key are read from the
+  // job row in the database, so a caller can't choose them.
   assert.deepEqual(calls, [
-    {
-      name: "finalize_generation_credits",
-      args: {
-        p_user_id: "user-1",
-        p_amount: 1,
-        p_idempotency_key: "series:0",
-        p_outcome: "charged",
-        p_job_id: "job-1",
-      },
-    },
+    { name: "settle_generation_job", args: { p_job_id: "job-1", p_outcome: "charged" } },
   ]);
+});
+
+test("falls back to the old settle call only while the new one doesn't exist yet", async () => {
+  const names: string[] = [];
+  const client = {
+    rpc: async (name: string) => {
+      names.push(name);
+      if (name === "settle_generation_job") return { data: null, error: { code: "PGRST202" } };
+      return { data: null, error: null };
+    },
+  } as unknown as UntypedSupabaseClient;
+  await settleSucceededJobCredits(client, { ...staleJob, status: "succeeded" });
+  assert.deepEqual(names, ["settle_generation_job", "finalize_generation_credits"]);
+});
+
+test("does not fall back when settlement is refused", async () => {
+  const names: string[] = [];
+  const client = {
+    rpc: async (name: string) => {
+      names.push(name);
+      return { data: null, error: { code: "P0001", message: "reservation already refunded" } };
+    },
+  } as unknown as UntypedSupabaseClient;
+  await settleSucceededJobCredits(client, { ...staleJob, status: "succeeded" });
+  assert.deepEqual(names, ["settle_generation_job"]);
 });
 
 test("swallows charge settlement RPC errors", async () => {
