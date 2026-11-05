@@ -20,3 +20,11 @@ Step 3 baseline above is preserved. Step 4 constraints: no deployment, shared da
 - [ ] Before release: close inherited Step 3 token disclosure through owner-callable job-creation RPCs; current token-column tests do not prove RPC secrecy.
 
 Blocked: live provider verification and GIF pricing benchmark require paid calls, prohibited in this step. Security boundary needs a separate authorized follow-up; production remains untouched until explicit future approval. Step 5 not started.
+
+# Step 4D — Execution-token boundary & media readiness
+- [x] Job creation RPCs no longer return tokens (new + replay); service_role-only reader
+- [x] Removed encrypted session token copy, merge RPC and plan_json carve-out
+- [x] Repair RPCs revoked from anon
+- [x] 90/90 isolated DB tests with real roles; app suite 986/988 (2 known)
+- [ ] Apply Steps 1–4D migrations at approved release (blocked: needs owner go-ahead + publish)
+- [ ] Paid provider verification for markup/SVG and GIF pricing benchmark (blocked: no paid calls allowed)

@@ -11,7 +11,7 @@ import {
   settleSucceededJobCredits,
   type StaleJob,
 } from "@/lib/generation/stale-job";
-import { extractExecutionToken } from "@/lib/generation/execution-token";
+import { fetchExecutionToken } from "@/lib/generation/execution-token-server";
 import { readNativeMediaMetadata } from "@/lib/generation/media-metadata-read";
 
 /**
@@ -52,32 +52,15 @@ export const Route = createFileRoute("/api/generation/sessions/$id")({
 
         let sessionJobs;
         try {
-          // Loaded lazily on the first stale transition attempt, then shared
-          // by every job in this session.
-          let planJsonCache: unknown;
-          const resolveExecutionToken = async (idempotencyKey: string) => {
-            if (planJsonCache === undefined) {
-              const { data: session } = await supabase
-                .from("generation_sessions")
-                .select("plan_json")
-                .eq("user_id", authResult.auth.userId)
-                .eq("id", params.id)
-                .maybeSingle();
-              planJsonCache = session?.plan_json ?? null;
-            }
-            return extractExecutionToken(
-              planJsonCache,
-              idempotencyKey,
-              process.env.GENERATION_PLAN_SECRET ?? "",
-            );
-          };
+          const resolveExecutionToken = (jobId: string) =>
+            fetchExecutionToken(authResult.auth.userId, jobId);
           sessionJobs = await Promise.all(
             (jobs ?? []).map(async (job) => {
               const staleResult = await failAndRefundStaleJob(
                 supabase,
                 job as StaleJob,
                 new Date(),
-                () => resolveExecutionToken(job.idempotency_key as string),
+                () => resolveExecutionToken(job.id as string),
               );
               await settleSucceededJobCredits(supabase, {
                 ...job,

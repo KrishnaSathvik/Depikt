@@ -145,6 +145,63 @@ if [ "${STEP4_TESTS:-0}" = 1 ]; then
   expect allow authenticated $A "cancelled job refunds" "select settle_generation_job('$J2','refunded')"
   expect deny authenticated $B "non-owner cannot settle" "select settle_generation_job('$J2','refunded')"
 fi
+
+if [ "${STEP4D_TESTS:-0}" = 1 ]; then
+  $P -f /dev-server/supabase/pending/step4d_execution_boundary.sql >/dev/null 2>mig4d.err || { echo STEP4D MIGRATION FAILED; cat mig4d.err; exit 1; }
+  echo "== 11. Step 4D: tokens never reach client roles =="
+  K1=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1; K2=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2; K3=bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3
+  $P -c "update credit_accounts set available_credits=available_credits+10, extra_credits=extra_credits+10 where user_id='$A'" >/dev/null
+  expect deny authenticated $A "create result has no execution_token column" "select execution_token from create_generation_job('$A','$S','generate','flare','p',1,1,null,'d1')"
+  checkauth $A "create still reserves and returns job" "t|t" "select reserved, job_id is not null from create_generation_job('$A','$S','generate','flare','p',1,1,null,'d1')"
+  checkauth $A "idempotent replay returns same job, no token" "t" "select job_id = (select id from generation_jobs where idempotency_key='d1') from create_generation_job('$A','$S','generate','flare','p',1,1,null,'d1')"
+  check "replay did not reserve twice" "1" "select count(*) from credit_ledger where idempotency_key='d1'"
+  check "create_generation_job output columns" "{job_id,reserved,available_credits}" "select proargnames[10:12]::text from pg_proc where proname='create_generation_job'"
+  check "create_generation_jobs output columns" "{job_ids,reserved,available_credits}" "select proargnames[11:13]::text from pg_proc where proname='create_generation_jobs'"
+  expect deny authenticated $A "series result has no execution_tokens column" "select execution_tokens from create_generation_jobs('$A','$S','generate','flare',array['a','b'],array['1','2'],1,1,null,'ds')"
+  checkauth $A "series create + replay" "t" "select reserved from create_generation_jobs('$A','$S','generate','flare',array['a','b'],array['1','2'],1,1,null,'ds')"
+  checkauth $A "series replay" "t" "select reserved from create_generation_jobs('$A','$S','generate','flare',array['a','b'],array['1','2'],1,1,null,'ds')"
+  expect deny authenticated $A "owner cannot read execution_token column" "select execution_token from generation_jobs where idempotency_key='d1'"
+  expect deny anon - "anon cannot read execution_token column" "select execution_token from generation_jobs"
+  expect deny authenticated $A "owner cannot call token reader" "select get_generation_execution_token((select id from generation_jobs where idempotency_key='d1'),'$A')"
+  expect deny anon - "anon cannot call token reader" "select get_generation_execution_token('$J3','$A')"
+  expect allow service_role - "server (service_role) can read token" "select get_generation_execution_token('$J3','$A')"
+  check "token reader refuses wrong owner" "" "set role service_role; select get_generation_execution_token('$J3','$B')"
+  expect deny authenticated $A "merge token RPC removed" "select merge_generation_execution_tokens('$S','{}')"
+  check "encrypted token map stripped from sessions" "0" "select count(*) from generation_sessions where plan_json ? 'executionTokensEnc'"
+  expect deny authenticated $A "plan_json fully immutable (no token carve-out)" "update generation_sessions set plan_json = plan_json || '{\"executionTokensEnc\":{}}'::jsonb where id='$S'"
+  check "no client-executable function returns the token column" "claim_generation_job,save_generation_job_validation,transition_generation_job" "select string_agg(distinct proname, ',' order by proname) from pg_proc where pronamespace='public'::regnamespace and prosrc ilike '%execution_token%' and has_function_privilege('authenticated', oid, 'execute')"
+  check "every public SECURITY DEFINER function pins search_path" "0" "select count(*) from pg_proc where pronamespace='public'::regnamespace and prosecdef and not exists (select 1 from unnest(coalesce(proconfig,'{}')) c where c like 'search_path=%')"
+  check "anon executes no SECURITY DEFINER credit/job function" "" "select string_agg(proname, ',') from pg_proc where pronamespace='public'::regnamespace and prosecdef and has_function_privilege('anon', oid, 'execute') and (proname like '%credit%' or proname like '%generation%' or proname like '%top_up%')"
+
+  echo "== 12. Step 4D: lifecycle with server-fetched token =="
+  D1=$($P -At -c "select id from generation_jobs where idempotency_key='d1'")
+  TD=$($P -At -c "begin; set local role service_role; select get_generation_execution_token('$D1','$A'); commit;")
+  expect deny authenticated $A "user cannot force-fail without token" "select transition_generation_job('$D1','failed','{\"error_code\":\"unknown\"}')"
+  expect deny authenticated $A "guessed token rejected" "select claim_generation_job('$D1','deadbeef')"
+  checkauth $B "cross-account claim not_found" "not_found" "select claim_generation_job('$D1','$TD')"
+  # concurrent claims: exactly one wins
+  ( $P -At -c "begin; set local role authenticated; set local request.jwt.claim.sub='$A'; select claim_generation_job('$D1','$TD'); commit;" > c1.out 2>&1 ) &
+  ( $P -At -c "begin; set local role authenticated; set local request.jwt.claim.sub='$A'; select claim_generation_job('$D1','$TD'); commit;" > c2.out 2>&1 ) &
+  wait
+  check "concurrent claims: one claimed, one already_running" "already_running,claimed" "select '$(sort c1.out c2.out | paste -sd,)'"
+  checkauth $A "server marks success with token" "t" "select transition_generation_job('$D1','succeeded','{}','$TD')"
+  checkauth $A "success charges once" "t" "select applied from settle_generation_job('$D1','charged')"
+  checkauth $A "charge replay no-op" "f" "select applied from settle_generation_job('$D1','charged')"
+  expect deny authenticated $A "succeeded job cannot be refunded" "select settle_generation_job('$D1','refunded')"
+  checkauth $A "succeeded job cannot be failed (no-op)" "f" "select transition_generation_job('$D1','failed','{\"error_code\":\"unknown\"}','$TD')"
+  D2=$($P -At -c "select id from generation_jobs where idempotency_key='ds:1'")
+  T2=$($P -At -c "begin; set local role service_role; select get_generation_execution_token('$D2','$A'); commit;")
+  checkauth $A "server claims series child" "claimed" "select claim_generation_job('$D2','$T2')"
+  checkauth $A "server fails child with token" "t" "select transition_generation_job('$D2','failed','{\"error_code\":\"provider_error\"}','$T2')"
+  checkauth $A "failed job refunds once" "t" "select applied from settle_generation_job('$D2','refunded')"
+  checkauth $A "refund replay no-op" "f" "select applied from settle_generation_job('$D2','refunded')"
+  expect deny authenticated $A "failed job cannot then be charged" "select settle_generation_job('$D2','charged')"
+  D3=$($P -At -c "select id from generation_jobs where idempotency_key='ds:2'")
+  T3b=$($P -At -c "begin; set local role service_role; select get_generation_execution_token('$D3','$A'); commit;")
+  checkauth $A "claim then user cancels mid-run (token-free)" "t" "select claim_generation_job('$D3','$T3b') = 'claimed' and transition_generation_job('$D3','cancelled')"
+  checkauth $A "executor cannot succeed a cancelled job" "f" "select transition_generation_job('$D3','succeeded','{}','$T3b')"
+  checkauth $A "cancelled job refunds" "t" "select applied from settle_generation_job('$D3','refunded')"
+fi
 echo "PASS=$PASS FAIL=$FAIL"
 pg_ctl -D data stop -m immediate >/dev/null 2>&1
 [ "$FAIL" = 0 ]

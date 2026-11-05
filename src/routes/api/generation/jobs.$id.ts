@@ -11,7 +11,7 @@ import {
   STALE_ERROR_MESSAGE,
   type StaleJob,
 } from "@/lib/generation/stale-job";
-import { extractExecutionToken } from "@/lib/generation/execution-token";
+import { fetchExecutionToken } from "@/lib/generation/execution-token-server";
 
 /**
  * GET /api/generation/jobs/:id — poll a job's status.
@@ -48,19 +48,8 @@ export const Route = createFileRoute("/api/generation/jobs/$id")({
         try {
           // Resolves the execution token only when a stale transition is
           // actually attempted (rare path), so normal polling stays cheap.
-          const resolveExecutionToken = async () => {
-            const { data: session } = await supabase
-              .from("generation_sessions")
-              .select("plan_json")
-              .eq("user_id", job.user_id as string)
-              .eq("id", job.session_id as string)
-              .maybeSingle();
-            return extractExecutionToken(
-              session?.plan_json,
-              job.idempotency_key as string,
-              process.env.GENERATION_PLAN_SECRET ?? "",
-            );
-          };
+          const resolveExecutionToken = () =>
+            fetchExecutionToken(job.user_id as string, job.id as string);
           staleResult = await failAndRefundStaleJob(
             supabase,
             job as StaleJob,

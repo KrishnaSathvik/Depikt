@@ -26,7 +26,7 @@ import {
   extractStoredReferenceAssetIds,
   extractStoredMaskPath,
 } from "@/lib/generation/execution-plan";
-import { extractExecutionToken } from "@/lib/generation/execution-token";
+import { fetchExecutionToken } from "@/lib/generation/execution-token-server";
 import { claimJobForExecution } from "@/lib/generation/job-transition";
 import type { MediaOptions } from "@/lib/generation/media";
 import { validateMarkupPng } from "@/lib/generation/markup";
@@ -97,11 +97,12 @@ export const Route = createFileRoute("/api/generation/jobs/$id/run")({
         // The per-job execution token (Step 3) proves this request is the
         // trusted server executor, not a direct database call. Null on
         // pre-migration sessions; the legacy claim path below covers those.
-        const executionToken = extractExecutionToken(
-          session?.plan_json,
-          job.idempotency_key as string,
-          process.env.GENERATION_PLAN_SECRET ?? "",
-        );
+        let executionToken: string | null;
+        try {
+          executionToken = await fetchExecutionToken(authResult.auth.userId, job.id as string);
+        } catch {
+          return jsonError("Could not authorize execution", 500);
+        }
 
         // Claim it. Anything other than `queued` means someone else is on it.
         // Post-migration the token-gated claim RPC does this; the direct

@@ -37,7 +37,6 @@ import {
   isSupportedSize,
 } from "@/lib/generation/provider-capabilities";
 import { GENERATION_QUALITY, resolveModelId } from "@/lib/generation/models";
-import { recoverSessionExecutionTokens } from "@/lib/generation/persist-execution-tokens";
 
 // Reference intents where the image must be reproduced faithfully, not just
 // used for inspiration — see reference.ts. A prompt built for one of these
@@ -213,11 +212,6 @@ export const Route = createFileRoute("/api/generation/jobs")({
           expectedIdempotencyKeys,
         );
         if (existingResult) {
-          try {
-            await recoverSessionExecutionTokens(supabase, userId, existingResult.sessionId, secret);
-          } catch {
-            return jsonError("Could not restore execution authorization. Retry this request.", 500);
-          }
           return new Response(JSON.stringify(existingResult), {
             status: 202,
             headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -418,19 +412,6 @@ export const Route = createFileRoute("/api/generation/jobs")({
           );
           switch (decision.kind) {
             case "replay":
-              try {
-                await recoverSessionExecutionTokens(
-                  supabase,
-                  userId,
-                  decision.result.sessionId,
-                  secret,
-                );
-              } catch {
-                return jsonError(
-                  "Could not restore execution authorization. Retry this request.",
-                  500,
-                );
-              }
               return new Response(JSON.stringify(decision.result), {
                 status: 202,
                 headers: { "Content-Type": "application/json", ...corsHeaders },
@@ -493,14 +474,6 @@ export const Route = createFileRoute("/api/generation/jobs")({
             return jsonError("Not enough credits.", 402);
           }
 
-          if (row.execution_token) {
-            try {
-              await recoverSessionExecutionTokens(supabase, userId, sessionId, secret);
-            } catch {
-              return jsonError("Could not authorize execution. Retry this request.", 500);
-            }
-          }
-
           return new Response(
             JSON.stringify({
               sessionId,
@@ -533,13 +506,6 @@ export const Route = createFileRoute("/api/generation/jobs")({
         }
 
         const jobIds = (row.job_ids ?? []) as string[];
-        if (Array.isArray(row.execution_tokens) && row.execution_tokens.length) {
-          try {
-            await recoverSessionExecutionTokens(supabase, userId, sessionId, secret);
-          } catch {
-            return jsonError("Could not authorize execution. Retry this request.", 500);
-          }
-        }
         return new Response(
           JSON.stringify({
             sessionId,
