@@ -950,7 +950,10 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
       toast.error("Choose markup or select area, not both.");
       return false;
     }
-    if (/\.(svg|gif)$/i.test(selectedResult.version?.storage_path ?? "")) {
+    if (
+      /\.(svg|gif)$/i.test(selectedResult.version?.storage_path ?? "") ||
+      ["image/svg+xml", "image/gif"].includes(selectedResult.version?.mime_type ?? "")
+    ) {
       toast.error("Native SVG and GIF editing is not available.");
       return false;
     }
@@ -1004,7 +1007,12 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
     });
     trackEvent("image_downloaded", {});
     const extension =
-      target.version?.storage_path.match(/\.(png|jpg|jpeg|webp|svg|gif)$/i)?.[1] ?? "png";
+      target.version?.storage_path.match(/\.(png|jpg|jpeg|webp|svg|gif)$/i)?.[1] ??
+      (target.version?.mime_type === "image/svg+xml"
+        ? "svg"
+        : target.version?.mime_type === "image/gif"
+          ? "gif"
+          : "png");
     const filename = `depikt-${new Date().toISOString().slice(0, 10)}-${(targetId ?? "").slice(0, 8)}.${extension}`;
     void downloadFile(url, filename);
   }

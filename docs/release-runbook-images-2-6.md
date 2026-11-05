@@ -1,19 +1,21 @@
 # Depikt Images 2.6 — Production Release Runbook (prepared, not executed)
 
 **Do not run any step here without explicit release approval.**
-Order matters: code first, then database, then flags, then verification.
+This runbook supersedes the previous benchmark release gates. No benchmark platform or large pilot is required.
+Order matters: pause generation, code, database, flags, verification, reopen generation.
 
 ## 0. Preconditions
 
 - [ ] Step 6 verification report reviewed; GO decision recorded.
-- [ ] Paid benchmark pilot completed; GIF pricing decided and landed in
-      `src/lib/generation/media-pricing.ts` (or GIF stays disabled).
+- [ ] Four explicitly approved development checks completed: image, markup edit, native SVG, short GIF. No retries or additional calls.
+- [ ] GIF credit policy landed only after reliable billing evidence; no subscription or still-image price changes.
 - [ ] Full suite green, isolated DB harness green (90/90), build OK on the
       exact release commit.
 - [ ] Release commit hash recorded here: `<commit>`.
 
 ## 1. Deploy application code
 
+- [ ] Temporarily disable native generation before deployment. Existing security fallbacks are compatibility mechanisms, not release security guarantees.
 - [ ] Publish the release commit. The app must tolerate the pre-migration
       database: `job-transition.ts` and `settle-credits.ts` legacy fallbacks
       exist for exactly this window. Do not remove them before step 2
@@ -53,8 +55,8 @@ one at a time, verifying each before the next:
 - [ ] `IMAGES_MODEL_FAMILY=2.6` (server) and `VITE_IMAGES_MODEL_FAMILY=2.6`
       (client) together — never server-only, or SVG stays greyed out while
       the server accepts it.
-- [ ] GIF execution flag stays OFF unless the pricing decision from the
-      pilot is landed.
+- [ ] GIF stays unavailable unless a reviewed server-controlled quote based on the short-GIF usage check is landed. There is no separate GIF execution flag in the current code.
+- [ ] Re-enable native generation only after all security permissions and native storage are verified.
 
 ## 5. Smoke tests (production, real account)
 
@@ -75,15 +77,9 @@ one at a time, verifying each before the next:
 
 ## 7. Rollback / forward recovery
 
-- **App rollback:** republish the previous commit. The pre-migration code
-  works against the migrated database only if migrations are additive — steps
-  1, 5 are; steps 2–4, 6 revoke permissions, so prefer **forward recovery**:
-  the legacy fallbacks in the new code keep working either way.
-- **Migration rollback:** each pending migration's objects are new or
-  REVOKE-only; re-GRANT statements are the rollback for revocations (keep the
-  pre-release permission dump from step 2 verification as the reference).
-- **Flag rollback:** set `IMAGES_MODEL_FAMILY` back to `2.5` (server and
-  client) — instant, no deploy.
+- **App recovery:** disable generation and forward-fix the current security-compatible app. Do not deploy old code that needs revoked credit functions or direct job updates.
+- **Database recovery:** preserve lockdowns and token secrecy. Never restore insecure grants to make old code work; forward-fix with generation paused.
+- **Family rollback:** set `IMAGES_MODEL_FAMILY=2.5` server-side and `VITE_IMAGES_MODEL_FAMILY=2.5` for the next client build; browser flags require a rebuild. Stored signed plans keep their original family. Pause native-format submission while flags differ.
 - **Credit recovery:** any job stuck reserved is settled by the reaper; manual
   settlement is `settle_generation_job(job_id, outcome)` as service_role —
   never raw credit functions.

@@ -9,6 +9,7 @@
 import type { SourceContextType } from "./job-request";
 import type { RoutingHints } from "./model-router";
 import type { Intent } from "../prompt-engine/intent";
+import type { MediaMetadata } from "./media";
 
 export interface GenerationHandoff {
   prompt: string;
@@ -41,6 +42,8 @@ export interface GenerationHandoff {
     prompt: string;
     model: "flare" | "sunburst";
     createdAt: string;
+    mimeType?: string;
+    mediaMetadata?: MediaMetadata;
   } | null;
 }
 

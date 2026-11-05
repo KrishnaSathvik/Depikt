@@ -106,6 +106,8 @@ export function GenerateWorkspace({
           id: handoff.sourceVersion.id,
           parent_version_id: null,
           storage_path: "",
+          mime_type: handoff.sourceVersion.mimeType,
+          media_metadata: handoff.sourceVersion.mediaMetadata,
           width: handoff.sourceVersion.width,
           height: handoff.sourceVersion.height,
           prompt: handoff.sourceVersion.prompt,
@@ -113,7 +115,7 @@ export function GenerateWorkspace({
           created_at: handoff.sourceVersion.createdAt,
           url: handoff.sourceVersion.previewUrl,
         });
-        setEditing(true);
+        setEditing(!["image/svg+xml", "image/gif"].includes(handoff.sourceVersion.mimeType ?? ""));
       }
       // Only explicitly requested submissions auto-start. Browse actions prefill.
       if (handoff.autoStart && handoff.prompt.trim()) {
@@ -381,7 +383,10 @@ export function GenerateWorkspace({
           actions={
             editing ? undefined : (
               <GenerationActions
-                editDisabled={/\.(svg|gif)$/i.test(active?.storage_path ?? "")}
+                editDisabled={
+                  /\.(svg|gif)$/i.test(active?.storage_path ?? "") ||
+                  ["image/svg+xml", "image/gif"].includes(active?.mime_type ?? "")
+                }
                 onDownload={() => gen.download()}
                 onDownloadPng={
                   active?.mime_type === "image/svg+xml" ? gen.downloadPngPreview : undefined

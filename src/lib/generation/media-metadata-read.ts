@@ -1,9 +1,9 @@
 import type { UntypedSupabaseClient } from "./db-types.ts";
 /** Only query the new column for native media, preserving pre-migration raster reads. */
-export async function readNativeMediaMetadata(
+export async function readNativeMediaMetadata<T extends { id: string; mime_type?: string }>(
   db: UntypedSupabaseClient,
-  versions: Array<{ id: string; mime_type?: string; [key: string]: unknown }>,
-) {
+  versions: T[],
+): Promise<Array<T & { media_metadata?: unknown }>> {
   const native = versions.filter(
     (v) => v.mime_type === "image/gif" || v.mime_type === "image/svg+xml",
   );

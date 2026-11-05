@@ -39,6 +39,16 @@ export function regenerateVersionInput(version: SessionVersion) {
         : undefined;
   return {
     ...(format ? { outputFormat: format } : {}),
+    ...(format === "gif" &&
+    version.media_metadata?.frameCount &&
+    version.media_metadata.frameDurationsMs?.[0]
+      ? {
+          gif: {
+            frameCount: version.media_metadata.frameCount,
+            frameDurationMs: version.media_metadata.frameDurationsMs[0],
+          },
+        }
+      : {}),
     prompt: version.prompt,
     userInput: "Regenerate this image as one image, preserving its content and composition.",
     sourceVersionId: format ? null : version.id,

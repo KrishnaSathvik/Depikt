@@ -159,10 +159,36 @@ test("Request rejects markup plus mask, paths, fractional frames and out-of-rang
   const result = validateCreatePlanBody({
     prompt: "test",
     outputFormat: "gif",
-    gif: { frameCount: 64, frameDurationMs: 25 },
+    gif: { frameCount: 16, frameDurationMs: 25 },
   });
   assert.ok(result.ok);
   if (result.ok) assert.equal(result.request.gif?.frameDurationMs, 30);
+});
+test("GIF requests accept 16 frames and reject 17 before reservation", () => {
+  assert.equal(
+    validateCreatePlanBody({
+      prompt: "test",
+      outputFormat: "gif",
+      gif: { frameCount: 16, frameDurationMs: 200 },
+    }).ok,
+    true,
+  );
+  assert.equal(
+    validateCreatePlanBody({
+      prompt: "test",
+      outputFormat: "gif",
+      gif: { frameCount: 17, frameDurationMs: 200 },
+    }).ok,
+    false,
+  );
+});
+test("SVG retains safe standard typography and stroke attributes", () => {
+  const result = sanitizeSvg(
+    svg(
+      '<text x="10" y="30" font-style="italic" letter-spacing="1">Hello</text><path d="M0 0L10 10" stroke-miterlimit="4"/>',
+    ),
+  );
+  assert.match(new TextDecoder().decode(result.bytes), /font-style="italic"/);
 });
 test("Request size limit works without Content-Length", async () => {
   await assert.rejects(() =>

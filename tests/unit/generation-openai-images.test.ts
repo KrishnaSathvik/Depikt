@@ -38,10 +38,12 @@ test("generateImage sends the resolved model id, forced quality=max, and request
   });
 
   assert.equal(result.b64, "AAAA");
-  assert.equal(capturedBody!.model, "gpt-image-2.5-sunburst");
-  assert.equal(capturedBody!.quality, "max");
-  assert.equal(capturedBody!.size, "1536x1024");
-  assert.equal(capturedBody!.prompt, "a poster");
+  assert.ok(capturedBody);
+  const body = capturedBody as Record<string, unknown>;
+  assert.equal(body.model, "gpt-image-2.6-sunburst");
+  assert.equal(body.quality, "max");
+  assert.equal(body.size, "1536x1024");
+  assert.equal(body.prompt, "a poster");
 });
 
 test("a client cannot override quality: generateImage's input type has no quality field to pass through", () => {
@@ -106,7 +108,7 @@ test("editImage sends multipart form with model, size, quality=max, and referenc
   });
 
   assert.equal(result.b64, "BBBB");
-  assert.equal(capturedForm!.get("model"), "gpt-image-2.5-flare");
+  assert.equal(capturedForm?.get("model"), "gpt-image-2.6-flare");
   assert.equal(capturedForm!.get("prompt"), "change the background");
   assert.equal(capturedForm!.get("quality"), "max");
   assert.equal(capturedForm!.get("size"), "1024x1024");
@@ -141,7 +143,7 @@ test("editImage with a mask sends a separate PNG mask field and keeps it out of 
   });
 
   assert.equal(result.b64, "CCCC");
-  assert.equal(capturedForm!.get("model"), "gpt-image-2.5-sunburst");
+  assert.equal(capturedForm?.get("model"), "gpt-image-2.6-sunburst");
   assert.equal(capturedForm!.get("prompt"), "change the selected area");
   assert.equal(capturedForm!.get("n"), "1");
   assert.equal(capturedForm!.get("quality"), "max");

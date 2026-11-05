@@ -58,6 +58,7 @@ export function checkUsernameAvailability(username: string): Promise<{ available
 
 export interface CreationItem {
   mimeType?: string;
+  mediaMetadata?: import("@/lib/generation/media").MediaMetadata;
   id: string;
   jobId: string | null;
   sessionId: string | null;

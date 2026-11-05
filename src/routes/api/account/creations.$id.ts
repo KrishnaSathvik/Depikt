@@ -6,6 +6,8 @@ import { authenticateGenerationRequest } from "@/lib/generation/auth";
 import { asProfileClient } from "@/lib/profile/db-types";
 import { UUID_RE } from "@/lib/generation/entities";
 import { GENERATION_BUCKET, ownerOfStoragePath } from "@/lib/generation/storage-paths";
+import { readNativeMediaMetadata } from "@/lib/generation/media-metadata-read";
+import type { MediaMetadata } from "@/lib/generation/media";
 
 const deleteHeaders = {
   ...corsHeaders,
@@ -66,8 +68,12 @@ export const Route = createFileRoute("/api/account/creations/$id")({
           series_index: number | null;
           series_label: string | null;
         })[];
+        const versionsWithMedia = await readNativeMediaMetadata(
+          asProfileClient(supabase),
+          versions.data ?? [],
+        );
         const items: CreationItem[] = await Promise.all(
-          (versions.data ?? [])
+          versionsWithMedia
             .filter((row) =>
               jobRows.some((job) => job.id === row.job_id && job.status === "succeeded"),
             )
@@ -81,6 +87,7 @@ export const Route = createFileRoute("/api/account/creations/$id")({
               return {
                 id: row.id,
                 mimeType: row.mime_type,
+                mediaMetadata: row.media_metadata as MediaMetadata | undefined,
                 jobId: row.job_id,
                 sessionId: row.session_id,
                 url: signed?.data?.signedUrl ?? null,

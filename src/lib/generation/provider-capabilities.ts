@@ -10,7 +10,7 @@
 //     GIF generation, and markup-guided editing (markup also on supported
 //     GPT Image 2.5 models).
 //   - Image generation guide: sizes, quality ladder, output formats, GIF
-//     fields (frame_count 2–64 default 9, frame_duration_ms 20–2000
+//     fields (frame_count 2–16 default 9, frame_duration_ms 20–2000
 //     default 200), SVG constraints (generations only, n=1), markup
 //     constraints (first input image, ≤16,777,216 px, 50 MB, mutually
 //     exclusive with mask and prompt_rewriter).
@@ -26,6 +26,8 @@
 import type { GenerationOperation, ModelAlias } from "./models.ts";
 
 export type ImageModelFamily = "2.5" | "2.6";
+/** Shared server/browser fallback for new work; historical plans retain their family. */
+export const DEFAULT_IMAGE_MODEL_FAMILY: ImageModelFamily = "2.6";
 export type ImageQuality = "low" | "medium" | "high" | "xhigh" | "max" | "auto";
 export type ImageOutputFormat = "png" | "jpeg" | "webp" | "svg" | "gif";
 export type ImageComplexity = "low" | "medium" | "high";
@@ -105,7 +107,7 @@ const RASTER_FORMATS: readonly ImageOutputFormat[] = ["png", "jpeg", "webp"];
 const COMPLEXITY_LEVELS: readonly ImageComplexity[] = ["low", "medium", "high"];
 
 const GIF_CAPABILITIES: GifCapabilities = {
-  frameCount: { min: 2, max: 64, default: 9 },
+  frameCount: { min: 2, max: 16, default: 9 },
   frameDurationMs: { min: 20, max: 2000, default: 200 },
 };
 

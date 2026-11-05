@@ -10,15 +10,12 @@ import {
 import { resolveModelId, GENERATION_QUALITY } from "../../src/lib/generation/models.ts";
 
 test("registry covers exactly the 2.5 and 2.6 Flare/Sunburst models", () => {
-  assert.deepEqual(
-    IMAGE_MODEL_REGISTRY.map((m) => m.id).sort(),
-    [
-      "gpt-image-2.5-flare",
-      "gpt-image-2.5-sunburst",
-      "gpt-image-2.6-flare",
-      "gpt-image-2.6-sunburst",
-    ],
-  );
+  assert.deepEqual(IMAGE_MODEL_REGISTRY.map((m) => m.id).sort(), [
+    "gpt-image-2.5-flare",
+    "gpt-image-2.5-sunburst",
+    "gpt-image-2.6-flare",
+    "gpt-image-2.6-sunburst",
+  ]);
 });
 
 test("every registry entry is reachable through resolveModelId", () => {
@@ -29,9 +26,11 @@ test("every registry entry is reachable through resolveModelId", () => {
   }
 });
 
-test("resolveModelId defaults to the 2.5 family until the benchmark cutover", () => {
-  assert.equal(resolveModelId("flare"), "gpt-image-2.5-flare");
-  assert.equal(resolveModelId("sunburst"), "gpt-image-2.5-sunburst");
+test("new work defaults to Images 2.6 with historical 2.5 resolution preserved", () => {
+  assert.equal(resolveModelId("flare"), "gpt-image-2.6-flare");
+  assert.equal(resolveModelId("sunburst"), "gpt-image-2.6-sunburst");
+  assert.equal(resolveModelId("flare", "2.5"), "gpt-image-2.5-flare");
+  assert.equal(resolveModelId("sunburst", "2.5"), "gpt-image-2.5-sunburst");
   assert.equal(resolveModelId("flare", "2.6"), "gpt-image-2.6-flare");
   assert.equal(resolveModelId("sunburst", "2.6"), "gpt-image-2.6-sunburst");
 });

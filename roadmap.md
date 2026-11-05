@@ -1,4 +1,16 @@
-# Step 6 — Final Verification & Release Readiness
+# Finish Images 2.6 — current direction
+
+- [x] Default new work to 2.6 in server and browser; keep automatic routing and historical families.
+- [x] Complete genuine integration fixes and existing application/security regressions; tests green, isolated permissions 90/90.
+- [x] Prepare four one-shot provider checks, with no retries or production writes.
+- [ ] Establish GIF credits from reliable pricing/usage evidence (blocked: approval for one short GIF call if documented bounds are unavailable).
+- [x] Run signed-in desktop/tablet/mobile checks and record final release instructions in docs/images-2-6-completion-2026-11-05.md.
+- [ ] Four paid provider checks (blocked: explicit paid-call approval).
+- [ ] Coordinated production release (blocked: explicit release approval).
+
+Previous benchmark plans below are historical and superseded: do not execute the 28-call or 150-call plans.
+
+# Step 6 — Final Verification & Release Readiness (historical)
 
 - [x] Consolidation audit: migration order verified, fallbacks confirmed intentional, family config consistent.
 - [x] Two test failures fixed at root cause (fixture skip with reason; series exact-text expectation matches proven behavior). Suite 990/991, 0 fail.
@@ -6,8 +18,8 @@
 - [x] Benchmark pilot plan: docs/images-2-6-benchmark-pilot.md (28 calls, ≤$8, not executed).
 - [x] Release runbook: docs/release-runbook-images-2-6.md (not executed).
 - [x] Consolidated report + GO/NO-GO: docs/step6-verification-report-2026-11-05.md — NO-GO until pilot + release approvals.
-- [ ] Paid benchmark pilot (blocked: explicit approval required).
-- [ ] Production release (blocked: explicit approval after pilot).
+- [x] Paid benchmark pilot cancelled; replaced by four representative checks above.
+- [x] Previous release sequence superseded by final upgrade instructions.
 
 # Step 5 — UI/UX Audit and Refinement
 

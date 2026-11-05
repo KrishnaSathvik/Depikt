@@ -6,6 +6,7 @@ import {
   GENERATION_QUALITY,
   isModelAlias,
   resolveModelId,
+  activeImageModelFamily,
   creditCostFor,
   MAX_REFERENCE_IMAGES_V1,
   MODEL_COPY,
@@ -35,8 +36,22 @@ test("isModelAlias accepts only the two known aliases", () => {
 });
 
 test("resolveModelId maps aliases to real OpenAI model ids", () => {
-  assert.equal(resolveModelId("flare"), "gpt-image-2.5-flare");
-  assert.equal(resolveModelId("sunburst"), "gpt-image-2.5-sunburst");
+  assert.equal(resolveModelId("flare"), "gpt-image-2.6-flare");
+  assert.equal(resolveModelId("sunburst"), "gpt-image-2.6-sunburst");
+});
+
+test("server family defaults to 2.6 and honors explicit 2.5 rollback", () => {
+  const previous = process.env.IMAGES_MODEL_FAMILY;
+  try {
+    delete process.env.IMAGES_MODEL_FAMILY;
+    assert.equal(activeImageModelFamily(), "2.6");
+    process.env.IMAGES_MODEL_FAMILY = "2.5";
+    assert.equal(activeImageModelFamily(), "2.5");
+    assert.equal(resolveModelId("sunburst"), "gpt-image-2.5-sunburst");
+  } finally {
+    if (previous === undefined) delete process.env.IMAGES_MODEL_FAMILY;
+    else process.env.IMAGES_MODEL_FAMILY = previous;
+  }
 });
 
 test("resolveModelId throws on an unknown alias rather than passing it through", () => {

@@ -35,10 +35,12 @@ export default (env: ConfigEnv) => {
       "GROUNDING_ENABLED",
       "VALIDATION_REPAIR_ENABLED",
       "AUTO_REPAIR_POLICY",
+      "IMAGES_MODEL_FAMILY",
     ]);
     process.env.GROUNDING_ENABLED = flags.GROUNDING_ENABLED ?? "false";
     process.env.VALIDATION_REPAIR_ENABLED = flags.VALIDATION_REPAIR_ENABLED ?? "false";
     process.env.AUTO_REPAIR_POLICY = flags.AUTO_REPAIR_POLICY ?? "disabled";
+    process.env.IMAGES_MODEL_FAMILY = flags.IMAGES_MODEL_FAMILY ?? "2.6";
   }
   return baseConfig(env);
 };

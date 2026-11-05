@@ -112,6 +112,8 @@ export function CreationDetailView({
         prompt: creation.prompt,
         model: creation.model,
         createdAt: creation.createdAt,
+        mimeType: creation.mimeType,
+        mediaMetadata: creation.mediaMetadata,
       },
     });
     closeHub();

@@ -1,7 +1,12 @@
-import type { ImageOutputFormat } from "@/lib/generation/provider-capabilities";
+import {
+  capabilitiesFor,
+  DEFAULT_IMAGE_MODEL_FAMILY,
+  type ImageOutputFormat,
+} from "@/lib/generation/provider-capabilities";
 // SVG needs the Images 2.6 family; the server family is switched via IMAGES_MODEL_FAMILY,
 // and the browser mirrors it with VITE_IMAGES_MODEL_FAMILY so SVG is never offered when it would be rejected.
-export const SVG_OUTPUT_AVAILABLE = import.meta.env.VITE_IMAGES_MODEL_FAMILY === "2.6";
+export const SVG_OUTPUT_AVAILABLE =
+  (import.meta.env.VITE_IMAGES_MODEL_FAMILY ?? DEFAULT_IMAGE_MODEL_FAMILY) === "2.6";
 
 export function MediaControls({
   format,
@@ -47,7 +52,7 @@ export function MediaControls({
                 aria-label="Frame count"
                 type="number"
                 min={2}
-                max={64}
+                max={capabilitiesFor("flare", "2.6").gif?.frameCount.max}
                 value={frameCount}
                 onChange={(e) => onFrames(Number(e.target.value))}
                 className="min-h-11 w-20 rounded-md border border-border bg-background p-2"
@@ -67,7 +72,7 @@ export function MediaControls({
               />
             </label>
             <span role="status">
-              Animation generation unavailable until credit pricing is verified. No credits charged.
+              Animation needs one approved pricing check before release. No credits charged.
             </span>
           </>
         )}

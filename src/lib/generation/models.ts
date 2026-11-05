@@ -1,5 +1,5 @@
 import { MAX_ADHOC_REFERENCE_IMAGES } from "./entities.ts";
-import type { ImageModelFamily } from "./provider-capabilities.ts";
+import { DEFAULT_IMAGE_MODEL_FAMILY, type ImageModelFamily } from "./provider-capabilities.ts";
 // Native image generation — model, quality, and credit configuration.
 //
 // Locked V1 decisions (2026-09-10, after the max-quality economics benchmark
@@ -41,13 +41,12 @@ const MODEL_IDS: Record<ImageModelFamily, Record<ModelAlias, string>> = {
 /**
  * Which model family serves new generations. Server-only: read from
  * IMAGES_MODEL_FAMILY inside request handlers, never at module scope in
- * client-reachable code. Defaults to "2.5" until the 2.5-vs-2.6 benchmark
- * (docs/images-2-6-benchmark-plan.md) justifies the cutover — the 2.5
- * benchmark results must not be assumed to apply to 2.6. Historical rows
+ * client-reachable code. Defaults to the shared 2.6 family. An explicit
+ * 2.5 override remains available for rollback. Historical rows
  * keep whatever model id they were created with; this only affects new work.
  */
 export function activeImageModelFamily(): ImageModelFamily {
-  return process.env.IMAGES_MODEL_FAMILY === "2.6" ? "2.6" : "2.5";
+  return process.env.IMAGES_MODEL_FAMILY === "2.5" ? "2.5" : DEFAULT_IMAGE_MODEL_FAMILY;
 }
 
 /** Server-injected quality. Not derived from any client input. */

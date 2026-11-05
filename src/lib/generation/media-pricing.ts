@@ -7,7 +7,7 @@ export interface MediaQuote {
   reason?: string;
   policy: string;
 }
-/** No client-selected amount and no guessed GIF credit charge. Benchmark approval is a future policy change. */
+/** No client-selected amount. One approved short-GIF usage check is needed, not a benchmark. */
 export function quoteMediaOperation(
   operation: "generate" | "edit",
   media?: MediaOptions,
@@ -17,8 +17,8 @@ export function quoteMediaOperation(
       creditsPerJob: null,
       executable: false,
       reason:
-        "Animated GIF generation is awaiting its cost benchmark. No credits will be reserved.",
-      policy: "gif-benchmark-pending",
+        "Animated GIF credit pricing needs one approved short-GIF provider check. No credits will be reserved.",
+      policy: "gif-provider-usage-pending",
     };
   return {
     creditsPerJob: creditCostFor(operation),

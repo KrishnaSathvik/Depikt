@@ -59,6 +59,32 @@ test("regenerating one child never carries the series count or other children", 
   assert.equal("idempotencyKey" in input, false);
 });
 
+test("recovered native versions regenerate in their actual format without becoming raster edits", () => {
+  const svg = regenerateVersionInput({
+    ...versions[0],
+    storage_path: "",
+    mime_type: "image/svg+xml",
+  });
+  assert.equal(svg.outputFormat, "svg");
+  assert.equal(svg.sourceVersionId, null);
+  const gif = regenerateVersionInput({
+    ...versions[0],
+    storage_path: "",
+    mime_type: "image/gif",
+    media_metadata: {
+      format: "gif",
+      width: 1024,
+      height: 1024,
+      byteLength: 100,
+      frameCount: 4,
+      frameDurationsMs: [200, 200, 200, 200],
+    },
+  });
+  assert.equal(gif.outputFormat, "gif");
+  assert.equal(gif.sourceVersionId, null);
+  assert.deepEqual(gif.gif, { frameCount: 4, frameDurationMs: 200 });
+});
+
 test("Refining details requires a current running claim for this specific image", () => {
   const now = Date.parse("2026-09-18T12:00:00Z");
   const claim = { job_id: "j3", state: "running", started_at: new Date(now - 1000).toISOString() };

@@ -20,6 +20,7 @@ import {
   MAX_ATTACHED_ENTITIES,
   UUID_RE,
 } from "./entities.ts";
+import { capabilitiesFor, DEFAULT_IMAGE_MODEL_FAMILY } from "./provider-capabilities.ts";
 
 export type SourceContextType =
   | "direct"
@@ -112,7 +113,8 @@ export function validateCreatePlanBody(body: unknown): CreatePlanValidationResul
     if (
       !Number.isInteger(options.frameCount) ||
       Number(options.frameCount) < 2 ||
-      Number(options.frameCount) > 64 ||
+      Number(options.frameCount) >
+        (capabilitiesFor("flare", DEFAULT_IMAGE_MODEL_FAMILY).gif?.frameCount.max ?? 0) ||
       !Number.isInteger(options.frameDurationMs) ||
       Number(options.frameDurationMs) < 20 ||
       Number(options.frameDurationMs) > 2000

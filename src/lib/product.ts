@@ -613,13 +613,13 @@ export const JSONLD_NAMES = {
 
 export const JSONLD_DESCRIPTIONS = {
   prompt: `Generate, improve, and critique image prompts for ${TARGET_MODEL_NAME}. Generate is the primary workspace; Improve prompt and Critique are optional tools.`,
-  app: `Depikt is an AI image generator for ${TARGET_MODEL_NAME}, with a prompt library, templates, a reference gallery, and optional prompt-improvement tools. Generation is routed internally between GPT Image 2.5 models; users describe what they want rather than choosing a model.`,
+  app: "Depikt generates and edits images with Images 2.6 Flare and Sunburst, with a prompt library, templates, a reference gallery, and optional prompt-improvement tools. Automatic routing selects the model; historical library examples retain their original model labels.",
   library: `A curated collection of ${LIBRARY_PROMPT_COUNT} prompts across 10 categories: ${LEGACY_LIBRARY_COUNT} ${LEGACY_MODEL_NAME} examples and ${IMAGES_25_LIBRARY_COUNT} ${TARGET_MODEL_NAME} prompts with reviewed results.`,
   gallery:
     "A gallery of reference images you can attach in Generate as a style, subject, or composition reference.",
   /** Behind the native-generation feature flag. */
   generate:
-    "Generate and edit images from a prompt and optional reference images. Depikt resolves the requested format automatically and routes generation between GPT Image 2.5 Flare and Sunburst internally; there is no model or quality selector. Supports editing, regeneration, and version history.",
+    "Generate and edit images from a prompt and optional reference images. Depikt resolves the requested format automatically and routes generation between Images 2.6 Flare and Sunburst internally; there is no model or quality selector. Supports editing, regeneration, native SVG, and version history.",
 } as const;
 
 // ---------- library collection copy ----------
