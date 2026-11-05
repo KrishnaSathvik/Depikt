@@ -18,6 +18,7 @@ interface FakeOptions {
   liveError?: Error;
   refundError?: Error;
   refundReject?: Error;
+  transitionMissing?: boolean;
 }
 
 function createFakeSupabase(options: FakeOptions): {
@@ -47,7 +48,14 @@ function createFakeSupabase(options: FakeOptions): {
       };
       return query;
     },
-    rpc: async () => {
+    rpc: async (name: string) => {
+      if (name === "transition_generation_job") {
+        if (options.transitionMissing) return { data: null, error: { code: "PGRST202" } };
+        return {
+          data: options.updateData ? true : false,
+          error: options.updateError ?? null,
+        };
+      }
       refunds += 1;
       if (options.refundReject) throw options.refundReject;
       return { data: null, error: options.refundError ?? null };
@@ -202,6 +210,16 @@ test("still reports an applied timeout when refund RPC rejects", async () => {
     updateData: { id: staleJob.id },
     refundReject: new Error("network unavailable"),
   });
+
+  const result = await failAndRefundStaleJob(fake.client, staleJob, now);
+
+  assert.equal(result.applied, true);
+  assert.equal(result.status, "failed");
+  assert.equal(fake.refundCalls(), 1);
+});
+
+test("falls back to the legacy update while the transition function doesn't exist yet", async () => {
+  const fake = createFakeSupabase({ updateData: { id: staleJob.id }, transitionMissing: true });
 
   const result = await failAndRefundStaleJob(fake.client, staleJob, now);
 

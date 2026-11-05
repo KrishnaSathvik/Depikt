@@ -18,6 +18,7 @@ import type { GenerationDataAccess } from "./job-pipeline.ts";
 import { GENERATION_BUCKET, imageVersionStoragePath } from "./storage-paths.ts";
 import { asGenerationClient } from "./db-types.ts";
 import { settleJobCredits } from "./settle-credits.ts";
+import { transitionJob } from "./job-transition.ts";
 
 export function didUpdateRow<T>({ data, error }: { data: T | null; error: unknown }): boolean {
   if (error) throw error;
@@ -30,45 +31,15 @@ export function createSupabaseDataAccess(
   const supabase = asGenerationClient(supabaseIn);
   return {
     async markJobRunning(jobId) {
-      const { data, error } = await supabase
-        .from("generation_jobs")
-        .update({ status: "running", started_at: new Date().toISOString() })
-        .eq("id", jobId)
-        .in("status", ["queued", "running"])
-        .select("id")
-        .maybeSingle();
-      return didUpdateRow({ data, error });
+      return transitionJob(supabase, jobId, "running");
     },
 
     async markJobSucceeded(jobId, patch) {
-      const { data, error } = await supabase
-        .from("generation_jobs")
-        .update({
-          status: "succeeded",
-          completed_at: new Date().toISOString(),
-          usage_json: patch.usage,
-          estimated_api_cost_usd: patch.estimatedApiCostUsd,
-          openai_request_id: patch.openaiRequestId ?? null,
-        })
-        .eq("id", jobId)
-        .eq("status", "running")
-        .select("id")
-        .maybeSingle();
-      return didUpdateRow({ data, error });
+      return transitionJob(supabase, jobId, "succeeded", patch);
     },
 
     async markJobFailed(jobId, patch) {
-      const { error } = await supabase
-        .from("generation_jobs")
-        .update({
-          status: "failed",
-          completed_at: new Date().toISOString(),
-          error_code: patch.errorCode,
-          safe_error_message: patch.safeErrorMessage,
-        })
-        .eq("id", jobId)
-        .eq("status", "running");
-      if (error) throw error;
+      await transitionJob(supabase, jobId, "failed", patch);
     },
 
     async uploadImage(path, bytes, mimeType) {

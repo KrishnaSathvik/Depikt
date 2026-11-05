@@ -1,6 +1,8 @@
 import type { UntypedSupabaseClient } from "@/lib/generation/db-types";
 import { CREDIT_CHARGE_BUDGET_MS, raceWithTimeout } from "./timeout.ts";
 import { settleJobCredits } from "./settle-credits.ts";
+import { transitionJob } from "./job-transition.ts";
+import { generationMetric } from "./telemetry.ts";
 
 export const STALE_MS = 6 * 60 * 1000;
 
@@ -37,8 +39,10 @@ export async function settleSucceededJobCredits(
           amount: 1,
           idempotencyKey: job.idempotency_key,
         });
-      } catch {
-        return;
+      } catch (error) {
+        // Observable, not silent: the scheduled reaper reconciles what this misses.
+        console.error("credits_settle_failed", job.id, "charged", error);
+        generationMetric("credits_settle_failed", { jobId: job.id, outcome: "charged" });
       }
     })(),
     timeoutMs,
@@ -69,8 +73,10 @@ export async function failAndRefundStaleJob(
         amount: 1,
         idempotencyKey: job.idempotency_key,
       });
-    } catch {
-      return;
+    } catch (error) {
+      // Observable, not silent: the scheduled reaper reconciles what this misses.
+      console.error("credits_settle_failed", job.id, "refunded", error);
+      generationMetric("credits_settle_failed", { jobId: job.id, outcome: "refunded" });
     }
   };
 
@@ -91,24 +97,12 @@ export async function failAndRefundStaleJob(
     };
   }
 
-  const { data, error } = await supabase
-    .from("generation_jobs")
-    .update({
-      status: "failed",
-      completed_at: now.toISOString(),
-      error_code: "timed_out",
-      safe_error_message: STALE_ERROR_MESSAGE,
-    })
-    .eq("id", job.id)
-    .in("status", ["queued", "running"])
-    .select("id")
-    .maybeSingle();
+  const applied = await transitionJob(supabase, job.id, "failed", {
+    errorCode: "timed_out",
+    safeErrorMessage: STALE_ERROR_MESSAGE,
+  });
 
-  if (error) {
-    throw error;
-  }
-
-  if (!data) {
+  if (!applied) {
     const { data: liveJob, error: liveError } = await supabase
       .from("generation_jobs")
       .select("status, error_code, safe_error_message")

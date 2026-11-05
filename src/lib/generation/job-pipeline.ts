@@ -280,12 +280,19 @@ export async function runGenerationJob(
     if (imageStarted !== null && imageMs === 0) imageMs = Date.now() - imageStarted;
     const { errorCode, safeErrorMessage } = categorizeError(err);
     // Never let a failure in the failure path leave the reservation stuck:
-    // mark-failed and refund are independent, best-effort steps.
-    await data.markJobFailed(job.id, { errorCode, safeErrorMessage }).catch(() => {});
+    // mark-failed and refund are independent, best-effort steps. Failures are
+    // logged and metered — the scheduled reaper reconciles what this misses.
+    await data.markJobFailed(job.id, { errorCode, safeErrorMessage }).catch((markError) => {
+      console.error("job_mark_failed_error", job.id, markError);
+      generationMetric("credits_settle_failed", { ...metric, outcome: "mark_failed" });
+    });
     await data
       .finalizeCredits(job.userId, 1, job.idempotencyKey, "refunded", job.id)
       .then(() => generationMetric("credits_settled", { ...metric, refunded: 1 }))
-      .catch(() => {});
+      .catch((settleError) => {
+        console.error("credits_settle_failed", job.id, "refunded", settleError);
+        generationMetric("credits_settle_failed", { ...metric, outcome: "refunded" });
+      });
     generationMetric("generation_completed", {
       ...metric,
       outcome: errorCode,
@@ -307,7 +314,10 @@ export async function runGenerationJob(
     }),
     CREDIT_CHARGE_BUDGET_MS,
     { availableCredits: 0 },
-  ).catch(() => {});
+  ).catch((settleError) => {
+    console.error("credits_settle_failed", job.id, "charged", settleError);
+    generationMetric("credits_settle_failed", { ...metric, outcome: "charged" });
+  });
 
   generationMetric("generation_completed", {
     ...metric,

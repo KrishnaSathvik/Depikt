@@ -15,7 +15,7 @@ import { saveEntityResume, readEntityResume, clearEntityResume } from "./entity-
 // logic instead of three separate implementations. See
 // docs/plans/2026-09-10-inline-generation-workspace.md.
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthProviderId } from "@/lib/auth/providers";
@@ -171,6 +171,7 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
   // on terminal transitions during poll, not on resume of already-finished jobs.
   const pollChildStatusRef = useRef<Map<string, GenerationChildJob["status"]>>(new Map());
   const pollBaselineRef = useRef<{ sessionId: string; seeded: boolean } | null>(null);
+  const pollSettledCountRef = useRef(0);
   const sourceContextRef = useRef(sourceContext);
   sourceContextRef.current = sourceContext;
   // Remembers the params of the last submit() so regenerate()/applyEdit() can
@@ -256,7 +257,7 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
   // Load the authoritative balance once signed in. A failed fetch still
   // marks credits resolved so Generate is not stuck waiting; the server
   // remains authoritative on /plans and /jobs.
-  useEffect(() => {
+  const refreshCredits = useCallback(() => {
     if (!user) {
       setCredits(null);
       setCreditsResolved(false);
@@ -269,7 +270,20 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
         if (r.availableCredits > 0) setCreditState("ok");
       })
       .catch(() => setCreditsResolved(true));
-  }, [user, phase]);
+  }, [user]);
+
+  useEffect(() => {
+    refreshCredits();
+  }, [refreshCredits, phase]);
+
+  // Another tab settling a job (charge or refund) leaves this tab's balance
+  // stale; refetch when the window regains focus.
+  useEffect(() => {
+    if (!user) return;
+    const onFocus = () => refreshCredits();
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [user, refreshCredits]);
 
   // Resume a Generate click that arrived while auth or credits were hydrating.
   useEffect(() => {
@@ -470,6 +484,7 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
     saveActiveSession(sessionId);
     pollStart.current = Date.now();
     pollChildStatusRef.current = new Map();
+    pollSettledCountRef.current = 0;
     if (queuedJobs) {
       for (const child of queuedJobs) {
         pollChildStatusRef.current.set(child.id, "queued");
@@ -532,6 +547,14 @@ export function useGeneration({ sourceContext, resumeAllSources = false }: UseGe
 
         setJobs(detailed);
         setVersions(snapshot.versions);
+        // Charges and refunds land as children reach a terminal state; refresh
+        // the displayed balance each time the settled count grows (series
+        // partial completion included), not only on phase changes.
+        const settledCount = detailed.filter((child) => isTerminalStatus(child.status)).length;
+        if (settledCount > (pollSettledCountRef.current ?? 0)) {
+          pollSettledCountRef.current = settledCount;
+          refreshCredits();
+        }
         const usable = detailed.find((child) => child.status === "succeeded" && child.result?.url);
         if (usable) {
           setPhase("result");

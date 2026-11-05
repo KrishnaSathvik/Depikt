@@ -58,7 +58,8 @@ export function generationMetric(
     | "grounding_completed"
     | "validation_completed"
     | "repair_completed"
-    | "credits_settled",
+    | "credits_settled"
+    | "credits_settle_failed",
   values: GenerationMetric,
   write: (value: string) => void = console.info,
 ): void {
