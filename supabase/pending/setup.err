@@ -1,2 +1,0 @@
-psql: error: connection to server on socket "/tmp/credit-fix/sock/.s.PGSQL.55432" failed: No such file or directory
-	Is the server running locally and accepting connections on that socket?
