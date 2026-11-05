@@ -168,8 +168,8 @@ test("Generate exposes Improve prompt and Critique as secondary tools and a comp
     read("src/components/composer/CreatorLayout.tsx"),
     /role="radiogroup"\n?\s*aria-label="Aspect ratio"/,
   );
-  assert.match(gen, /· 1 credit/);
-  assert.doesNotMatch(gen, /Generate image → · 1 credit/);
+  assert.match(gen, />\s*1 credit\s*</);
+  assert.doesNotMatch(gen, /Generate image → 1 credit/);
   assert.match(gen, /Preparing your request/);
   const prompt = read("src/lib/creator-search.ts");
   assert.match(prompt, /if \(value === "build"\) return "build"/);

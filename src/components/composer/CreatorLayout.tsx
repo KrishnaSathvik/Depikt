@@ -30,7 +30,23 @@ const RATIOS: ReadonlyArray<{ value: string | null; label: string; w: number; h:
   { value: "9:16", label: "9:16", w: 9, h: 16 },
 ];
 
-/** Visual aspect-ratio choice: each option shows its shape. A radio group, keyboard-native. */
+/**
+ * Every shape icon is drawn inside the same 16×16 envelope so the row never
+ * jumps: the tallest portrait and the widest landscape occupy identical space.
+ */
+const ICON_BOX = 16;
+const ICON_MAX = 14;
+
+function iconSize(w: number, h: number) {
+  const scale = ICON_MAX / Math.max(w, h);
+  return { width: Math.round(w * scale), height: Math.round(h * scale) };
+}
+
+/**
+ * Aspect ratio as one segmented control: a single hairline track holding all
+ * six choices at equal weight, the picked one filled with ink. A radio group,
+ * keyboard-native.
+ */
 export function RatioPicker({
   value,
   onChange,
@@ -42,7 +58,7 @@ export function RatioPicker({
     <div
       role="radiogroup"
       aria-label="Aspect ratio"
-      className="grid w-full grid-cols-6 items-center gap-0.5 sm:inline-flex sm:w-auto sm:gap-1"
+      className="grid w-full grid-cols-6 gap-0.5 rounded-full border border-[color:var(--border-default)] bg-[color:var(--bg-elevated)] p-1 sm:inline-grid sm:w-auto sm:grid-cols-[repeat(6,minmax(0,auto))] sm:gap-1"
       onKeyDown={(event) => {
         const step =
           event.key === "ArrowRight" || event.key === "ArrowDown"
@@ -61,6 +77,7 @@ export function RatioPicker({
     >
       {RATIOS.map((r) => {
         const selected = value === r.value;
+        const { width, height } = iconSize(r.w, r.h);
         return (
           <button
             key={r.label}
@@ -70,25 +87,30 @@ export function RatioPicker({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(r.value)}
             className={cn(
-              "inline-flex min-h-10 min-w-0 items-center justify-center gap-1 rounded-full border px-1 text-[12px] sm:shrink-0 sm:gap-1.5 sm:px-2.5 font-medium transition-colors sm:min-h-8",
+              "inline-flex min-h-9 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-1.5 sm:px-2.5 sm:text-[13px]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]",
               selected
-                ? "border-[color:var(--text-primary)] text-[color:var(--text-primary)]"
-                : "border-transparent text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]",
+                ? "bg-[color:var(--text-primary)] text-[color:var(--accent-text)]"
+                : "text-[color:var(--text-tertiary)] hover:text-[color:var(--text-primary)]",
             )}
           >
-            {r.value === null ? (
-              <span
-                aria-hidden
-                className="h-3 w-3 rounded-[3px] border-[1.5px] border-dashed border-current"
-              />
-            ) : (
-              <span
-                aria-hidden
-                className="rounded-[2px] border-[1.5px] border-current"
-                style={{ width: r.w, height: r.h }}
-              />
-            )}
+            <span
+              aria-hidden
+              className="grid shrink-0 place-items-center"
+              style={{ width: ICON_BOX, height: ICON_BOX }}
+            >
+              {r.value === null ? (
+                <span
+                  className="rounded-[3px] border-[1.5px] border-dashed border-current"
+                  style={{ width, height }}
+                />
+              ) : (
+                <span
+                  className="rounded-[2px] border-[1.5px] border-current"
+                  style={{ width, height }}
+                />
+              )}
+            </span>
             {r.label}
           </button>
         );

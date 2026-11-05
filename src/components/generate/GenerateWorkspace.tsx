@@ -222,10 +222,10 @@ export function GenerateWorkspace({
                 </>
               }
               caption={
-                <div className="flex w-full flex-col items-start gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+                <div className="flex w-full flex-col items-start gap-1.5 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
                   <RatioPicker value={structuredRatio} onChange={setStructuredRatio} />
-                  <span className="whitespace-nowrap">
-                    <span className="hidden sm:inline">· </span>1 credit
+                  <span className="whitespace-nowrap text-[12px] text-[color:var(--text-tertiary)]">
+                    1 credit
                   </span>
                 </div>
               }
