@@ -53,6 +53,7 @@ export function AnimatedMediaPreview({
       <div className="absolute bottom-2 left-2 flex items-center gap-2 bg-background p-1 text-foreground">
         <Button
           size="icon"
+          className="min-h-11 min-w-11"
           variant="outline"
           aria-label={playing ? "Pause animation" : "Play animation"}
           title={playing ? "Pause animation" : "Play animation"}
@@ -62,6 +63,7 @@ export function AnimatedMediaPreview({
         </Button>
         <Button
           size="icon"
+          className="min-h-11 min-w-11"
           variant="outline"
           aria-label="Restart animation"
           title="Restart animation"

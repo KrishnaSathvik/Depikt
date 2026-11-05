@@ -86,10 +86,14 @@ export function GenerationEditForm({
   }
 
   return (
-    <div className="space-y-3 rounded-md border border-[color:var(--border-subtle)] p-4">
+    <div className="space-y-4">
       <p className="text-body-sm font-medium text-[color:var(--text-primary)]">Edit image</p>
       {canSelectArea && (
-        <div aria-label="Edit mode" className="flex flex-wrap gap-2">
+        <div
+          role="group"
+          aria-label="Edit mode"
+          className="flex flex-wrap gap-2 [&>button]:min-h-11"
+        >
           <Button
             type="button"
             size="sm"

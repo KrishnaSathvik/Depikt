@@ -6,8 +6,9 @@ export function isNativeGenerationEnabled(explicitValue?: string): boolean {
   // into the server artifact. Runtime true does not override a disabled build.
   const runtime = typeof process !== "undefined" ? process.env.GENERATION_ENABLED : undefined;
   if (runtime === "false") return false;
-  const fromVite = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
-    ?.VITE_GENERATION_ENABLED;
+  // Keep the direct Vite expression: optional chaining leaves import.meta.env
+  // unresolved in the preview's browser bundle instead of replacing the flag.
+  const fromVite = import.meta.env.VITE_GENERATION_ENABLED;
   return (explicitValue ?? fromVite ?? runtime) === "true";
 }
 

@@ -1,6 +1,7 @@
 import { CreatorDraftProvider, useCreatorDraft } from "@/components/CreatorDraft";
 import { TOOL } from "@/lib/product";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useHydrated, useNavigate, useSearch } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
 import { GenerateWorkspace } from "@/components/generate/GenerateWorkspace";
 import { BuildMode } from "@/components/prompt/BuildMode";
 import { CritiqueMode } from "@/components/prompt/CritiqueMode";
@@ -39,7 +40,8 @@ function WorkspaceTools() {
   const { setPrompt } = useCreatorDraft();
   const search = useSearch({ from: "/" });
   const navigate = useNavigate();
-  const generationEnabled = isNativeGenerationEnabled();
+  const hydrated = useHydrated();
+  const generationEnabled = hydrated && isNativeGenerationEnabled();
   const MODES = generationEnabled ? ALL_MODES : ALL_MODES.filter((m) => m.id !== "generate");
   const requestedMode = parsePromptMode(search.mode);
   // Generate is gated by the feature flag; a stale link/bookmark with
@@ -102,7 +104,8 @@ function WorkspaceTools() {
             const selected = m.id === mode;
             const Icon = MODE_ICONS[m.id];
             return (
-              <button
+              <Button
+                variant="ghost"
                 key={m.id}
                 type="button"
                 role="tab"
@@ -131,7 +134,7 @@ function WorkspaceTools() {
                 }}
                 onClick={() => switchMode(m.id)}
                 className={cn(
-                  "inline-flex min-h-11 min-w-0 flex-auto items-center justify-center gap-2 rounded-full px-3 text-[13px] font-medium transition-colors sm:min-h-9 sm:flex-none sm:px-4 sm:text-body-sm",
+                  "inline-flex min-h-11 min-w-0 flex-auto items-center justify-center gap-2 rounded-full px-3 text-[13px] font-medium transition-colors sm:flex-none sm:px-4 sm:text-body-sm",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)] focus-visible:ring-offset-1",
                   selected
                     ? "bg-[color:var(--text-primary)] text-[color:var(--bg)]"
@@ -140,14 +143,13 @@ function WorkspaceTools() {
               >
                 <Icon className="hidden h-4 w-4 shrink-0 min-[420px]:block" aria-hidden />
                 <span className="truncate">{m.label}</span>
-              </button>
+              </Button>
             );
           })}
         </div>
         <div className="mx-auto mb-8 mt-8 max-w-[880px] text-center sm:mb-10 sm:mt-12">
-          <h2 className="text-balance text-[30px] font-semibold leading-[1.08] tracking-[-0.03em] text-[color:var(--text-primary)] sm:text-[44px]">
-            {MODE_HEADLINES[activeMode.id][0]}{" "}
-            <span className="studio-gradient-text">{MODE_HEADLINES[activeMode.id][1]}</span>
+          <h2 className="text-balance text-[30px] font-medium leading-[1.15] text-foreground sm:text-[44px]">
+            {MODE_HEADLINES[activeMode.id][0]} <span>{MODE_HEADLINES[activeMode.id][1]}</span>
           </h2>
           <p
             id="creator-mode-hint"

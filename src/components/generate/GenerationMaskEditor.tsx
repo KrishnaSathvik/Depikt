@@ -45,7 +45,7 @@ export function GenerationMaskEditor({
     const pixels = rasterizeMask(strokes, sourceWidth, sourceHeight);
     const preview = new Uint8ClampedArray(pixels.length);
     for (let i = 0; i < pixels.length; i += 4) {
-      const opacity = pixels[i + 3]!;
+      const opacity = pixels[i + 3] ?? 0;
       if (opacity === 0) continue;
       preview[i + 3] = Math.round(opacity * PREVIEW_ALPHA);
     }
@@ -139,10 +139,10 @@ export function GenerationMaskEditor({
           value={brushRadius}
           onChange={(e) => onBrushRadiusChange(Number(e.target.value))}
           aria-label="Brush size"
-          className="block h-1.5 w-full cursor-pointer appearance-none rounded-full bg-[color:var(--border-subtle)] accent-[color:var(--accent)]"
+          className="block min-h-11 w-full cursor-pointer accent-[color:var(--accent)]"
         />
       </label>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 [&>button]:min-h-11">
         <Button
           type="button"
           size="sm"

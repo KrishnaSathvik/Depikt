@@ -1,5 +1,9 @@
 # Depikt — Engineering Decisions
 
+- Feature-dependent presentation hydrates before reading runtime-sensitive generation flags; server execution gates remain authoritative. Why: SSR and browser configuration can differ, and must not produce mismatched markup.
+- Creation retains one shared draft and generation hook; advanced output settings are disclosed in place, and unavailable paid media remains gated. Why: progressive disclosure must not introduce a parallel execution workflow.
+- Markup preview drawing is animation-frame scheduled and PNG encoding happens only after stroke completion. Why: dragging large images must not repeatedly encode full-resolution media.
+
 - External research (grounding) is best-effort: a failed lookup degrades the plan to prompt-only generation instead of aborting the request. A helper feature must never cancel the work the user asked for.
 - Signed-in code settles generation credits only through `settle_generation_job(job_id, outcome)`; raw credit functions (finalize, reserve, adjust, top-up, grants, resets) are service_role-only. Why: callers must never choose the account, amount or key, and each reservation gets exactly one outcome.
 - Job state changes go through `transition_generation_job` / `save_generation_job_validation` (via `src/lib/generation/job-transition.ts`), never direct UPDATEs on `generation_jobs`; the RPCs enforce valid transitions and field allowlists. Why: a signed-in user must not be able to rewrite job status, error codes, usage or validation results. `job-transition.ts` keeps a legacy direct-update fallback that is only reachable before the Step 2 migration is applied.

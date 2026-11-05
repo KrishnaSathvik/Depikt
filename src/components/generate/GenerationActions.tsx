@@ -57,7 +57,7 @@ export function GenerationActions({
         variant="default"
         onClick={onRegenerate}
         disabled={disabled}
-        className={`studio-cta flex-1 sm:flex-none sm:basis-auto ${onNew ? "basis-[calc(50%-4px)]" : "basis-full"}`}
+        className="studio-cta min-h-11 w-full whitespace-normal sm:w-auto"
       >
         <RefreshCw className="mr-1.5 h-4 w-4" /> Regenerate image · 1 credit
       </Button>

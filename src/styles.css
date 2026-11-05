@@ -187,7 +187,7 @@
     font-family: var(--font-sans);
     color: var(--text-primary);
     font-weight: 500;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     text-wrap: balance;
   }
 
@@ -557,7 +557,7 @@
 .studio {
   --studio-hot: #ff6a3d;
   --studio-violet: #8b5cf6;
-  --studio-track: rgba(17, 17, 17, 0.04);
+  --studio-track: var(--bg-subtle);
 
   position: relative;
   isolation: isolate;
@@ -567,7 +567,7 @@
 
 /* Soft light leaks behind the tool. */
 .studio::before {
-  content: "";
+  content: none;
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -593,33 +593,27 @@
 
 /* Glass composer with a warm glow while you type. */
 .studio .composer-shell {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  box-shadow:
-    0 1px 2px rgba(17, 17, 17, 0.04),
-    0 24px 60px -28px rgba(17, 17, 17, 0.18);
+  background: var(--bg);
+  box-shadow: none;
 }
 .studio .composer-shell:focus-within {
-  border-color: rgba(255, 106, 61, 0.45);
-  box-shadow:
-    0 0 0 4px rgba(255, 106, 61, 0.1),
-    0 28px 70px -26px rgba(255, 106, 61, 0.35);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
 }
 .studio .composer-footer {
-  background: rgba(17, 17, 17, 0.015);
+  background: var(--bg);
 }
 /* The one primary action in each tool gets the studio's warmth. */
 .studio .composer-footer > button:not(:disabled),
 .studio .studio-cta:not(:disabled) {
-  background: var(--brand-gradient);
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-text);
   border-color: transparent;
-  box-shadow: var(--brand-glow);
+  box-shadow: none;
 }
 .studio .composer-footer > button:not(:disabled):hover,
 .studio .studio-cta:not(:disabled):hover {
-  filter: brightness(1.06);
+  background: var(--accent-hover);
 }
 .studio .composer-footer > button:disabled {
   background: var(--bg-subtle);

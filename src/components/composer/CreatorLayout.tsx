@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 /**
  * Idle creator layout: the composer full width, then mode-specific starters
@@ -79,7 +80,8 @@ export function RatioPicker({
         const selected = value === r.value;
         const { width, height } = iconSize(r.w, r.h);
         return (
-          <button
+          <Button
+            variant="ghost"
             key={r.label}
             type="button"
             role="radio"
@@ -87,7 +89,7 @@ export function RatioPicker({
             tabIndex={selected ? 0 : -1}
             onClick={() => onChange(r.value)}
             className={cn(
-              "inline-flex min-h-9 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-[12px] font-medium transition-colors sm:min-h-7 sm:gap-1.5 sm:px-2.5 sm:text-[13px]",
+              "inline-flex min-h-11 min-w-0 items-center justify-center gap-1 rounded-full px-1 text-[12px] font-medium transition-colors sm:gap-1.5 sm:px-2.5 sm:text-[13px]",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--accent)]",
               selected
                 ? "bg-[color:var(--text-primary)] text-[color:var(--accent-text)]"
@@ -112,7 +114,7 @@ export function RatioPicker({
               )}
             </span>
             {r.label}
-          </button>
+          </Button>
         );
       })}
     </div>

@@ -204,7 +204,9 @@ export function GenerateWorkspace({
         )}
         <GenerationCreditGate gen={gen} className="mt-4" />
         {gen.errorMessage && gen.creditState !== "exhausted" && (
-          <p className="mt-3 text-body-sm text-red-600">{gen.errorMessage}</p>
+          <p role="alert" className="mt-3 text-body-sm text-destructive">
+            {gen.errorMessage}
+          </p>
         )}
         <div className="mx-auto max-w-[880px] space-y-8">
           <div className="space-y-4">
@@ -250,6 +252,12 @@ export function GenerateWorkspace({
               onFrames={setFrameCount}
               onDuration={setFrameDurationMs}
             />
+            {outputFormat !== "png" &&
+              (gen.references.length > 0 || selectedEntities.length > 0) && (
+                <p role="status" className="text-body-sm text-muted-foreground">
+                  References require PNG output. Choose PNG to keep your attached references.
+                </p>
+              )}
             {placeholders.length > 0 && (
               <div
                 role="status"
@@ -565,14 +573,15 @@ function ComposerSurface({
                   </div>
                 )}
                 {r.error && (
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => onRetryReference(i)}
-                    aria-label="Retry attaching reference"
-                    className="absolute inset-0 flex items-center justify-center bg-white/85"
+                    aria-label={`Retry attaching reference ${i + 1}`}
+                    className="absolute inset-0 flex items-center justify-center bg-background/85 p-0"
                   >
                     <RefreshCw className="h-3 w-3" />
-                  </button>
+                  </Button>
                 )}
               </div>
               <span className="flex flex-col leading-tight">
@@ -583,14 +592,15 @@ function ComposerSurface({
                   {REFERENCES_COPY.oneOffScope}
                 </span>
               </span>
-              <button
+              <Button
+                variant="ghost"
                 type="button"
-                aria-label="Remove reference"
+                aria-label={`Remove reference ${i + 1}`}
                 onClick={() => onRemoveReference(i)}
-                className="ml-1 inline-flex h-10 w-10 items-center justify-center rounded text-[color:var(--text-tertiary)] transition-colors hover:bg-[color:var(--bg-elevated)] hover:text-[color:var(--text-primary)] sm:h-7 sm:w-7"
+                className="ml-1 inline-flex min-h-11 min-w-11 items-center justify-center rounded p-0 text-muted-foreground"
               >
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </Button>
             </div>
           ))}
           {references.length < MAX_REFERENCE_IMAGES_V1 && (
@@ -656,16 +666,17 @@ function VersionStrip({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    <div aria-label="Image versions" className="flex gap-2 overflow-x-auto pb-2">
       {versions.map((v, i) => {
         const label = versionLineageLabel(v, versions, jobs);
         return (
-          <button
+          <Button
+            variant="ghost"
             key={v.id}
             type="button"
             onClick={() => onSelect(v.id)}
             aria-current={v.id === activeId ? "true" : undefined}
-            className={`shrink-0 overflow-hidden rounded border text-left ${
+            className={`h-auto shrink-0 flex-col gap-0 overflow-hidden rounded border p-0 text-left ${
               v.id === activeId
                 ? "border-[color:var(--text-primary)]"
                 : "border-[color:var(--border-subtle)]"
@@ -680,7 +691,7 @@ function VersionStrip({
             <span className="sr-only">
               {label}, version {i + 1}
             </span>
-          </button>
+          </Button>
         );
       })}
     </div>

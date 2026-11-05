@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useHydrated } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { ANNOUNCEMENT, isAnnouncementLive } from "@/lib/product";
 import { GENERATE_INSPIRATION } from "@/data/generate-inspiration";
@@ -14,7 +14,8 @@ import { isNativeGenerationEnabled } from "@/lib/generation/feature-flag";
 export function LaunchModule() {
   const a = ANNOUNCEMENT;
   const live = isAnnouncementLive(a);
-  const generationEnabled = isNativeGenerationEnabled();
+  const hydrated = useHydrated();
+  const generationEnabled = hydrated && isNativeGenerationEnabled();
   const libraryLink = { page: 1, view: "browse", collection: a.primary.collection } as const;
 
   // The announcement's picks first, then the rest of the reviewed text-to-image results.

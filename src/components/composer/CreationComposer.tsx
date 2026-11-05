@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ScrollRow } from "@/components/ScrollRow";
 import type { ComposerExample } from "@/data/composer-examples";
+import { Button } from "@/components/ui/button";
 
 export interface CreationComposerProps {
   /** The textarea itself — callers keep full control of ref/value/onKeyDown/onPaste/drag-drop. */
@@ -22,7 +23,7 @@ export interface CreationComposerProps {
  * share one input density. Critique may append `font-mono` for pasted prompts.
  */
 export const COMPOSER_TEXTAREA_CLASS =
-  "resize-none [field-sizing:content] min-h-[168px] max-h-[44vh] overflow-y-auto text-[17px] leading-[1.6] px-5 pt-5 pb-4 sm:px-6 sm:text-[19px] placeholder:text-[color:var(--text-quaternary)]";
+  "resize-none [field-sizing:content] min-h-[168px] max-h-[44vh] overflow-y-auto text-[17px] leading-[1.6] px-5 pt-5 pb-4 sm:px-6 sm:text-[19px] placeholder:text-muted-foreground";
 
 /**
  * One visual language for every control in the composer's tool row and
@@ -74,7 +75,9 @@ export function CreationComposer({
         </div>
       )}
       <div className="composer-footer flex flex-wrap items-center justify-between gap-3 border-t border-[color:var(--border-subtle)] px-4 py-3 sm:px-5 [&>button]:min-h-11 [&>button]:w-full [&>button]:rounded-full [&>button]:px-5 sm:[&>button]:min-h-10 sm:[&>button]:w-auto">
-        <div className="w-full min-w-0 text-body-sm text-[color:var(--text-secondary)] sm:w-auto">{caption}</div>
+        <div className="w-full min-w-0 text-body-sm text-[color:var(--text-secondary)] sm:w-auto">
+          {caption}
+        </div>
         {submit}
       </div>
     </div>
@@ -103,7 +106,8 @@ export function ComposerChips({
       <p className="eyebrow">{label}</p>
       <ScrollRow ariaLabel={label} innerClassName="gap-2.5 pb-0.5">
         {chips.map((chip) => (
-          <button
+          <Button
+            variant="outline"
             key={chip.label}
             type="button"
             onClick={() => onSelect(chip.text)}
@@ -122,7 +126,7 @@ export function ComposerChips({
                 {chip.hint}
               </span>
             )}
-          </button>
+          </Button>
         ))}
       </ScrollRow>
     </div>

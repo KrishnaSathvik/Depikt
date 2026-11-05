@@ -5,7 +5,7 @@ import { ToolErrorNote } from "@/components/composer/ToolErrorNote";
 import { ImproveShowcase } from "@/components/composer/ModeShowcase";
 import { ReferencePackPicker } from "@/components/generate/ReferencePackPicker";
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useHydrated, useNavigate } from "@tanstack/react-router";
 import {
   Sparkles,
   Copy,
@@ -118,6 +118,8 @@ export function BuildMode({
   onUsePrompt,
   onCritiquePrompt,
 }: BuildModeProps) {
+  const hydrated = useHydrated();
+  const generationEnabled = hydrated && isNativeGenerationEnabled();
   const { seed, prefill, remixRef, restore, ref, template: templateSlug } = search;
   // One shared generation execution path — see docs/plans/2026-09-10-inline-
   // generation-workspace.md. "Generate image" starts the job inline, right
@@ -605,7 +607,7 @@ export function BuildMode({
                         value={reference}
                         onChange={setReference}
                       />
-                      {isNativeGenerationEnabled() && (
+                      {generationEnabled && (
                         <ReferencePackPicker
                           selected={selectedEntities}
                           onChange={setSelectedEntities}
@@ -626,13 +628,6 @@ export function BuildMode({
                   <span>
                     <span className="font-medium text-[color:var(--text-primary)]">Free</span>
                     <span className="text-[color:var(--text-tertiary)]"> · no credits used</span>
-                    <span className="hidden sm:inline">
-                      {" "}
-                      · or press{" "}
-                      <kbd className="rounded-sm border border-[color:var(--border-subtle)] bg-[color:var(--bg-subtle)] px-1.5 py-0.5 font-mono text-[11px]">
-                        {navigator.platform?.toUpperCase().includes("MAC") ? "⌘" : "Ctrl"} Enter
-                      </kbd>
-                    </span>
                   </span>
                 }
                 submit={
@@ -728,14 +723,14 @@ export function BuildMode({
                 onMoreVariations={fetchMoreVariations}
                 onNewPrompt={handleNewPrompt}
                 onGenerate={
-                  isNativeGenerationEnabled()
+                  generationEnabled
                     ? (promptText) => void handleGenerateImage(promptText, result, reference)
                     : undefined
                 }
                 onCritique={(promptText) => onCritiquePrompt?.(promptText)}
               />
             )}
-            {(activeGenPrompt || result?.prompt) && isNativeGenerationEnabled() && (
+            {(activeGenPrompt || result?.prompt) && generationEnabled && (
               <>
                 <GenerationCreditGate gen={gen} className="mt-6" />
                 <SeriesConfirmPanel gen={gen} className="mt-6" />

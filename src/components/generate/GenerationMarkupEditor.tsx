@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type PointerEvent, type KeyboardEvent } from "react";
 import { Pencil, MoveUpRight, Circle, Square, Type, Undo2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecoverableImage } from "@/components/RecoverableImage";
@@ -83,20 +83,32 @@ export function GenerationMarkupEditor({
   const active = useRef<number | null>(null);
   const anchor = useRef<Point | null>(null);
   const cursor = useRef<Point>({ x: 0.5, y: 0.5 });
+  const instructionsId = useId();
+  const [keyboardCursor, setKeyboardCursor] = useState<Point | null>(null);
+  const [announcement, setAnnouncement] = useState("");
+  const [completed, setCompleted] = useState(0);
   const [tool, setTool] = useState<Tool>("pen");
   const [text, setText] = useState("");
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    drawAnnotations(canvas, annotations);
-    if (!annotations.length) {
+    let cancelled = false;
+    const frame = requestAnimationFrame(() => {
+      drawAnnotations(canvas, annotations);
       callbackRef.current(null);
-      return;
-    }
-    const b64 = canvas.toDataURL("image/png").split(",")[1];
-    callbackRef.current(b64 ? Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)) : null);
-  }, [annotations, width, height]);
+      if (!annotations.length || anchor.current) return;
+      canvas.toBlob(async (blob) => {
+        if (!blob || cancelled) return;
+        const bytes = new Uint8Array(await blob.arrayBuffer());
+        if (!cancelled) callbackRef.current(bytes);
+      }, "image/png");
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [annotations, width, height, completed]);
   const point = (e: PointerEvent<HTMLCanvasElement>): Point => {
     const rect = e.currentTarget.getBoundingClientRect();
     return {
@@ -124,6 +136,8 @@ export function GenerationMarkupEditor({
   const end = () => {
     active.current = null;
     anchor.current = null;
+    setCompleted((n) => n + 1);
+    setAnnouncement("Annotation completed.");
   };
   const key = (e: KeyboardEvent<HTMLCanvasElement>) => {
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
@@ -144,11 +158,19 @@ export function GenerationMarkupEditor({
           ),
         ),
       };
+      setKeyboardCursor({ ...cursor.current });
+      setAnnouncement(
+        `Position ${Math.round(cursor.current.x * 100)} percent across, ${Math.round(cursor.current.y * 100)} percent down.`,
+      );
       if (anchor.current) move(cursor.current);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       if (anchor.current) end();
-      else start(cursor.current);
+      else {
+        start(cursor.current);
+        setAnnouncement("Annotation started.");
+        if (tool === "text") end();
+      }
     } else if (e.key === "Escape") end();
     else if ((e.ctrlKey || e.metaKey) && e.key === "z") {
       e.preventDefault();
@@ -157,7 +179,18 @@ export function GenerationMarkupEditor({
   };
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap gap-2" aria-label="Annotation tools">
+      <p id={instructionsId} className="sr-only">
+        Use arrow keys to move the cursor. Enter or Space starts and finishes a shape or places a
+        text label. Escape finishes the stroke. Control or Command Z undoes.
+      </p>
+      <p role="status" className="sr-only">
+        {announcement}
+      </p>
+      <div
+        role="group"
+        className="flex flex-wrap gap-2 [&>button]:min-h-11 [&>button]:min-w-11"
+        aria-label="Annotation tools"
+      >
         {TOOLS.map(({ tool: choice, label, Icon }) => (
           <Button
             key={choice}
@@ -214,11 +247,15 @@ export function GenerationMarkupEditor({
           height={height}
           tabIndex={0}
           aria-label="Markup canvas"
+          aria-describedby={instructionsId}
           className="absolute inset-0 h-full w-full touch-none cursor-crosshair focus-visible:outline focus-visible:outline-2 focus-visible:outline-ring"
           onKeyDown={key}
+          onFocus={() => setKeyboardCursor({ ...cursor.current })}
+          onBlur={() => setKeyboardCursor(null)}
           onPointerDown={(e) => {
             if (e.button !== 0 || active.current !== null) return;
             e.preventDefault();
+            setKeyboardCursor(null);
             active.current = e.pointerId;
             e.currentTarget.setPointerCapture(e.pointerId);
             start(point(e));
@@ -230,6 +267,22 @@ export function GenerationMarkupEditor({
           onPointerCancel={end}
           onLostPointerCapture={end}
         />
+        {keyboardCursor && (
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            className="pointer-events-none absolute inset-0 h-full w-full text-foreground"
+          >
+            <path
+              d={`M ${keyboardCursor.x * 100 - 2} ${keyboardCursor.y * 100} h 4 M ${keyboardCursor.x * 100} ${keyboardCursor.y * 100 - 2} v 4`}
+              fill="none"
+              stroke="currentColor"
+              vectorEffect="non-scaling-stroke"
+              strokeWidth="2"
+            />
+          </svg>
+        )}
       </div>
     </div>
   );
